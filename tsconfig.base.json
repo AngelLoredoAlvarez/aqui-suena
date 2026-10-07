@@ -18,6 +18,8 @@
     "paths": {
       "@aqui/config": ["packages/config/src"],
       "@aqui/config/*": ["packages/config/src/*"],
+      "@aqui/navigation": ["packages/navigation/src"],
+      "@aqui/navigation/*": ["packages/navigation/src/*"],
       "@aqui/ui": ["packages/ui/src"],
       "@aqui/ui/*": ["packages/ui/src/*"]
     }

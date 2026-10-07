@@ -269,6 +269,16 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/navigation:
+    dependencies:
+      solito:
+        specifier: 5.0.0
+        version: 5.0.0
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/ui:
     dependencies:
       '@aqui/config':
@@ -278,6 +288,12 @@ importers:
         specifier: 2.7.7
         version: 2.7.7(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
     devDependencies:
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -3680,6 +3696,9 @@ packages:
   slugify@1.6.9:
     resolution: {integrity: sha512-vZ7rfeehZui7wQs438JXBckYLkIIdfHOXsaVEUMyS5fHo1483l1bMdo0EDSWYclY0yZKFOipDy4KHuKs6ssvdg==}
     engines: {node: '>=8.0.0'}
+
+  solito@5.0.0:
+    resolution: {integrity: sha512-1awqIzlo8U58rkZ8DMxeM7hLjgbQPpmynir7qlu2dKb0DTb0F1zP+FzpCd5gM52QpTtwhGNl3hkkNwZaeLCTFg==}
 
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
@@ -9005,6 +9024,10 @@ snapshots:
   sisteransi@1.0.5: {}
 
   slugify@1.6.9: {}
+
+  solito@5.0.0:
+    dependencies:
+      typescript: 5.9.3
 
   source-map-js@1.2.2: {}
 
