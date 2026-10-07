@@ -1,6 +1,6 @@
 "use client";
 
-import { greeting } from "@aqui/ui";
+import { greeting } from "@aqui-suena/ui";
 
 export default function HomePage() {
   return (

@@ -16,12 +16,12 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@aqui/config": ["packages/config/src"],
-      "@aqui/config/*": ["packages/config/src/*"],
-      "@aqui/navigation": ["packages/navigation/src"],
-      "@aqui/navigation/*": ["packages/navigation/src/*"],
-      "@aqui/ui": ["packages/ui/src"],
-      "@aqui/ui/*": ["packages/ui/src/*"]
+      "@aqui-suena/config": ["packages/config/src"],
+      "@aqui-suena/config/*": ["packages/config/src/*"],
+      "@aqui-suena/navigation": ["packages/navigation/src"],
+      "@aqui-suena/navigation/*": ["packages/navigation/src/*"],
+      "@aqui-suena/ui": ["packages/ui/src"],
+      "@aqui-suena/ui/*": ["packages/ui/src/*"]
     }
   }
 }

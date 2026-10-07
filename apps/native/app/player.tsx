@@ -1,5 +1,5 @@
-import { PLAYER_ROUTE, playerPath } from "@aqui/navigation";
-import { SharedButton } from "@aqui/ui";
+import { PLAYER_ROUTE, playerPath } from "@aqui-suena/navigation";
+import { SharedButton } from "@aqui-suena/ui";
 import { H1, Paragraph, YStack } from "tamagui";
 
 // Player route shell for Expo Router. Same shared button and route

@@ -1,4 +1,4 @@
-import { UiProvider } from "@aqui/ui";
+import { UiProvider } from "@aqui-suena/ui";
 import { Stack } from "expo-router";
 
 export default function RootLayout() {

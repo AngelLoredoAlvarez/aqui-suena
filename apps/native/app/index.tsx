@@ -1,4 +1,4 @@
-import { greeting } from "@aqui/ui";
+import { greeting } from "@aqui-suena/ui";
 import { Text, View } from "react-native";
 
 export default function Index() {

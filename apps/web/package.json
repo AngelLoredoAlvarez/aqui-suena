@@ -9,9 +9,9 @@
     "test": "echo 'no tests yet (scaffold)'"
   },
   "dependencies": {
-    "@aqui/config": "workspace:*",
-    "@aqui/navigation": "workspace:*",
-    "@aqui/ui": "workspace:*",
+    "@aqui-suena/config": "workspace:*",
+    "@aqui-suena/navigation": "workspace:*",
+    "@aqui-suena/ui": "workspace:*",
     "next": "16.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",

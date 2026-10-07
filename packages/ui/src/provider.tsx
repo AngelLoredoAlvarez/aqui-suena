@@ -1,4 +1,4 @@
-import { tamaguiConfig } from "@aqui/config";
+import { tamaguiConfig } from "@aqui-suena/config";
 import type { ReactNode } from "react";
 import { TamaguiProvider } from "tamagui";
 

@@ -1,4 +1,4 @@
-import { appName } from "@aqui/config";
+import { appName } from "@aqui-suena/config";
 
 export const placeholderMessage = "UI placeholder";
 
