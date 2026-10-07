@@ -4,7 +4,7 @@
 Build the first vertical slice of aqui_suena: open the app and hear the temporary open stream with autoplay, shared Tamagui UI, Solito `/player` routes on web (Next.js) and native (Expo), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
 
 ## Architecture Decisions
-- Monorepo with pnpm workspaces: `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
+- Monorepo with pnpm workspaces + Turborepo task orchestration (`turbo.json` pipeline with `dependsOn` ordering and local cache): `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
 - Solito as the only cross-platform navigation API; route names shared (`/player`, `/player/[stationId]`); no `next/link` in shared code.
 - Tamagui as the only shared UI system (primitives + tokens + themes); `tamagui.config` canonical in `packages/config`.
 - Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })`. Web uses HTMLAudio, native uses `expo-av`.

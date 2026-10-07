@@ -7,3 +7,4 @@ out/
 .expo/
 .expo-shared/
 .pnpm-store/
+.turbo/

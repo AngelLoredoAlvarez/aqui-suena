@@ -4,16 +4,17 @@
   "private": true,
   "packageManager": "pnpm@12.4.1",
   "scripts": {
-    "build": "pnpm -r build",
-    "test": "pnpm -r test -- --run",
+    "build": "turbo run build",
+    "test": "turbo run test -- --run",
     "lint": "biome check --write .",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "turbo run typecheck",
     "dev:web": "pnpm --filter web dev",
     "dev:native": "pnpm --filter native start",
     "dev:native:android": "pnpm --filter native start -- --android"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "turbo": "^2.11.7",
     "typescript": "5.9.3"
   }
 }
