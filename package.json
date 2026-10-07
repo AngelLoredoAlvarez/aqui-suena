@@ -7,7 +7,9 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test -- --run",
     "lint": "biome check --write .",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "dev:web": "pnpm --filter web dev",
+    "dev:native": "pnpm --filter native start"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
