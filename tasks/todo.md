@@ -6,13 +6,13 @@
 
 **Acceptance criteria:**
 - [x] `pnpm -r build` resolves all workspaces without errors
-- [ ] `apps/web` renders a placeholder route and `apps/native` boots in Expo Go (web OK via prerender; native Expo Go boot pending manual check)
+- [x] `apps/web` renders a placeholder route and `apps/native` boots in Expo Go (verified by user 2026-10-07)
 - [x] Shared `@aqui/*` aliases resolve from apps
 
 **Verification:**
 - [x] Tests pass: `pnpm -r test -- --run`
 - [x] Build succeeds: `pnpm -r build`
-- [ ] Manual check: open web placeholder and native placeholder (web OK; native pending)
+- [x] Manual check: open web placeholder and native placeholder (verified by user 2026-10-07)
 
 **Dependencies:** None
 
