@@ -3,7 +3,7 @@
 // Solito is the only cross-platform navigation API in shared code:
 // navigate with `useRouter` from "solito/router" or `Link` from
 // "solito/link" using the constants and helpers below.
-// Never import "next/link" in shared code.
+// Never import the Next.js Link component in shared code.
 
 export const PLAYER_ROUTE = "/player" as const;
 

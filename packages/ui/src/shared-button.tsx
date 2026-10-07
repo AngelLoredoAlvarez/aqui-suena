@@ -8,11 +8,7 @@ type SharedButtonProps = {
 
 // Shared button rendered from Tamagui primitives only, so it looks and
 // behaves the same on web and native. No raw div or web-only CSS here.
-export function SharedButton({
-  title,
-  onPress,
-  accessibilityLabel,
-}: SharedButtonProps) {
+export function SharedButton({ title, onPress, accessibilityLabel }: SharedButtonProps) {
   return (
     <Button onPress={onPress} accessibilityLabel={accessibilityLabel ?? title}>
       {title}

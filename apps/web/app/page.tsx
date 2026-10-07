@@ -1,3 +1,5 @@
+"use client";
+
 import { greeting } from "@aqui/ui";
 
 export default function HomePage() {

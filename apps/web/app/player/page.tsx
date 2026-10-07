@@ -1,11 +1,8 @@
+"use client";
+
 import { PLAYER_ROUTE, playerPath } from "@aqui/navigation";
 import { SharedButton } from "@aqui/ui";
 import { H1, Paragraph, YStack } from "tamagui";
-
-export const metadata = {
-  title: "Player - Aqui Suena",
-  description: "Aqui Suena player shell",
-};
 
 // Player route shell. Shared route constants come from @aqui/navigation
 // (Solito is the cross-platform navigation API); playback UI lands in
