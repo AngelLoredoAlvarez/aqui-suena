@@ -9,7 +9,7 @@ Nothing can be built without the scaffold (Tasks 2+ depend on Task 1). The plan 
 ## Scope
 - `package.json` (workspaces, build/test/lint/typecheck scripts), `pnpm-workspace.yaml`
 - `biome.json` (lint+format, replaces ESLint/Prettier) + `lint` script
-- `tsconfig.base.json` + per-app/per-package `tsconfig.json`, strict, `@aqui/*` aliases
+- `tsconfig.base.json` + per-app/per-package `tsconfig.json`, strict, `@aqui-suena/*` aliases
 - `apps/web/app/page.tsx` placeholder (Next.js App Router + React Native Web)
 - `apps/native/app/index.tsx` placeholder (Expo Router)
 - Minimal `packages/*` so aliases resolve (e.g. `packages/config`, `packages/ui`)
@@ -24,7 +24,7 @@ Nothing can be built without the scaffold (Tasks 2+ depend on Task 1). The plan 
 ## Tasks
 - [x] T1.1 Root: package.json + pnpm-workspace.yaml + biome.json + tsconfigs (route: delegated)
 - [x] T1.2 Bootable web/native app placeholders (route: delegated)
-- [x] T1.3 Minimal packages + resolving `@aqui/*` aliases (route: delegated)
+- [x] T1.3 Minimal packages + resolving `@aqui-suena/*` aliases (route: delegated)
 - [x] T1.4 Verification: `pnpm -r build`, placeholders, `biome check .` (route: delegated)
 
 ## Authorized scope
@@ -33,7 +33,7 @@ User authorized the scaffold (Task 1). Only the files listed above. Push/PR/merg
 ## Acceptance criteria (from tasks/todo.md Task 1)
 - [x] `pnpm -r build` resolves all workspaces without errors
 - [x] `apps/web` renders placeholder (verified in prerendered HTML) and `apps/native` structure ready + typecheck (Expo Go boot pending manual check)
-- [x] Shared `@aqui/*` aliases resolve from apps (web/native import `@aqui/ui`, which imports `@aqui/config`)
+- [x] Shared `@aqui-suena/*` aliases resolve from apps (web/native import `@aqui-suena/ui`, which imports `@aqui-suena/config`)
 
 ## Applicable checks
 - `pnpm -r build`

@@ -7,7 +7,7 @@ Set up canonical Tamagui config with providers in both apps, plus shared Solito 
 Task 2 is the UI foundation for all playback UI (Tasks 4-7). Without shared tokens/themes and Solito routes, later work would diverge into web-only and native-only code.
 
 ## Scope
-- `packages/config/tamagui.config.ts` (tokens, themes, fonts, media) + export from `@aqui/config`
+- `packages/config/tamagui.config.ts` (tokens, themes, fonts, media) + export from `@aqui-suena/config`
 - `packages/navigation/*` (new workspace: shared route constants `/player`, `/player/[stationId]`, no `next/link` in shared code)
 - `packages/ui/src/provider.tsx` + shared button (e.g. `SharedButton`) using Tamagui primitives only
 - `apps/web/app/providers.tsx` + `apps/web/app/player/page.tsx` shell wired to Tamagui provider

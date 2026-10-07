@@ -7,7 +7,7 @@
 **Acceptance criteria:**
 - [x] `pnpm -r build` resolves all workspaces without errors
 - [x] `apps/web` renders a placeholder route and `apps/native` boots in Expo Go (verified by user 2026-10-07)
-- [x] Shared `@aqui/*` aliases resolve from apps
+- [x] Shared `@aqui-suena/*` aliases resolve from apps
 
 **Verification:**
 - [x] Tests pass: `pnpm -r test -- --run`

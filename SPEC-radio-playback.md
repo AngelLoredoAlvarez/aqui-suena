@@ -51,7 +51,7 @@ Functional components, hooks, `kebab-case` for files, `PascalCase` for component
 // packages/ui/src/player-card.tsx
 import { Link } from 'solito/link';
 import { Button, Text, YStack } from 'tamagui';
-import { usePlayer } from '@aqui/player';
+import { usePlayer } from '@aqui-suena/player';
 
 export function PlayerCard({ urls, stationId }: { urls: string[]; stationId: string }) {
   const { status, play, resume } = usePlayer({ urls, autoplay: true }); // ice1 → ice2 → ice3, autostart on mount
