@@ -27,6 +27,7 @@ Map the user's intent to the matching skill automatically:
 - No file, document, or repository modification happens without the user's explicit authorization for that specific action.
 - When a fix, correction, or follow-up seems obvious, do NOT apply it. Finish the answer, then ask whether the user wants it done, and wait for confirmation.
 - This rule takes precedence over any workflow default (including automatic tracking or follow-up commits): when in doubt, ask and remain read-only.
+- Pushing to any remote is forbidden without the user's explicit instruction for that specific push. Commits, merges, and branch operations never imply push authorization; a push happens only when the user plainly says to push.
 
 ## Execution Model
 
