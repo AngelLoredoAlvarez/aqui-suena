@@ -1,7 +1,7 @@
 # Implementation Plan: radio-playback (MVP)
 
 ## Overview
-Build the first vertical slice of aqui_suena: open the app and hear the temporary open stream with autoplay, shared Tamagui UI, Solito `/player` routes on web (Next.js) and native (Expo), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
+Build the first vertical slice of aqui-suena: open the app and hear the temporary open stream with autoplay, shared Tamagui UI, Solito `/player` routes on web (Next.js) and native (Expo), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
 
 ## Architecture Decisions
 - Monorepo with pnpm workspaces + Turborepo task orchestration (`turbo.json` pipeline with `dependsOn` ordering and local cache): `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
