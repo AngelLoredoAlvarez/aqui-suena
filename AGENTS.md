@@ -21,6 +21,13 @@ Map the user's intent to the matching skill automatically:
 - API or interface design → `api-and-interface-design`
 - UI work → `frontend-ui-engineering`
 
+## Authorization (MANDATORY)
+
+- Answering a question never authorizes a change. Explaining, reviewing, auditing, or discussing past work is read-only: do not create, edit, delete, move, commit, push, or run any mutating command as a side effect of an answer.
+- No file, document, or repository modification happens without the user's explicit authorization for that specific action.
+- When a fix, correction, or follow-up seems obvious, do NOT apply it. Finish the answer, then ask whether the user wants it done, and wait for confirmation.
+- This rule takes precedence over any workflow default (including automatic tracking or follow-up commits): when in doubt, ask and remain read-only.
+
 ## Execution Model
 
 For every request:
