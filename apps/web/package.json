@@ -1,0 +1,24 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet (scaffold)'"
+  },
+  "dependencies": {
+    "@aqui/ui": "workspace:*",
+    "next": "16.4.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native-web": "0.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "5.9.3"
+  }
+}

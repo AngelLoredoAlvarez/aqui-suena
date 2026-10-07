@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Aqui Suena",
+    "slug": "aqui-suena",
+    "version": "0.0.0",
+    "scheme": "aqui-suena",
+    "plugins": ["expo-router"]
+  }
+}
