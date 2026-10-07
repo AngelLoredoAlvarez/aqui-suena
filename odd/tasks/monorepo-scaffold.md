@@ -1,61 +1,67 @@
 # Feature: monorepo-scaffold (Task 1)
 
 ## Objective
-Crear el scaffold del monorepo pnpm para Aqui Suena: workspaces que resuelven, placeholders web/native que bootean, aliases compartidos, Biome como lint/format.
+Create the pnpm monorepo scaffold for Aqui Suena: resolving workspaces, bootable web/native placeholders, shared aliases, Biome as lint/format.
 
 ## Problem / Why
-Sin scaffold no se puede construir nada encima (Tasks 2+ dependen de Task 1). Plan lo exige como primer paso secuencial.
+Nothing can be built without the scaffold (Tasks 2+ depend on Task 1). The plan requires it as the first sequential step.
 
 ## Scope
-- `package.json` (workspaces, scripts build/test/lint/typecheck), `pnpm-workspace.yaml`
-- `biome.json` (lint+format, reemplaza ESLint/Prettier) + script `lint`
-- `tsconfig.base.json` + `tsconfig.json` por app/package, strict, aliases `@aqui/*`
+- `package.json` (workspaces, build/test/lint/typecheck scripts), `pnpm-workspace.yaml`
+- `biome.json` (lint+format, replaces ESLint/Prettier) + `lint` script
+- `tsconfig.base.json` + per-app/per-package `tsconfig.json`, strict, `@aqui/*` aliases
 - `apps/web/app/page.tsx` placeholder (Next.js App Router + React Native Web)
 - `apps/native/app/index.tsx` placeholder (Expo Router)
-- `packages/*` minimos para que los aliases resuelvan (ej. `packages/config`, `packages/ui`)
-- `git init` + rama feature (no hay repo git aun)
+- Minimal `packages/*` so aliases resolve (e.g. `packages/config`, `packages/ui`)
+- `git init` + feature branch (no git repo existed)
 
 ## Constraints
-- pnpm (v12.4.1 instalado), Node 22
+- pnpm (v12.4.1 installed), Node 22
 - TypeScript strict
 - Biome, no ESLint/Prettier
-- No `next/link` en codigo compartido (regla Solito, aplica desde Task 2 pero no violar desde ahora)
+- No `next/link` in shared code (Solito rule, applies from Task 2 but must not be violated earlier)
 
 ## Tasks
 - [x] T1.1 Root: package.json + pnpm-workspace.yaml + biome.json + tsconfigs (route: delegated)
-- [x] T1.2 Apps placeholders web/native que bootean (route: delegated)
-- [x] T1.3 Packages minimos + aliases `@aqui/*` resolviendo (route: delegated)
-- [x] T1.4 Verificacion: `pnpm -r build`, placeholders, `biome check .` (route: delegated)
+- [x] T1.2 Bootable web/native app placeholders (route: delegated)
+- [x] T1.3 Minimal packages + resolving `@aqui/*` aliases (route: delegated)
+- [x] T1.4 Verification: `pnpm -r build`, placeholders, `biome check .` (route: delegated)
 
 ## Authorized scope
-Usuario autorizo scaffold (Task 1). Solo archivos listados arriba. Push/PR/merge quedan como decisiones del usuario.
+User authorized the scaffold (Task 1). Only the files listed above. Push/PR/merge remain user decisions.
 
-## Acceptance criteria (de tasks/todo.md Task 1)
-- [x] `pnpm -r build` resuelve todos los workspaces sin errores
-- [x] `apps/web` renderiza placeholder (verificado en HTML prerenderizado) y `apps/native` estructura lista + typecheck (boot en Expo Go pendiente de chequeo manual)
-- [x] Aliases `@aqui/*` resuelven desde apps (web/native importan `@aqui/ui`, que importa `@aqui/config`)
+## Acceptance criteria (from tasks/todo.md Task 1)
+- [x] `pnpm -r build` resolves all workspaces without errors
+- [x] `apps/web` renders placeholder (verified in prerendered HTML) and `apps/native` structure ready + typecheck (Expo Go boot pending manual check)
+- [x] Shared `@aqui/*` aliases resolve from apps (web/native import `@aqui/ui`, which imports `@aqui/config`)
 
-## Checks aplicables
+## Applicable checks
 - `pnpm -r build`
 - `pnpm exec biome check .`
-- Manual: abrir placeholder web y native
+- Manual: open web and native placeholders
 
 ## TDD
-- Modo: off (scaffold sin logica; sin runner configurado aun). Fuente: sin test runner en repo greenfield.
-- Tests ordinarios, no RED-GREEN-REFACTOR.
+- Mode: off (scaffold has no logic; no runner configured yet). Source: no test runner in greenfield repo.
+- Ordinary tests, no RED-GREEN-REFACTOR.
 
 ## Delivery
-- Estrategia: single-pr por defecto. Forecast < 400 lineas authored.
-- Commits work-unit por tarea en rama feature, Conventional Commits. Sin git repo previo: init + branch primero.
+- Strategy: single-pr by default. Forecast < 400 authored lines.
+- Work-unit commits per task on feature branch, Conventional Commits. No prior git repo: init + branch first.
 
 ## Route declaration
-- Ruta elegida: delegated direct (writer unico).
-- Evidencia de triggers: 2+ archivos no-triviales (writer trigger); lectura que prepara escritura (preparation trigger). No SDD: trabajo pequeno/entendido, file count no selecciona SDD.
+- Chosen route: delegated direct (single writer).
+- Trigger evidence: 2+ non-trivial files (writer trigger); reading that prepares a write (preparation trigger). No SDD: small understood work, file count never selects SDD.
 
 ## Progress
-- 2026-10-07: documento creado, 4 tareas. Next: delegar writer T1.1-T1.4.
-- 2026-10-07: T1.1-T1.4 completadas en rama `feature/monorepo-scaffold`. Checks: `pnpm install` ok, `pnpm -r build` ok (4 workspaces), `pnpm -r typecheck` ok, `pnpm exec biome check .` exit 0 (21 files), `pnpm -r test -- --run` ok (placeholder scripts). Pendiente manual: abrir placeholder web en dev y boot native en Expo Go.
-- Commits: f627393 (T1.1 root), 42e37a2 (T1.2 apps), 618c039 (T1.3 packages), T1.4 este commit.
+- 2026-10-07: document created, 4 tasks. Next: delegate writer for T1.1-T1.4.
+- 2026-10-07: T1.1-T1.4 completed on branch `feature/monorepo-scaffold`. Checks: `pnpm install` ok, `pnpm -r build` ok (4 workspaces), `pnpm -r typecheck` ok, `pnpm exec biome check .` exit 0 (21 files), `pnpm -r test -- --run` ok (placeholder scripts). Manual pending: open web placeholder in dev and boot native in Expo Go.
+- Commits: f627393 (T1.1 root), 42e37a2 (T1.2 apps), 618c039 (T1.3 packages), T1.4 this commit.
+- 2026-10-07: Task 1 checked off in tasks/plan.md and tasks/todo.md (commit b9012bd); native Expo Go boot left unchecked pending manual verification.
+- 2026-10-07: document translated to English per user rule (all docs in English from now on).
 
 ## Decisions
-- Biome reemplaza ESLint/Prettier (decision previa del usuario, guardada en memoria).
+- Biome replaces ESLint/Prettier (prior user decision, saved to memory).
+- Docs convention: every document added or modified from now on is written in English.
+
+## Conventions
+- Documents: English. Direct chat replies keep following the active persona language.
