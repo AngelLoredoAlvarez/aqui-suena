@@ -22,8 +22,8 @@ The legacy short scope was terse but opaque to outsiders. The user chose the exp
 - Do NOT push, PR, or merge. Do NOT touch playback/DB/API logic.
 
 ## Tasks
-- [ ] R1 Rename scope in manifests, aliases, configs, imports (route: delegated)
-- [ ] R2 Regen lockfile + verification (`pnpm install`, `pnpm -r build`, `pnpm -r typecheck`, `biome check`) (route: delegated)
+- [x] R1 Rename scope in manifests, aliases, configs, imports (route: delegated)
+- [x] R2 Regen lockfile + verification (`pnpm install`, `pnpm -r build`, `pnpm -r typecheck`, `biome check`) (route: delegated)
 
 ## Authorized scope
 User authorized the rename to `@aqui-suena` and the commits. Only the rename above.
@@ -55,3 +55,4 @@ User authorized the rename to `@aqui-suena` and the commits. Only the rename abo
 
 ## Progress
 - 2026-10-07: document created. Next: delegate writer for R1-R2.
+- 2026-10-07: R1-R2 completed (commits 17c4f17 code+lockfile, 7c294b8 docs). Parent spot check: grep `@aqui/` clean (exit 1), `biome check .` 33 files exit 0. Writer gates: install/build/typecheck/biome all pass.
