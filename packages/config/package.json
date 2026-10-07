@@ -11,5 +11,9 @@
   },
   "devDependencies": {
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@tamagui/config": "2.7.7",
+    "tamagui": "2.7.7"
   }
 }
