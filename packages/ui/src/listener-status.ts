@@ -1,4 +1,4 @@
-import { getListenerStatus } from "@aqui-suena/api";
+import { getListenerStatus } from "@aqui-suena/api/client";
 import { useQuery } from "@tanstack/react-query";
 
 // Shared listener-status query: web and native render the same

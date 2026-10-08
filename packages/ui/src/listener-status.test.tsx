@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { useListenerStatus } from "./listener-status";
 import { PlayerLanding } from "./player-landing";
@@ -21,6 +21,10 @@ function renderLanding() {
 }
 
 describe("PlayerLanding listener status", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("shows a loading state before the status resolves", () => {
     renderLanding();
 
