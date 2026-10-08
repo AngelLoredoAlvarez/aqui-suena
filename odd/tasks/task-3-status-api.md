@@ -65,6 +65,7 @@ User: "arranca la task 3 ajustada al landing... y corrigelo, hazlo en una nueva 
 - Gotchas fixed: pnpm installed TS 7 in new packages (repo pins 5.9.3; TS7 dropped `baseUrl`) → pinned `typescript@5.9.3`; tRPC v11.19 root exports no `createCallerFactory` → used `appRouter.createCaller({})`; Tamagui needs `matchMedia` (+ legacy `addListener`) stub in a Vitest `setupFiles` (test-file body runs too late); RTL matchers absent → plain truthy assertions, no new dep.
 - Delivery note: running count ~480 authored lines (over the ~400 heuristic). Per ODD the heuristic is advisory, not a stop: the overage is two new packages' config scaffolding + the RTL/jsdom test bed, kept as one coherent mock-first slice. Chain strategy (`ask-on-risk`) applies at delivery time if/when a PR is requested.
 - Deferred (mock-first, explicit): HTTP tRPC transport, live Postgres + verified `db:push` (script + `drizzle.config.ts` present, needs `DATABASE_URL`), native remote-URL config, E2E, manual landing check by user.
+- Bugfix (reported by user, same branch): `@trpc/server` threw "non-server environment" in client bundles because `ui → @aqui-suena/api` root evaluated `initTRPC.create()`. Fixed by splitting a client-safe entry (`listener.ts` schemas+mock, `client.ts` fetcher, `exports` map with `./client` subpath); UI imports `@aqui-suena/api/client`. Regression guard `client.test.ts` fails if server code ever enters the client graph. Proven: `next build` passes and no browser chunk contains the server error string.
 
 ## Next step
 - User review: manual landing check (loading → status) on web + native; then merge/push decision (not authorized yet).
@@ -75,3 +76,4 @@ User: "arranca la task 3 ajustada al landing... y corrigelo, hazlo en una nueva 
 - a273a1a feat(db): add Drizzle stations and listen_sessions schema with tests
 - 7b0622e feat(api): add listener.getStatus tRPC router with zod mock and tests
 - ed6973f feat(ui): wire listener status via TanStack Query with loading and error states
+- e047a2a fix(api): split client-safe entry so UI bundles never import trpc server
