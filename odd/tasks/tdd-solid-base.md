@@ -36,11 +36,11 @@ Usuario: "si hazlo" sobre propuesta del turno anterior. Cubre archivos listados 
 - Si forecast/count supera ~400 autoradas, preguntar chain strategy antes del próximo commit.
 
 ## Tasks
-- [ ] T1 Vitest base en packages/ui (deps, config, script test real) — route: delegated-direct (writer trigger: 2+ archivos no-triviales) — intento writer, fallback inline por límite runtime
-- [ ] T2 Ejemplo RED-GREEN (greeting.test.ts, mínimo 1 caso) — route: inline con TDD observado
-- [ ] T3 Husky + lint-staged pre-commit (biome, typecheck, vitest) — route: inline/fallback
-- [ ] T4 dependency-cruiser + regla Clean (dominio no depende de app) + script — route: inline/fallback
-- [ ] T5 turbo.json test sin dependsOn build + verificación full (test, typecheck, lint) — route: inline
+- [x] T1 Vitest base en packages/ui (deps, config, script test real) — route: delegated-direct intent, fallback inline (Task runtime bloqueado: free-tier solo dentro de OpenCode)
+- [x] T2 Ejemplo RED-GREEN (greeting.test.ts, 2 casos) — route: inline con TDD observado (characterization: GREEN de entrada, documentado en el archivo)
+- [x] T3 Husky + lint-staged pre-commit (biome, typecheck, vitest) — route: inline (hook verificado: corrió real en cada commit)
+- [x] T4 dependency-cruiser + regla Clean (dominio no depende de app) + script `arch` — route: inline (negativo probado con probe temporal)
+- [x] T5 turbo.json test sin dependsOn build + verificación full (test, typecheck, lint) — route: inline
 
 ## Acceptance criteria
 - `pnpm --filter @aqui-suena/ui test` corre Vitest y pasa en verde.
@@ -56,13 +56,24 @@ Usuario: "si hazlo" sobre propuesta del turno anterior. Cubre archivos listados 
 - `turbo run test -- --run` al cierre
 
 ## Progress
-- 2026-10-08: feature doc creado. Explore directo (subagent explore bloqueado por free-tier runtime, se sigue inline). Sin writes aún.
+- 2026-10-08: feature doc creado. Explore directo (subagent explore bloqueado por free-tier runtime, se sigue inline).
+- 2026-10-08: T1–T5 implementados y commiteados en `feat/tdd-solid-base`. Branch creada desde main.
 
 ## Verification evidence
-- (pendiente)
+- `pnpm --filter @aqui-suena/ui test` → 1 file, 2 tests passed (vitest 5.0.3).
+- `turbo run test --force` → 5 tasks OK en 1.5s, sin builds (antes: ~14s con `next build`).
+- `turbo run typecheck` → 5/5 paquetes OK.
+- `pnpm exec biome check` sobre archivos nuevos → OK (1 formato auto-corregido en package.json).
+- `pnpm arch` (depcruise) → no violations (22 módulos); probe temporal con import prohibido → 1 error detectado, probe eliminado.
+- Hook `.husky/pre-commit` ejecutó lint-staged + typecheck + test en cada commit de la rama (observado en salida).
+- RDD assess del slice → risk medium, review_due (slice_budget_reached, 785 líneas con lockfile). Consent otorgado por usuario. Lens review-reliability BLOQUEADO: Task runtime rechaza subagentes fuera de OpenCode (3 intentos). Sin captura, sin acknowledgement, lineage `review-2fae62cc5f764af5` preservado en estado reviewing para retomar dentro de OpenCode.
 
 ## Next step
-- Crear branch `feat/tdd-solid-base` desde main y empezar T1.
+- Revisar dentro de OpenCode (retoma lineage) o aceptar verificación funcional; luego PR a main (push/PR solo con orden explícita).
 
 ## Commits
-- (pendiente)
+- bb68c2b docs: add tdd-solid-base feature tracking
+- d6be719 test(ui): add Vitest base with greeting characterization tests
+- f9ab5b5 chore: add Husky pre-commit with lint-staged, typecheck and tests
+- 3ac0aa6 chore: add dependency-cruiser with Clean Architecture layer rules
+- 57fcf1d chore: decouple turbo test from build for fast TDD loop
