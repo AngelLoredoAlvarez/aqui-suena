@@ -7,6 +7,7 @@ export function greeting(): string {
 }
 
 export { AdsCarousel } from "./ads-carousel";
+export { useListenerStatus } from "./listener-status";
 export { PlayerLanding } from "./player-landing";
 export { UiProvider } from "./provider";
 export { SharedButton } from "./shared-button";
