@@ -18,7 +18,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
 | `packages/navigation` | Shared Solito route contracts (deep links return in Task 5) |
 | `packages/ui` | Shared Tamagui provider + components (no `next/link`, no web-only CSS) |
-| `packages/player`, `api`, `db` | Planned: playback core, tRPC status API, Drizzle schema |
+| `packages/player`, `api`, `db` | Playback core (fallback picker, error mapper, `usePlayer`), tRPC status API (mock-first), Drizzle schema |
 
 ## Scripts
 
@@ -46,7 +46,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Status
 
-Foundation in place (monorepo scaffold, Tamagui + Solito, `@aqui-suena/*` scope). Next: DB + tRPC status API (Task 3), then player core and autoplay integration.
+Tasks 1–4 done and published to main (scaffold, UI foundation, status API mock, player core). Next: Task 5 PlayerCard UI + deep links, then autoplay integration (Tasks 6–7).
 
 ## Conventions
 
