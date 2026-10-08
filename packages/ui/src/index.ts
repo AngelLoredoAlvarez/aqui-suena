@@ -6,5 +6,7 @@ export function greeting(): string {
   return `Hello from ${appName} UI placeholder`;
 }
 
+export { AdsCarousel } from "./ads-carousel";
+export { PlayerLanding } from "./player-landing";
 export { UiProvider } from "./provider";
 export { SharedButton } from "./shared-button";
