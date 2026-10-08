@@ -25,11 +25,11 @@ The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate s
 - Do NOT push, PR, or merge
 
 ## Tasks
-- [ ] L1 Shared landing + ads placeholder in `packages/ui` (route: delegated)
-- [ ] L2 Web landing + delete `apps/web/app/player/page.tsx` (route: delegated)
-- [ ] L3 Native landing + delete `apps/native/app/player.tsx` + remove Link (route: delegated)
-- [ ] L4 Docs/rules updates (SPEC, todo 6-7, AGENTS.md invariants) (route: delegated)
-- [ ] L5 Verification: build, typecheck, lint, route grep, manual `/` check (route: delegated)
+- [x] L1 Shared landing + ads placeholder in `packages/ui` (route: delegated)
+- [x] L2 Web landing + delete `apps/web/app/player/page.tsx` (route: delegated)
+- [x] L3 Native landing + delete `apps/native/app/player.tsx` + remove Link (route: delegated)
+- [x] L4 Docs/rules updates (SPEC, todo 6-7, AGENTS.md invariants) (route: delegated)
+- [x] L5 Verification: build, typecheck, lint, route grep, manual `/` check (route: delegated)
 
 ## Authorized scope
 User authorized the product change, the new branch, and the commits. Only the files above plus minimal wiring.
@@ -61,3 +61,4 @@ User authorized the product change, the new branch, and the commits. Only the fi
 
 ## Progress
 - 2026-10-08: document created. Next: create branch, delegate writer for L1-L5.
+- 2026-10-08: L1-L5 implemented on `feature/player-landing` (4de008a ui, cfac568 web, 1ea1ee8 native, 778f1ff docs). Parent: README de-staled (5067ace), spot check `biome check .` 34 files exit 0. Native review: medium/under_budget, no lifecycle. Manual `/` check pending user.
