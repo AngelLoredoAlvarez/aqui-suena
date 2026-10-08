@@ -16,6 +16,17 @@ module.exports = {
       from: { path: "packages/config/src" },
       to: { path: "packages/(ui|navigation)/src" },
     },
+    {
+      name: "client-never-imports-server-entry",
+      severity: "error",
+      comment:
+        "Client code (apps, shared UI) may only use the client-safe api entry (@aqui-suena/api/client). Importing the api root evaluates initTRPC.create() in browsers and React Native, which throws.",
+      from: { path: "(apps/[^/]+/(app|src)|packages/ui/src)" },
+      to: {
+        path: "packages/api/src",
+        pathNot: "packages/api/src/(client|listener)\\.ts$",
+      },
+    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },
