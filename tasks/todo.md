@@ -52,14 +52,14 @@
 **Description:** Add Drizzle `stations` / `listen_sessions` schema and `listener.getStatus` mock returning `{ station, activeUrl, listeners }` consumed via TanStack Query from the landing `/`. Mock-first: no live Postgres, no HTTP transport yet (both deferred and marked pending).
 
 **Acceptance criteria:**
-- [ ] `listener.getStatus` returns the mocked shape validated by zod
-- [ ] Landing `/` reads status via TanStack Query with loading/error states
-- [ ] `db:push` script exists (live run on a dev database deferred, pending)
+- [x] `listener.getStatus` returns the mocked shape validated by zod
+- [x] Landing `/` reads status via TanStack Query with loading/error states
+- [x] `db:push` script exists (live run on a dev database deferred, pending)
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test -- --run` and `pnpm --filter db test -- --run`
-- [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: landing shows loading, then station status
+- [x] Tests pass: `pnpm --filter api test -- --run` and `pnpm --filter db test -- --run`
+- [x] Build succeeds: `pnpm -r build`
+- [x] Manual check: landing shows loading, then station status (verified by user 2026-10-08)
 
 **Dependencies:** Task 1
 
@@ -71,10 +71,10 @@
 **Estimated scope:** Medium: 4-6 files
 
 ## Checkpoint: Foundation
-- [ ] All tests pass
-- [ ] Application builds without errors
-- [ ] Landing `/` + status API work end-to-end
-- [ ] Review with human before proceeding
+- [x] All tests pass
+- [x] Application builds without errors
+- [x] Landing `/` + status API work end-to-end
+- [x] Review with human before proceeding (approved 2026-10-08)
 
 ## Task 4: Player core (fallback + autoplay)
 

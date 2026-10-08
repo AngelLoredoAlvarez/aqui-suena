@@ -68,7 +68,7 @@ User: "arranca la task 3 ajustada al landing... y corrigelo, hazlo en una nueva 
 - Bugfix (reported by user, same branch): `@trpc/server` threw "non-server environment" in client bundles because `ui → @aqui-suena/api` root evaluated `initTRPC.create()`. Fixed by splitting a client-safe entry (`listener.ts` schemas+mock, `client.ts` fetcher, `exports` map with `./client` subpath); UI imports `@aqui-suena/api/client`. Regression guard `client.test.ts` fails if server code ever enters the client graph. Proven: `next build` passes and no browser chunk contains the server error string.
 
 ## Next step
-- User review: manual landing check (loading → status) on web + native; then merge/push decision (not authorized yet).
+- Done 2026-10-08: user verified compile + green tests + mock status on the landing; Foundation checkpoint approved. Task 4 (player core) is next, not started.
 
 ## Commits
 - 12fcc55 docs: add task-3-status-api feature tracking
