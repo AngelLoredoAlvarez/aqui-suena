@@ -10,11 +10,19 @@
     "typecheck": "turbo run typecheck",
     "dev:web": "pnpm --filter web dev",
     "dev:native": "pnpm --filter native start",
-    "dev:native:android": "pnpm --filter native start -- --android"
+    "dev:native:android": "pnpm --filter native start -- --android",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "turbo": "^2.11.7",
     "typescript": "5.9.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc}": [
+      "biome check --write"
+    ]
   }
 }
