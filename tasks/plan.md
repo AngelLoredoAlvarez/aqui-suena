@@ -7,7 +7,7 @@ Build the first vertical slice of aqui-suena: open the app and hear the temporar
 - Monorepo with pnpm workspaces + Turborepo task orchestration (`turbo.json` pipeline with `dependsOn` ordering and local cache): `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
 - Solito as the only cross-platform navigation API; the landing `/` renders the shared player on both platforms, and the deep-link contract (`/player/[stationId]`) stays reserved in `packages/navigation` for later; no `next/link` in shared code.
 - Tamagui as the only shared UI system (primitives + tokens + themes); `tamagui.config` canonical in `packages/config`.
-- Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })`. Web uses HTMLAudio, native uses `expo-av`.
+- Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })` with an injected `AudioDriver`. Driver implementation is `expo-audio` (cross-platform web + native, replaces deprecated `expo-av`); the hook never touches audio APIs directly.
 - tRPC + TanStack Query for `listener.getStatus` mock; Drizzle + PostgreSQL for `stations` / `listen_sessions` metadata only.
 
 ## Task List
@@ -44,12 +44,12 @@ Tasks tracked in `tasks/todo.md`.
 | Browser audible-autoplay block | High | Audible-first attempt, `NotAllowedError` → `blocked` + one-tap resume; headed e2e covers both paths |
 | Open-stream 403s (SomaFM-like UA blocking) | High | ice1→ice2→ice3 fallback chain + local proxy for e2e; never single URL |
 | Solito / Expo Router / Tamagui version drift | Med | Pin majors in MVP, upgrade only via Ask-first |
-| expo-av background limits | Med | MVP validates background no-crash; track-player decision stays open |
+| expo-audio background limits | Med | MVP validates background no-crash; track-player decision stays open |
 
 ## Open Questions
 - Temporary stream chain + local proxy choice
 - Live metadata vs "Live" label
-- expo-av vs track-player for background
+- expo-audio vs track-player for background
 - Solito / Expo Router / Tamagui version pins, Tamagui compiler + fonts
 
 ## Parallelization Opportunities

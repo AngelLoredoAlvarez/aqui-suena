@@ -7,7 +7,7 @@ Future (V2, no design): live announcer mentions.
 
 ## Tech Stack
 - Web: playback via HTMLAudio queue with spot injection
-- Native: `expo-av` queue with spot injection
+- Native: `expo-audio` queue with spot injection
 - Navigation: n/a (audio-only; management in `/owner/spots`)
 - UI: Tamagui (upload + schedule list in owner portal)
 - Data: tRPC + TanStack Query (`spots.upload`, `spots.schedule`, `spots.plays`)

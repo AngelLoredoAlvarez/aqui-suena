@@ -81,7 +81,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 
 ## Boundaries
 - Always: attempt audible autoplay on app open / first visit with no manual play required, exercise ice1→ice2→ice3 fallback, render status/error/blocked, run `typecheck + lint + test` before commit, validate inputs with zod, use Tamagui primitives + tokens and Solito `Link`/`useRouter` in shared code with shared route constants.
-- Ask first: add a native dependency (expo-av / track-player), change DB schema, add a new permanent stream, upgrade Solito / Expo Router / Tamagui major, add a custom Tamagui theme or font.
+- Ask first: add a native dependency (expo-audio / track-player), change DB schema, add a new permanent stream, upgrade Solito / Expo Router / Tamagui major, add a custom Tamagui theme or font.
 - Never: commit secrets/signed URLs, require manual play on first visit, delete failing fallback tests without approval, run audio e2e headless against SomaFM-like hosts, import `next/link` or `next/router` inside `packages/ui`, use raw `div` / RN `View` with web-only CSS inside `packages/ui` bypassing Tamagui tokens.
 
 ## Success Criteria
@@ -98,7 +98,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 ## Open Questions
 - Which open stream do we use as temporary? (proposal: chain with 2-3 mirrors + local proxy for e2e)
 - Live metadata (artist/track) via Icecast JSON or just "Live" label?
-- Is `expo-av` background enough for MVP or do we need track-player from day one?
+- Is `expo-audio` background enough for MVP or do we need track-player from day one?
 - Solito + Expo Router version pin and Next.js App Router as canonical (Pages Router excluded)?
 - Tamagui compiler enabled from day one? Which themes, tokens, and fonts are canonical?
 - Autoplay policy: audible-first attempt with `NotAllowedError` → `blocked` resume tap, or muted probe first? iOS silent-switch and Media Engagement Index expectations?

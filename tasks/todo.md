@@ -145,7 +145,7 @@
 
 ## Task 7: Native autoplay integration
 
-**Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-av`, background-safe playback and pause/resume.
+**Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-audio`, background-safe playback and pause/resume.
 
 **Acceptance criteria:**
 - [ ] App open autoplays audibly in <5s in Expo Go
