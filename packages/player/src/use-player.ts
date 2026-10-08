@@ -24,9 +24,6 @@ export type UsePlayerReturn = {
   resume: () => void;
 };
 
-// Narrow unknown rejections at the boundary. Drivers may throw anything
-// (Error, object, string, null); only shaped failures reach the mapper,
-// everything else degrades to a generic failure instead of throwing.
 function asMediaFailure(error: unknown): MediaFailure {
   if (typeof error === "object" && error !== null) {
     const { name, code } = error as { name?: unknown; code?: unknown };
@@ -55,9 +52,6 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
   });
 
   const attempt = useCallback(async (startUrl: string): Promise<void> => {
-    // Every attempt takes a generation id. Late completions from a
-    // superseded attempt (or from after unmount, which also bumps the
-    // generation) are ignored instead of overwriting newer state.
     const runId = ++runRef.current;
     const isCurrent = () => runRef.current === runId;
 
@@ -106,10 +100,6 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
       setPlayerState((prevState) => ({ ...prevState, status: "error", activeUrl: null }));
       lastUrlRef.current = null;
     }
-    // NOTE: attempt() never rejects: every await lives inside the
-    // try/catch above and the mapper is total, so `void attempt(...)`
-    // callers need no .catch. If an await is ever added outside the
-    // try block, this guarantee must be revisited.
   }, []);
 
   useEffect(() => {
