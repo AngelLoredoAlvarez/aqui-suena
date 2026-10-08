@@ -1,11 +1,11 @@
 # Implementation Plan: radio-playback (MVP)
 
 ## Overview
-Build the first vertical slice of aqui-suena: open the app and hear the temporary open stream with autoplay, shared Tamagui UI, Solito `/player` routes on web (Next.js) and native (Expo), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
+Build the first vertical slice of aqui-suena: open the app and hear the temporary open stream with autoplay from the landing `/` (player + ads carousel, shared Tamagui UI, Solito reserved deep-link contract `/player/[stationId]` for later), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
 
 ## Architecture Decisions
 - Monorepo with pnpm workspaces + Turborepo task orchestration (`turbo.json` pipeline with `dependsOn` ordering and local cache): `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
-- Solito as the only cross-platform navigation API; route names shared (`/player`, `/player/[stationId]`); no `next/link` in shared code.
+- Solito as the only cross-platform navigation API; the landing `/` renders the shared player on both platforms, and the deep-link contract (`/player/[stationId]`) stays reserved in `packages/navigation` for later; no `next/link` in shared code.
 - Tamagui as the only shared UI system (primitives + tokens + themes); `tamagui.config` canonical in `packages/config`.
 - Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })`. Web uses HTMLAudio, native uses `expo-av`.
 - tRPC + TanStack Query for `listener.getStatus` mock; Drizzle + PostgreSQL for `stations` / `listen_sessions` metadata only.

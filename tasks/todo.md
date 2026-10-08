@@ -26,17 +26,17 @@
 
 ## Task 2: Tamagui + Solito foundation
 
-**Description:** Set up canonical `tamagui.config` (tokens, themes, fonts, media) with providers in both apps, plus shared Solito route constants and empty `/player` route shells.
+**Description:** Set up canonical `tamagui.config` (tokens, themes, fonts, media) with providers in both apps, plus shared Solito route constants. Landed via player-landing: the landing `/` renders the shared UI on web and native; no `/player` screens exist.
 
 **Acceptance criteria:**
-- [ ] Same Tamagui button renders on web and native from shared code
-- [ ] `/player` resolves on web and native via Solito with no `next/link` in `packages/ui`
-- [ ] Themes/tokens apply with no web-only CSS leak
+- [x] Same Tamagui button renders on web and native from shared code
+- [x] Landing `/` renders the shared player UI on web and native with no `next/link` in `packages/ui`
+- [x] Themes/tokens apply with no web-only CSS leak
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter ui test -- --run`
-- [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: open `/player` on web and native, same layout
+- [x] Tests pass: `pnpm --filter ui test -- --run`
+- [x] Build succeeds: `pnpm -r build`
+- [x] Manual check: open landing `/` on web and native, same layout (verified by user 2026-10-07/08)
 
 **Dependencies:** Task 1
 
@@ -49,31 +49,31 @@
 
 ## Task 3: DB + tRPC status API
 
-**Description:** Add Drizzle `stations` / `listen_sessions` schema and `listener.getStatus` mock returning `{ station, activeUrl, listeners }` consumed via TanStack Query.
+**Description:** Add Drizzle `stations` / `listen_sessions` schema and `listener.getStatus` mock returning `{ station, activeUrl, listeners }` consumed via TanStack Query from the landing `/`. Mock-first: no live Postgres, no HTTP transport yet (both deferred and marked pending).
 
 **Acceptance criteria:**
-- [ ] `listener.getStatus` returns 200 with mocked shape validated by zod
-- [ ] Web player view reads status via TanStack Query with loading/error states
-- [ ] `db:push` works on dev database
+- [ ] `listener.getStatus` returns the mocked shape validated by zod
+- [ ] Landing `/` reads status via TanStack Query with loading/error states
+- [ ] `db:push` script exists (live run on a dev database deferred, pending)
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test -- --run`
+- [ ] Tests pass: `pnpm --filter api test -- --run` and `pnpm --filter db test -- --run`
 - [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: query status from web player view
+- [ ] Manual check: landing shows loading, then station status
 
 **Dependencies:** Task 1
 
 **Files likely touched:**
 - `packages/db/src/schema.ts`
 - `packages/api/src/routers/listener.ts`
-- `apps/web/app/player/page.tsx`
+- `packages/ui/src/player-landing.tsx`
 
-**Estimated scope:** Small: 1-2 files
+**Estimated scope:** Medium: 4-6 files
 
 ## Checkpoint: Foundation
 - [ ] All tests pass
 - [ ] Application builds without errors
-- [ ] Placeholder `/player` + status API work end-to-end
+- [ ] Landing `/` + status API work end-to-end
 - [ ] Review with human before proceeding
 
 ## Task 4: Player core (fallback + autoplay)
