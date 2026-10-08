@@ -100,4 +100,56 @@ describe("usePlayer", () => {
     await waitFor(() => expect(result.current.status).toBe("playing"));
     expect(result.current.activeUrl).toBe(URL_A);
   });
+
+  it("should return error when urls are empty", async () => {
+    const { driver } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [], driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("error"));
+  });
+
+  it("treats a non-object rejection as a generic failure and rotates", async () => {
+    const { driver, played } = createFakeDriver({ [URL_A]: null });
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_B);
+    expect(played).toEqual([URL_A, URL_B]);
+  });
+
+  it("ignores a stale attempt superseded by a newer one", async () => {
+    const pending: Array<{
+      url: string;
+      resolve: () => void;
+    }> = [];
+    const driver: AudioDriver = {
+      play: (url: string) =>
+        new Promise<void>((resolve) => {
+          pending.push({ url, resolve });
+        }),
+    };
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(pending.length).toBe(1));
+
+    await act(async () => {
+      result.current.play();
+    });
+    await waitFor(() => expect(pending.length).toBe(2));
+
+    await act(async () => {
+      pending[0].resolve();
+    });
+    expect(result.current.status).toBe("loading");
+
+    await act(async () => {
+      pending[1].resolve();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_A);
+  });
 });
