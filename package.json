@@ -8,6 +8,7 @@
     "test": "turbo run test -- --run",
     "lint": "biome check --write .",
     "typecheck": "turbo run typecheck",
+    "arch": "depcruise packages apps --config .dependency-cruiser.cjs",
     "dev:web": "pnpm --filter web dev",
     "dev:native": "pnpm --filter native start",
     "dev:native:android": "pnpm --filter native start -- --android",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "dependency-cruiser": "^18.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "turbo": "^2.11.7",
