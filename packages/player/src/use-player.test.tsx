@@ -1,0 +1,103 @@
+// @vitest-environment jsdom
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import type { AudioDriver } from "./use-player";
+import { usePlayer } from "./use-player";
+
+const URL_A = "https://ice1.example/live";
+const URL_B = "https://ice2.example/live";
+
+function createFakeDriver(failures: Record<string, unknown> = {}) {
+  const played: string[] = [];
+  const driver: AudioDriver = {
+    play: async (url: string) => {
+      played.push(url);
+      const failure = failures[url];
+      if (failure !== undefined) {
+        throw failure;
+      }
+    },
+  };
+  return { driver, played };
+}
+
+describe("usePlayer", () => {
+  it("autoplays the first url on mount when autoplay is true", async () => {
+    const { driver, played } = createFakeDriver();
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_A);
+    expect(played).toEqual([URL_A]);
+  });
+
+  it("stays idle until play is called when autoplay is false", async () => {
+    const { driver } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: false, driver }));
+
+    expect(result.current.status).toBe("idle");
+
+    await act(async () => {
+      result.current.play();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+  });
+
+  it("maps autoplay rejection to blocked without rotating mirrors", async () => {
+    const { driver, played } = createFakeDriver({
+      [URL_A]: { name: "NotAllowedError" },
+    });
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("blocked"));
+    expect(result.current.activeUrl).toBe(URL_A);
+    expect(played).toEqual([URL_A]);
+  });
+
+  it("rotates to the next mirror when the primary fails", async () => {
+    const { driver, played } = createFakeDriver({ [URL_A]: { code: 4 } });
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_B);
+    expect(played).toEqual([URL_A, URL_B]);
+  });
+
+  it("reports error when every mirror fails", async () => {
+    const { driver } = createFakeDriver({
+      [URL_A]: { code: 4 },
+      [URL_B]: { code: 4 },
+    });
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("error"));
+  });
+
+  it("retries the current url on resume after blocked", async () => {
+    const failures: Record<string, unknown> = {
+      [URL_A]: { name: "NotAllowedError" },
+    };
+    const { driver } = createFakeDriver(failures);
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("blocked"));
+
+    delete failures[URL_A];
+    await act(async () => {
+      result.current.resume();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_A);
+  });
+});
