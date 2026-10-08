@@ -21,6 +21,11 @@ Map the user's intent to the matching skill automatically:
 - API or interface design → `api-and-interface-design`
 - UI work → `frontend-ui-engineering`
 
+## Product invariants
+
+- Landing `/` is the player + ads carousel on web and native, rendered from shared `@aqui-suena/ui` code.
+- No separate `/player` route exists on either platform. `packages/navigation` keeps route contracts for future deep links only.
+
 ## Authorization (MANDATORY)
 
 - Answering a question never authorizes a change. Explaining, reviewing, auditing, or discussing past work is read-only: do not create, edit, delete, move, commit, push, or run any mutating command as a side effect of an answer.

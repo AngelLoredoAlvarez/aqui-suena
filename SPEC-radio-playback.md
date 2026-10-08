@@ -38,10 +38,10 @@ packages/
   db/             → Drizzle schema (stations, listen_sessions)
 ```
 
-Routes (shared via Solito):
+Routes:
 ```
-player/           → /player (web + native, same name)
-/player/[stationId] → deep link to a station / listing teaser
+/ (landing)           → player + ads carousel on web and native, from shared code
+/player/[stationId] → reserved deep-link contract in packages/navigation for Task 5; no `/player` screen exists
 ```
 
 ## Code Style
@@ -77,7 +77,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Framework: Vitest + Testing Library (web), Jest + Expo test (native), headed Playwright for audio e2e (headless 403s against SomaFM-like hosts).
 - Locations: `*.test.ts(x)` next to code, e2e in `apps/web/e2e/player.spec.ts`.
 - Coverage: 80% in `packages/player`, 100% in fallback + error mapping.
-- Levels: unit (fallback picker, error mapper, autoplay-blocked mapper) → integration (tRPC + Query) → headed e2e (autoplay audible <5s when allowed, one-tap resume when blocked, no sustained 403) → navigation (Solito `/player` resolves on web + native) → visual (Tamagui card renders on web + native with same tokens).
+- Levels: unit (fallback picker, error mapper, autoplay-blocked mapper) → integration (tRPC + Query) → headed e2e (autoplay audible <5s when allowed, one-tap resume when blocked, no sustained 403) → navigation (landing `/` renders the shared player on web + native) → visual (Tamagui card renders on web + native with same tokens).
 
 ## Boundaries
 - Always: attempt audible autoplay on app open / first visit with no manual play required, exercise ice1→ice2→ice3 fallback, render status/error/blocked, run `typecheck + lint + test` before commit, validate inputs with zod, use Tamagui primitives + tokens and Solito `Link`/`useRouter` in shared code with shared route constants.
@@ -85,12 +85,12 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Never: commit secrets/signed URLs, require manual play on first visit, delete failing fallback tests without approval, run audio e2e headless against SomaFM-like hosts, import `next/link` or `next/router` inside `packages/ui`, use raw `div` / RN `View` with web-only CSS inside `packages/ui` bypassing Tamagui tokens.
 
 ## Success Criteria
-- Web: open `/player` on first visit → audible autoplay attempted on mount, audible in <5s in headed Chrome when allowed, `status=playing`, active URL logged, no manual play required.
+- Web: open `/` (landing) on first visit → audible autoplay attempted on mount, audible in <5s in headed Chrome when allowed, `status=playing`, active URL logged, no manual play required.
 - Web blocked: when the browser rejects audible autoplay (`NotAllowedError`), `status=blocked` with a single "Tap to enable sound" resume that starts the same stream; no full play flow required.
 - Native (Expo Go): open app → autoplay audible in <5s, pause/resume works, background does not crash.
 - Fallback: if the primary mirror returns 403/timeout, it switches to the next one unattended and logs it.
 - Human error: `MEDIA_ERR_SRC_NOT_SUPPORTED (code 4)` renders as "Signal unavailable, trying mirror…" not a stacktrace.
-- Navigation: `/player` resolves on web and native via Solito, `/player/[stationId]` deep-links to the same card on both.
+- Navigation: landing `/` renders the shared player on web and native; `/player/[stationId]` deep-link contract stays in `packages/navigation` for Task 5.
 - Persistence: player shell persists across all routes and sheets; opening a listing, carousel card, or owner link never pauses or unmounts audio. Dock position (`top` | `bottom`) is user-selectable and persisted.
 - UI: `PlayerCard` renders with Tamagui on web and native from the same code, themes/tokens apply, no web-only CSS leak.
 - tRPC `listener.getStatus` returns 200 with `{ station, activeUrl, listeners }` mock.

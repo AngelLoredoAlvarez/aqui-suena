@@ -123,7 +123,7 @@
 
 ## Task 6: Web autoplay integration
 
-**Description:** Wire autoplay `PlayerCard` into Next.js `/player`, attempting audible autoplay on mount with `blocked` resume fallback.
+**Description:** Wire autoplay `PlayerCard` into the Next.js landing `/`, attempting audible autoplay on mount with `blocked` resume fallback.
 
 **Acceptance criteria:**
 - [ ] First visit attempts audible autoplay with no manual play required
@@ -138,19 +138,19 @@
 **Dependencies:** Tasks 4-5
 
 **Files likely touched:**
-- `apps/web/app/player/page.tsx`
+- `apps/web/app/page.tsx`
 - `apps/web/e2e/player.spec.ts`
 
 **Estimated scope:** Small: 1-2 files
 
 ## Task 7: Native autoplay integration
 
-**Description:** Wire autoplay `PlayerCard` into Expo `/player` with `expo-av`, background-safe playback and pause/resume.
+**Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-av`, background-safe playback and pause/resume.
 
 **Acceptance criteria:**
 - [ ] App open autoplays audibly in <5s in Expo Go
 - [ ] Pause/resume works, background does not crash
-- [ ] Same route name and card as web
+- [ ] Same landing and card as web
 
 **Verification:**
 - [ ] Tests pass: `pnpm --filter native test -- --run`
@@ -160,7 +160,7 @@
 **Dependencies:** Tasks 4-5
 
 **Files likely touched:**
-- `apps/native/app/player.tsx`
+- `apps/native/app/index.tsx`
 - `packages/player/src/native.ts`
 
 **Estimated scope:** Small: 1-2 files
