@@ -5,7 +5,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 ## Quick path
 
 1. Install: `pnpm install` (requires Node 22, pnpm 12.4.1)
-2. Run web: `pnpm dev:web` → http://localhost:3000/player
+2. Run web: `pnpm dev:web` → http://localhost:3000/ (landing is the player)
 3. Run native: `pnpm dev:native` (Expo Go) or `pnpm dev:native:android` (emulator)
 4. Verify: `pnpm -r build && pnpm -r typecheck && pnpm exec biome check .`
 
@@ -16,7 +16,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `apps/web` | Next.js 16 App Router + React Native Web |
 | `apps/native` | Expo 57 + Expo Router |
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
-| `packages/navigation` | Shared Solito route contracts (`/player`, `/player/[stationId]`) |
+| `packages/navigation` | Shared Solito route contracts (deep links return in Task 5) |
 | `packages/ui` | Shared Tamagui provider + components (no `next/link`, no web-only CSS) |
 | `packages/player`, `api`, `db` | Planned: playback core, tRPC status API, Drizzle schema |
 
@@ -32,7 +32,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Routes
 
-Shared via Solito, same names on both platforms: `/player` and `/player/[stationId]`.
+Landing `/` is the player + ads carousel on both platforms, rendered from shared code. Station deep links return in Task 5.
 
 ## Docs and planning
 
