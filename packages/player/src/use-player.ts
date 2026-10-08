@@ -100,6 +100,10 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
       setPlayerState((prevState) => ({ ...prevState, status: "error", activeUrl: null }));
       lastUrlRef.current = null;
     }
+    // NOTE: attempt() never rejects: every await lives inside the
+    // try/catch above and the mapper is total, so `void attempt(...)`
+    // callers need no .catch. If an await is ever added outside the
+    // try block, this guarantee must be revisited.
   }, []);
 
   useEffect(() => {
