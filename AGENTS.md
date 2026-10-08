@@ -34,6 +34,11 @@ Map the user's intent to the matching skill automatically:
 - This rule takes precedence over any workflow default (including automatic tracking or follow-up commits): when in doubt, ask and remain read-only.
 - Pushing to any remote is forbidden without the user's explicit instruction for that specific push. Commits, merges, and branch operations never imply push authorization; a push happens only when the user plainly says to push.
 
+## Session Close (MANDATORY)
+
+- When the user signals the end of the workday (or any session end), persist memory BEFORE replying done: save the day's decisions, fixes, and discoveries to persistent memory and write the session summary. Never end a session on memory that lives only in the chat.
+- This happens without being asked: the user's end-of-day message IS the trigger, no separate "save this" instruction needed.
+
 ## Execution Model
 
 For every request:
