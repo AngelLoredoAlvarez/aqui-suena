@@ -1,11 +1,7 @@
-import { greeting } from "@aqui-suena/ui";
-import { Text, View } from "react-native";
+import { PlayerLanding } from "@aqui-suena/ui";
 
+// Landing is the player plus the ads carousel. There is no separate
+// player screen.
 export default function Index() {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Aqui Suena</Text>
-      <Text>{greeting()}</Text>
-    </View>
-  );
+  return <PlayerLanding />;
 }
