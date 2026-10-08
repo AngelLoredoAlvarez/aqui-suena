@@ -34,11 +34,11 @@ User: "si me parece bien" on the ping-pong model + "qué comandos debo correr" (
 - Strategy: `ask-on-risk` (default). Forecast: small (~150 authored lines). Per-slice work-unit commits.
 
 ## Tasks
-- [ ] T1 Scaffold `packages/player` + RED tests for slice (a) fallback picker (agent)
-- [ ] T2 GREEN implementation of slice (a) (user)
-- [ ] T3 Slice (b) error mapper: RED (agent) + GREEN (owner TBD)
-- [ ] T4 Slice (c) `usePlayer`: RED + GREEN (owner TBD)
-- [ ] T5 Full verification + close (whoever finishes last)
+- [x] T1 Scaffold `packages/player` + RED tests for slice (a) fallback picker (agent)
+- [x] T2 GREEN implementation of slice (a) (user)
+- [x] T3 Slice (b) error mapper: RED (agent) + GREEN (user)
+- [x] T4 Slice (c) `usePlayer`: RED (agent) + GREEN (user) + senior hardening (agent on user request: run generations, asMediaFailure narrowing, stable play/resume, rotation test for non-object rejections)
+- [ ] T5 Full verification + close
 
 ## Acceptance criteria
 - `pickFallbackUrl` + `describeMediaError` at 100% coverage of their branches.
