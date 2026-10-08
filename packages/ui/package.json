@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no tests yet (scaffold)'"
+    "test": "vitest run"
   },
   "dependencies": {
     "@aqui-suena/config": "workspace:*",
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/react": "19.2.2",
     "react": "19.2.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^5.0.3"
   }
 }
