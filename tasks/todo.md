@@ -101,11 +101,11 @@
 
 ## Task 5: PlayerCard UI (Tamagui + Solito)
 
-**Description:** Build Tamagui `PlayerCard` with status text, `blocked` one-tap resume, and an optional `onOpen` affordance. No router imports in shared code: Solito's native `Link` needs the classic React Navigation container, which Expo Router 57 does not provide (it vendors forked primitives), so each app wires `onOpen` with its own router. The deep-link route contract stays reserved in `packages/navigation`.
+**Description:** Build Tamagui `PlayerCard` with status text, `blocked` one-tap resume, and an in-place station selector. No station screens and no router imports in shared code by product decision (player switches stations on the landing); each app would wire navigation with its own router only if route screens ever exist.
 
 **Acceptance criteria:**
 - [ ] `playing` shows active status, `blocked` shows single resume tap only
-- [ ] `onOpen` fires when the Open affordance is pressed; no `Link` or router imports in shared UI
+- [ ] Station selector lists stations, calls `onSelectStation` with the id, hides while blocked
 - [ ] No raw `div` / web-only CSS in shared UI
 
 **Verification:**

@@ -24,7 +24,7 @@ Map the user's intent to the matching skill automatically:
 ## Product invariants
 
 - Landing `/` is the player + ads carousel on web and native, rendered from shared `@aqui-suena/ui` code.
-- No separate `/player` route exists on either platform. `packages/navigation` keeps route contracts for future deep links only.
+- No station screens exist by product decision: the player switches stations in place via its selector, never by navigating. `packages/navigation` stays reserved for future modules.
 
 ## Authorization (MANDATORY)
 

@@ -1,22 +1,35 @@
-import { Button, Paragraph, YStack } from "tamagui";
+import { Button, Paragraph, XStack, YStack } from "tamagui";
 
 export type PlayerCardStatus = "playing" | "blocked" | "error";
+
+export type StationRef = {
+  readonly id: string;
+  readonly name: string;
+};
 
 export type PlayerCardProps = {
   stationName: string;
   listeners: number;
   status: PlayerCardStatus;
   onResume: () => void;
-  onOpen?: () => void;
+  stations?: readonly StationRef[];
+  onSelectStation?: (stationId: string) => void;
 };
 
-// Shared player card: station status text and blocked one-tap resume.
-// Navigation stays out of shared code on purpose: Solito's Link needs the
-// classic React Navigation container, which Expo Router 57 does not provide
-// (it vendors forked primitives). Apps pass onOpen wired to their own
-// router; the deep-link route contract lives in packages/navigation for
-// the task that creates those screens. Tamagui primitives only.
-export function PlayerCard({ stationName, listeners, status, onResume, onOpen }: PlayerCardProps) {
+// Shared player card: station status text, blocked one-tap resume, and an
+// in-place station selector. There are deliberately no station screens and
+// no router imports in shared code: the player switches stations without
+// navigating. The selector shows in playing/error states (an escape hatch
+// when the current station fails) and stays hidden while blocked, where the
+// single resume tap is the only action. Tamagui primitives only.
+export function PlayerCard({
+  stationName,
+  listeners,
+  status,
+  onResume,
+  stations,
+  onSelectStation,
+}: PlayerCardProps) {
   return (
     <YStack gap="$3" p="$4">
       <Paragraph>{stationName}</Paragraph>
@@ -32,7 +45,20 @@ export function PlayerCard({ stationName, listeners, status, onResume, onOpen }:
         </Button>
       ) : null}
       {status === "error" ? <Paragraph>Signal unavailable, trying mirror…</Paragraph> : null}
-      {onOpen ? <Paragraph onPress={onOpen}>Open</Paragraph> : null}
+      {status !== "blocked" && stations && onSelectStation ? (
+        <XStack gap="$2">
+          {stations.map((station) => (
+            <Button
+              key={station.id}
+              type="button"
+              size="$2"
+              onPress={() => onSelectStation(station.id)}
+            >
+              {station.name}
+            </Button>
+          ))}
+        </XStack>
+      ) : null}
     </YStack>
   );
 }

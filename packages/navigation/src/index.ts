@@ -1,7 +1,3 @@
-export type { PlayerParams } from "./routes";
-export {
-  PLAYER_ROUTE,
-  PLAYER_STATION_ROUTE,
-  playerPath,
-  playerRouteFor,
-} from "./routes";
+// Route contracts for future modules live in ./routes (currently none:
+// the player switches stations in place by product decision).
+export {};

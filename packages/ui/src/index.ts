@@ -8,7 +8,7 @@ export function greeting(): string {
 
 export { AdsCarousel } from "./ads-carousel";
 export { useListenerStatus } from "./listener-status";
-export type { PlayerCardProps, PlayerCardStatus } from "./player-card";
+export type { PlayerCardProps, PlayerCardStatus, StationRef } from "./player-card";
 export { PlayerCard } from "./player-card";
 export { PlayerLanding } from "./player-landing";
 export { UiProvider } from "./provider";

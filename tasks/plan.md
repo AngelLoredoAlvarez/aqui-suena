@@ -5,7 +5,7 @@ Build the first vertical slice of aqui-suena: open the app and hear the temporar
 
 ## Architecture Decisions
 - Monorepo with pnpm workspaces + Turborepo task orchestration (`turbo.json` pipeline with `dependsOn` ordering and local cache): `apps/web` (Next.js App Router), `apps/native` (Expo Router), `packages/player|ui|navigation|api|db|config`.
-- Solito as the only cross-platform navigation API; the landing `/` renders the shared player on both platforms, and the deep-link contract (`/player/[stationId]`) stays reserved in `packages/navigation` for later; no `next/link` in shared code.
+- Solito as the only cross-platform navigation API if route screens ever exist; the player itself switches stations in place on the landing `/`, with no station screens by product decision. `packages/navigation` stays reserved for future modules.
 - Tamagui as the only shared UI system (primitives + tokens + themes); `tamagui.config` canonical in `packages/config`.
 - Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })` with an injected `AudioDriver`. Driver implementation is `expo-audio` (cross-platform web + native, replaces deprecated `expo-av`); the hook never touches audio APIs directly.
 - tRPC + TanStack Query for `listener.getStatus` mock; Drizzle + PostgreSQL for `stations` / `listen_sessions` metadata only.

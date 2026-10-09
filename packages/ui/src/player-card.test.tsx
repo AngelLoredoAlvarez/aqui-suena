@@ -2,13 +2,20 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { StationRef } from "./player-card";
 import { PlayerCard } from "./player-card";
 import { UiProvider } from "./provider";
+
+const STATIONS: readonly StationRef[] = [
+  { id: "station-1", name: "Station One" },
+  { id: "station-2", name: "Station Two" },
+];
 
 function renderCard(props: {
   status: "playing" | "blocked" | "error";
   onResume?: () => void;
-  onOpen?: () => void;
+  stations?: readonly StationRef[];
+  onSelectStation?: (stationId: string) => void;
 }) {
   const wrapper = ({ children }: { children: ReactNode }) => <UiProvider>{children}</UiProvider>;
   return render(
@@ -16,7 +23,8 @@ function renderCard(props: {
       stationName="Aqui Suena"
       listeners={42}
       onResume={props.onResume ?? (() => {})}
-      onOpen={props.onOpen}
+      stations={props.stations}
+      onSelectStation={props.onSelectStation}
       status={props.status}
     />,
     { wrapper },
@@ -58,18 +66,27 @@ describe("PlayerCard", () => {
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
   });
 
-  it("calls onOpen when the Open affordance is pressed", () => {
-    const onOpen = vi.fn();
-    renderCard({ status: "playing", onOpen });
+  it("selects a station from the selector when playing", () => {
+    const onSelectStation = vi.fn();
+    renderCard({ status: "playing", stations: STATIONS, onSelectStation });
 
-    fireEvent.click(screen.getByText("Open"));
+    fireEvent.click(screen.getByText("Station Two"));
 
-    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onSelectStation).toHaveBeenCalledTimes(1);
+    expect(onSelectStation).toHaveBeenCalledWith("station-2");
   });
 
-  it("shows no Open affordance without an onOpen handler", () => {
-    renderCard({ status: "playing" });
+  it("hides the selector while blocked", () => {
+    renderCard({ status: "blocked", stations: STATIONS, onSelectStation: () => {} });
 
-    expect(screen.queryByText("Open")).toBeNull();
+    expect(screen.queryByText("Station Two")).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+
+  it("keeps the selector as an escape hatch on error", () => {
+    renderCard({ status: "error", stations: STATIONS, onSelectStation: () => {} });
+
+    expect(screen.getByText("Station One")).toBeTruthy();
+    expect(screen.getByText("Station Two")).toBeTruthy();
   });
 });

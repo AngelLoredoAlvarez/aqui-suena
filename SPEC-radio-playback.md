@@ -40,8 +40,9 @@ packages/
 
 Routes:
 ```
-/ (landing)           → player + ads carousel on web and native, from shared code
-/player/[stationId] → reserved deep-link contract in packages/navigation for Task 5; no `/player` screen exists
+/ (landing) → player + ads carousel on web and native, from shared code.
+/player/*   → does not exist by product decision: the player switches
+               stations in place, never by navigating to station screens.
 ```
 
 ## Code Style
@@ -52,7 +53,11 @@ Functional components, hooks, `kebab-case` for files, `PascalCase` for component
 import { Button, Text, YStack } from 'tamagui';
 import { usePlayer } from '@aqui-suena/player';
 
-export function PlayerCard({ urls, stationId, onOpen }: { urls: string[]; stationId: string; onOpen: () => void }) {
+export function PlayerCard({ urls, stations, onSelectStation }: {
+  urls: string[];
+  stations: { id: string; name: string }[];
+  onSelectStation: (stationId: string) => void;
+}) {
   const { status, play, resume } = usePlayer({ urls, autoplay: true }); // ice1 → ice2 → ice3, autostart on mount
   // status: 'idle' | 'loading' | 'playing' | 'blocked' | 'error'
   // 'blocked' = browser autoplay policy rejected audible autoplay; render one-tap resume.
@@ -61,13 +66,16 @@ export function PlayerCard({ urls, stationId, onOpen }: { urls: string[]; statio
       <Text>Status: {status}</Text>
       {status === 'blocked' ? <Button onPress={resume}>Tap to enable sound</Button> : null}
       <Button onPress={play}>Play</Button>
-      <Button onPress={onOpen}>Open</Button>
+      {stations.map((station) => (
+        <Button key={station.id} onPress={() => onSelectStation(station.id)}>
+          {station.name}
+        </Button>
+      ))}
     </YStack>
   );
 }
-// Navigation lives in apps (each wires onOpen with its own router): shared
-// UI must not import Solito Link or any router, since Expo Router 57 does
-// not provide the classic React Navigation container Solito needs.
+// Station switching happens in place via the selector; there are no station
+// screens and no router imports in shared code by product decision.
 // Always attempt audible autoplay on mount; first visit must not require pressing play. Only the browser-blocked case renders a single resume tap.
 ```
 
@@ -90,7 +98,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Native (Expo Go): open app → autoplay audible in <5s, pause/resume works, background does not crash.
 - Fallback: if the primary mirror returns 403/timeout, it switches to the next one unattended and logs it.
 - Human error: `MEDIA_ERR_SRC_NOT_SUPPORTED (code 4)` renders as "Signal unavailable, trying mirror…" not a stacktrace.
-- Navigation: landing `/` renders the shared player on web and native; `/player/[stationId]` deep-link contract stays in `packages/navigation` for Task 5.
+- Navigation: landing `/` renders the shared player on web and native; station switching happens in place via the card selector, never via station screens.
 - Persistence: player shell persists across all routes and sheets; opening a listing, carousel card, or owner link never pauses or unmounts audio. Dock position (`top` | `bottom`) is user-selectable and persisted.
 - UI: `PlayerCard` renders with Tamagui on web and native from the same code, themes/tokens apply, no web-only CSS leak.
 - tRPC `listener.getStatus` returns 200 with `{ station, activeUrl, listeners }` mock.
