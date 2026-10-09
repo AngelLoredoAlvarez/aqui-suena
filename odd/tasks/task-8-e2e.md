@@ -33,10 +33,10 @@ User: "si papi, dele" after explicit Task 8 start question. Covers infra + specs
 - Strategy: `ask-on-risk` (default). Forecast: medium (~300 authored lines incl. config).
 
 ## Tasks
-- [ ] T1 Playwright infra (install, config, webServer, scripts) + smoke spec green
-- [ ] T2 e2e specs (autoplay allowed/blocked, fallback, pause/resume, es/en copy, console-clean)
-- [ ] T3 player coverage to 80% + Tamagui parity assertions
-- [ ] T4 Verification (gates + user headed audible/device checks) + close
+- [x] T1 Playwright infra (install, config, webServer, scripts) + smoke spec green
+- [x] T2 e2e specs (autoplay allowed/blocked, fallback, pause/resume, es/en copy, console-clean)
+- [x] T3 player coverage to 80% + Tamagui parity assertions
+- [x] T4 Verification (gates + user headed audible/device checks) + close
 
 ## Acceptance criteria
 - `pnpm --filter web test:e2e` passes headless here; user confirms headed audible + device checks.
@@ -67,9 +67,10 @@ User: "si papi, dele" after explicit Task 8 start question. Covers infra + specs
   then `--project chromium-en --headed`. Requires the dev server on :3000 (or drop E2E_PORT to boot a dedicated :3100).
 - Audible: confirm music plays on load (or after the tap when policy blocks), pause/resume buttons flip status with audible stop/restart, abort path inaudible-switch to mirror.
 - Device: open the native app, confirm landing player + switcher + ads render and playback works; report back heard/not-heard per check.
+- 2026-10-09 (user, T4 close): native autoplays audibly on load; web requires tap (policy) then audible; pause/resume flip + audible stop/restart; es/en switch works. No console errors. Task closed.
 
 ## Next step
-- T4 user headed audible/device checks, then close.
+- Done. Closed 2026-10-09 after user audible/device verification.
 
 ## Commits
-- 064ef2b test(e2e): playwright infra, player specs, 80% player coverage (local only, no push)
+- d596477 test(e2e): playwright infra, player specs, 80% player coverage (T1-T3)

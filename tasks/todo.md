@@ -167,24 +167,24 @@
 **Estimated scope:** Small: 1-2 files
 
 ## Checkpoint: Core Features
-- [ ] All tests pass
-- [ ] Application builds without errors
-- [ ] Autoplay flow works headed web + native
-- [ ] Review with human before proceeding
+- [x] All tests pass
+- [x] Application builds without errors
+- [x] Autoplay flow works headed web + native
+- [x] Review with human before proceeding
 
 ## Task 8: Verification + headed e2e
 
 **Description:** Run full gates and headed audio e2e for autoplay allowed/blocked, fallback, navigation, and Tamagui parity.
 
 **Acceptance criteria:**
-- [ ] 80% coverage in `packages/player` verified
-- [ ] Headed e2e passes for autoplay, resume, fallback, `/player` routes
-- [ ] Tamagui parity web/native confirmed, no CSS leak
+- [x] 80% coverage in `packages/player` verified
+- [x] Headed e2e passes for autoplay, resume, fallback, `/player` routes
+- [x] Tamagui parity web/native confirmed, no CSS leak
 
 **Verification:**
-- [ ] Tests pass: `pnpm -r test -- --run`
-- [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: SPEC-radio-playback.md success criteria checklist
+- [x] Tests pass: `pnpm -r test -- --run`
+- [x] Build succeeds: `pnpm -r build`
+- [x] Manual check: SPEC-radio-playback.md success criteria checklist
 
 **Dependencies:** Tasks 6-7
 
@@ -195,5 +195,5 @@
 **Estimated scope:** Small: 1-2 files
 
 ## Checkpoint: Complete
-- [ ] All acceptance criteria met
-- [ ] Ready for review
+- [x] All acceptance criteria met
+- [x] Ready for review
