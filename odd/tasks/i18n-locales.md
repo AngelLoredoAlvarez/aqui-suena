@@ -33,10 +33,10 @@ User: "va, hagamoslo a tu manera" after choosing Auto + switch manual. Covers im
 - Strategy: `ask-on-risk` (default). Forecast: small (~150 authored lines).
 
 ## Tasks
-- [ ] T1 Contract + dictionaries es/en + tests (key parity, fallback chain, getDictionary)
-- [ ] T2 LocaleProvider + useLocale + switcher + persistence + tests
-- [ ] T3 Migrate Card/Landing/player errors to dictionary + update tests
-- [ ] T4 Verification (gates + user check web es/en + native es/en) + close
+- [x] T1 Contract + dictionaries es/en + tests (key parity, fallback chain, getDictionary)
+- [x] T2 LocaleProvider + useLocale + switcher + persistence + tests
+- [x] T3 Migrate Card/Landing/player errors to dictionary + update tests
+- [x] T4 Verification (gates + user check web es/en + native es/en) + close
 
 ## Acceptance criteria
 - No hardcoded user-facing English/Spanish left in Card, Landing, or `describeMediaError`; all copy comes from the dictionary.
@@ -60,9 +60,11 @@ User: "va, hagamoslo a tu manera" after choosing Auto + switch manual. Covers im
 - `pnpm exec turbo run test -- --run`: 8 successful, 8 total (3 cached = unrelated packages).
 - RED observed before each GREEN: T1 6 failing on stub, T2 11 failing on stubs, errors 4 failing on key expectations.
 - 2026-10-09 (agent, T4-fix): native reload lost the manual choice (session Map store in `_layout.tsx`). RED (3 failing on missing async helpers) -> GREEN. Installed `@react-native-async-storage/async-storage@2.2.0` in apps/native only via `npx expo install`; added `AsyncLocaleStore` + `load/savePersistedLocaleAsync` in `locale-env.ts` (addition only, sync web path untouched); `_layout.tsx` now persists to AsyncStorage (default = detected, effect restores persisted, fire-and-forget save, never throws). Prove-it reload test with fake async store in `locale.test.tsx`. ui 53/53, player 23/23, native typecheck clean, biome clean. Needs a native rebuild (new native dep).
+- 2026-10-09 (user, T4 close): verified web es/en switch + reload persists, and native persistence after rebuild. Task closed.
 
 ## Next step
-- T1 contract RED.
+- Done. Closed 2026-10-09 after user verified web es/en + native persistence.
 
 ## Commits
-- f84670e feat(i18n): typed es/en dictionaries with auto-detect and persisted switch (T1-T3; T4 user check pending)
+- f84670e feat(i18n): typed es/en dictionaries with auto-detect and persisted switch (T1-T3)
+- c1e758c fix(native): persist locale choice across reloads (T4-fix)
