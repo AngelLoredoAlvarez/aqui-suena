@@ -148,14 +148,14 @@
 **Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-audio` plus background-safe playback. Pause/resume works on web and native (hook + card + both drivers); background no-crash is native-specific.
 
 **Acceptance criteria:**
-- [ ] App open autoplays audibly in <5s in Expo Go
-- [ ] Pause/resume works on web and native, background does not crash (native)
-- [ ] Same landing and card as web
+- [x] App open autoplays audibly in <5s in Expo Go
+- [x] Pause/resume works on web and native, background does not crash (native)
+- [x] Same landing and card as web
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter native test -- --run`
-- [ ] Build succeeds: `pnpm --filter native build`
-- [ ] Manual check: open app, hear audio without tapping play
+- [x] Tests pass: `pnpm --filter native test -- --run`
+- [x] Build succeeds: `pnpm --filter native build`
+- [x] Manual check: open app, hear audio without tapping play
 
 **Dependencies:** Tasks 4-5
 

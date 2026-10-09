@@ -36,7 +36,7 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 - [x] T1 Hook pause + paused status + tests (RED→GREEN)
 - [x] T2 Drivers pause + native background effect + tests
 - [x] T3 Card pause UI + landing wiring + tests
-- [ ] T4 Verification (gates + user device checks) + close
+- [x] T4 Verification (gates + user device checks) + close
 
 ## Acceptance criteria
 - pause() keeps the url, sets paused, calls driver pause; resume() replays to playing.
@@ -51,6 +51,7 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 - 2026-10-09: T1 done (hook pause + paused status, commits 9fa46a5/e23546f).
 - 2026-10-09: T2 done. RED observed by stashing driver impl: `result.current.pause is not a function` on both drivers (+ audio-mode test). GREEN with impl restored: native `setAudioModeAsync` exact-recipe test + `player.pause()` test; web element-pause test via FakeAudio tracking. Existing proxy/error tests green.
 - 2026-10-09: T3 done. RED observed on card (3 failures: no Pause button, no paused UI, selector visible while loading). GREEN after: `onPause` required prop, Pause button while playing, Paused + Resume while paused, `Loading…` while loading, selector visible in playing/paused/error and hidden while blocked/loading. Landing passes `onPause={pause}`; `paused` never hits the loading branch (guard is idle/loading only).
+- 2026-10-09: T4 done. User verified pause/resume on web + native and background audio on native device. Task closed.
 
 ## Verification evidence
 - `pnpm --filter @aqui-suena/ui test`: 5 files / 28 tests passed.
@@ -60,7 +61,7 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 - `pnpm exec turbo run test -- --run`: 8 tasks successful.
 
 ## Next step
-- T4 verification/device check (user confirms background no-crash on device).
+- Done. Closed 2026-10-09: user verified pause/resume on web + native and background audio on device.
 
 ## Commits
 - 9fa46a5 test(player): pause RED — T1.
