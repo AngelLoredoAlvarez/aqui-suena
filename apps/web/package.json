@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no tests yet (scaffold)'"
+    "test": "echo 'no tests yet (scaffold)'",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@aqui-suena/config": "workspace:*",
@@ -20,6 +21,7 @@
     "tamagui": "2.7.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@types/node": "^22.0.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "^19.2.0",

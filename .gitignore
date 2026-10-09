@@ -9,3 +9,5 @@ out/
 .pnpm-store/
 .turbo/
 .atl/
+test-results/
+coverage/

@@ -236,6 +236,31 @@ describe("usePlayer", () => {
     expect(played).toEqual([URL_A]);
   });
 
+  it("cancels a pending autoplay attempt on unmount", async () => {
+    const played: string[] = [];
+    let resolvePlay!: () => void;
+    const driver: AudioDriver = {
+      play: (url: string) => {
+        played.push(url);
+        return new Promise<void>((resolve) => {
+          resolvePlay = resolve;
+        });
+      },
+      pause: vi.fn(),
+    };
+    const { unmount } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
+    );
+
+    await waitFor(() => expect(played).toEqual([URL_A]));
+    unmount();
+
+    await act(async () => {
+      resolvePlay();
+    });
+    expect(played).toEqual([URL_A]);
+  });
+
   it("maps driver pause failure to error", async () => {
     const { driver } = createFakeDriver();
     driver.pause = () => {
