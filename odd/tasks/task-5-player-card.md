@@ -34,7 +34,8 @@ User: "ok, iniciemos con la task 5" under the ping-pong model (agent RED, user G
 ## Tasks
 - [x] T1 Deps + RED tests for PlayerCard (agent)
 - [x] T2 GREEN implementation (agent on user request; user attempted raw-HTML version first — logic correct, rewritten to Tamagui + Solito per conventions)
-- [ ] T3 Verification + close
+- [x] T3 Landing wiring with temporary noop driver (agent on user request to preview; expo-audio replaces it in Tasks 6-7)
+- [ ] T4 Verification + close
 
 ## Verification evidence
 - `pnpm --filter ui test` → 10/10 (greeting 2, status 3, card 5). `turbo typecheck` 8/8, `biome check .` clean, `pnpm arch` clean (50 modules).
