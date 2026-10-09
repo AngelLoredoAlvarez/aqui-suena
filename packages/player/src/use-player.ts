@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MediaFailure } from "./errors";
-import { describeMediaError } from "./errors";
+import { describeMediaError, narrowFailure } from "./errors";
 import { pickFallbackUrl } from "./fallback";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "blocked" | "error";
@@ -23,17 +22,6 @@ export type UsePlayerReturn = {
   play: () => void;
   resume: () => void;
 };
-
-function asMediaFailure(error: unknown): MediaFailure {
-  if (typeof error === "object" && error !== null) {
-    const { name, code } = error as { name?: unknown; code?: unknown };
-    return {
-      name: typeof name === "string" ? name : undefined,
-      code: typeof code === "number" ? code : undefined,
-    };
-  }
-  return {};
-}
 
 export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): UsePlayerReturn {
   const [player, setPlayerState] = useState<UsePlayerState>({
@@ -73,7 +61,7 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
       try {
         await driverRef.current.play(url);
       } catch (error: unknown) {
-        const detail = describeMediaError(asMediaFailure(error));
+        const detail = describeMediaError(narrowFailure(error));
 
         if (detail.status === "blocked") {
           if (isCurrent()) {
