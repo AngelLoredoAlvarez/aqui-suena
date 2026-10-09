@@ -37,7 +37,7 @@ User: Task 5 start + onOpen direction + no-station-pages decision + selector mec
 - [x] T3 Landing wiring with temporary noop driver (agent on user request to preview; expo-audio replaces it in Tasks 6-7)
 - [x] T4 Solito Link replaced with onOpen callback (user chose fight-then-callback; Expo Router 57 vendors forked navigation contexts — proven unwinnable — plus dead nav deps pruned, docs updated)
 - [x] T5 No-station-pages decision: onOpen removed, in-place selector added to card, player route contract removed from navigation, living docs updated
-- [ ] T6 Verification + close
+- [x] T6 Native navigation redbox fixed, then Solito fully replaced; user confirmed web + native working 2026-10-08
 
 ## Verification evidence
 - `pnpm --filter ui test` → 12/12 (states, resume, selector shown/hidden/escape-hatch). `turbo typecheck` 8/8, `biome check .` clean, `pnpm arch` clean.
@@ -52,10 +52,10 @@ User: Task 5 start + onOpen direction + no-station-pages decision + selector mec
 - `pnpm --filter @aqui-suena/ui test`, typecheck, biome.
 
 ## Progress
-- 2026-10-08: branch from main (f132f0f). Slices T1–T5 implemented with work-unit commits; hook gates green on every commit.
+- 2026-10-08: branch from main (f132f0f). Slices implemented with work-unit commits; hook gates green on every commit. Closed: user-verified web + native.
 
 ## Next step
-- T6 close-out: final gates + RDD assess + report (no push).
+- Done: Task 6 (web autoplay with expo-audio) is next.
 
 ## Commits
 - (recorded in git log on feat/task-5-player-card)

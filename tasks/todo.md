@@ -104,14 +104,14 @@
 **Description:** Build Tamagui `PlayerCard` with status text, `blocked` one-tap resume, and an in-place station selector. No station screens and no router imports in shared code by product decision (player switches stations on the landing); each app would wire navigation with its own router only if route screens ever exist.
 
 **Acceptance criteria:**
-- [ ] `playing` shows active status, `blocked` shows single resume tap only
-- [ ] Station selector lists stations, calls `onSelectStation` with the id, hides while blocked
-- [ ] No raw `div` / web-only CSS in shared UI
+- [x] `playing` shows active status, `blocked` shows single resume tap only
+- [x] Station selector lists stations, calls `onSelectStation` with the id, hides while blocked
+- [x] No raw `div` / web-only CSS in shared UI
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter ui test -- --run`
-- [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: toggle `blocked` state, resume starts same stream
+- [x] Tests pass: `pnpm --filter ui test -- --run`
+- [x] Build succeeds: `pnpm -r build`
+- [x] Manual check: landing + card on web and native, no navigation redbox (verified by user 2026-10-08)
 
 **Dependencies:** Task 4
 
