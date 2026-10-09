@@ -133,6 +133,7 @@ describe("usePlayer", () => {
         new Promise<void>((resolve) => {
           pending.push({ url, resolve });
         }),
+      pause: vi.fn(),
     };
     const { result } = renderHook(() =>
       usePlayer({ urls: [URL_A, URL_B], autoplay: true, driver }),
@@ -188,5 +189,71 @@ describe("usePlayer", () => {
     });
     await waitFor(() => expect(result.current.status).toBe("playing"));
     expect(result.current.activeUrl).toBe(URL_A);
+  });
+
+  it("pauses only once on double pause", async () => {
+    const { driver, paused } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: true, driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      result.current.pause();
+    });
+    await act(async () => {
+      result.current.pause();
+    });
+
+    expect(result.current.status).toBe("paused");
+    await waitFor(() => expect(paused).toHaveLength(1));
+  });
+
+  it("ignores pause when idle", async () => {
+    const { driver, paused } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: false, driver }));
+
+    expect(result.current.status).toBe("idle");
+
+    await act(async () => {
+      result.current.pause();
+    });
+
+    expect(result.current.status).toBe("idle");
+    expect(paused).toHaveLength(0);
+  });
+
+  it("ignores resume when already playing", async () => {
+    const { driver, played } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: true, driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      result.current.resume();
+    });
+
+    expect(result.current.status).toBe("playing");
+    expect(played).toEqual([URL_A]);
+  });
+
+  it("maps driver pause failure to error", async () => {
+    const { driver } = createFakeDriver();
+    driver.pause = () => {
+      throw new Error("Something went wrong!");
+    };
+
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: false, driver }));
+
+    await act(async () => {
+      result.current.play();
+    });
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      result.current.pause();
+    });
+
+    expect(result.current.status).toBe("error");
   });
 });
