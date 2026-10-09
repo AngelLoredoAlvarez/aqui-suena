@@ -32,9 +32,14 @@ User: "ok, iniciemos con la task 5" under the ping-pong model (agent RED, user G
 - Strategy: `ask-on-risk` (default). Forecast: small (~120 authored lines).
 
 ## Tasks
-- [ ] T1 Deps + RED tests for PlayerCard (agent)
-- [ ] T2 GREEN implementation (user)
+- [x] T1 Deps + RED tests for PlayerCard (agent)
+- [x] T2 GREEN implementation (agent on user request; user attempted raw-HTML version first — logic correct, rewritten to Tamagui + Solito per conventions)
 - [ ] T3 Verification + close
+
+## Verification evidence
+- `pnpm --filter ui test` → 10/10 (greeting 2, status 3, card 5). `turbo typecheck` 8/8, `biome check .` clean, `pnpm arch` clean (50 modules).
+- Solito Link untestable in jsdom as-is (pulls Flow-typed react-native + Next router): global vitest alias to `src/test-doubles/solito-link.tsx`; href assertions run through the anchor. Navigation itself belongs to Task 8 e2e.
+- Tamagui duplicates text nodes in DOM output: role-based queries for actions, cleanup between tests required.
 
 ## Acceptance criteria
 - `playing` shows status + listeners with no resume button; `blocked` shows exactly one tap (resume); `error` shows the mirror message.
