@@ -35,7 +35,8 @@ User: "ok, iniciemos con la task 5" under the ping-pong model (agent RED, user G
 - [x] T1 Deps + RED tests for PlayerCard (agent)
 - [x] T2 GREEN implementation (agent on user request; user attempted raw-HTML version first — logic correct, rewritten to Tamagui + Solito per conventions)
 - [x] T3 Landing wiring with temporary noop driver (agent on user request to preview; expo-audio replaces it in Tasks 6-7)
-- [ ] T4 Verification + close
+- [x] T4 Solito Link replaced with onOpen callback (user chose fight-then-callback; Expo Router 57 vendors forked navigation contexts — proven unwinnable — plus dead nav deps pruned, docs updated)
+- [ ] T5 Verification + close
 
 ## Verification evidence
 - `pnpm --filter ui test` → 10/10 (greeting 2, status 3, card 5). `turbo typecheck` 8/8, `biome check .` clean, `pnpm arch` clean (50 modules).
