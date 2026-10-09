@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PlayerCard } from "./player-card";
 import { UiProvider } from "./provider";
 
@@ -20,6 +20,9 @@ function renderCard(props: { status: "playing" | "blocked" | "error"; onResume?:
 }
 
 describe("PlayerCard", () => {
+  afterEach(() => {
+    cleanup();
+  });
   it("shows the status and listeners with no resume button when playing", () => {
     renderCard({ status: "playing" });
 
@@ -39,7 +42,7 @@ describe("PlayerCard", () => {
     const onResume = vi.fn();
     renderCard({ status: "blocked", onResume });
 
-    fireEvent.click(screen.getByText("Tap to enable sound"));
+    fireEvent.click(screen.getByRole("button"));
 
     expect(onResume).toHaveBeenCalledTimes(1);
   });

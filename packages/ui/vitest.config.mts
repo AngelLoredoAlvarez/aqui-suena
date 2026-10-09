@@ -4,6 +4,9 @@ import { defineConfig } from "vitest/config";
 const configSrc = fileURLToPath(new URL("../config/src", import.meta.url));
 const apiSrc = fileURLToPath(new URL("../api/src", import.meta.url));
 const apiClient = fileURLToPath(new URL("../api/src/client.ts", import.meta.url));
+const solitoLinkStub = fileURLToPath(
+  new URL("./src/test-doubles/solito-link.tsx", import.meta.url),
+);
 
 export default defineConfig({
   resolve: {
@@ -11,6 +14,7 @@ export default defineConfig({
       "@aqui-suena/api/client": apiClient,
       "@aqui-suena/api": apiSrc,
       "@aqui-suena/config": configSrc,
+      "solito/link": solitoLinkStub,
     },
   },
   test: {
