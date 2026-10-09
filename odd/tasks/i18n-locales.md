@@ -64,4 +64,4 @@ User: "va, hagamoslo a tu manera" after choosing Auto + switch manual. Covers im
 - T1 contract RED.
 
 ## Commits
-- <sha> feat(i18n): typed es/en dictionaries with auto-detect and persisted switch (SHA filled post-commit; swept at T4 close)
+- f84670e feat(i18n): typed es/en dictionaries with auto-detect and persisted switch (T1-T3; T4 user check pending)
