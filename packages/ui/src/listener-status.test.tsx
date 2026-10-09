@@ -13,6 +13,8 @@ import { UiProvider } from "./provider";
 class FakeAudio {
   src = "";
 
+  setAttribute(_name: string, _value: string): void {}
+
   play(): Promise<void> {
     return Promise.resolve();
   }

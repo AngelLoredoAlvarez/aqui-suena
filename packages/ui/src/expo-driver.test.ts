@@ -11,6 +11,11 @@ const playedUrls: string[] = [];
 
 class FakeAudio {
   src = "";
+  attributes: Record<string, string> = {};
+
+  setAttribute(name: string, value: string): void {
+    this.attributes[name] = value;
+  }
 
   play(): Promise<void> {
     playedUrls.push(this.src);
@@ -39,6 +44,33 @@ describe("useExpoAudioDriver (web)", () => {
     });
 
     expect(playedUrls).toEqual(["https://ice1.example/live"]);
+  });
+
+  it("omits the referrer so hotlink-protected hosts do not 403", async () => {
+    const attributes: Record<string, string> = {};
+    vi.stubGlobal(
+      "Audio",
+      class {
+        src = "";
+
+        setAttribute(name: string, value: string): void {
+          attributes[name] = value;
+        }
+
+        play(): Promise<void> {
+          return Promise.resolve();
+        }
+
+        pause(): void {}
+      },
+    );
+    const { result } = renderHook(() => useExpoAudioDriver());
+
+    await act(async () => {
+      await result.current.play("https://ice1.example/live");
+    });
+
+    expect(attributes.referrerpolicy).toBe("no-referrer");
   });
 
   it("surfaces autoplay blocks as NotAllowedError failures", async () => {

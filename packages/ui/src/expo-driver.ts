@@ -13,6 +13,10 @@ export function useExpoAudioDriver(): AudioDriver {
       play: (url: string) => {
         const element = elementRef.current ?? new Audio();
         elementRef.current = element;
+        // Stream hosts with hotlink protection (e.g. SomaFM) answer 403
+        // when the browser sends our origin as Referer. Omitting it makes
+        // the request indistinguishable from direct playback.
+        element.setAttribute("referrerpolicy", "no-referrer");
         element.src = url;
         return element.play().catch((error: unknown) => {
           throw toWebFailure(error);
