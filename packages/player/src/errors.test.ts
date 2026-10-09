@@ -3,34 +3,36 @@ import { describe, expect, it } from "vitest";
 import { describeMediaError } from "./errors";
 
 // Slice (b): media-error mapper. Contract under test: autoplay rejection
-// becomes `blocked` with a resume message, source-not-supported (code 4)
-// becomes a mirror message, anything else a generic error.
+// becomes `blocked`, source-not-supported (code 4) becomes an error, and
+// each maps to a dictionary key — never a hardcoded string. Copy lives in
+// @aqui-suena/ui dictionaries so both locales stay in sync; the player
+// package only decides status + key.
 describe("describeMediaError", () => {
-  it("maps autoplay rejection to blocked with a resume message", () => {
+  it("maps autoplay rejection to blocked with a resume key", () => {
     expect(describeMediaError({ name: "NotAllowedError" })).toEqual({
       status: "blocked",
-      message: "Autoplay was blocked. Tap to enable sound.",
+      messageKey: "tapToEnableSound",
     });
   });
 
-  it("maps source-not-supported to a mirror message", () => {
+  it("maps source-not-supported to a mirror key", () => {
     expect(describeMediaError({ code: 4 })).toEqual({
       status: "error",
-      message: "Signal unavailable, trying mirror…",
+      messageKey: "signalUnavailable",
     });
   });
 
   it("prefers blocked when autoplay was rejected on a broken source", () => {
     expect(describeMediaError({ name: "NotAllowedError", code: 4 })).toEqual({
       status: "blocked",
-      message: "Autoplay was blocked. Tap to enable sound.",
+      messageKey: "tapToEnableSound",
     });
   });
 
-  it("maps unknown failures to a generic error", () => {
+  it("maps unknown failures to a generic error key", () => {
     expect(describeMediaError({})).toEqual({
       status: "error",
-      message: "Playback failed.",
+      messageKey: "playbackFailed",
     });
   });
 });

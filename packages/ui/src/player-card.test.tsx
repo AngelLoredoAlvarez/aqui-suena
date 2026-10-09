@@ -2,6 +2,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { LocaleProvider } from "./i18n/locale-context";
+import type { SupportedLocale } from "./i18n/locales";
 import type { StationRef } from "./player-card";
 import { PlayerCard } from "./player-card";
 import { UiProvider } from "./provider";
@@ -13,12 +15,19 @@ const STATIONS: readonly StationRef[] = [
 
 function renderCard(props: {
   status: "playing" | "paused" | "loading" | "blocked" | "error";
+  locale?: SupportedLocale;
   onResume?: () => void;
   onPause?: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
 }) {
-  const wrapper = ({ children }: { children: ReactNode }) => <UiProvider>{children}</UiProvider>;
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <UiProvider>
+      <LocaleProvider locale={props.locale ?? "en"} onChange={() => {}}>
+        {children}
+      </LocaleProvider>
+    </UiProvider>
+  );
   return render(
     <PlayerCard
       stationName="Aqui Suena"
@@ -123,5 +132,26 @@ describe("PlayerCard", () => {
     renderCard({ status: "loading", stations: STATIONS, onSelectStation: () => {} });
 
     expect(screen.queryByText("Station Two")).toBeNull();
+  });
+
+  it("renders Spanish copy under the es locale", () => {
+    renderCard({ status: "playing", locale: "es" });
+
+    expect(screen.getByText("Reproduciendo")).toBeTruthy();
+    expect(screen.getByText("42 escuchando")).toBeTruthy();
+    expect(screen.getByText("Pausar")).toBeTruthy();
+  });
+
+  it("renders the Spanish blocked tap under the es locale", () => {
+    renderCard({ status: "blocked", locale: "es" });
+
+    expect(screen.getByText("Toca para activar el sonido")).toBeTruthy();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+
+  it("renders the Spanish mirror message under the es locale", () => {
+    renderCard({ status: "error", locale: "es" });
+
+    expect(screen.getByText("Señal no disponible, probando espejo…")).toBeTruthy();
   });
 });

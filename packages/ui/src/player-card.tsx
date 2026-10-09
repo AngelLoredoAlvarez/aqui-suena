@@ -1,4 +1,5 @@
 import { Button, Paragraph, XStack, YStack } from "tamagui";
+import { useLocale } from "./i18n/locale-context";
 
 export type PlayerCardStatus = "playing" | "paused" | "loading" | "blocked" | "error";
 
@@ -33,33 +34,34 @@ export function PlayerCard({
   stations,
   onSelectStation,
 }: PlayerCardProps) {
+  const { dictionary } = useLocale();
   return (
     <YStack gap="$3" p="$4">
       <Paragraph>{stationName}</Paragraph>
       {status === "playing" ? (
         <>
-          <Paragraph>Playing</Paragraph>
-          <Paragraph>{listeners} listening</Paragraph>
+          <Paragraph>{dictionary.playing}</Paragraph>
+          <Paragraph>{dictionary.listening(listeners)}</Paragraph>
           <Button type="button" onPress={onPause}>
-            Pause
+            {dictionary.pause}
           </Button>
         </>
       ) : null}
       {status === "paused" ? (
         <>
-          <Paragraph>Paused</Paragraph>
+          <Paragraph>{dictionary.paused}</Paragraph>
           <Button type="button" onPress={onResume}>
-            Resume
+            {dictionary.resume}
           </Button>
         </>
       ) : null}
-      {status === "loading" ? <Paragraph>Loading…</Paragraph> : null}
+      {status === "loading" ? <Paragraph>{dictionary.loading}</Paragraph> : null}
       {status === "blocked" ? (
         <Button type="button" onPress={onResume}>
-          Tap to enable sound
+          {dictionary.tapToEnableSound}
         </Button>
       ) : null}
-      {status === "error" ? <Paragraph>Signal unavailable, trying mirror…</Paragraph> : null}
+      {status === "error" ? <Paragraph>{dictionary.signalUnavailable}</Paragraph> : null}
       {status !== "blocked" && status !== "loading" && stations && onSelectStation ? (
         <XStack gap="$2">
           {stations.map((station) => (

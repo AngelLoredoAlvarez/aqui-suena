@@ -3,9 +3,11 @@ export type MediaFailure = {
   readonly code?: number;
 };
 
+export type MediaErrorKey = "tapToEnableSound" | "signalUnavailable" | "playbackFailed";
+
 export type MediaErrorDetail = {
   readonly status: "blocked" | "error";
-  readonly message: string;
+  readonly messageKey: MediaErrorKey;
 };
 
 const MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
@@ -24,23 +26,26 @@ export function narrowFailure(error: unknown): MediaFailure {
   return {};
 }
 
+// The mapper returns a dictionary key, never copy: user-facing strings
+// live in the @aqui-suena/ui dictionaries (one per locale) so es/en stay
+// in sync. Callers render dictionary[detail.messageKey].
 export function describeMediaError({ name, code }: MediaFailure): MediaErrorDetail {
   if (name === "NotAllowedError") {
     return {
       status: "blocked",
-      message: "Autoplay was blocked. Tap to enable sound.",
+      messageKey: "tapToEnableSound",
     };
   }
 
   if (code === MEDIA_ERR_SRC_NOT_SUPPORTED) {
     return {
       status: "error",
-      message: "Signal unavailable, trying mirror…",
+      messageKey: "signalUnavailable",
     };
   }
 
   return {
     status: "error",
-    message: "Playback failed.",
+    messageKey: "playbackFailed",
   };
 }
