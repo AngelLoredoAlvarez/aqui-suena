@@ -5,14 +5,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PlayerCard } from "./player-card";
 import { UiProvider } from "./provider";
 
-function renderCard(props: { status: "playing" | "blocked" | "error"; onResume?: () => void }) {
+function renderCard(props: {
+  status: "playing" | "blocked" | "error";
+  onResume?: () => void;
+  onOpen?: () => void;
+}) {
   const wrapper = ({ children }: { children: ReactNode }) => <UiProvider>{children}</UiProvider>;
   return render(
     <PlayerCard
       stationName="Aqui Suena"
       listeners={42}
-      stationId="station-1"
       onResume={props.onResume ?? (() => {})}
+      onOpen={props.onOpen}
       status={props.status}
     />,
     { wrapper },
@@ -54,10 +58,18 @@ describe("PlayerCard", () => {
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
   });
 
-  it("links to the station deep-link route", () => {
-    const { container } = renderCard({ status: "playing" });
-    const link = container.querySelector('a[href="/player/station-1"]');
+  it("calls onOpen when the Open affordance is pressed", () => {
+    const onOpen = vi.fn();
+    renderCard({ status: "playing", onOpen });
 
-    expect(link).toBeTruthy();
+    fireEvent.click(screen.getByText("Open"));
+
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no Open affordance without an onOpen handler", () => {
+    renderCard({ status: "playing" });
+
+    expect(screen.queryByText("Open")).toBeNull();
   });
 });

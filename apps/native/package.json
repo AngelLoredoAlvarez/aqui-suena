@@ -13,7 +13,6 @@
     "@aqui-suena/config": "workspace:*",
     "@aqui-suena/navigation": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
-    "@react-navigation/native": "^7.5.0",
     "@tanstack/react-query": "^5.104.1",
     "expo": "~57.0.27",
     "expo-router": "~57.0.25",
@@ -24,7 +23,6 @@
     "react-native-reanimated": "^4.0.0",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.26.0",
-    "solito": "5.0.0",
     "tamagui": "2.7.7"
   },
   "devDependencies": {

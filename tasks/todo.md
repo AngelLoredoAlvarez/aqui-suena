@@ -101,11 +101,11 @@
 
 ## Task 5: PlayerCard UI (Tamagui + Solito)
 
-**Description:** Build Tamagui `PlayerCard` with status text, `blocked` one-tap resume, and Solito deep link to `/player/[stationId]`.
+**Description:** Build Tamagui `PlayerCard` with status text, `blocked` one-tap resume, and an optional `onOpen` affordance. No router imports in shared code: Solito's native `Link` needs the classic React Navigation container, which Expo Router 57 does not provide (it vendors forked primitives), so each app wires `onOpen` with its own router. The deep-link route contract stays reserved in `packages/navigation`.
 
 **Acceptance criteria:**
 - [ ] `playing` shows active status, `blocked` shows single resume tap only
-- [ ] Deep link opens the same card on web and native
+- [ ] `onOpen` fires when the Open affordance is pressed; no `Link` or router imports in shared UI
 - [ ] No raw `div` / web-only CSS in shared UI
 
 **Verification:**

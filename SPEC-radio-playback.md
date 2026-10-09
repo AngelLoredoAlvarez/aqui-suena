@@ -49,11 +49,10 @@ Functional components, hooks, `kebab-case` for files, `PascalCase` for component
 
 ```tsx
 // packages/ui/src/player-card.tsx
-import { Link } from 'solito/link';
 import { Button, Text, YStack } from 'tamagui';
 import { usePlayer } from '@aqui-suena/player';
 
-export function PlayerCard({ urls, stationId }: { urls: string[]; stationId: string }) {
+export function PlayerCard({ urls, stationId, onOpen }: { urls: string[]; stationId: string; onOpen: () => void }) {
   const { status, play, resume } = usePlayer({ urls, autoplay: true }); // ice1 → ice2 → ice3, autostart on mount
   // status: 'idle' | 'loading' | 'playing' | 'blocked' | 'error'
   // 'blocked' = browser autoplay policy rejected audible autoplay; render one-tap resume.
@@ -62,12 +61,13 @@ export function PlayerCard({ urls, stationId }: { urls: string[]; stationId: str
       <Text>Status: {status}</Text>
       {status === 'blocked' ? <Button onPress={resume}>Tap to enable sound</Button> : null}
       <Button onPress={play}>Play</Button>
-      <Link href={`/player/${stationId}`}>
-        <Text>Open</Text>
-      </Link>
+      <Button onPress={onOpen}>Open</Button>
     </YStack>
   );
 }
+// Navigation lives in apps (each wires onOpen with its own router): shared
+// UI must not import Solito Link or any router, since Expo Router 57 does
+// not provide the classic React Navigation container Solito needs.
 // Always attempt audible autoplay on mount; first visit must not require pressing play. Only the browser-blocked case renders a single resume tap.
 ```
 

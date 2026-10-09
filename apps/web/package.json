@@ -17,7 +17,6 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native-web": "0.21.3",
-    "solito": "5.0.0",
     "tamagui": "2.7.7"
   },
   "devDependencies": {

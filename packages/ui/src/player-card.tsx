@@ -1,5 +1,3 @@
-import { playerPath } from "@aqui-suena/navigation";
-import { Link } from "solito/link";
 import { Button, Paragraph, YStack } from "tamagui";
 
 export type PlayerCardStatus = "playing" | "blocked" | "error";
@@ -8,21 +6,17 @@ export type PlayerCardProps = {
   stationName: string;
   listeners: number;
   status: PlayerCardStatus;
-  stationId: string;
   onResume: () => void;
+  onOpen?: () => void;
 };
 
-// Shared player card: station status text, blocked one-tap resume, deep
-// link to the station route. Tamagui primitives + Solito Link only, so web
-// and native render the same card from this code. Status and message copy
-// mirror the error-mapper contract.
-export function PlayerCard({
-  stationName,
-  listeners,
-  status,
-  stationId,
-  onResume,
-}: PlayerCardProps) {
+// Shared player card: station status text and blocked one-tap resume.
+// Navigation stays out of shared code on purpose: Solito's Link needs the
+// classic React Navigation container, which Expo Router 57 does not provide
+// (it vendors forked primitives). Apps pass onOpen wired to their own
+// router; the deep-link route contract lives in packages/navigation for
+// the task that creates those screens. Tamagui primitives only.
+export function PlayerCard({ stationName, listeners, status, onResume, onOpen }: PlayerCardProps) {
   return (
     <YStack gap="$3" p="$4">
       <Paragraph>{stationName}</Paragraph>
@@ -38,9 +32,7 @@ export function PlayerCard({
         </Button>
       ) : null}
       {status === "error" ? <Paragraph>Signal unavailable, trying mirror…</Paragraph> : null}
-      <Link href={playerPath(stationId)}>
-        <Paragraph>Open</Paragraph>
-      </Link>
+      {onOpen ? <Paragraph onPress={onOpen}>Open</Paragraph> : null}
     </YStack>
   );
 }

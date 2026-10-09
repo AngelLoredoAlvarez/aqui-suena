@@ -39,7 +39,6 @@ export function PlayerLanding() {
         stationName={listener.station.name}
         listeners={listener.listeners}
         status={status}
-        stationId={listener.station.id}
         onResume={resume}
       />
       <AdsCarousel />
