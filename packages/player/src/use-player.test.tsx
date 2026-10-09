@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AudioDriver } from "./use-player";
 import { usePlayer } from "./use-player";
@@ -10,6 +10,7 @@ const URL_B = "https://ice2.example/live";
 
 function createFakeDriver(failures: Record<string, unknown> = {}) {
   const played: string[] = [];
+  const paused: number[] = [];
   const driver: AudioDriver = {
     play: async (url: string) => {
       played.push(url);
@@ -18,8 +19,11 @@ function createFakeDriver(failures: Record<string, unknown> = {}) {
         throw failure;
       }
     },
+    pause: () => {
+      paused.push(1);
+    },
   };
-  return { driver, played };
+  return { driver, played, paused };
 }
 
 describe("usePlayer", () => {
@@ -148,6 +152,39 @@ describe("usePlayer", () => {
 
     await act(async () => {
       pending[1].resolve();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_A);
+  });
+
+  it("pauses playback keeping the current url", async () => {
+    const { driver, paused } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: true, driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      result.current.pause();
+    });
+
+    expect(result.current.status).toBe("paused");
+    expect(result.current.activeUrl).toBe(URL_A);
+    expect(paused).toHaveLength(1);
+  });
+
+  it("resumes from paused to playing", async () => {
+    const { driver } = createFakeDriver();
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], autoplay: true, driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      result.current.pause();
+    });
+    expect(result.current.status).toBe("paused");
+
+    await act(async () => {
+      result.current.resume();
     });
     await waitFor(() => expect(result.current.status).toBe("playing"));
     expect(result.current.activeUrl).toBe(URL_A);
