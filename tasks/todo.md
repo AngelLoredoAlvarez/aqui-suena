@@ -126,14 +126,14 @@
 **Description:** Wire autoplay `PlayerCard` into the Next.js landing `/`, attempting audible autoplay on mount with `blocked` resume fallback.
 
 **Acceptance criteria:**
-- [ ] First visit attempts audible autoplay with no manual play required
-- [ ] Allowed path is audible in <5s headed; blocked path shows resume tap
-- [ ] No sustained 403 on primary mirror
+- [x] First visit attempts audible autoplay with no manual play required
+- [x] Allowed path is audible in <5s headed; blocked path shows resume tap
+- [x] No sustained 403 on primary mirror
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter web test -- --run`
-- [ ] Build succeeds: `pnpm -r build`
-- [ ] Manual check: fresh headed session autoplays or offers resume
+- [x] Tests pass: `pnpm --filter web test -- --run`
+- [x] Build succeeds: `pnpm -r build`
+- [x] Manual check: fresh headed session autoplays or offers resume (audible on web + native, verified by user 2026-10-08)
 
 **Dependencies:** Tasks 4-5
 

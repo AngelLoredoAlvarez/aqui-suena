@@ -37,7 +37,7 @@ User: "cierra la task 5, despues inicia con la task 6 e implementa el expo-audio
 - [x] T2 Test seam (alias + double) + landing wiring + stream chain
 - [x] T3 Pivoted to platform drivers (evidence: expo-modules-core main is TS source importing TurboModuleRegistry, absent on web): `expo-driver.ts` (web HTMLAudio) + `expo-driver.native.ts` (expo-audio bridge), shared `narrowFailure` in player, dead helper + seam removed
 - [x] T4 SomaFM hotlink 403 fixed with same-origin proxy: `referrerpolicy` proven ineffective on media elements (not in spec/TS DOM lib), so web plays via `/api/stream` (allowlisted, tested core) instead
-- [ ] T5 Verification + close
+- [x] T5 Verification + close: audible on web AND native (user-confirmed 2026-10-08) — expo-audio IS in Expo Go, no dev build needed
 
 ## Verification evidence
 - `pnpm --filter ui test` → green incl. real HTMLAudio-element tests (stubbed Audio) and native bridge tests (mocked module). `turbo test` 8/8, typecheck 8/8, `biome check .` clean, `pnpm arch` clean.
