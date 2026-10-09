@@ -65,4 +65,4 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 ## Commits
 - 9fa46a5 test(player): pause RED — T1.
 - e23546f feat(player): hook pause GREEN — T1.
-- 32e2d11 feat(ui): pause everywhere + background tests and card wiring — T2+T3 (amended to record SHA; see HEAD).
+- dfb4818 feat(ui): pause everywhere + background tests and card wiring — T2+T3.
