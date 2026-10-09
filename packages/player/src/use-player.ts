@@ -53,7 +53,7 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
   }, []);
 
   const attempt = useCallback(
-    async (startUrl: string): Promise<void> => {
+    async (startUrl: string | undefined): Promise<void> => {
       const runId = ++runRef.current;
       const isCurrent = () => runRef.current === runId;
 

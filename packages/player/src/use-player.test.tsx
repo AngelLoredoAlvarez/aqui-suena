@@ -147,12 +147,12 @@ describe("usePlayer", () => {
     await waitFor(() => expect(pending.length).toBe(2));
 
     await act(async () => {
-      pending[0].resolve();
+      pending[0]?.resolve();
     });
     expect(result.current.status).toBe("loading");
 
     await act(async () => {
-      pending[1].resolve();
+      pending[1]?.resolve();
     });
     await waitFor(() => expect(result.current.status).toBe("playing"));
     expect(result.current.activeUrl).toBe(URL_A);
