@@ -2,11 +2,27 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useListenerStatus } from "./listener-status";
 import { PlayerLanding } from "./player-landing";
 import { UiProvider } from "./provider";
+
+// jsdom ships an Audio element whose play() is not implemented. Stub it so
+// the shared web driver resolves deterministically in these suites.
+class FakeAudio {
+  src = "";
+
+  play(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  pause(): void {}
+}
+
+beforeEach(() => {
+  vi.stubGlobal("Audio", FakeAudio);
+});
 
 function renderLanding() {
   const queryClient = new QueryClient({
