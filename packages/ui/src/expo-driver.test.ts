@@ -8,10 +8,12 @@ type PlayBehavior = { kind: "resolve" } | { kind: "reject"; error: unknown };
 
 const audioBehavior: { current: PlayBehavior } = { current: { kind: "resolve" } };
 const playedUrls: string[] = [];
+const pauseTargets: FakeAudio[] = [];
 
 class FakeAudio {
   src = "";
   attributes: Record<string, string> = {};
+  paused = false;
 
   setAttribute(name: string, value: string): void {
     this.attributes[name] = value;
@@ -26,13 +28,17 @@ class FakeAudio {
     return Promise.resolve();
   }
 
-  pause(): void {}
+  pause(): void {
+    this.paused = true;
+    pauseTargets.push(this);
+  }
 }
 
 describe("useExpoAudioDriver (web)", () => {
   beforeEach(() => {
     vi.stubGlobal("Audio", FakeAudio);
     playedUrls.length = 0;
+    pauseTargets.length = 0;
     audioBehavior.current = { kind: "resolve" };
   });
 
@@ -72,5 +78,17 @@ describe("useExpoAudioDriver (web)", () => {
     });
 
     expect(failure).toEqual({ code: 4 });
+  });
+
+  it("pauses the element after play()", async () => {
+    const { result } = renderHook(() => useExpoAudioDriver());
+
+    await act(async () => {
+      await result.current.play("https://ice1.example/live");
+    });
+    result.current.pause();
+
+    expect(pauseTargets).toHaveLength(1);
+    expect(pauseTargets[0]?.paused).toBe(true);
   });
 });

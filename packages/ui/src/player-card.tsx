@@ -1,6 +1,6 @@
 import { Button, Paragraph, XStack, YStack } from "tamagui";
 
-export type PlayerCardStatus = "playing" | "blocked" | "error";
+export type PlayerCardStatus = "playing" | "paused" | "loading" | "blocked" | "error";
 
 export type StationRef = {
   readonly id: string;
@@ -12,21 +12,24 @@ export type PlayerCardProps = {
   listeners: number;
   status: PlayerCardStatus;
   onResume: () => void;
+  onPause: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
 };
 
-// Shared player card: station status text, blocked one-tap resume, and an
-// in-place station selector. There are deliberately no station screens and
-// no router imports in shared code: the player switches stations without
-// navigating. The selector shows in playing/error states (an escape hatch
-// when the current station fails) and stays hidden while blocked, where the
-// single resume tap is the only action. Tamagui primitives only.
+// Shared player card: station status text, pause/resume affordances, blocked
+// one-tap resume, and an in-place station selector. There are deliberately
+// no station screens and no router imports in shared code: the player
+// switches stations without navigating. The selector shows in
+// playing/paused/error states (an escape hatch when the current station
+// fails) and stays hidden while blocked/loading, where the single resume
+// tap or the pending load is the only state. Tamagui primitives only.
 export function PlayerCard({
   stationName,
   listeners,
   status,
   onResume,
+  onPause,
   stations,
   onSelectStation,
 }: PlayerCardProps) {
@@ -37,15 +40,27 @@ export function PlayerCard({
         <>
           <Paragraph>Playing</Paragraph>
           <Paragraph>{listeners} listening</Paragraph>
+          <Button type="button" onPress={onPause}>
+            Pause
+          </Button>
         </>
       ) : null}
+      {status === "paused" ? (
+        <>
+          <Paragraph>Paused</Paragraph>
+          <Button type="button" onPress={onResume}>
+            Resume
+          </Button>
+        </>
+      ) : null}
+      {status === "loading" ? <Paragraph>Loading…</Paragraph> : null}
       {status === "blocked" ? (
         <Button type="button" onPress={onResume}>
           Tap to enable sound
         </Button>
       ) : null}
       {status === "error" ? <Paragraph>Signal unavailable, trying mirror…</Paragraph> : null}
-      {status !== "blocked" && stations && onSelectStation ? (
+      {status !== "blocked" && status !== "loading" && stations && onSelectStation ? (
         <XStack gap="$2">
           {stations.map((station) => (
             <Button

@@ -14,11 +14,13 @@ const mocks = vi.hoisted(() => ({
   status: {
     current: { playing: false, error: null as string | null },
   },
+  setAudioModeAsync: vi.fn(async () => {}),
 }));
 
 vi.mock("expo-audio", () => ({
   useAudioPlayer: () => mocks.player,
   useAudioPlayerStatus: () => mocks.status.current,
+  setAudioModeAsync: mocks.setAudioModeAsync,
 }));
 
 describe("toMediaFailure", () => {
@@ -90,5 +92,24 @@ describe("useExpoAudioDriver", () => {
     await pending;
 
     expect(rejection).toEqual({ name: "NotAllowedError" });
+  });
+
+  it("configures background-safe audio on mount", () => {
+    renderHook(() => useExpoAudioDriver());
+
+    expect(mocks.setAudioModeAsync).toHaveBeenCalledTimes(1);
+    expect(mocks.setAudioModeAsync).toHaveBeenCalledWith({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: "doNotMix",
+    });
+  });
+
+  it("pauses the native player on pause()", () => {
+    const { result } = renderHook(() => useExpoAudioDriver());
+
+    result.current.pause();
+
+    expect(mocks.player.pause).toHaveBeenCalledTimes(1);
   });
 });

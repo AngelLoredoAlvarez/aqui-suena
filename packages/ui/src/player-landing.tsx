@@ -14,7 +14,7 @@ import { PlayerCard } from "./player-card";
 // Tamagui primitives only, so both platforms render from the same code.
 export function PlayerLanding() {
   const driver = useExpoAudioDriver();
-  const { status, resume } = usePlayer({ urls: [...STREAM_FALLBACK_URLS], driver });
+  const { status, pause, resume } = usePlayer({ urls: [...STREAM_FALLBACK_URLS], driver });
   const { data: listener } = useListenerStatus(defaultStationId);
 
   if (status === "idle" || status === "loading" || !listener) {
@@ -35,6 +35,7 @@ export function PlayerLanding() {
         listeners={listener.listeners}
         status={status}
         onResume={resume}
+        onPause={pause}
       />
       <AdsCarousel />
     </YStack>

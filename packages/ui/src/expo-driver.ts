@@ -22,6 +22,9 @@ export function useExpoAudioDriver(): AudioDriver {
           throw toWebFailure(error);
         });
       },
+      pause: () => {
+        elementRef.current?.pause();
+      },
     }),
     [],
   );

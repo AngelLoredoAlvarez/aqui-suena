@@ -12,8 +12,9 @@ const STATIONS: readonly StationRef[] = [
 ];
 
 function renderCard(props: {
-  status: "playing" | "blocked" | "error";
+  status: "playing" | "paused" | "loading" | "blocked" | "error";
   onResume?: () => void;
+  onPause?: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
 }) {
@@ -23,6 +24,7 @@ function renderCard(props: {
       stationName="Aqui Suena"
       listeners={42}
       onResume={props.onResume ?? (() => {})}
+      onPause={props.onPause ?? (() => {})}
       stations={props.stations}
       onSelectStation={props.onSelectStation}
       status={props.status}
@@ -88,5 +90,38 @@ describe("PlayerCard", () => {
 
     expect(screen.getByText("Station One")).toBeTruthy();
     expect(screen.getByText("Station Two")).toBeTruthy();
+  });
+
+  it("shows a pause button while playing that calls onPause", () => {
+    const onPause = vi.fn();
+    renderCard({ status: "playing", onPause });
+
+    fireEvent.click(screen.getByText("Pause"));
+
+    expect(onPause).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows paused state with a resume tap and no pause button", () => {
+    const onResume = vi.fn();
+    renderCard({ status: "paused", onResume, onPause: () => {} });
+
+    expect(screen.getByText("Paused")).toBeTruthy();
+    fireEvent.click(screen.getByText("Resume"));
+
+    expect(onResume).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Pause")).toBeNull();
+  });
+
+  it("keeps the selector visible while paused", () => {
+    renderCard({ status: "paused", stations: STATIONS, onSelectStation: () => {} });
+
+    expect(screen.getByText("Station One")).toBeTruthy();
+    expect(screen.getByText("Station Two")).toBeTruthy();
+  });
+
+  it("hides the selector while loading", () => {
+    renderCard({ status: "loading", stations: STATIONS, onSelectStation: () => {} });
+
+    expect(screen.queryByText("Station Two")).toBeNull();
   });
 });

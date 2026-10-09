@@ -1,5 +1,5 @@
 import type { AudioDriver, MediaFailure } from "@aqui-suena/player";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useEffect, useMemo, useRef } from "react";
 
 type PendingPlay = {
@@ -47,6 +47,14 @@ export function useExpoAudioDriver(): AudioDriver {
     }
   }, [status]);
 
+  useEffect((): void => {
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: "doNotMix",
+    });
+  }, []);
+
   return useMemo<AudioDriver>(
     () => ({
       play: (url: string) =>
@@ -55,6 +63,7 @@ export function useExpoAudioDriver(): AudioDriver {
           player.replace(url);
           player.play();
         }),
+      pause: () => player.pause(),
     }),
     [player],
   );

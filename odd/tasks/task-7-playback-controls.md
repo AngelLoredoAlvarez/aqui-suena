@@ -33,9 +33,9 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 - Strategy: `ask-on-risk` (default). Forecast: small (~150 authored lines).
 
 ## Tasks
-- [ ] T1 Hook pause + paused status + tests (RED→GREEN)
-- [ ] T2 Drivers pause + native background effect + tests
-- [ ] T3 Card pause UI + landing wiring + tests
+- [x] T1 Hook pause + paused status + tests (RED→GREEN)
+- [x] T2 Drivers pause + native background effect + tests
+- [x] T3 Card pause UI + landing wiring + tests
 - [ ] T4 Verification (gates + user device checks) + close
 
 ## Acceptance criteria
@@ -48,12 +48,21 @@ User: "inicia con la task 7". Covers implementation. No push, no PR.
 
 ## Progress
 - 2026-10-08: branch from main. No writes yet.
+- 2026-10-09: T1 done (hook pause + paused status, commits 9fa46a5/e23546f).
+- 2026-10-09: T2 done. RED observed by stashing driver impl: `result.current.pause is not a function` on both drivers (+ audio-mode test). GREEN with impl restored: native `setAudioModeAsync` exact-recipe test + `player.pause()` test; web element-pause test via FakeAudio tracking. Existing proxy/error tests green.
+- 2026-10-09: T3 done. RED observed on card (3 failures: no Pause button, no paused UI, selector visible while loading). GREEN after: `onPause` required prop, Pause button while playing, Paused + Resume while paused, `Loading…` while loading, selector visible in playing/paused/error and hidden while blocked/loading. Landing passes `onPause={pause}`; `paused` never hits the loading branch (guard is idle/loading only).
 
 ## Verification evidence
-- (pending)
+- `pnpm --filter @aqui-suena/ui test`: 5 files / 28 tests passed.
+- `pnpm --filter @aqui-suena/player test`: 3 files / 23 tests passed.
+- `pnpm --filter @aqui-suena/ui typecheck`: clean (`tsc --noEmit`, fixed one mock spread-typing error).
+- `pnpm exec biome check packages/ui/src`: clean (15 files).
+- `pnpm exec turbo run test -- --run`: 8 tasks successful.
 
 ## Next step
-- T1 hook RED.
+- T4 verification/device check (user confirms background no-crash on device).
 
 ## Commits
-- (pending)
+- 9fa46a5 test(player): pause RED — T1.
+- e23546f feat(player): hook pause GREEN — T1.
+- 32e2d11 feat(ui): pause everywhere + background tests and card wiring — T2+T3 (amended to record SHA; see HEAD).
