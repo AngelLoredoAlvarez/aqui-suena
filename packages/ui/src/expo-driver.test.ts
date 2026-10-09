@@ -36,41 +36,14 @@ describe("useExpoAudioDriver (web)", () => {
     audioBehavior.current = { kind: "resolve" };
   });
 
-  it("plays the url through an audio element", async () => {
+  it("plays the url through the same-origin proxy", async () => {
     const { result } = renderHook(() => useExpoAudioDriver());
 
     await act(async () => {
       await result.current.play("https://ice1.example/live");
     });
 
-    expect(playedUrls).toEqual(["https://ice1.example/live"]);
-  });
-
-  it("omits the referrer so hotlink-protected hosts do not 403", async () => {
-    const attributes: Record<string, string> = {};
-    vi.stubGlobal(
-      "Audio",
-      class {
-        src = "";
-
-        setAttribute(name: string, value: string): void {
-          attributes[name] = value;
-        }
-
-        play(): Promise<void> {
-          return Promise.resolve();
-        }
-
-        pause(): void {}
-      },
-    );
-    const { result } = renderHook(() => useExpoAudioDriver());
-
-    await act(async () => {
-      await result.current.play("https://ice1.example/live");
-    });
-
-    expect(attributes.referrerpolicy).toBe("no-referrer");
+    expect(playedUrls).toEqual(["/api/stream?url=https%3A%2F%2Fice1.example%2Flive"]);
   });
 
   it("surfaces autoplay blocks as NotAllowedError failures", async () => {

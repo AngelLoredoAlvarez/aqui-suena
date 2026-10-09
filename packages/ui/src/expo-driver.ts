@@ -5,6 +5,10 @@ import { useMemo, useRef } from "react";
 // build, playback failures surface as real MediaError rejections, so no
 // status-event bridge is needed: element.play() rejects with NotAllowedError
 // when autoplay is blocked and NotSupportedError for unloadable sources.
+//
+// Playback goes through our same-origin /api/stream proxy (see
+// fetchProxiedStream): mirror hosts answer 403 to browser Referer headers,
+// and the proxy strips them server-side.
 export function useExpoAudioDriver(): AudioDriver {
   const elementRef = useRef<HTMLAudioElement | null>(null);
 
@@ -13,11 +17,7 @@ export function useExpoAudioDriver(): AudioDriver {
       play: (url: string) => {
         const element = elementRef.current ?? new Audio();
         elementRef.current = element;
-        // Stream hosts with hotlink protection (e.g. SomaFM) answer 403
-        // when the browser sends our origin as Referer. Omitting it makes
-        // the request indistinguishable from direct playback.
-        element.setAttribute("referrerpolicy", "no-referrer");
-        element.src = url;
+        element.src = `/api/stream?url=${encodeURIComponent(url)}`;
         return element.play().catch((error: unknown) => {
           throw toWebFailure(error);
         });
