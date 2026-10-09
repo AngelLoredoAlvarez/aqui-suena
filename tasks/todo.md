@@ -197,3 +197,26 @@
 ## Checkpoint: Complete
 - [x] All acceptance criteria met
 - [x] Ready for review
+
+## Task 9: Player visual design
+
+**Description:** Give the proven playback core a brand identity: additive brand tokens in `tamagui.config`, restyled `PlayerCard` (status dot, pause/resume affordance, chips selector) and composed landing. Behavior unchanged and covered by existing tests.
+
+**Acceptance criteria:**
+- [ ] Distinct visual language per status (playing/paused/loading/blocked/error), bilingual
+- [ ] Brand tokens additive only, no existing token changes
+- [ ] User approves headed look on web + native
+
+**Verification:**
+- [ ] Tests pass: `pnpm -r test -- --run`
+- [ ] Build succeeds: `pnpm -r build`
+- [ ] Manual check: headed web + native look approved by user
+
+**Dependencies:** Tasks 1-8
+
+**Files likely touched:**
+- `packages/config/tamagui.config.ts`
+- `packages/ui/src/player-card.tsx`
+- `packages/ui/src/player-landing.tsx`
+
+**Estimated scope:** Small-medium
