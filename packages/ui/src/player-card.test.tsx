@@ -154,4 +154,36 @@ describe("PlayerCard", () => {
 
     expect(screen.getByText("Señal no disponible, probando espejo…")).toBeTruthy();
   });
+
+  it("labels the pause/resume buttons bilingually for assistive tech", () => {
+    renderCard({ status: "playing", locale: "en" });
+    expect(screen.getByRole("button", { name: "Pause" }).getAttribute("aria-label")).toBe("Pause");
+    cleanup();
+
+    renderCard({ status: "paused", locale: "es" });
+    expect(screen.getByRole("button", { name: "Reanudar" }).getAttribute("aria-label")).toBe(
+      "Reanudar",
+    );
+  });
+
+  it("shows a status dot for playing/paused/loading/error but not for blocked", () => {
+    for (const status of ["playing", "paused", "loading", "error"] as const) {
+      renderCard({ status });
+      expect(screen.getByTestId("status-dot")).toBeTruthy();
+      cleanup();
+    }
+
+    renderCard({ status: "blocked" });
+    expect(screen.queryByTestId("status-dot")).toBeNull();
+  });
+
+  it("renders the station selector as chips", () => {
+    renderCard({ status: "playing", stations: STATIONS, onSelectStation: () => {} });
+
+    const selector = screen.getByTestId("station-selector");
+    expect(selector).toBeTruthy();
+    expect(selector.getAttribute("data-testid")).toBe("station-selector");
+    expect(screen.getByText("Station One")).toBeTruthy();
+    expect(screen.getByText("Station Two")).toBeTruthy();
+  });
 });

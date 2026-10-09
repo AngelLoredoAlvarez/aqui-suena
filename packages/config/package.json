@@ -7,10 +7,11 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no tests yet (scaffold)'"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^5.0.3"
   },
   "dependencies": {
     "@tamagui/config": "2.7.7",

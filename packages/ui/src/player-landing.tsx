@@ -22,9 +22,9 @@ export function PlayerLanding() {
 
   if (status === "idle" || status === "loading" || !listener) {
     return (
-      <YStack flex={1} items="center" justify="center" gap="$4" p="$4">
-        <H1>{dictionary.appTitle}</H1>
-        <Paragraph>{dictionary.loadingStation}</Paragraph>
+      <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
+        <H1 color="$brandCream">{dictionary.appTitle}</H1>
+        <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <LocaleSwitcher />
         <AdsCarousel />
       </YStack>
@@ -32,8 +32,8 @@ export function PlayerLanding() {
   }
 
   return (
-    <YStack flex={1} items="center" justify="center" gap="$4" p="$4">
-      <H1>{dictionary.appTitle}</H1>
+    <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
+      <H1 color="$brandCream">{dictionary.appTitle}</H1>
       <PlayerCard
         stationName={listener.station.name}
         listeners={listener.listeners}
