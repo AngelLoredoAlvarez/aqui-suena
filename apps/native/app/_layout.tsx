@@ -1,40 +1,51 @@
 import {
+  type AsyncLocaleStore,
   detectNativeLocale,
   LocaleProvider,
-  type LocaleStore,
-  loadPersistedLocale,
+  loadPersistedLocaleAsync,
   type SupportedLocale,
-  savePersistedLocale,
+  savePersistedLocaleAsync,
   UiProvider,
 } from "@aqui-suena/ui";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { Stack } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
-// Best-available persistence: no AsyncStorage yet, so the manual choice
-// survives for the app session only. Follow-up: install
-// @react-native-async-storage/async-storage and pass it here.
-const backing = new Map<string, string>();
-const sessionStore: LocaleStore = {
-  getItem: (key) => backing.get(key) ?? null,
-  setItem: (key, value) => {
-    backing.set(key, value);
-  },
-};
+// Device persistence: the manual choice survives app reloads in AsyncStorage.
+const deviceStore: AsyncLocaleStore = AsyncStorage;
 
 function initialNativeLocale(): SupportedLocale {
-  return loadPersistedLocale(sessionStore) ?? detectNativeLocale(getLocales()[0]?.languageTag);
+  return detectNativeLocale(getLocales()[0]?.languageTag);
 }
 
 export default function RootLayout() {
   const [locale, setLocale] = useState<SupportedLocale>(initialNativeLocale);
 
+  useEffect(() => {
+    let active = true;
+    const restore = async () => {
+      try {
+        const persisted = await loadPersistedLocaleAsync(deviceStore);
+        if (active && persisted) {
+          setLocale(persisted);
+        }
+      } catch {
+        // Keep the detected default: storage errors must never break boot.
+      }
+    };
+    void restore();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleChange = useCallback((next: SupportedLocale) => {
     setLocale(next);
-    savePersistedLocale(sessionStore, next);
+    void savePersistedLocaleAsync(deviceStore, next);
   }, []);
 
   return (

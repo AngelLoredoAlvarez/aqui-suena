@@ -4,12 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { UiProvider } from "../provider";
 import { LocaleProvider, useLocale } from "./locale-context";
 import {
+  type AsyncLocaleStore,
   detectNativeLocale,
   detectWebLocale,
   LOCALE_STORAGE_KEY,
   type LocaleStore,
   loadPersistedLocale,
+  loadPersistedLocaleAsync,
   savePersistedLocale,
+  savePersistedLocaleAsync,
 } from "./locale-env";
 import { LocaleSwitcher } from "./locale-switcher";
 
@@ -151,5 +154,49 @@ describe("locale persistence", () => {
 
     expect(loadPersistedLocale(broken)).toBeUndefined();
     expect(() => savePersistedLocale(broken, "en")).not.toThrow();
+  });
+});
+
+describe("async locale persistence (native reload)", () => {
+  // Fake async store: the backing Map stands in for AsyncStorage, which
+  // survives an app reload while the old session-only Map did not. A fresh
+  // accessor over the same backing simulates a fresh mount after reload.
+  function fakeAsyncStore(backing: Map<string, string>): AsyncLocaleStore {
+    return {
+      getItem: (key: string) => Promise.resolve(backing.get(key) ?? null),
+      setItem: (key: string, value: string) => {
+        backing.set(key, value);
+        return Promise.resolve();
+      },
+    };
+  }
+
+  it("restores the persisted choice on a fresh mount after reload", async () => {
+    const deviceStorage = new Map<string, string>();
+
+    await savePersistedLocaleAsync(fakeAsyncStore(deviceStorage), "en");
+
+    // Simulate reload: brand-new accessor, same device storage.
+    const restored = await loadPersistedLocaleAsync(fakeAsyncStore(deviceStorage));
+
+    expect(restored).toBe("en");
+  });
+
+  it("returns undefined for missing or unsupported values", async () => {
+    const deviceStorage = new Map<string, string>();
+
+    expect(await loadPersistedLocaleAsync(fakeAsyncStore(deviceStorage))).toBeUndefined();
+    deviceStorage.set(LOCALE_STORAGE_KEY, "fr");
+    expect(await loadPersistedLocaleAsync(fakeAsyncStore(deviceStorage))).toBeUndefined();
+  });
+
+  it("never throws on a broken async store", async () => {
+    const broken: AsyncLocaleStore = {
+      getItem: () => Promise.reject(new Error("denied")),
+      setItem: () => Promise.reject(new Error("denied")),
+    };
+
+    await expect(loadPersistedLocaleAsync(broken)).resolves.toBeUndefined();
+    await expect(savePersistedLocaleAsync(broken, "en")).resolves.toBeUndefined();
   });
 });

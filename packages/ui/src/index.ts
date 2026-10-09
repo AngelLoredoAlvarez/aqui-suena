@@ -9,13 +9,15 @@ export function greeting(): string {
 export { AdsCarousel } from "./ads-carousel";
 export type { LocaleContextValue, LocaleProviderProps } from "./i18n/locale-context";
 export { LocaleProvider, useLocale } from "./i18n/locale-context";
-export type { LocaleStore } from "./i18n/locale-env";
+export type { AsyncLocaleStore, LocaleStore } from "./i18n/locale-env";
 export {
   detectNativeLocale,
   detectWebLocale,
   LOCALE_STORAGE_KEY,
   loadPersistedLocale,
+  loadPersistedLocaleAsync,
   savePersistedLocale,
+  savePersistedLocaleAsync,
 } from "./i18n/locale-env";
 export { LocaleSwitcher } from "./i18n/locale-switcher";
 export type { Dictionary, SupportedLocale } from "./i18n/locales";

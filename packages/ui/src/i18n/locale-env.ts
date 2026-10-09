@@ -14,6 +14,14 @@ export type LocaleStore = {
   setItem: (key: string, value: string) => void;
 };
 
+// Async variant for native persistence (AsyncStorage). Added alongside the
+// sync store without touching it: web keeps passing localStorage to the
+// sync helpers, native passes AsyncStorage to the async ones.
+export type AsyncLocaleStore = {
+  getItem: (key: string) => Promise<string | null>;
+  setItem: (key: string, value: string) => Promise<void>;
+};
+
 export function detectWebLocale(language?: string): SupportedLocale {
   const tag = language ?? (typeof navigator !== "undefined" ? navigator.language : undefined);
   return resolveLocale(tag);
@@ -35,6 +43,28 @@ export function loadPersistedLocale(store?: LocaleStore): SupportedLocale | unde
 export function savePersistedLocale(store: LocaleStore | undefined, locale: SupportedLocale): void {
   try {
     store?.setItem(LOCALE_STORAGE_KEY, locale);
+  } catch {
+    // Persistence is best-effort: a denied store must never break playback.
+  }
+}
+
+export async function loadPersistedLocaleAsync(
+  store: AsyncLocaleStore | undefined,
+): Promise<SupportedLocale | undefined> {
+  try {
+    const raw = await store?.getItem(LOCALE_STORAGE_KEY);
+    return raw === "es" || raw === "en" ? raw : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function savePersistedLocaleAsync(
+  store: AsyncLocaleStore | undefined,
+  locale: SupportedLocale,
+): Promise<void> {
+  try {
+    await store?.setItem(LOCALE_STORAGE_KEY, locale);
   } catch {
     // Persistence is best-effort: a denied store must never break playback.
   }

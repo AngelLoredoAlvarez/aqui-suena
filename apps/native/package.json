@@ -13,6 +13,7 @@
     "@aqui-suena/config": "workspace:*",
     "@aqui-suena/navigation": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.104.1",
     "expo": "~57.0.27",
     "expo-localization": "~57.0.2",

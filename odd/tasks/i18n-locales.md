@@ -59,6 +59,7 @@ User: "va, hagamoslo a tu manera" after choosing Auto + switch manual. Covers im
 - `pnpm exec biome check packages/ui/src packages/player/src apps/web/app apps/native/app`: clean (after `--write` for import order).
 - `pnpm exec turbo run test -- --run`: 8 successful, 8 total (3 cached = unrelated packages).
 - RED observed before each GREEN: T1 6 failing on stub, T2 11 failing on stubs, errors 4 failing on key expectations.
+- 2026-10-09 (agent, T4-fix): native reload lost the manual choice (session Map store in `_layout.tsx`). RED (3 failing on missing async helpers) -> GREEN. Installed `@react-native-async-storage/async-storage@2.2.0` in apps/native only via `npx expo install`; added `AsyncLocaleStore` + `load/savePersistedLocaleAsync` in `locale-env.ts` (addition only, sync web path untouched); `_layout.tsx` now persists to AsyncStorage (default = detected, effect restores persisted, fire-and-forget save, never throws). Prove-it reload test with fake async store in `locale.test.tsx`. ui 53/53, player 23/23, native typecheck clean, biome clean. Needs a native rebuild (new native dep).
 
 ## Next step
 - T1 contract RED.
