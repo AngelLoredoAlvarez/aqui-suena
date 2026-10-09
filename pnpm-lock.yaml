@@ -373,9 +373,15 @@ importers:
       '@aqui-suena/config':
         specifier: workspace:*
         version: link:../config
+      '@aqui-suena/navigation':
+        specifier: workspace:*
+        version: link:../navigation
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.2.3)
+      solito:
+        specifier: 5.0.0
+        version: 5.0.0
       tamagui:
         specifier: 2.7.7
         version: 2.7.7(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.2)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)

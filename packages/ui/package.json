@@ -12,7 +12,9 @@
   "dependencies": {
     "@aqui-suena/api": "workspace:*",
     "@aqui-suena/config": "workspace:*",
+    "@aqui-suena/navigation": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
+    "solito": "5.0.0",
     "tamagui": "2.7.7"
   },
   "devDependencies": {
