@@ -1,7 +1,7 @@
 import { defaultStationId } from "@aqui-suena/config";
 import type { AudioDriver } from "@aqui-suena/player";
 import { usePlayer } from "@aqui-suena/player";
-import { Paragraph, YStack } from "tamagui";
+import { H1, Paragraph, YStack } from "tamagui";
 import { AdsCarousel } from "./ads-carousel";
 import { useListenerStatus } from "./listener-status";
 import { PlayerCard } from "./player-card";
@@ -34,6 +34,7 @@ export function PlayerLanding() {
 
   return (
     <YStack flex={1} items="center" justify="center" gap="$4" p="$4">
+      <H1>Aqui Suena</H1>
       <PlayerCard
         stationName={listener.station.name}
         listeners={listener.listeners}
