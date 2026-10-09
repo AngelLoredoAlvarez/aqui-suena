@@ -145,11 +145,11 @@
 
 ## Task 7: Native autoplay integration
 
-**Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-audio`, background-safe playback and pause/resume.
+**Description:** Wire autoplay `PlayerCard` into the Expo landing `/` with `expo-audio` plus background-safe playback. Pause/resume works on web and native (hook + card + both drivers); background no-crash is native-specific.
 
 **Acceptance criteria:**
 - [ ] App open autoplays audibly in <5s in Expo Go
-- [ ] Pause/resume works, background does not crash
+- [ ] Pause/resume works on web and native, background does not crash (native)
 - [ ] Same landing and card as web
 
 **Verification:**
@@ -160,8 +160,9 @@
 **Dependencies:** Tasks 4-5
 
 **Files likely touched:**
-- `apps/native/app/index.tsx`
-- `packages/player/src/native.ts`
+- `packages/player/src/use-player.ts` (pause)
+- `packages/ui/src/player-card.tsx` (pause button)
+- `packages/ui/src/expo-driver.ts` + `expo-driver.native.ts` (pause wiring)
 
 **Estimated scope:** Small: 1-2 files
 
