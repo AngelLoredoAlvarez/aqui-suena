@@ -26,6 +26,13 @@ Map the user's intent to the matching skill automatically:
 - Landing `/` is the player + ads carousel on web and native, rendered from shared `@aqui-suena/ui` code.
 - No station screens exist by product decision: the player switches stations in place via its selector, never by navigating. `packages/navigation` stays reserved for future modules.
 
+## Artifact Language (MANDATORY)
+
+- Every document, code comment, identifier, UI copy string, commit message, test, fixture, or any other technical artifact created or modified by the agent defaults to English, regardless of the language used in conversation with the user.
+- Persona voice (Rioplatense voseo, tone, slang) governs chat replies ONLY — it never leaks into artifacts.
+- If the user explicitly requests artifacts in another language, use a neutral/professional register unless they ask for a regional variant.
+- Before ANY Write/Edit whose content is an artifact, re-verify these language rules.
+
 ## Authorization (MANDATORY)
 
 - Answering a question never authorizes a change. Explaining, reviewing, auditing, or discussing past work is read-only: do not create, edit, delete, move, commit, push, or run any mutating command as a side effect of an answer.
