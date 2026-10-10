@@ -68,7 +68,7 @@ React reporta `A tree hydrated but some attributes of the server rendered HTML d
 - Antes del reinicio (servidor rancio, E2E_PORT=3000): 10 failed con `A tree hydrated but some attributes...` sobre el MISMO fallback de loading — clases Tamagui divergentes, no divergencia de ramas.
 - `curl /favicon.ico` → 200 (antes 404). SSR fresco contiene `_bg-brand1` (antes ausente).
 - Archivos: `packages/ui/src/player-landing.tsx`, `packages/ui/src/listener-status.test.tsx`, `apps/web/app/favicon.ico`, este doc. `provider.tsx`/`next.config.ts` sin cambios (veredicto H2 documentado arriba).
-- Work-unit commit: 544d5bd (rama `feat/player-visual-design`, sin push).
+- Work-unit commit: 06d5252 (rama `feat/player-visual-design`, sin push).
 
 ## Next step
 
