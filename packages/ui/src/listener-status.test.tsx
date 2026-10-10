@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { defaultStationId } from "@aqui-suena/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -61,6 +62,35 @@ describe("PlayerLanding listener status", () => {
   it("shows the station status once loaded", async () => {
     renderLanding();
 
+    expect(await screen.findByText(/listening/)).toBeTruthy();
+  });
+
+  it("keeps the SSR-identical loading fallback on first paint with a warm listener cache", async () => {
+    // Mounted-gate invariant: client-only state (a warm react-query cache,
+    // e.g. after client-side navigation) must not change the first paint —
+    // it renders the same loading fallback as SSR until mounted, so
+    // hydration compares identical trees. Note: usePlayer initializes to
+    // "idle" on both sides, so this holds without the gate today; the test
+    // pins the invariant the gate guarantees against future hook changes.
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    queryClient.setQueryData(["listener-status", defaultStationId], {
+      station: { id: defaultStationId, name: "Aqui Suena" },
+      activeUrl: "https://stream.example.com/live",
+      listeners: 42,
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <UiProvider>
+        <LocaleProvider locale="en" onChange={() => {}}>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </LocaleProvider>
+      </UiProvider>
+    );
+    render(<PlayerLanding />, { wrapper });
+
+    expect(screen.getByText("Loading station status…")).toBeTruthy();
+    expect(screen.queryByText(/listening/)).toBeNull();
     expect(await screen.findByText(/listening/)).toBeTruthy();
   });
 
