@@ -50,6 +50,7 @@ export type ListingInput = z.infer<typeof ListingSchema>;
 ```
 
 Conventions: image upload via signed URLs; preview before publish; every mutation revalidates entitlements.
+Contract note: ListingSchema `delivery` boolean stays; help text states true means the owner offers own transport; fulfillment is coordinated off-app via listed phone/WhatsApp + address; no logistics in V1.
 
 ## Testing Strategy
 - Framework: Vitest + Testing Library + headed Playwright for the owner happy path.

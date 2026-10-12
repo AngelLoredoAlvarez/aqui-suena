@@ -59,6 +59,7 @@ Conventions: single `entitlements.get(businessId)` resolver consumed by director
 ## Success Criteria
 - Free: basic listing (name, category, phone, address, hours, delivery flag) plus flyer image, zero structured products, no spot, normal carousel weight.
 - Monthly: full catalog (up to 100 products), photos, extended hours, carousel priority, spot eligible (delivery flag included as in Free).
+- Delivery flag (both plans): owner-declared operational data, informational contact handoff only; no fees, zones, dispatch, or tracking in V1.
 - Downgrade applies limits within 1 minute without data loss (excess items hidden, not deleted).
 - Every paywalled action returns a typed `UPGRADE_REQUIRED` error the UI maps to billing.
 

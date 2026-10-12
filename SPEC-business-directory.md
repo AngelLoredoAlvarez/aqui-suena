@@ -71,6 +71,7 @@ Conventions: zod schemas shared between API and forms; hours stored as weekly ra
 ## Success Criteria
 - `business.get` returns full listing in <500ms p95 with correct `open` for current time.
 - Listing sheet shows name, products + prices, photos, phones, address, hours, open/closed, delivery flag.
+- Delivery flag shown only when applicable: true means owner offers own transport or accepts a user-arranged courier coordinated via the listed contact; no in-app tracking, fees, zones, or dispatch in V1.
 - Opening a listing from web or native never pauses audio.
 - Free listings render with enforced limits (see SPEC-memberships).
 

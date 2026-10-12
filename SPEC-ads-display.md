@@ -58,6 +58,7 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 ## Success Criteria
 - Carousel visible on home during playback on web and native from shared code.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
+- Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
 - Monthly sponsors rank above free ones deterministically.
 - Player dock (top/bottom) never overlaps carousel controls (verified headed).
 
