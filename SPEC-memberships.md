@@ -1,7 +1,7 @@
 # Spec: memberships — Aquí Suena (by 17Labs)
 
 ## Objective
-Free vs Monthly plans for Aquí Suena business owners, billed by 17Labs. Free is limited; Monthly unlocks the full listing plus carousel priority and radio-spot eligibility. Users: owners subscribe in owner-portal; enforcement applies in business-directory, ads-display, and radio-spots. Success = limits are automatic, no manual gating.
+Free vs Monthly plans for Aquí Suena business owners, billed by 17Labs. Free registers basic business info plus flyer only with zero structured products; Monthly unlocks the full product listing plus carousel priority and radio-spot eligibility. Users: owners subscribe in owner-portal; enforcement applies in business-directory, ads-display, and radio-spots. Success = limits are automatic, no manual gating.
 
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web
@@ -37,8 +37,8 @@ Entitlements as data, not conditionals scattered in UI:
 ```tsx
 // packages/api/src/entitlements.ts
 export const ENTITLEMENTS = {
-  free: { products: 5, photos: 3, priority: 0, spotEligible: false },
-  monthly: { products: 100, photos: 30, priority: 10, spotEligible: true },
+  free: { products: 0, photos: 3, priority: 0, spotEligible: false, delivery: true },
+  monthly: { products: 100, photos: 30, priority: 10, spotEligible: true, delivery: true },
 } as const;
 export type PlanId = keyof typeof ENTITLEMENTS;
 ```
@@ -54,11 +54,11 @@ Conventions: single `entitlements.get(businessId)` resolver consumed by director
 ## Boundaries
 - Always: enforce limits server-side, show upgrade CTA when a free limit is hit, audit plan changes.
 - Ask first: change prices/limits, switch payment provider, grant manual exceptions.
-- Never: enforce limits only in UI, allow free listings to claim spot eligibility or carousel priority.
+- Never: enforce limits only in UI, allow free listings to claim spot eligibility or carousel priority, allow free listings to create structured products.
 
 ## Success Criteria
-- Free: basic listing (name, category, phone, address, hours) with capped products/photos, no spot, normal carousel weight.
-- Monthly: full catalog, photos, delivery flag, extended hours, carousel priority, spot eligible.
+- Free: basic listing (name, category, phone, address, hours, delivery flag) plus flyer image, zero structured products, no spot, normal carousel weight.
+- Monthly: full catalog (up to 100 products), photos, extended hours, carousel priority, spot eligible (delivery flag included as in Free).
 - Downgrade applies limits within 1 minute without data loss (excess items hidden, not deleted).
 - Every paywalled action returns a typed `UPGRADE_REQUIRED` error the UI maps to billing.
 
