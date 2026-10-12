@@ -59,6 +59,8 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 - Carousel visible on home during playback on web and native from shared code.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
+- Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Ofrecemos servicio a domicilio" / EN "We offer home delivery", no hardcoded UI copy.
+- Open-status badge is always visible on carousel card + sheet as exactly one of Abierto/Cerrado/Por cerrar via i18n dictionary (ES "Abierto" / "Cerrado" / "Por cerrar" + EN "Open" / "Closed" / "Closing soon"), server-derived from hours + now with closing-soon threshold TBD, same visibility tier as the delivery flag, no hardcoded UI copy.
 - Monthly sponsors rank above free ones deterministically.
 - Player dock (top/bottom) never overlaps carousel controls (verified headed).
 

@@ -72,6 +72,8 @@ Conventions: zod schemas shared between API and forms; hours stored as weekly ra
 - `business.get` returns full listing in <500ms p95 with correct `open` for current time.
 - Listing sheet shows name, products + prices, photos, phones, address, hours, open/closed, delivery flag.
 - Delivery flag shown only when applicable: true means owner offers own transport or accepts a user-arranged courier coordinated via the listed contact; no in-app tracking, fees, zones, or dispatch in V1.
+- Delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Ofrecemos servicio a domicilio" / EN "We offer home delivery", no hardcoded UI copy.
+- Open-status badge is always visible on card + sheet as exactly one of Abierto/Cerrado/Por cerrar via i18n dictionary (ES "Abierto" / "Cerrado" / "Por cerrar" + EN "Open" / "Closed" / "Closing soon"), server-derived from hours + now with closing-soon threshold TBD, same visibility tier as the delivery flag, no hardcoded UI copy.
 - Opening a listing from web or native never pauses audio.
 - Free listings render with enforced limits (see SPEC-memberships).
 
