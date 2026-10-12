@@ -54,6 +54,8 @@ Conventions: single `entitlements.get(businessId)` resolver consumed by director
 ## Boundaries
 - Always: enforce limits server-side, show upgrade CTA when a free limit is hit, audit plan changes.
 - Always: store `termsAcceptedVersion + termsAcceptedAt` per Account from signup acceptance and link the same terms from plan/billing screens; copy via i18n dictionary, no hardcoded strings.
+- Always: gate plan changes (including downgrade picker) behind explicit user confirmation listing affected limits/items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
+- Always: extend the append-only activity audit log (actor, action, entity, timestamp) to plan changes and surface them in the visible activity section; log is immutable and never user-editable.
 - Ask first: change prices/limits, switch payment provider, grant manual exceptions.
 - Never: enforce limits only in UI, allow free listings to claim spot eligibility or carousel priority, allow free listings to create structured products.
 

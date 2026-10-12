@@ -62,6 +62,8 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 ## Boundaries
 - Always: require auth + business ownership checks, validate with zod, compress photos client-side, run `typecheck + lint + test` before commit.
 - Always: require an unchecked-by-default T&C + privacy-notice acceptance checkbox with links on signup (`/owner/access` Crear cuenta); `create-account` rejects without acceptance and plan/billing screens link the same terms; copy via i18n dictionary, no hardcoded strings.
+- Always: gate every important-data change (giro switch clearing product fields, hours/address edits, deletions of products/photos/spots/businesses) behind explicit user confirmation listing affected items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
+- Always: record an append-only activity audit log (actor, action, entity, timestamp) in DB covering edits, publishes, uploads, deletes, and T&C acceptance, plus a visible owner activity section in the portal UI; log is immutable and never user-editable; copy via i18n dictionary, no hardcoded strings.
 - Ask first: add a listing field, allow multiple branches per owner, enable native editing.
 - Never: let one owner edit another listing, publish without entitlement check, store raw uploads without virus/size guards.
 
