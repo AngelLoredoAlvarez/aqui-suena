@@ -61,6 +61,7 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 
 ## Boundaries
 - Always: require auth + business ownership checks, validate with zod, compress photos client-side, run `typecheck + lint + test` before commit.
+- Always: require an unchecked-by-default T&C + privacy-notice acceptance checkbox with links on signup (`/owner/access` Crear cuenta); `create-account` rejects without acceptance and plan/billing screens link the same terms; copy via i18n dictionary, no hardcoded strings.
 - Ask first: add a listing field, allow multiple branches per owner, enable native editing.
 - Never: let one owner edit another listing, publish without entitlement check, store raw uploads without virus/size guards.
 
