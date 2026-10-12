@@ -34,7 +34,7 @@ User: "quiero que ya este un componente visual y que sea funcional". Covers desi
 ## Tasks
 - [x] T1 Brand tokens (additive) + token tests
 - [x] T2 PlayerCard restyle (all states) + affordance tests, behavior green
-- [ ] T3 Landing composition + headed user review + close
+- [x] T3 Landing composition + headed user review + close (2026-10-12: user approved headed web + native)
 
 ## Acceptance criteria
 - Card shows distinct visual language per status; pause/resume/blocked/error/loading all reachable and bilingual.
@@ -81,10 +81,10 @@ User: "quiero que ya este un componente visual y que sea funcional". Covers desi
 - `pnpm turbo run test -- --run`: 8 successful, 8 total.
 - `pnpm turbo run typecheck`: 8 successful, 8 total.
 - `biome check` on all 6 touched paths: clean, no errors.
-- Headed look (web + native): NOT done — human-only, left for T3.
+- Headed look (web + native): DONE 2026-10-12 — user approved, T3 closed.
 
 ## Next step
-- T3 headed user review (human): approve look on web + native, then close.
+- Closed 2026-10-12: user approved headed web + native, T3 + Task 9 ticked.
 
 ## Commits
 - `feat(ui): brand tokens and player visual design` (local only, no push)
