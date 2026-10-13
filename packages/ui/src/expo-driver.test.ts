@@ -52,6 +52,16 @@ describe("useExpoAudioDriver (web)", () => {
     expect(playedUrls).toEqual(["/api/stream?url=https%3A%2F%2Fice1.example%2Flive"]);
   });
 
+  it("plays same origin paths directly without the proxy", async () => {
+    const { result } = renderHook(() => useExpoAudioDriver());
+
+    await act(async () => {
+      await result.current.play("/test-streams/test-pop.m4a");
+    });
+
+    expect(playedUrls).toEqual(["/test-streams/test-pop.m4a"]);
+  });
+
   it("surfaces autoplay blocks as NotAllowedError failures", async () => {
     audioBehavior.current = { kind: "reject", error: { name: "NotAllowedError" } };
     const { result } = renderHook(() => useExpoAudioDriver());
