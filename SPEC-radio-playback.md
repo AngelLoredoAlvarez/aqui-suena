@@ -1,7 +1,7 @@
 # Spec: radio-playback (MVP) — Aquí Suena by 17Labs
 
 ## Objective
-Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and native with autoplay on app open, play/pause, status indication, and basic metadata. The harness is exactly 3 self-hosted dev channels (test-pop, test-talk, test-night; see Dev channels below) plus optional indie streams used only with prior written permission. The client connects directly to operator URLs: no proxying, re-serving, caching, or transcoding. Attribution is visible in the UI, and a proof file is kept per station (terms PDF + capture date, per-track license URLs, permission email where applicable). User: a listener who opens the app and hears audio without pressing play on first visit ("listen and discover shops"). Success = audio starts automatically with fallback if a mirror fails or autoplay is blocked.
+Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and native with autoplay on app open, play/pause, status indication, and basic metadata. The harness is exactly 3 self-hosted dev channels (test-pop, test-jingle, test-night; see Dev channels below) plus optional indie streams used only with prior written permission. The client connects directly to operator URLs: no proxying, re-serving, caching, or transcoding. A proof file tracks the harness itself (this table plus the generation approach); no license entries are needed while all channels are synthesized and owned. User: a listener who opens the app and hears audio without pressing play on first visit ("listen and discover shops"). Success = audio starts automatically with fallback if a mirror fails or autoplay is blocked.
 
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web (shared components)
@@ -74,12 +74,12 @@ Explicitly forbidden: embedding SomaFM, Radio Paradise, NCS, Nightride, or any c
 
 | id | Content | URL (dev) | License |
 |---|---|---|---|
-| test-pop | Upbeat CC0 music loop | /test-streams/test-pop.mp3 | CC0 |
-| test-talk | Own voice ID ("Aqui Suena test 1-2-3") | /test-streams/test-talk.mp3 | Owned (recorded by the team) |
-| test-night | Chill CC-BY music loop | /test-streams/test-night.mp3 | CC-BY, attribution shown in the UI |
+| test-pop | Upbeat synthesized loop (major arpeggio motif, ffmpeg-only) | /test-streams/test-pop.m4a | Owned (ffmpeg synthesis, no license needed) |
+| test-jingle | Synthesized station-ID jingle (three-tone 1-2-3 sine motif, ~2s, no speech) | /test-streams/test-jingle.m4a | Owned (ffmpeg synthesis, no license needed) |
+| test-night | Chill synthesized loop (low major motif, ffmpeg-only) | /test-streams/test-night.m4a | Owned (ffmpeg synthesis, no license needed) |
 
-Binary state: the MP3 files are planned but gitignored — generated locally (ffmpeg loop for music, phone recording for the voice ID) and never committed. Only the generation approach and this table are versioned.
-Serving: dev serves the files from Next `public/` (`apps/web/public/test-streams/`), reachable at `http://localhost:3000/test-streams/<file>.mp3` on desktop and via the machine LAN IP from Expo devices. No deployment is needed in dev.
+Binary state: the M4A/AAC files are planned but gitignored — generated locally with ffmpeg only using the native AAC encoder (`-c:a aac`) (sine-motif synthesis for all three channels) and never committed. MP3 output is unsupported on minimal ffmpeg builds without libmp3lame (encoder not found), so AAC is required for browser + Expo compatibility. CC-track loops may replace pop/night later, with per-track license URLs recorded in the proof file. Only the generation approach and this table are versioned. No recording, no downloads, and no TTS engine required.
+Serving: dev serves the files from Next `public/` (`apps/web/public/test-streams/`), reachable at `http://localhost:3000/test-streams/<file>.m4a` on desktop and via the machine LAN IP from Expo devices. No deployment is needed in dev.
 Prod rule unchanged: production plays only real stations with prior written permission; this 3-channel harness is throwaway dev tooling and never ships to prod.
 
 ## Code Style
@@ -95,7 +95,7 @@ export function PlayerCard({ urls, stations, onSelectStation }: {
   stations: { id: string; name: string; locality: string }[];
   onSelectStation: (stationId: string) => void;
 }) {
-  // Catalog is a safe test harness only: self-hosted CC0/CC-BY loops
+  // Catalog is a safe test harness only: self-hosted synthesized loops
   // plus written-permission indie streams. Never invent stream URLs,
   // never scrape aggregators, never embed third-party catalogues
   // (SomaFM, Radio Paradise, NCS, Nightride) without signed permission.
@@ -146,7 +146,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - tRPC `listener.getStatus` returns 200 with `{ station, activeUrl, listeners }` mock.
 
 ## Open Questions
-- Which CC0 loop source seeds test-pop and which CC-BY track (with attribution text) seeds test-night? (need per-track license URLs; proof files pending)
+- Do CC-track loops ever replace the synthesized pop/night motifs? (optional upgrade only; needs per-track license URLs and proof files)
 - Which indie operators, if any, grant written permission for in-app test streams? (link-out is the default until `permissionStatus=granted`)
 - Live metadata per test station (artist/track via Icecast JSON or just "Live" label)?
 - Fallback order across harness stations (per-station mirrors first, then next station, or fixed global order)?

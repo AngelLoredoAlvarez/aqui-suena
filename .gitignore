@@ -12,4 +12,5 @@ out/
 test-results/
 coverage/
 # Dev test-streams binaries are generated locally, never committed (.gitkeep kept)
+apps/web/public/test-streams/*.m4a
 apps/web/public/test-streams/*.mp3
