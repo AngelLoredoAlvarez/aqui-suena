@@ -51,7 +51,7 @@ export type ListingInput = z.infer<typeof ListingSchema>;
 
 Conventions: image upload via signed URLs; preview before publish; every mutation revalidates entitlements.
 Contract note: ListingSchema `delivery` boolean stays; help text states true means the owner offers own transport; fulfillment is coordinated off-app via listed phone/WhatsApp + address; no logistics in V1.
-Contract note: the `delivery` toggle maps to a conditional listener-side flag (rendered only when true, absent when false with no negative badge) via i18n dictionary: ES "Ofrecemos servicio a domicilio" / EN "We offer home delivery", no hardcoded UI copy.
+Contract note: the `delivery` toggle maps to a conditional listener-side flag (rendered only when true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
 
 ## Testing Strategy
 - Framework: Vitest + Testing Library + headed Playwright for the owner happy path.
@@ -72,8 +72,10 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 - Photos render on listener sheet in <2s on 4G.
 - Hours saved here drive correct open/closed in directory immediately.
 - Free-plan caps show inline upgrade hints, never silent failures.
+- Premium owners get an in-app suggestions/feedback channel to 17 Labs (design pending with Claude Design).
+- Owner verification is email-only via OTP with no manual business review before publishing.
+- Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions.
+- Plan-change screens include a downgrade business-picker step (owner chooses the visible business) and a grace-period banner during the 7-day failed-renewal window.
 
 ## Open Questions
-- Owner verification (email vs phone vs manual)?
-- Photo limits (count, MB, formats) per plan?
-- Multi-branch support in V1 or single location only?
+- Image hosting provider for uploads (per-plan photo limits decided in SPEC-memberships)?

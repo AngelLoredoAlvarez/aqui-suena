@@ -1,9 +1,9 @@
 # Spec: radio-spots — Aquí Suena (by 17Labs)
 
 ## Objective
-V1: recorded sponsor spots for Aquí Suena Monthly members rotated automatically every X songs. The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
+V1: recorded sponsor spots for Aquí Suena Premium members rotated automatically every 4 songs (backend-tunable). The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
 
-Future (V2, no design): live announcer mentions.
+Future (V2, no design): announcer console with Premium request queue for live mentions.
 
 ## Tech Stack
 - Web: playback via HTMLAudio queue with spot injection
@@ -28,7 +28,7 @@ DB push (dev): pnpm --filter db db:push
 
 ## Project Structure
 ```
-packages/api/src/routers/spots.ts     → upload / approve / schedule / plays
+packages/api/src/routers/spots.ts     → upload / schedule / plays (+ reactive takedown)
 packages/player/src/spot-queue.ts     → every-X-songs injection + play logging
 apps/web/app/owner/spots/page.tsx     → owner spot management
 ```
@@ -44,26 +44,24 @@ export function nextSpot(opts: { songsSinceSpot: number; every: number; eligible
 }
 ```
 
-Conventions: only `spotEligible` (Monthly) spots schedule; every play logs `{ spotId, at, platform }`; loudness normalized at upload.
+Conventions: only `spotEligible` (Premium) spots schedule; every play logs `{ spotId, at, platform }`; loudness normalized at upload.
 
 ## Testing Strategy
 - Framework: Vitest for queue/schedule; headed playback test for injection.
 - Locations: `packages/player/src/spot-queue.test.ts`, e2e `apps/web/e2e/spots.spec.ts`.
 - Coverage: 100% on `nextSpot` + eligibility filter.
-- Levels: unit (rotation, eligibility) → integration (upload→approve→air→logged) → headed (spot airs inline without killing the stream).
+- Levels: unit (rotation, eligibility) → integration (upload→air→logged) → headed (spot airs inline without killing the stream).
 
 ## Boundaries
-- Always: gate by Monthly eligibility, log every airing, cap spot length (e.g. 30s), normalize loudness, run `typecheck + lint + test` before commit.
+- Always: gate by Premium eligibility, log every airing, cap spots at 30s MP3 (upload-only, auto-approved with reactive takedowns on reports), normalize loudness, run `typecheck + lint + test` before commit.
 - Ask first: change rotation cadence, auto-produce spots with TTS.
 - Never: air free-tier spots, interrupt a spot with fallback switching mid-play, lose a play log.
 
 ## Success Criteria
-- Eligible spot airs every X songs (±1) on web and native from the same queue.
+- Eligible spot airs every 4 songs (±1, backend-tunable) on web and native from the same queue.
 - Each airing creates a `spot_plays` row queryable by the owner.
 - Ineligible uploads are rejected with typed `UPGRADE_REQUIRED`.
 - Spot handoff never stops the underlying stream session.
 
 ## Open Questions
-- X (songs per spot) default and per-plan override?
-- Max spot seconds and upload formats?
-- Who approves content (auto vs manual review)?
+- V2 announcer-console design (Premium request queue)?

@@ -1,7 +1,7 @@
 # Spec: ads-display — Aquí Suena (by 17Labs)
 
 ## Objective
-"Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Monthly members get priority placement; free listings appear with normal weight. Users: listeners. Success = discovery without interrupting playback.
+"Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Premium members get priority placement; free listings appear with normal weight. Users: listeners. Success = discovery without interrupting playback.
 
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web
@@ -42,7 +42,7 @@ export function rankSponsors(input: { priority: number; updatedAt: number }[]) {
 }
 ```
 
-Conventions: sheet overlays content but never unmounts the player; carousel auto-advance pauses on interaction; impressions logged for future billing proof.
+Conventions: sheet overlays content but never unmounts the player; carousel auto-advances every 5s and pauses on interaction; impressions logged for future billing proof.
 
 ## Testing Strategy
 - Framework: Vitest + Testing Library + headed Playwright.
@@ -59,12 +59,11 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 - Carousel visible on home during playback on web and native from shared code.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
-- Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Ofrecemos servicio a domicilio" / EN "We offer home delivery", no hardcoded UI copy.
-- Open-status badge is always visible on carousel card + sheet as exactly one of Abierto/Cerrado/Por cerrar via i18n dictionary (ES "Abierto" / "Cerrado" / "Por cerrar" + EN "Open" / "Closed" / "Closing soon"), server-derived from hours + now with closing-soon threshold TBD, same visibility tier as the delivery flag, no hardcoded UI copy.
-- Monthly sponsors rank above free ones deterministically.
+- Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
+- Open-status badge is always visible on carousel card + sheet as exactly one of Abierto/Cerrado via i18n dictionary (ES "Abierto" / "Cerrado" + EN "Open" / "Closed"), server-derived from hours + now in the business timezone, same visibility tier as the delivery flag, no hardcoded UI copy.
+- Premium sponsors rank above Free ones deterministically (Premium-first, then Free-by-recency); no cap on Free entries and no per-session cap (full ranked rotation).
 - Player dock (top/bottom) never overlaps carousel controls (verified headed).
+- On tablets the detail sheet uses two columns (info fixed left, products scrolling right) instead of stretching the phone layout.
 
 ## Open Questions
-- Carousel rotation cadence and impression definition?
-- Maximum sponsors per session before fatigue?
 - Sponsored badge copy and disclosure rules?
