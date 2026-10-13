@@ -9,6 +9,7 @@ Aquí Suena for Business (by 17Labs): web-first portal where business owners cre
 - Navigation: Solito (`/owner`, `/owner/listings`, `/owner/billing`)
 - UI: Tamagui (forms, uploads, schedules)
 - Data: tRPC + TanStack Query + React Hook Form + zod resolvers
+- Auth: Supabase Auth (Google, Facebook, email/password, OTP; 50k MAU free tier)
 - DB: Drizzle + PostgreSQL (same `businesses` tables as directory)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
@@ -60,7 +61,7 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 - Levels: unit (schema) → integration (create→publish→visible in directory) → e2e (owner publishes photo + hours, listener sees it).
 
 ## Boundaries
-- Always: require auth + business ownership checks, validate with zod, compress photos client-side, run `typecheck + lint + test` before commit.
+- Always: require Supabase Auth + business ownership checks (short-lived JWT in Authorization Bearer for tRPC with server-side verification), validate with zod, compress photos client-side, run `typecheck + lint + test` before commit.
 - Always: require an unchecked-by-default T&C + privacy-notice acceptance checkbox with links on signup (`/owner/access` Crear cuenta); `create-account` rejects without acceptance and plan/billing screens link the same terms; copy via i18n dictionary, no hardcoded strings.
 - Always: gate every important-data change (giro switch clearing product fields, hours/address edits, deletions of products/photos/spots/businesses) behind explicit user confirmation listing affected items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
 - Always: record an append-only activity audit log (actor, action, entity, timestamp) in DB covering edits, publishes, uploads, deletes, and T&C acceptance, plus a visible owner activity section in the portal UI; log is immutable and never user-editable; copy via i18n dictionary, no hardcoded strings.
@@ -73,8 +74,12 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 - Hours saved here drive correct open/closed in directory immediately.
 - Free-plan caps show inline upgrade hints, never silent failures.
 - Premium owners get an in-app suggestions/feedback channel to 17 Labs (design pending with Claude Design).
-- Owner verification is email-only via OTP with no manual business review before publishing.
-- Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions.
+- Auth provider is Supabase Auth (supersedes prior email-only OTP text where it contradicts). Enabled methods: Google, Facebook, email/password, OTP. Free-tier note: 50k MAU included.
+- Web (Next.js App Router): session via `@supabase/ssr` cookie helpers with httpOnly, secure, sameSite cookies; secrets via env only; redirect/callback allowlists per provider.
+- Native (Expo): session via SecureStore adapter; OAuth callback via custom-scheme deep link with dev build (auth.expo.io proxy deprecated); secrets via env only; redirect/callback allowlists per provider.
+- tRPC: client sends short-lived JWT in Authorization Bearer; server verifies with Supabase before ownership checks.
+- Provider-console prerequisites (pending): Google and Meta developer apps with allowlisted redirects.
+- Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions. Owner verification requires no manual business review before publishing.
 - Plan-change screens include a downgrade business-picker step (owner chooses the visible business) and a grace-period banner during the 7-day failed-renewal window.
 
 ## Open Questions
