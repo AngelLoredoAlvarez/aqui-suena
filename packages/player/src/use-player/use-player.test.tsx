@@ -281,4 +281,43 @@ describe("usePlayer", () => {
 
     expect(result.current.status).toBe("error");
   });
+
+  it("keep the previous url active while switching to a new one", async () => {
+    const pending: Array<() => void> = [];
+    const played: string[] = [];
+
+    const driver: AudioDriver = {
+      play: (url: string) => {
+        played.push(url);
+
+        return new Promise<void>((resolve) => {
+          pending.push(resolve);
+        });
+      },
+      pause: vi.fn(),
+    };
+
+    const { result, rerender } = renderHook(
+      ({ urls }: { urls: string[] }) => usePlayer({ urls, autoplay: true, driver }),
+      {
+        initialProps: { urls: [URL_A] },
+      },
+    );
+
+    await waitFor(() => expect(pending.length).toBe(1));
+    await act(async () => {
+      pending[0]?.();
+    });
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_A);
+
+    rerender({ urls: [URL_B] });
+
+    await act(async () => {
+      pending[1]?.();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(result.current.activeUrl).toBe(URL_B);
+  });
 });
