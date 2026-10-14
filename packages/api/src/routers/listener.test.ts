@@ -1,6 +1,5 @@
+import { appRouter } from "@aqui-suena/api/router";
 import { describe, expect, it } from "vitest";
-
-import { appRouter } from "../router";
 
 const caller = appRouter.createCaller({});
 

@@ -4,6 +4,15 @@
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json",
+    "./ads-carousel": "./src/ads-carousel/index.ts",
+    "./drivers": "./src/drivers/index.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./player-card": "./src/player-card/index.ts",
+    "./shared": "./src/shared/index.ts"
+  },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",

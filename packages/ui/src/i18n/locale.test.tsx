@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
+
+import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UiProvider } from "../provider";
 import { LocaleProvider, useLocale } from "./locale-context";
 import {
   type AsyncLocaleStore,

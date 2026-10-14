@@ -5,6 +5,7 @@ const configSrc = fileURLToPath(new URL("../config/src", import.meta.url));
 const apiSrc = fileURLToPath(new URL("../api/src", import.meta.url));
 const apiClient = fileURLToPath(new URL("../api/src/client.ts", import.meta.url));
 const playerSrc = fileURLToPath(new URL("../player/src", import.meta.url));
+const uiSrc = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
   resolve: {
@@ -13,6 +14,7 @@ export default defineConfig({
       "@aqui-suena/api": apiSrc,
       "@aqui-suena/config": configSrc,
       "@aqui-suena/player": playerSrc,
+      "@aqui-suena/ui": uiSrc,
     },
   },
   test: {

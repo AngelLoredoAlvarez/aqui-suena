@@ -7,7 +7,10 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
-    "./package.json": "./package.json"
+    "./listener": "./src/listener.ts",
+    "./package.json": "./package.json",
+    "./router": "./src/router.ts",
+    "./trpc": "./src/trpc.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

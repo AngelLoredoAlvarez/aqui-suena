@@ -1,5 +1,9 @@
-import { getMockListenerStatus, listenerStatusInput, listenerStatusOutput } from "../listener";
-import { publicProcedure, router } from "../trpc";
+import {
+  getMockListenerStatus,
+  listenerStatusInput,
+  listenerStatusOutput,
+} from "@aqui-suena/api/listener";
+import { publicProcedure, router } from "@aqui-suena/api/trpc";
 
 export const listenerRouter = router({
   getStatus: publicProcedure

@@ -1,14 +1,12 @@
 import { defaultStationId } from "@aqui-suena/config";
 import { usePlayer } from "@aqui-suena/player";
+import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
+import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
+import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
+import { PlayerCard } from "@aqui-suena/ui/player-card";
 import { useEffect, useState } from "react";
 import { H1, Paragraph, YStack } from "tamagui";
-import { AdsCarousel } from "./ads-carousel";
-import { useExpoAudioDriver } from "./expo-driver";
-import { useLocale } from "./i18n/locale-context";
-import { LocaleSwitcher } from "./i18n/locale-switcher";
 import { useListenerStatus } from "./listener-status";
-import { PlayerCard } from "./player-card";
-import { streamBaseUrl } from "./stream-base-url";
 
 type TestChannel = {
   id: string;
