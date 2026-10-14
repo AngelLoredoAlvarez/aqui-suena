@@ -48,7 +48,6 @@ function StationPlayer({
   const { dictionary } = useLocale();
 
   const handleSelectStation = (stationId: string): void => {
-    driver.pause();
     onSelectStation(stationId);
   };
 
