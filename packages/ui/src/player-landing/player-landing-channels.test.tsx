@@ -58,8 +58,9 @@ describe("PlayerLanding with channels", () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
+
     expect(screen.getByTestId("station-selector")).toBeTruthy();
-    expect(screen.getByText("Test Pop")).toBeTruthy();
+    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("Test Jingle")).toBeTruthy();
     expect(screen.getByText("Test Night")).toBeTruthy();
   });
@@ -70,13 +71,27 @@ describe("PlayerLanding with channels", () => {
     await screen.findByText(/escuchando/);
 
     fireEvent.click(screen.getByText("Test Night"));
+
     expect(playSpy).toHaveBeenCalledWith("/test-streams/test-night.m4a");
   });
 
   it("pauses the previous station when switching channels", async () => {
     renderLanding();
+
     await screen.findByText(/listening/);
+
     fireEvent.click(screen.getByText("Test Night"));
+
     expect(pauseSpy).toHaveBeenCalled();
+  });
+
+  it("show the selected channel name as title", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect((await screen.findAllByText("Test Night")).length).toBeGreaterThanOrEqual(2);
   });
 });
