@@ -82,6 +82,9 @@ function StationPlayer({
               color="$brandCream"
               disabled={item.id === channel.id}
               onPress={() => handleSelectStation(item.id)}
+              hoverStyle={{ bg: "$brand4" }}
+              pressStyle={{ bg: "$brand5" }}
+              focusStyle={{ bg: "$brand4" }}
             >
               {item.name}
             </Button>
