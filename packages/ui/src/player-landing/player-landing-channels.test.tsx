@@ -122,4 +122,16 @@ describe("PlayerLanding with channels", () => {
       "true",
     );
   });
+
+  it("keeps showing the previous channel name while the new one connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+  });
 });

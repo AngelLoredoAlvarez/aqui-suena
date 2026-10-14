@@ -41,8 +41,10 @@ function StationPlayer({
   listeners: number;
   onSelectStation: (stationId: string) => void;
 }) {
+  const [committedChannel, setCommittedChannel] = useState(channel);
+
   const driver = useExpoAudioDriver();
-  const { status, pause, resume } = usePlayer({ urls: [channel.url], driver });
+  const { status, activeUrl, pause, resume } = usePlayer({ urls: [channel.url], driver });
   const { dictionary } = useLocale();
 
   const handleSelectStation = (stationId: string): void => {
@@ -50,9 +52,22 @@ function StationPlayer({
     onSelectStation(stationId);
   };
 
+  useEffect(() => {
+    if (status === "playing" && activeUrl === channel.url) {
+      setCommittedChannel(channel);
+    }
+  }, [status, channel, activeUrl]);
+
   if (status === "idle" || status === "loading") {
+    const switching = activeUrl !== null && channel.id !== committedChannel.id;
+
     return (
       <YStack gap="$2" items="center">
+        {switching ? (
+          <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
+            {committedChannel.name}
+          </Paragraph>
+        ) : null}
         <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <XStack gap="$2" flexWrap="wrap" testID="station-selector">
           {TEST_CHANNELS.map((item) => (
@@ -116,7 +131,6 @@ export function PlayerLanding() {
     <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
       <H1 color="$brandCream">{dictionary.appTitle}</H1>
       <StationPlayer
-        key={channel.id}
         channel={channel}
         stationName={channel.name}
         listeners={listener?.listeners ?? 0}
