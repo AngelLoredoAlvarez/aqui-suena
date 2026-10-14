@@ -16,20 +16,9 @@ export type PlayerCardProps = {
   onPause: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
+  connectingStationId?: string;
 };
 
-// Shared player card: station status text, pause/resume affordances, blocked
-// one-tap resume, and an in-place station selector. There are deliberately
-// no station screens and no router imports in shared code: the player
-// switches stations without navigating. The selector shows in
-// playing/paused/error states (an escape hatch when the current station
-// fails) and stays hidden while blocked/loading, where the single resume
-// tap or the pending load is the only state. Tamagui primitives only.
-//
-// Visual language: night-plum card surface with cream text, a status dot
-// (green playing, amber paused, neutral loading, red error; blocked keeps
-// its single tap with no dot), and a prominent round amber pause/resume
-// affordance. All copy comes from the shared dictionary (both locales).
 function statusDotColor(
   status: PlayerCardStatus,
 ): "$brandSuccess" | "$brandAccent" | "$brand6" | "$brandDanger" | null {
@@ -55,6 +44,7 @@ export function PlayerCard({
   onPause,
   stations,
   onSelectStation,
+  connectingStationId,
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const dot = statusDotColor(status);
@@ -166,6 +156,10 @@ export function PlayerCard({
               borderWidth={1}
               color="$brandCream"
               onPress={() => onSelectStation(station.id)}
+              hoverStyle={{ bg: "$brand4" }}
+              pressStyle={{ bg: "$brand5" }}
+              focusStyle={{ bg: "$brand4" }}
+              disabled={station.id === connectingStationId}
             >
               {station.name}
             </Button>

@@ -101,4 +101,21 @@ describe("useExpoAudioDriver (web)", () => {
     expect(pauseTargets).toHaveLength(1);
     expect(pauseTargets[0]?.paused).toBe(true);
   });
+
+  it("keeps the previous element playing until the next one starts", async () => {
+    const { result } = renderHook(() => useExpoAudioDriver());
+
+    await act(async () => {
+      await result.current.play("/test-streams/test-pop.m4a");
+    });
+    expect(pauseTargets).toHaveLength(0);
+
+    await act(async () => {
+      await result.current.play("/test-streams/test-night.m4a");
+    });
+
+    expect(pauseTargets).toHaveLength(1);
+    expect(pauseTargets[0]?.src).toBe("/test-streams/test-pop.m4a");
+    expect(playedUrls).toEqual(["/test-streams/test-pop.m4a", "/test-streams/test-night.m4a"]);
+  });
 });

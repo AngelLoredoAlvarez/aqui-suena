@@ -4,24 +4,56 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { toMediaFailure, useExpoAudioDriver } from "./expo-driver.native";
 
+type FakeNativePlayer = {
+  replace: (url: string) => void;
+  play: () => void;
+  pause: () => void;
+};
+
+function playerAt(index: number): FakeNativePlayer {
+  const player = mocks.players[index];
+  if (!player) {
+    throw new Error(`Missing mocked player at index ${index}`);
+  }
+  return player;
+}
+
 const mocks = vi.hoisted(() => ({
-  player: {
-    replace: vi.fn(),
-    play: vi.fn(),
-    pause: vi.fn(),
-    id: "test-player",
-  },
-  status: {
-    current: { playing: false, error: null as string | null },
-  },
+  players: [] as FakeNativePlayer[],
+  statuses: new Map<object, { playing: boolean; error: string | null }>(),
+  nextPlayerIndex: 0,
   setAudioModeAsync: vi.fn(async () => {}),
 }));
 
+function setPlayerStatus(index: number, status: { playing: boolean; error: string | null }) {
+  mocks.statuses.set(playerAt(index), status);
+}
+
 vi.mock("expo-audio", () => ({
-  useAudioPlayer: () => mocks.player,
-  useAudioPlayerStatus: () => mocks.status.current,
+  useAudioPlayer: () => {
+    const existing = mocks.players[mocks.nextPlayerIndex];
+    mocks.nextPlayerIndex += 1;
+    if (existing) {
+      return existing;
+    }
+    const player: FakeNativePlayer = { replace: vi.fn(), play: vi.fn(), pause: vi.fn() };
+    mocks.players.push(player);
+    mocks.statuses.set(player, { playing: false, error: null });
+    return player;
+  },
+  useAudioPlayerStatus: (player: object) => {
+    mocks.nextPlayerIndex = 0;
+    return mocks.statuses.get(player) ?? { playing: false, error: null };
+  },
   setAudioModeAsync: mocks.setAudioModeAsync,
 }));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.players.length = 0;
+  mocks.statuses.clear();
+  mocks.nextPlayerIndex = 0;
+});
 
 describe("toMediaFailure", () => {
   it("maps silence to a generic failure", () => {
@@ -44,11 +76,6 @@ describe("toMediaFailure", () => {
 });
 
 describe("useExpoAudioDriver", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.status.current = { playing: false, error: null };
-  });
-
   it("replaces the source and plays on play()", async () => {
     const { result, rerender } = renderHook(() => useExpoAudioDriver());
 
@@ -62,11 +89,11 @@ describe("useExpoAudioDriver", () => {
       },
     );
 
-    expect(mocks.player.replace).toHaveBeenCalledWith("https://ice1.example/live");
-    expect(mocks.player.play).toHaveBeenCalledTimes(1);
+    expect(playerAt(0).replace).toHaveBeenCalledWith("https://ice1.example/live");
+    expect(playerAt(0).play).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      mocks.status.current = { playing: true, error: null };
+      setPlayerStatus(0, { playing: true, error: null });
       rerender();
     });
     await pending;
@@ -86,7 +113,7 @@ describe("useExpoAudioDriver", () => {
     );
 
     await act(async () => {
-      mocks.status.current = { playing: false, error: "NotAllowedError: play() failed" };
+      setPlayerStatus(0, { playing: false, error: "NotAllowedError: play() failed" });
       rerender();
     });
     await pending;
@@ -105,11 +132,58 @@ describe("useExpoAudioDriver", () => {
     });
   });
 
-  it("pauses the native player on pause()", () => {
-    const { result } = renderHook(() => useExpoAudioDriver());
+  it("pauses the committed player on pause()", async () => {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+
+    const pending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await pending;
 
     result.current.pause();
 
-    expect(mocks.player.pause).toHaveBeenCalledTimes(1);
+    expect(playerAt(0).pause).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the previous player until the next one reports playing", async () => {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+
+    let firstSettled = false;
+    const firstPending = result.current.play("https://ice1.example/live").then(() => {
+      firstSettled = true;
+    });
+
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+
+    await firstPending;
+    expect(firstSettled).toBe(true);
+
+    let secondSettled = false;
+    const secondPending = result.current.play("https://ice2.example/live").then(() => {
+      secondSettled = true;
+    });
+
+    expect(mocks.players).toHaveLength(2);
+
+    const first = playerAt(0);
+    const second = playerAt(1);
+
+    expect(second).not.toBe(first);
+    expect(first.pause).not.toHaveBeenCalled();
+
+    await act(async () => {
+      setPlayerStatus(1, { playing: true, error: null });
+      rerender();
+    });
+
+    await secondPending;
+
+    expect(secondSettled).toBe(true);
+    expect(first.pause).toHaveBeenCalledTimes(1);
   });
 });

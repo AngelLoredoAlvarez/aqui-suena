@@ -4,7 +4,7 @@ import type { SupportedLocale } from "@aqui-suena/ui/i18n";
 import { LocaleProvider } from "@aqui-suena/ui/i18n";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayerLanding } from "./player-landing";
@@ -75,16 +75,6 @@ describe("PlayerLanding with channels", () => {
     expect(playSpy).toHaveBeenCalledWith("/test-streams/test-night.m4a");
   });
 
-  it("pauses the previous station when switching channels", async () => {
-    renderLanding();
-
-    await screen.findByText(/listening/);
-
-    fireEvent.click(screen.getByText("Test Night"));
-
-    expect(pauseSpy).toHaveBeenCalled();
-  });
-
   it("show the selected channel name as title", async () => {
     renderLanding("es");
 
@@ -92,6 +82,70 @@ describe("PlayerLanding with channels", () => {
 
     fireEvent.click(screen.getByText("Test Night"));
 
-    expect((await screen.findAllByText("Test Night")).length).toBeGreaterThanOrEqual(2);
+    await waitFor(() => {
+      expect(screen.getAllByText("Test Night").length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it("keeps the selector visible while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getByTestId("station-selector")).toBeTruthy();
+  });
+
+  it("disables the connecting channel while it loads", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getByText("Test Night").closest("button")?.getAttribute("aria-disabled")).toBe(
+      "true",
+    );
+  });
+
+  it("keeps showing the previous channel name while the new one connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("does not pause the previous station when switching channels", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(pauseSpy).not.toHaveBeenCalled();
+  });
+
+  it("keeps showing the previous card while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/escuchando/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
   });
 });

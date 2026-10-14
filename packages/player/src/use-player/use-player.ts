@@ -113,17 +113,19 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
     [updatePlayerState],
   );
 
+  const firstUrl = urls[0];
+
   useEffect(() => {
     if (!autoplay) {
       return;
     }
 
-    void attempt(urlsRef.current[0]);
+    void attempt(firstUrl);
 
     return () => {
       runRef.current++;
     };
-  }, [attempt, autoplay]);
+  }, [attempt, autoplay, firstUrl]);
 
   const play = useCallback(() => {
     void attempt(urlsRef.current[0]);

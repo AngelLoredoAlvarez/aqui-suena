@@ -23,16 +23,30 @@ function isSameOriginPath(url: string): boolean {
 
 export function useExpoAudioDriver(): AudioDriver {
   const elementRef = useRef<HTMLAudioElement | null>(null);
+  const playTokenRef = useRef<number>(0);
 
   return useMemo<AudioDriver>(
     () => ({
       play: (url: string) => {
-        const element = elementRef.current ?? new Audio();
-        elementRef.current = element;
+        const previous = elementRef.current;
+        const element = new Audio();
+        const token = ++playTokenRef.current;
+
         element.src = isSameOriginPath(url) ? url : `/api/stream?url=${encodeURIComponent(url)}`;
-        return element.play().catch((error: unknown) => {
-          throw toWebFailure(error);
-        });
+
+        return element.play().then(
+          () => {
+            if (playTokenRef.current === token) {
+              previous?.pause();
+              elementRef.current = element;
+            } else {
+              element.pause();
+            }
+          },
+          (error: unknown) => {
+            throw toWebFailure(error);
+          },
+        );
       },
       pause: () => {
         elementRef.current?.pause();
