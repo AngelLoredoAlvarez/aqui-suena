@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
+
+import type { SupportedLocale } from "@aqui-suena/ui/i18n";
+import { LocaleProvider } from "@aqui-suena/ui/i18n";
+import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocaleProvider } from "./i18n/locale-context";
-import type { SupportedLocale } from "./i18n/locales";
 import type { StationRef } from "./player-card";
 import { PlayerCard } from "./player-card";
-import { UiProvider } from "./provider";
 
 const STATIONS: readonly StationRef[] = [
   { id: "station-1", name: "Station One" },

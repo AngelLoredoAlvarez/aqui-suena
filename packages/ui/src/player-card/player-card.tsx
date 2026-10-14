@@ -1,5 +1,5 @@
+import { useLocale } from "@aqui-suena/ui/i18n";
 import { Button, Paragraph, XStack, YStack } from "tamagui";
-import { useLocale } from "./i18n/locale-context";
 
 export type PlayerCardStatus = "playing" | "paused" | "loading" | "blocked" | "error";
 

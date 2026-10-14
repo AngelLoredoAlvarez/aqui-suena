@@ -20,7 +20,20 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["../**"],
+                "message": "Parent-relative imports are forbidden: use ./sibling or @aqui-suena/* aliases."
+              }
+            ]
+          }
+        }
+      }
     }
   },
   "formatter": {

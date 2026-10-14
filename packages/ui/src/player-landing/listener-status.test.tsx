@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 import { defaultStationId } from "@aqui-suena/config";
+import type { SupportedLocale } from "@aqui-suena/ui/i18n";
+import { LocaleProvider } from "@aqui-suena/ui/i18n";
+import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LocaleProvider } from "./i18n/locale-context";
-import type { SupportedLocale } from "./i18n/locales";
 import { useListenerStatus } from "./listener-status";
 import { PlayerLanding } from "./player-landing";
-import { UiProvider } from "./provider";
 
 // jsdom ships an Audio element whose play() is not implemented. Stub it so
 // the shared web driver resolves deterministically in these suites.

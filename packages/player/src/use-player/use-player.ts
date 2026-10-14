@@ -1,6 +1,6 @@
+import { describeMediaError, narrowFailure } from "@aqui-suena/player/errors";
+import { pickFallbackUrl } from "@aqui-suena/player/fallback";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { describeMediaError, narrowFailure } from "./errors";
-import { pickFallbackUrl } from "./fallback";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "blocked" | "error";
 export type AudioDriver = {

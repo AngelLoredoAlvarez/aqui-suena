@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
+
+import type { SupportedLocale } from "@aqui-suena/ui/i18n";
+import { LocaleProvider } from "@aqui-suena/ui/i18n";
+import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LocaleProvider } from "./i18n/locale-context";
-import type { SupportedLocale } from "./i18n/locales";
 import { PlayerLanding } from "./player-landing";
-import { UiProvider } from "./provider";
 
 class FakeAudio {
   src = "";
@@ -20,9 +21,13 @@ class FakeAudio {
 const playSpy = vi.fn(() => Promise.resolve());
 const pauseSpy = vi.fn();
 
-vi.mock("./expo-driver", () => ({
-  useExpoAudioDriver: () => ({ play: playSpy, pause: pauseSpy }),
-}));
+vi.mock("@aqui-suena/ui/drivers", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@aqui-suena/ui/drivers")>();
+  return {
+    ...actual,
+    useExpoAudioDriver: () => ({ play: playSpy, pause: pauseSpy }),
+  };
+});
 
 beforeEach(() => {
   vi.stubGlobal("Audio", FakeAudio);
