@@ -65,6 +65,7 @@ function StationPlayer({
               borderColor="$brand5"
               borderWidth={1}
               color="$brandCream"
+              disabled={item.id === channel.id}
               onPress={() => handleSelectStation(item.id)}
             >
               {item.name}

@@ -108,4 +108,18 @@ describe("PlayerLanding with channels", () => {
 
     expect(screen.getByTestId("station-selector")).toBeTruthy();
   });
+
+  it("disables the connecting channel while it loads", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getByText("Test Night").closest("button")?.getAttribute("aria-disabled")).toBe(
+      "true",
+    );
+  });
 });
