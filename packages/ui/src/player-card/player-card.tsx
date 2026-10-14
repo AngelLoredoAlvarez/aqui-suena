@@ -16,6 +16,7 @@ export type PlayerCardProps = {
   onPause: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
+  connectingStationId?: string;
 };
 
 function statusDotColor(
@@ -43,6 +44,7 @@ export function PlayerCard({
   onPause,
   stations,
   onSelectStation,
+  connectingStationId,
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const dot = statusDotColor(status);
@@ -157,6 +159,7 @@ export function PlayerCard({
               hoverStyle={{ bg: "$brand4" }}
               pressStyle={{ bg: "$brand5" }}
               focusStyle={{ bg: "$brand4" }}
+              disabled={station.id === connectingStationId}
             >
               {station.name}
             </Button>

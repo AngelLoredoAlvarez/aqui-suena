@@ -134,4 +134,18 @@ describe("PlayerLanding with channels", () => {
 
     expect(pauseSpy).not.toHaveBeenCalled();
   });
+
+  it("keeps showing the previous card while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/escuchando/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
+  });
 });

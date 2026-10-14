@@ -57,16 +57,29 @@ function StationPlayer({
     }
   }, [status, channel, activeUrl]);
 
-  if (status === "idle" || status === "loading") {
-    const switching = activeUrl !== null && channel.id !== committedChannel.id;
+  const switching =
+    activeUrl !== null &&
+    channel.id !== committedChannel.id &&
+    (status === "playing" || status === "loading" || status === "idle");
+
+  if (status === "idle" || status === "loading" || switching) {
+    if (switching) {
+      return (
+        <PlayerCard
+          stationName={committedChannel.name}
+          listeners={listeners}
+          status="playing"
+          onResume={resume}
+          onPause={pause}
+          stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
+          onSelectStation={handleSelectStation}
+          connectingStationId={channel.id}
+        />
+      );
+    }
 
     return (
       <YStack gap="$2" items="center">
-        {switching ? (
-          <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
-            {committedChannel.name}
-          </Paragraph>
-        ) : null}
         <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <XStack gap="$2" flexWrap="wrap" testID="station-selector">
           {TEST_CHANNELS.map((item) => (
@@ -79,11 +92,11 @@ function StationPlayer({
               borderColor="$brand5"
               borderWidth={1}
               color="$brandCream"
-              disabled={item.id === channel.id}
-              onPress={() => handleSelectStation(item.id)}
               hoverStyle={{ bg: "$brand4" }}
               pressStyle={{ bg: "$brand5" }}
               focusStyle={{ bg: "$brand4" }}
+              disabled={item.id === channel.id}
+              onPress={() => handleSelectStation(item.id)}
             >
               {item.name}
             </Button>
