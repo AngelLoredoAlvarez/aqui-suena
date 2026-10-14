@@ -8,6 +8,7 @@ import { useLocale } from "./i18n/locale-context";
 import { LocaleSwitcher } from "./i18n/locale-switcher";
 import { useListenerStatus } from "./listener-status";
 import { PlayerCard } from "./player-card";
+import { streamBaseUrl } from "./stream-base-url";
 
 type TestChannel = {
   id: string;
@@ -18,13 +19,13 @@ type TestChannel = {
 const DEFAULT_CHANNEL: TestChannel = {
   id: "test-pop",
   name: "Test Pop",
-  url: "/test-streams/test-pop.m4a",
+  url: `${streamBaseUrl}/test-streams/test-pop.m4a`,
 };
 
 const TEST_CHANNELS: readonly TestChannel[] = [
   DEFAULT_CHANNEL,
-  { id: "test-jingle", name: "Test Jingle", url: "/test-streams/test-jingle.m4a" },
-  { id: "test-night", name: "Test Night", url: "/test-streams/test-night.m4a" },
+  { id: "test-jingle", name: "Test Jingle", url: `${streamBaseUrl}/test-streams/test-jingle.m4a` },
+  { id: "test-night", name: "Test Night", url: `${streamBaseUrl}/test-streams/test-night.m4a` },
 ];
 
 function channelById(id: string): TestChannel {
@@ -46,6 +47,11 @@ function StationPlayer({
   const { status, pause, resume } = usePlayer({ urls: [channel.url], driver });
   const { dictionary } = useLocale();
 
+  const handleSelectStation = (stationId: string): void => {
+    driver.pause();
+    onSelectStation(stationId);
+  };
+
   if (status === "idle" || status === "loading") {
     return <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>;
   }
@@ -58,7 +64,7 @@ function StationPlayer({
       onResume={resume}
       onPause={pause}
       stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
-      onSelectStation={onSelectStation}
+      onSelectStation={handleSelectStation}
     />
   );
 }

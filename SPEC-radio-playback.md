@@ -79,7 +79,7 @@ Explicitly forbidden: embedding SomaFM, Radio Paradise, NCS, Nightride, or any c
 | test-night | Chill synthesized loop (low major motif, ffmpeg-only) | /test-streams/test-night.m4a | Owned (ffmpeg synthesis, no license needed) |
 
 Binary state: the M4A/AAC files are planned but gitignored — generated locally with ffmpeg only using the native AAC encoder (`-c:a aac`) (sine-motif synthesis for all three channels) and never committed. MP3 output is unsupported on minimal ffmpeg builds without libmp3lame (encoder not found), so AAC is required for browser + Expo compatibility. CC-track loops may replace pop/night later, with per-track license URLs recorded in the proof file. Only the generation approach and this table are versioned. No recording, no downloads, and no TTS engine required.
-Serving: dev serves the files from Next `public/` (`apps/web/public/test-streams/`), reachable at `http://localhost:3000/test-streams/<file>.m4a` on desktop and via the machine LAN IP from Expo devices. No deployment is needed in dev.
+Serving: dev serves the files from Next `public/` (`apps/web/public/test-streams/`), reachable at `http://localhost:3000/test-streams/<file>.m4a` on desktop and via the machine LAN IP from Expo devices (native base URL comes from `EXPO_PUBLIC_STREAM_BASE_URL`, never hardcoded). No deployment is needed in dev. Switching channels pauses the previous station before starting the new one, so two streams never overlap.
 Prod rule unchanged: production plays only real stations with prior written permission; this 3-channel harness is throwaway dev tooling and never ships to prod.
 
 ## Code Style

@@ -14,6 +14,9 @@ function toWebFailure(error: unknown): { name?: string; code?: number } {
   return {};
 }
 
+// Remote mirror hosts answer 403 to browser Referer headers, so remote
+// URLs play through our same-origin /api/stream proxy (which strips them
+// server-side). Same-origin dev paths need no proxy and play directly.
 function isSameOriginPath(url: string): boolean {
   return url.startsWith("/");
 }

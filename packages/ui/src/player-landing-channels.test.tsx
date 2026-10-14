@@ -18,13 +18,16 @@ class FakeAudio {
 }
 
 const playSpy = vi.fn(() => Promise.resolve());
+const pauseSpy = vi.fn();
+
 vi.mock("./expo-driver", () => ({
-  useExpoAudioDriver: () => ({ play: playSpy, pause: () => {} }),
+  useExpoAudioDriver: () => ({ play: playSpy, pause: pauseSpy }),
 }));
 
 beforeEach(() => {
   vi.stubGlobal("Audio", FakeAudio);
   playSpy.mockClear();
+  pauseSpy.mockClear();
 });
 
 function renderLanding(locale: SupportedLocale = "en") {
@@ -63,5 +66,12 @@ describe("PlayerLanding with channels", () => {
 
     fireEvent.click(screen.getByText("Test Night"));
     expect(playSpy).toHaveBeenCalledWith("/test-streams/test-night.m4a");
+  });
+
+  it("pauses the previous station when switching channels", async () => {
+    renderLanding();
+    await screen.findByText(/listening/);
+    fireEvent.click(screen.getByText("Test Night"));
+    expect(pauseSpy).toHaveBeenCalled();
   });
 });
