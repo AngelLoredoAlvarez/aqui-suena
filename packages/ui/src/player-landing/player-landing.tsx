@@ -96,7 +96,7 @@ export function PlayerLanding() {
       <StationPlayer
         key={channel.id}
         channel={channel}
-        stationName={listener?.station.name ?? ""}
+        stationName={channel.name}
         listeners={listener?.listeners ?? 0}
         onSelectStation={setSelectedStationId}
       />
