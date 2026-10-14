@@ -1,5 +1,5 @@
 import { defaultStationId } from "@aqui-suena/config";
-import { STREAM_FALLBACK_URLS, usePlayer } from "@aqui-suena/player";
+import { usePlayer } from "@aqui-suena/player";
 import { useEffect, useState } from "react";
 import { H1, Paragraph, YStack } from "tamagui";
 import { AdsCarousel } from "./ads-carousel";
@@ -8,32 +8,80 @@ import { useLocale } from "./i18n/locale-context";
 import { LocaleSwitcher } from "./i18n/locale-switcher";
 import { useListenerStatus } from "./listener-status";
 import { PlayerCard } from "./player-card";
+import { streamBaseUrl } from "./stream-base-url";
 
-// Shared landing: the player plus the ads carousel. Rendered by `/` on web
-// (apps/web/app/page.tsx) and native (apps/native/app/index.tsx) so the user
-// sees playback and ads immediately on app open, with no navigation step.
-// Audio comes from the shared expo-audio driver (Tasks 6-7); the stream
-// chain is temporary until the own station exists.
-// Tamagui primitives only, so both platforms render from the same code.
-export function PlayerLanding() {
-  // Mounted gate: the first client render must equal the SSR HTML (the same
-  // loading fallback below), so hydration never sees client-only state.
-  // usePlayer starts at "idle" and the listener query starts pending on both
-  // sides today, but client-only state (a warm react-query cache, autoplay
-  // status transitions) must only apply after mount. State + effect only:
-  // no window/localStorage/Audio reads during render, no
-  // suppressHydrationWarning.
-  const [mounted, setMounted] = useState(false);
+type TestChannel = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+const DEFAULT_CHANNEL: TestChannel = {
+  id: "test-pop",
+  name: "Test Pop",
+  url: `${streamBaseUrl}/test-streams/test-pop.m4a`,
+};
+
+const TEST_CHANNELS: readonly TestChannel[] = [
+  DEFAULT_CHANNEL,
+  { id: "test-jingle", name: "Test Jingle", url: `${streamBaseUrl}/test-streams/test-jingle.m4a` },
+  { id: "test-night", name: "Test Night", url: `${streamBaseUrl}/test-streams/test-night.m4a` },
+];
+
+function channelById(id: string): TestChannel {
+  return TEST_CHANNELS.find((channel) => channel.id === id) ?? DEFAULT_CHANNEL;
+}
+
+function StationPlayer({
+  channel,
+  stationName,
+  listeners,
+  onSelectStation,
+}: {
+  channel: TestChannel;
+  stationName: string;
+  listeners: number;
+  onSelectStation: (stationId: string) => void;
+}) {
   const driver = useExpoAudioDriver();
-  const { status, pause, resume } = usePlayer({ urls: [...STREAM_FALLBACK_URLS], driver });
+  const { status, pause, resume } = usePlayer({ urls: [channel.url], driver });
+  const { dictionary } = useLocale();
+
+  const handleSelectStation = (stationId: string): void => {
+    driver.pause();
+    onSelectStation(stationId);
+  };
+
+  if (status === "idle" || status === "loading") {
+    return <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>;
+  }
+
+  return (
+    <PlayerCard
+      stationName={stationName}
+      listeners={listeners}
+      status={status}
+      onResume={resume}
+      onPause={pause}
+      stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
+      onSelectStation={handleSelectStation}
+    />
+  );
+}
+
+export function PlayerLanding() {
+  const [mounted, setMounted] = useState(false);
+  const [selectedStationId, setSelectedStationId] = useState("test-pop");
+
   const { data: listener } = useListenerStatus(defaultStationId);
   const { dictionary } = useLocale();
+  const channel = channelById(selectedStationId);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || status === "idle" || status === "loading" || !listener) {
+  if (!mounted || !listener) {
     return (
       <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
         <H1 color="$brandCream">{dictionary.appTitle}</H1>
@@ -47,12 +95,12 @@ export function PlayerLanding() {
   return (
     <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
       <H1 color="$brandCream">{dictionary.appTitle}</H1>
-      <PlayerCard
-        stationName={listener.station.name}
-        listeners={listener.listeners}
-        status={status}
-        onResume={resume}
-        onPause={pause}
+      <StationPlayer
+        key={channel.id}
+        channel={channel}
+        stationName={listener?.station.name ?? ""}
+        listeners={listener?.listeners ?? 0}
+        onSelectStation={setSelectedStationId}
       />
       <LocaleSwitcher />
       <AdsCarousel />
