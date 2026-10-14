@@ -4,7 +4,7 @@ import type { SupportedLocale } from "@aqui-suena/ui/i18n";
 import { LocaleProvider } from "@aqui-suena/ui/i18n";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayerLanding } from "./player-landing";
@@ -92,6 +92,20 @@ describe("PlayerLanding with channels", () => {
 
     fireEvent.click(screen.getByText("Test Night"));
 
-    expect((await screen.findAllByText("Test Night")).length).toBeGreaterThanOrEqual(2);
+    await waitFor(() => {
+      expect(screen.getAllByText("Test Night").length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it("keeps the selector visible while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByText("Test Night"));
+
+    expect(screen.getByTestId("station-selector")).toBeTruthy();
   });
 });
