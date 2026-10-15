@@ -62,7 +62,7 @@ function StationPlayer({
     channel.id !== committedChannel.id &&
     (status === "playing" || status === "loading" || status === "idle");
 
-  if (status === "idle" || status === "loading" || switching) {
+  if (status === "loading" || switching) {
     if (switching) {
       return (
         <PlayerCard

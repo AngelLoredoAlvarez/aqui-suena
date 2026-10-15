@@ -15,7 +15,7 @@ const STATIONS: readonly StationRef[] = [
 ];
 
 function renderCard(props: {
-  status: "playing" | "paused" | "loading" | "blocked" | "error";
+  status: "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
   locale?: SupportedLocale;
   onResume?: () => void;
   onPause?: () => void;
@@ -168,7 +168,7 @@ describe("PlayerCard", () => {
     );
   });
 
-  it("shows a status dot for playing/paused/loading/error but not for blocked", () => {
+  it("shows a status dot for playing/paused/loading/error but not for blocked or idle", () => {
     for (const status of ["playing", "paused", "loading", "error"] as const) {
       renderCard({ status });
       expect(screen.getByTestId("status-dot")).toBeTruthy();
@@ -176,6 +176,9 @@ describe("PlayerCard", () => {
     }
 
     renderCard({ status: "blocked" });
+    expect(screen.queryByTestId("status-dot")).toBeNull();
+
+    renderCard({ status: "idle" });
     expect(screen.queryByTestId("status-dot")).toBeNull();
   });
 
@@ -193,5 +196,12 @@ describe("PlayerCard", () => {
     renderCard({ status: "playing", stations: STATIONS, onSelectStation: () => {} });
 
     expect(screen.getByTestId("player-dock")).toBeTruthy();
+  });
+
+  it("shows a tap-to-listen button with no loading text when idle", () => {
+    renderCard({ status: "idle" });
+
+    expect(screen.getByRole("button", { name: "Tap to listen" })).toBeTruthy();
+    expect(screen.queryByText("Loading")).toBeNull();
   });
 });

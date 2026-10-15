@@ -12,6 +12,7 @@ export type Dictionary = {
   readonly pause: string;
   readonly resume: string;
   readonly tapToEnableSound: string;
+  readonly tapToPlay: string;
   readonly signalUnavailable: string;
   readonly playbackFailed: string;
   readonly listening: (count: number) => string;
@@ -25,6 +26,7 @@ export const es: Dictionary = {
   loading: "Cargando…",
   pause: "Pausar",
   resume: "Reanudar",
+  tapToPlay: "Toca para escuchar",
   tapToEnableSound: "Toca para activar el sonido",
   signalUnavailable: "Señal no disponible, probando espejo…",
   playbackFailed: "Falló la reproducción.",
@@ -39,6 +41,7 @@ export const en: Dictionary = {
   loading: "Loading…",
   pause: "Pause",
   resume: "Resume",
+  tapToPlay: "Tap to listen",
   tapToEnableSound: "Tap to enable sound",
   signalUnavailable: "Signal unavailable, trying mirror…",
   playbackFailed: "Playback failed.",

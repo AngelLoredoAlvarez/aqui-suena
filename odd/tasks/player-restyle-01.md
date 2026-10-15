@@ -26,7 +26,7 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 - Commits: user runs all `git commit`s; agent dictates exact commands and commits only on explicit user request (rule 2026-10-15).
 - Route: dictated (user types per standing rule — writer trigger fires at 2+ files but standing user-types rule wins; agent dictates RED, reviews, verifies).
 - Teaching: every RED error and GREEN snippet ships with a junior-level explanation (why the error, why GREEN passes, line-by-line, why it is CLEAN CODE).
-- Dictation: every file edit names exact line numbers plus a nearby code anchor.
+- Dictation: every file edit names the repo-relative file path plus exact line numbers plus a nearby code anchor. Test edits also ship the exact pnpm watch command for those tests.
 
 ## Authorized scope
 User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
@@ -39,8 +39,8 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 
 ## Tasks
 - [x] R1 Noche/Brasa theme tokens + font wiring + token tests (route: dictated)
-- [ ] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
-- [ ] R3 Missing states (empty, ad countdown, station sheet, idle) + state tests (route: dictated)
+- [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
+- [ ] R3 Missing states (idle branch + station sheet + state tests; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated)
 - [ ] R4 i18n additions ES/EN + parity tests (route: dictated)
 - [ ] R5 Full gates + headed web + native approval + close (route: dictated)
 
@@ -52,6 +52,7 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - Focused `vitest` runs, `turbo run test -- --run`, typecheck, biome.
 
 ## Progress
+- 2026-10-15: R3a idle GREEN (tapToPlay keys ES/EN, card idle branch + dot-null + pass-through, suite green, apps working). Next: R3b station sheet.
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
@@ -62,13 +63,24 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - 2026-10-15: R2e in progress (Theme noche in UiProvider, dock root to $surface/$border). Partial themes crashed web (circular errors were secondary; Tamagui $color warning was the real clue); fixed with dark/light base spread + completeness test.
 - 2026-10-15: R2e GREEN (9/9 config tests, suite green, headed web + native identical after dev restart — Turbopack had served a stale graph). Committed 125743a.
 - 2026-10-15: R2f RED (scheme order tests: dock after content in noche, before in brasa). Design 01 Main vs Owner compositions. Next: R2f GREEN + headed (closes R2).
+- 2026-10-15: R2f GREEN (scheme prop + Theme + order + 390 + centered + seamless $bg; 2 order tests green; headed web + native verified). R2 CLOSED. Committed 8006e50 + 0377421 + 6ded314. Next: R3 scope decision (idle + sheet now; empty + ad to their modules).
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
 - R1b: web + native tsc clean, headed emulator font verified by user.
 - R2a: player-card suite all green including new dock test (old behavior untouched).
+- R2f: order tests green both schemes; headed noche verified web + emulador (dock bottom, centered, seamless); brasa order unit-covered.
 
 ## Commits
 - adda25f feat(tokens): add Noche Brasa theme pairs with tests
 - eed3eb7 docs(tasks): record R1a tokens green adda25f
 - 8e413a2 feat(font): wire Plus Jakarta Sans web and native
+- 78477e7 feat(dock): add player-dock container with Noche styling
+- 394f192 feat(chips): enforce 44px min touch targets
+- f30e22b feat(chips): enforce 44px targets in loading selector
+- bb59bdb feat(buttons): enforce 52px min primary targets
+- 3f64810 feat(themes): add Noche Brasa alias themes
+- 125743a feat(theme): activate Noche theme and generic dock tokens
+- 8006e50 fix(theme): complete light/dark theme matrix
+- 0377421 feat(layout): noche/brasa compositions with bottom dock
+- 6ded314 fix(viewport): center column and paint shell backgrounds

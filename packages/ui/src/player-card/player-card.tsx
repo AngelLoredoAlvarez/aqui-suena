@@ -1,7 +1,7 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { Button, Paragraph, XStack, YStack } from "tamagui";
 
-export type PlayerCardStatus = "playing" | "paused" | "loading" | "blocked" | "error";
+export type PlayerCardStatus = "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
 
 export type StationRef = {
   readonly id: string;
@@ -23,6 +23,8 @@ function statusDotColor(
   status: PlayerCardStatus,
 ): "$brandSuccess" | "$brandAccent" | "$brand6" | "$brandDanger" | null {
   switch (status) {
+    case "idle":
+      return null;
     case "playing":
       return "$brandSuccess";
     case "paused":
@@ -65,6 +67,23 @@ export function PlayerCard({
       <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
         {stationName}
       </Paragraph>
+      {status === "idle" ? (
+        <Button
+          type="button"
+          size="$5"
+          rounded={999}
+          bg="$brandAccent"
+          color="$brand1"
+          fontWeight="700"
+          hoverStyle={{ bg: "$brandAccentHover" }}
+          pressStyle={{ bg: "$brandAccentPress" }}
+          onPress={onResume}
+          aria-label={dictionary.tapToPlay}
+          minH={52}
+        >
+          {dictionary.tapToPlay}
+        </Button>
+      ) : null}
       {status === "playing" ? (
         <>
           <XStack gap="$2" items="center">
@@ -124,6 +143,14 @@ export function PlayerCard({
           <Paragraph color="$brandCreamMuted">{dictionary.loading}</Paragraph>
         </XStack>
       ) : null}
+      {status === "error" ? (
+        <XStack gap="$2" items="center">
+          {dot ? (
+            <XStack testID="status-dot" width={12} height={12} rounded={100} bg={dot} />
+          ) : null}
+          <Paragraph color="$brandCreamMuted">{dictionary.signalUnavailable}</Paragraph>
+        </XStack>
+      ) : null}
       {status === "blocked" ? (
         <Button
           type="button"
@@ -140,14 +167,6 @@ export function PlayerCard({
         >
           {dictionary.tapToEnableSound}
         </Button>
-      ) : null}
-      {status === "error" ? (
-        <XStack gap="$2" items="center">
-          {dot ? (
-            <XStack testID="status-dot" width={12} height={12} rounded={100} bg={dot} />
-          ) : null}
-          <Paragraph color="$brandCreamMuted">{dictionary.signalUnavailable}</Paragraph>
-        </XStack>
       ) : null}
       {status !== "blocked" && status !== "loading" && stations && onSelectStation ? (
         <XStack gap="$2" flexWrap="wrap" testID="station-selector">
