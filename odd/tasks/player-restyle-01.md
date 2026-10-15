@@ -56,7 +56,8 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
 - 2026-10-15: R2a dock container GREEN (player-dock testID + Noche surface/border + 24px radius, full card suite green). Next: R2b 44px targets.
 - 2026-10-15: R2b chips 44px GREEN (minH on both selectors, suite green, headed web + native verified). minHeight rejected by Button types, minH shorthand used. Split across 394f192 + f30e22b. R2b closed. Next: R2c primary 52px.
-- 2026-10-15: R2c primary 52px GREEN (minH on pause/resume/tap-to-enable, suite green, headed web + native verified). Next: R2d themes + light order.
+- 2026-10-15: R2c primary 52px GREEN (minH on pause/resume/tap-to-enable, suite green, headed web + native verified). Committed bb59bdb. Next: R2d themes + light order.
+- 2026-10-15: R2d themes GREEN (noche/brasa alias themes in config, 8/8 config tests, additive over preset). Next: R2e apply themes + order + headed (closes R2).
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.

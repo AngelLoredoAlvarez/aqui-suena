@@ -74,3 +74,36 @@ describe("noche/brasa theme pairs", () => {
     expect(colorVal("brasaError")).toBe("#C62F3A");
   });
 });
+
+describe("noche/brasa themes", () => {
+  const themeVal = (theme: string, name: string): unknown => {
+    const group = (tamaguiConfig.themes as Record<string, Record<string, TokenValue>>)[theme];
+    return group?.[name]?.val;
+  };
+
+  it("maps generic tokens to Noche dark values", () => {
+    expect(themeVal("noche", "bg")).toBe("#0F1720");
+    expect(themeVal("noche", "surface")).toBe("#172230");
+    expect(themeVal("noche", "surface2")).toBe("#1F2D3E");
+    expect(themeVal("noche", "border")).toBe("#2C3E52");
+    expect(themeVal("noche", "text")).toBe("#F2F5F7");
+    expect(themeVal("noche", "muted")).toBe("#A3B3C2");
+    expect(themeVal("noche", "accent")).toBe("#FF8A65");
+    expect(themeVal("noche", "onAccent")).toBe("#1A1008");
+    expect(themeVal("noche", "ok")).toBe("#3CCFA8");
+    expect(themeVal("noche", "error")).toBe("#FF6B6B");
+  });
+
+  it("maps generic tokens to Brasa light values", () => {
+    expect(themeVal("brasa", "bg")).toBe("#F6F3EE");
+    expect(themeVal("brasa", "surface")).toBe("#FFFFFF");
+    expect(themeVal("brasa", "surface2")).toBe("#EDE8E0");
+    expect(themeVal("brasa", "border")).toBe("#DDD5C9");
+    expect(themeVal("brasa", "text")).toBe("#1B2430");
+    expect(themeVal("brasa", "muted")).toBe("#566170");
+    expect(themeVal("brasa", "accent")).toBe("#C8431D");
+    expect(themeVal("brasa", "onAccent")).toBe("#FFFFFF");
+    expect(themeVal("brasa", "ok")).toBe("#0B7A63");
+    expect(themeVal("brasa", "error")).toBe("#C62F3A");
+  });
+});

@@ -52,6 +52,36 @@ const nocheBrasa = {
   brasaError: "#C62F3A",
 } as const;
 
+// Theme alias layer (additive: default preset themes stay untouched).
+// Components will speak generic names ($surface, $text…); each theme
+// decides what those mean. Hexes live once in nocheBrasa — these objects
+// only reference them, never copy them.
+const nocheTheme = {
+  bg: nocheBrasa.nocheBg,
+  surface: nocheBrasa.nocheSurface,
+  surface2: nocheBrasa.nocheSurface2,
+  border: nocheBrasa.nocheBorder,
+  text: nocheBrasa.nocheText,
+  muted: nocheBrasa.nocheMuted,
+  accent: nocheBrasa.nocheAccent,
+  onAccent: nocheBrasa.nocheOnAccent,
+  ok: nocheBrasa.nocheOk,
+  error: nocheBrasa.nocheError,
+} as const;
+
+const brasaTheme = {
+  bg: nocheBrasa.brasaBg,
+  surface: nocheBrasa.brasaSurface,
+  surface2: nocheBrasa.brasaSurface2,
+  border: nocheBrasa.brasaBorder,
+  text: nocheBrasa.brasaText,
+  muted: nocheBrasa.brasaMuted,
+  accent: nocheBrasa.brasaAccent,
+  onAccent: nocheBrasa.brasaOnAccent,
+  ok: nocheBrasa.brasaOk,
+  error: nocheBrasa.brasaError,
+} as const;
+
 const tamaguiConfig = createTamagui({
   ...defaultConfig,
   tokens: {
@@ -60,6 +90,11 @@ const tamaguiConfig = createTamagui({
       ...brand,
       ...nocheBrasa,
     },
+  },
+  themes: {
+    ...defaultConfig.themes,
+    noche: nocheTheme,
+    brasa: brasaTheme,
   },
 });
 
