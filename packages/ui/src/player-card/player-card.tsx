@@ -161,6 +161,7 @@ export function PlayerCard({
               pressStyle={{ bg: "$brand5" }}
               focusStyle={{ bg: "$brand4" }}
               disabled={station.id === connectingStationId}
+              minH={44}
             >
               {station.name}
             </Button>

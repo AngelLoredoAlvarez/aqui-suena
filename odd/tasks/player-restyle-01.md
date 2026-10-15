@@ -54,7 +54,8 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
-- 2026-10-15: R2a dock container GREEN (player-dock testID + Noche surface/border + 24px radius, full card suite green). Next: R2b 44px targets RED.
+- 2026-10-15: R2a dock container GREEN (player-dock testID + Noche surface/border + 24px radius, full card suite green). Next: R2b 44px targets.
+- 2026-10-15: R2b chips 44px GREEN (minH on both selectors, suite green, headed web + native verified). minHeight rejected by Button types, minH shorthand used. Next: R2c primary 52px + themes.
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
