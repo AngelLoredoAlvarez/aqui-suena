@@ -26,6 +26,7 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 - Commits: user runs all `git commit`s; agent dictates exact commands and commits only on explicit user request (rule 2026-10-15).
 - Route: dictated (user types per standing rule — writer trigger fires at 2+ files but standing user-types rule wins; agent dictates RED, reviews, verifies).
 - Teaching: every RED error and GREEN snippet ships with a junior-level explanation (why the error, why GREEN passes, line-by-line, why it is CLEAN CODE).
+- Dictation: every file edit names exact line numbers plus a nearby code anchor.
 
 ## Authorized scope
 User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
@@ -59,7 +60,8 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - 2026-10-15: R2c primary 52px GREEN (minH on pause/resume/tap-to-enable, suite green, headed web + native verified). Committed bb59bdb. Next: R2d themes + light order.
 - 2026-10-15: R2d themes GREEN (noche/brasa alias themes in config, 8/8 config tests, additive over preset). Committed 3f64810. Next: R2e provider noche + card generic.
 - 2026-10-15: R2e in progress (Theme noche in UiProvider, dock root to $surface/$border). Partial themes crashed web (circular errors were secondary; Tamagui $color warning was the real clue); fixed with dark/light base spread + completeness test.
-- 2026-10-15: R2e GREEN (9/9 config tests, suite green, headed web + native identical after dev restart — Turbopack had served a stale graph). Next: R2f landing composition + headed (closes R2).
+- 2026-10-15: R2e GREEN (9/9 config tests, suite green, headed web + native identical after dev restart — Turbopack had served a stale graph). Committed 125743a.
+- 2026-10-15: R2f RED (scheme order tests: dock after content in noche, before in brasa). Design 01 Main vs Owner compositions. Next: R2f GREEN + headed (closes R2).
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.

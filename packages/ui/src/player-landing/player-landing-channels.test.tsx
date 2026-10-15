@@ -35,10 +35,11 @@ beforeEach(() => {
   pauseSpy.mockClear();
 });
 
-function renderLanding(locale: SupportedLocale = "en") {
+function renderLanding(locale: SupportedLocale = "en", scheme: "noche" | "brasa" = "noche") {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+
   const wrapper = ({ children }: { children: ReactNode }) => (
     <UiProvider>
       <LocaleProvider locale={locale} onChange={() => {}}>
@@ -46,7 +47,8 @@ function renderLanding(locale: SupportedLocale = "en") {
       </LocaleProvider>
     </UiProvider>
   );
-  return render(<PlayerLanding />, { wrapper });
+
+  return render(<PlayerLanding scheme={scheme} />, { wrapper });
 }
 
 describe("PlayerLanding with channels", () => {
@@ -147,5 +149,33 @@ describe("PlayerLanding with channels", () => {
     expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/escuchando/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
+  });
+});
+
+describe("PlayerLanding composition", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders the dock after the content in noche scheme", async () => {
+    renderLanding("es", "noche");
+
+    await screen.findByText(/escuchando/);
+
+    const dock = screen.getByTestId("player-dock");
+    const content = screen.getByTestId("landing-content");
+
+    expect(content.compareDocumentPosition(dock)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("renders the dock before the content in brasa scheme", async () => {
+    renderLanding("es", "brasa");
+
+    await screen.findByText(/escuchando/);
+
+    const dock = screen.getByTestId("player-dock");
+    const content = screen.getByTestId("landing-content");
+
+    expect(dock.compareDocumentPosition(content)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

@@ -5,7 +5,7 @@ import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
 import { useEffect, useState } from "react";
-import { Button, H1, Paragraph, XStack, YStack } from "tamagui";
+import { Button, H1, Paragraph, Theme, XStack, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
 
 type TestChannel = {
@@ -120,7 +120,7 @@ function StationPlayer({
   );
 }
 
-export function PlayerLanding() {
+export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa" }) {
   const [mounted, setMounted] = useState(false);
   const [selectedStationId, setSelectedStationId] = useState("test-pop");
 
@@ -132,9 +132,18 @@ export function PlayerLanding() {
     setMounted(true);
   }, []);
 
+  const player = (
+    <StationPlayer
+      channel={channel}
+      stationName={channel.name}
+      listeners={listener?.listeners ?? 0}
+      onSelectStation={setSelectedStationId}
+    />
+  );
+
   if (!mounted || !listener) {
     return (
-      <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
+      <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$bg">
         <H1 color="$brandCream">{dictionary.appTitle}</H1>
         <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <LocaleSwitcher />
@@ -144,16 +153,26 @@ export function PlayerLanding() {
   }
 
   return (
-    <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$brand1">
-      <H1 color="$brandCream">{dictionary.appTitle}</H1>
-      <StationPlayer
-        channel={channel}
-        stationName={channel.name}
-        listeners={listener?.listeners ?? 0}
-        onSelectStation={setSelectedStationId}
-      />
-      <LocaleSwitcher />
-      <AdsCarousel />
-    </YStack>
+    <Theme name={scheme}>
+      <YStack
+        flex={1}
+        width="100%"
+        maxW={390}
+        mx={"auto"}
+        items="center"
+        justify="center"
+        gap="$5"
+        p="$5"
+        bg="$bg"
+      >
+        <H1 color="$brandCream">{dictionary.appTitle}</H1>
+        <LocaleSwitcher />
+        {scheme === "brasa" ? player : null}
+        <YStack testID="landing-content" width="100%" items="center">
+          <AdsCarousel />
+        </YStack>
+        {scheme === "brasa" ? null : player}
+      </YStack>
+    </Theme>
   );
 }

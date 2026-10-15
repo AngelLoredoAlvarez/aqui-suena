@@ -53,13 +53,14 @@ export function PlayerCard({
     <YStack
       testID="player-dock"
       gap="$4"
-      p="$5"
+      p={12}
+      mt="auto"
       width="100%"
       maxW={480}
-      bg="$nocheSurface"
-      borderColor="$nocheBorder"
+      bg="$surface"
+      borderColor="$borderColor"
       borderWidth={1}
-      rounded="$6"
+      rounded={24}
     >
       <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
         {stationName}
