@@ -57,7 +57,9 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - 2026-10-15: R2a dock container GREEN (player-dock testID + Noche surface/border + 24px radius, full card suite green). Next: R2b 44px targets.
 - 2026-10-15: R2b chips 44px GREEN (minH on both selectors, suite green, headed web + native verified). minHeight rejected by Button types, minH shorthand used. Split across 394f192 + f30e22b. R2b closed. Next: R2c primary 52px.
 - 2026-10-15: R2c primary 52px GREEN (minH on pause/resume/tap-to-enable, suite green, headed web + native verified). Committed bb59bdb. Next: R2d themes + light order.
-- 2026-10-15: R2d themes GREEN (noche/brasa alias themes in config, 8/8 config tests, additive over preset). Next: R2e apply themes + order + headed (closes R2).
+- 2026-10-15: R2d themes GREEN (noche/brasa alias themes in config, 8/8 config tests, additive over preset). Committed 3f64810. Next: R2e provider noche + card generic.
+- 2026-10-15: R2e in progress (Theme noche in UiProvider, dock root to $surface/$border). Partial themes crashed web (circular errors were secondary; Tamagui $color warning was the real clue); fixed with dark/light base spread + completeness test.
+- 2026-10-15: R2e GREEN (9/9 config tests, suite green, headed web + native identical after dev restart — Turbopack had served a stale graph). Next: R2f landing composition + headed (closes R2).
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.

@@ -93,8 +93,14 @@ const tamaguiConfig = createTamagui({
   },
   themes: {
     ...defaultConfig.themes,
-    noche: nocheTheme,
-    brasa: brasaTheme,
+    noche: {
+      ...defaultConfig.themes.dark,
+      ...nocheTheme,
+    },
+    brasa: {
+      ...defaultConfig.themes.light,
+      ...brasaTheme,
+    },
   },
 });
 

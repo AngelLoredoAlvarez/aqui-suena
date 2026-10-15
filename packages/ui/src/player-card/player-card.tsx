@@ -48,6 +48,7 @@ export function PlayerCard({
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const dot = statusDotColor(status);
+
   return (
     <YStack
       testID="player-dock"
@@ -55,8 +56,8 @@ export function PlayerCard({
       p="$5"
       width="100%"
       maxW={480}
-      bg="$brand2"
-      borderColor="$brand5"
+      bg="$nocheSurface"
+      borderColor="$nocheBorder"
       borderWidth={1}
       rounded="$6"
     >

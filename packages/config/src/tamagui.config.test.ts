@@ -106,4 +106,17 @@ describe("noche/brasa themes", () => {
     expect(themeVal("brasa", "ok")).toBe("#0B7A63");
     expect(themeVal("brasa", "error")).toBe("#C62F3A");
   });
+
+  it("keeps every default theme token inside noche and brasa", () => {
+    const baselineDark = baseline.themes.dark as Record<string, TokenValue>;
+    const baselineLight = baseline.themes.light as Record<string, TokenValue>;
+
+    for (const name of Object.keys(baselineDark)) {
+      expect(themeVal("noche", name)).toBe(baselineDark[name]?.val);
+    }
+
+    for (const name of Object.keys(baselineLight)) {
+      expect(themeVal("brasa", name)).toBe(baselineLight[name]?.val);
+    }
+  });
 });

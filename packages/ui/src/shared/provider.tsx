@@ -1,6 +1,6 @@
 import { tamaguiConfig } from "@aqui-suena/config";
 import type { ReactNode } from "react";
-import { TamaguiProvider } from "tamagui";
+import { TamaguiProvider, Theme } from "tamagui";
 
 type UiProviderProps = {
   children: ReactNode;
@@ -12,7 +12,7 @@ type UiProviderProps = {
 export function UiProvider({ children }: UiProviderProps) {
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
-      {children}
+      <Theme name="noche">{children}</Theme>
     </TamaguiProvider>
   );
 }
