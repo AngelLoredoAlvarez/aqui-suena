@@ -60,7 +60,7 @@ const nocheTheme = {
   bg: nocheBrasa.nocheBg,
   surface: nocheBrasa.nocheSurface,
   surface2: nocheBrasa.nocheSurface2,
-  border: nocheBrasa.nocheBorder,
+  borderColor: nocheBrasa.nocheBorder,
   text: nocheBrasa.nocheText,
   muted: nocheBrasa.nocheMuted,
   accent: nocheBrasa.nocheAccent,
@@ -73,7 +73,7 @@ const brasaTheme = {
   bg: nocheBrasa.brasaBg,
   surface: nocheBrasa.brasaSurface,
   surface2: nocheBrasa.brasaSurface2,
-  border: nocheBrasa.brasaBorder,
+  borderColor: nocheBrasa.brasaBorder,
   text: nocheBrasa.brasaText,
   muted: nocheBrasa.brasaMuted,
   accent: nocheBrasa.brasaAccent,
@@ -93,6 +93,8 @@ const tamaguiConfig = createTamagui({
   },
   themes: {
     ...defaultConfig.themes,
+    light: { ...defaultConfig.themes.light, ...brasaTheme },
+    dark: { ...defaultConfig.themes.dark, ...nocheTheme },
     noche: {
       ...defaultConfig.themes.dark,
       ...nocheTheme,

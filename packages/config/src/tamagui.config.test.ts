@@ -85,7 +85,7 @@ describe("noche/brasa themes", () => {
     expect(themeVal("noche", "bg")).toBe("#0F1720");
     expect(themeVal("noche", "surface")).toBe("#172230");
     expect(themeVal("noche", "surface2")).toBe("#1F2D3E");
-    expect(themeVal("noche", "border")).toBe("#2C3E52");
+    expect(themeVal("noche", "borderColor")).toBe("#2C3E52");
     expect(themeVal("noche", "text")).toBe("#F2F5F7");
     expect(themeVal("noche", "muted")).toBe("#A3B3C2");
     expect(themeVal("noche", "accent")).toBe("#FF8A65");
@@ -98,7 +98,7 @@ describe("noche/brasa themes", () => {
     expect(themeVal("brasa", "bg")).toBe("#F6F3EE");
     expect(themeVal("brasa", "surface")).toBe("#FFFFFF");
     expect(themeVal("brasa", "surface2")).toBe("#EDE8E0");
-    expect(themeVal("brasa", "border")).toBe("#DDD5C9");
+    expect(themeVal("brasa", "borderColor")).toBe("#DDD5C9");
     expect(themeVal("brasa", "text")).toBe("#1B2430");
     expect(themeVal("brasa", "muted")).toBe("#566170");
     expect(themeVal("brasa", "accent")).toBe("#C8431D");
@@ -108,15 +108,55 @@ describe("noche/brasa themes", () => {
   });
 
   it("keeps every default theme token inside noche and brasa", () => {
+    // Keys we deliberately re-theme: our alias layer wins over the base.
+    // Everything else must survive untouched.
+    const rethemed = new Set([
+      "bg",
+      "surface",
+      "surface2",
+      "borderColor",
+      "text",
+      "muted",
+      "accent",
+      "onAccent",
+      "ok",
+      "error",
+    ]);
     const baselineDark = baseline.themes.dark as Record<string, TokenValue>;
     const baselineLight = baseline.themes.light as Record<string, TokenValue>;
 
     for (const name of Object.keys(baselineDark)) {
+      if (rethemed.has(name)) {
+        continue;
+      }
       expect(themeVal("noche", name)).toBe(baselineDark[name]?.val);
     }
 
     for (const name of Object.keys(baselineLight)) {
+      if (rethemed.has(name)) {
+        continue;
+      }
       expect(themeVal("brasa", name)).toBe(baselineLight[name]?.val);
+    }
+  });
+
+  it("shares generic keys across light/dark and brasa/noche", () => {
+    const names = [
+      "bg",
+      "surface",
+      "surface2",
+      "borderColor",
+      "text",
+      "muted",
+      "accent",
+      "onAccent",
+      "ok",
+      "error",
+    ];
+
+    for (const name of names) {
+      expect(themeVal("light", name)).toBe(themeVal("brasa", name));
+      expect(themeVal("dark", name)).toBe(themeVal("noche", name));
     }
   });
 });
