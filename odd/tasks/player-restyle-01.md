@@ -49,10 +49,11 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - Focused `vitest` runs, `turbo run test -- --run`, typecheck, biome.
 
 ## Progress
-- 2026-10-15: doc created + explore map done. No writes yet. Next: branch + R1 RED.
+- 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
+- 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 
 ## Verification evidence
-- (pending)
+- packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
 
 ## Commits
-- (pending — record work-unit commit identities here)
+- adda25f feat(tokens): add Noche Brasa theme pairs with tests
