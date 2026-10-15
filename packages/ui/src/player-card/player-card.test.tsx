@@ -47,6 +47,7 @@ describe("PlayerCard", () => {
   afterEach(() => {
     cleanup();
   });
+
   it("shows the status and listeners with no resume button when playing", () => {
     renderCard({ status: "playing" });
 
@@ -186,5 +187,11 @@ describe("PlayerCard", () => {
     expect(selector.getAttribute("data-testid")).toBe("station-selector");
     expect(screen.getByText("Station One")).toBeTruthy();
     expect(screen.getByText("Station Two")).toBeTruthy();
+  });
+
+  it("renders inside the bottom dock container", () => {
+    renderCard({ status: "playing", stations: STATIONS, onSelectStation: () => {} });
+
+    expect(screen.getByTestId("player-dock")).toBeTruthy();
   });
 });

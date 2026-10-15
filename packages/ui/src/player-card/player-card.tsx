@@ -50,6 +50,7 @@ export function PlayerCard({
   const dot = statusDotColor(status);
   return (
     <YStack
+      testID="player-dock"
       gap="$4"
       p="$5"
       width="100%"

@@ -25,6 +25,7 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 - Branch `feature/player-restyle-01`; work-unit commits on the branch, local only, no push without explicit order.
 - Commits: user runs all `git commit`s; agent dictates exact commands and commits only on explicit user request (rule 2026-10-15).
 - Route: dictated (user types per standing rule — writer trigger fires at 2+ files but standing user-types rule wins; agent dictates RED, reviews, verifies).
+- Teaching: every RED error and GREEN snippet ships with a junior-level explanation (why the error, why GREEN passes, line-by-line, why it is CLEAN CODE).
 
 ## Authorized scope
 User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
@@ -52,10 +53,15 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 ## Progress
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
-- 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean). R1 complete. Next: R2 dock layout RED.
+- 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
+- 2026-10-15: R2a dock container GREEN (player-dock testID + Noche surface/border + 24px radius, full card suite green). Next: R2b 44px targets RED.
 
 ## Verification evidence
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
+- R1b: web + native tsc clean, headed emulator font verified by user.
+- R2a: player-card suite all green including new dock test (old behavior untouched).
 
 ## Commits
 - adda25f feat(tokens): add Noche Brasa theme pairs with tests
+- eed3eb7 docs(tasks): record R1a tokens green adda25f
+- 8e413a2 feat(font): wire Plus Jakarta Sans web and native
