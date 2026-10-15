@@ -82,5 +82,12 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 - Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions. Owner verification requires no manual business review before publishing.
 - Plan-change screens include a downgrade business-picker step (owner chooses the visible business) and a grace-period banner during the 7-day failed-renewal window.
 
+## Future: owner support chatbot (deferred, decided 2026-10-15)
+
+Owner-facing support assistant for payment and account help (card, OXXO, SPEI, receipts, failed payments, plan changes, downgrade). Strategy is two levels, decided to stay 100% free for now:
+
+- Level 0 (rule-based, no backend): client-side intents + matcher + i18n responses in a shared package; simple chat UI in the owner portal; colocated matcher tests; honest fallback to human support. Doubles as the free-tier fallback later.
+- Level 1 (deferred): tRPC `support.chat` behind Supabase Auth with per-account daily caps, Gemini Flash via AI Studio as the evaluated provider, optional `support.feedback` logging of unresolved queries to discover intents. Hard guards before any build: server-side restricted key only, per-account + global daily caps with auto-cutoff, sanitized prompts (never personal, payment, or Conekta data — free-tier content trains vendor models), provider abstraction for swap (Groq/OpenRouter), explicit fallback to level 0 on 429/overload.
+
 ## Open Questions
 - Image hosting provider for uploads (per-plan photo limits decided in SPEC-memberships)?
