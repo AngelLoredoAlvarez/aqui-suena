@@ -196,6 +196,9 @@ importers:
       '@aqui-suena/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@expo-google-fonts/plus-jakarta-sans':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@react-native-async-storage/async-storage':
         specifier: 2.2.0
         version: 2.2.0(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))
@@ -205,6 +208,9 @@ importers:
       expo:
         specifier: ~57.0.29
         version: 57.0.29(@babel/core@7.29.7(supports-color@8.1.1))(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.17)(expo-router@57.0.27)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.4(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1)(typescript@5.9.3)
+      expo-font:
+        specifier: ^57.0.4
+        version: 57.0.4(expo@57.0.29)(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       expo-localization:
         specifier: ~57.0.2
         version: 57.0.2(expo@57.0.29)(react@19.2.3)
@@ -1383,6 +1389,9 @@ packages:
 
   '@expo-google-fonts/material-symbols@0.4.49':
     resolution: {integrity: sha512-HtoaXYCk7A9kOjwoxrjq6i0iDtAoQnOPm31zUn+TgmKlHVUU+yyqvQDxN830MvGmBQV8eINv/SK7JRtWhB2xcg==}
+
+  '@expo-google-fonts/plus-jakarta-sans@0.4.2':
+    resolution: {integrity: sha512-6LYVmVGwjQvH+uzzWlVc9+oMj4lkNQ41aymVDjO+x8aFk8kCye20wOyLomYMZaMezA++Uf1mZRCw3W3Fy/hxEA==}
 
   '@expo/cli@57.0.30':
     resolution: {integrity: sha512-xyPD5pkNvEojk9oI3xs2kR3JHSrkOPcCmuLnHkw4fcU/zSuqcoY3y6z/t/IIUlTpnuTFeTpDIiIvafBTO/mtKA==}
@@ -6217,6 +6226,8 @@ snapshots:
   '@exodus/bytes@1.16.0': {}
 
   '@expo-google-fonts/material-symbols@0.4.49': {}
+
+  '@expo-google-fonts/plus-jakarta-sans@0.4.2': {}
 
   '@expo/cli@57.0.30(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.17)(expo-constants@57.0.22)(expo-font@57.0.4)(expo-router@57.0.27)(expo@57.0.29)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1)(typescript@5.9.3)':
     dependencies:

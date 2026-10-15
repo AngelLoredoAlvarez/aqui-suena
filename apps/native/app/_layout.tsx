@@ -7,6 +7,12 @@ import {
   savePersistedLocaleAsync,
   UiProvider,
 } from "@aqui-suena/ui";
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  useFonts,
+} from "@expo-google-fonts/plus-jakarta-sans";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
@@ -23,6 +29,12 @@ function initialNativeLocale(): SupportedLocale {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+  });
+
   const [locale, setLocale] = useState<SupportedLocale>(initialNativeLocale);
 
   useEffect(() => {
@@ -47,6 +59,10 @@ export default function RootLayout() {
     setLocale(next);
     void savePersistedLocaleAsync(deviceStore, next);
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <UiProvider>
