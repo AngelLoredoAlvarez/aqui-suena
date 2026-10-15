@@ -68,7 +68,8 @@ export default function RootLayout() {
     <UiProvider>
       <LocaleProvider locale={locale} onChange={handleChange}>
         <QueryClientProvider client={queryClient}>
-          <Stack />
+          {/* Screen backdrop mirrors $nocheBg, same as web body style. */}
+          <Stack screenOptions={{ contentStyle: { backgroundColor: "#0F1720" } }} />
         </QueryClientProvider>
       </LocaleProvider>
     </UiProvider>

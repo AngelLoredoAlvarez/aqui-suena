@@ -16,7 +16,8 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={jakarta.className}>
-      <body style={{ fontSize: 14 }}>
+      {/* Viewport chrome mirrors $nocheBg: no white frame around the app shell. */}
+      <body style={{ margin: 0, backgroundColor: "#0F1720", fontSize: 14 }}>
         <Providers>{children}</Providers>
       </body>
     </html>
