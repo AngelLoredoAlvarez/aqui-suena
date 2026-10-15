@@ -83,6 +83,7 @@ export function PlayerCard({
             pressStyle={{ bg: "$brandAccentPress" }}
             onPress={onPause}
             aria-label={dictionary.pause}
+            minH={52}
           >
             {dictionary.pause}
           </Button>
@@ -107,6 +108,7 @@ export function PlayerCard({
             pressStyle={{ bg: "$brandAccentPress" }}
             onPress={onResume}
             aria-label={dictionary.resume}
+            minH={52}
           >
             {dictionary.resume}
           </Button>
@@ -132,6 +134,7 @@ export function PlayerCard({
           pressStyle={{ bg: "$brandAccentPress" }}
           onPress={onResume}
           aria-label={dictionary.tapToEnableSound}
+          minH={52}
         >
           {dictionary.tapToEnableSound}
         </Button>
