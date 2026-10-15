@@ -29,11 +29,37 @@ const brand = {
   brandDanger: "#e5484d",
 } as const;
 
+const nocheBrasa = {
+  nocheBg: "#0F1720",
+  nocheSurface: "#172230",
+  nocheSurface2: "#1F2D3E",
+  nocheBorder: "#2C3E52",
+  nocheText: "#F2F5F7",
+  nocheMuted: "#A3B3C2",
+  nocheAccent: "#FF8A65",
+  nocheOnAccent: "#1A1008",
+  nocheOk: "#3CCFA8",
+  nocheError: "#FF6B6B",
+  brasaBg: "#F6F3EE",
+  brasaSurface: "#FFFFFF",
+  brasaSurface2: "#EDE8E0",
+  brasaBorder: "#DDD5C9",
+  brasaText: "#1B2430",
+  brasaMuted: "#566170",
+  brasaAccent: "#C8431D",
+  brasaOnAccent: "#FFFFFF",
+  brasaOk: "#0B7A63",
+  brasaError: "#C62F3A",
+} as const;
+
 const tamaguiConfig = createTamagui({
   ...defaultConfig,
   tokens: {
     ...defaultConfig.tokens,
-    color: brand,
+    color: {
+      ...brand,
+      ...nocheBrasa,
+    },
   },
 });
 

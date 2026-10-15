@@ -46,3 +46,31 @@ describe("brand tokens", () => {
     expect(tamaguiConfig.tokens.zIndex).toEqual(baseline.tokens.zIndex);
   });
 });
+
+describe("noche/brasa theme pairs", () => {
+  it("exposes Noche dark tokens", () => {
+    expect(colorVal("nocheBg")).toBe("#0F1720");
+    expect(colorVal("nocheSurface")).toBe("#172230");
+    expect(colorVal("nocheSurface2")).toBe("#1F2D3E");
+    expect(colorVal("nocheBorder")).toBe("#2C3E52");
+    expect(colorVal("nocheText")).toBe("#F2F5F7");
+    expect(colorVal("nocheMuted")).toBe("#A3B3C2");
+    expect(colorVal("nocheAccent")).toBe("#FF8A65");
+    expect(colorVal("nocheOnAccent")).toBe("#1A1008");
+    expect(colorVal("nocheOk")).toBe("#3CCFA8");
+    expect(colorVal("nocheError")).toBe("#FF6B6B");
+  });
+
+  it("exposes Brasa light tokens", () => {
+    expect(colorVal("brasaBg")).toBe("#F6F3EE");
+    expect(colorVal("brasaSurface")).toBe("#FFFFFF");
+    expect(colorVal("brasaSurface2")).toBe("#EDE8E0");
+    expect(colorVal("brasaBorder")).toBe("#DDD5C9");
+    expect(colorVal("brasaText")).toBe("#1B2430");
+    expect(colorVal("brasaMuted")).toBe("#566170");
+    expect(colorVal("brasaAccent")).toBe("#C8431D");
+    expect(colorVal("brasaOnAccent")).toBe("#FFFFFF");
+    expect(colorVal("brasaOk")).toBe("#0B7A63");
+    expect(colorVal("brasaError")).toBe("#C62F3A");
+  });
+});
