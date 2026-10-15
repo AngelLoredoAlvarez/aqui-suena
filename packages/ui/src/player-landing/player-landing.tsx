@@ -97,6 +97,7 @@ function StationPlayer({
               focusStyle={{ bg: "$brand4" }}
               disabled={item.id === channel.id}
               onPress={() => handleSelectStation(item.id)}
+              minH={44}
             >
               {item.name}
             </Button>
