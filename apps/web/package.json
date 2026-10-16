@@ -13,7 +13,7 @@
     "@aqui-suena/config": "workspace:*",
     "@aqui-suena/navigation": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
-    "@tanstack/react-query": "^5.104.2",
+    "@tanstack/react-query": "^5.104.3",
     "next": "16.4.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
