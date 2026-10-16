@@ -16,7 +16,7 @@ Single source of truth for Aquí Suena small-business listings (restaurants, clo
 ## Commands
 ```
 Dev web: pnpm --filter web dev
-Dev native: pnpm --filter native start
+Dev mobile: pnpm --filter mobile start
 Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
@@ -27,7 +27,7 @@ DB push (dev): pnpm --filter db db:push
 ## Project Structure
 ```
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
-apps/native/app/business/[businessId].tsx    → listing route (native)
+apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
 packages/db/src/schema.ts                   → businesses, products, photos, hours
 packages/api/src/routers/business.ts         → business.list / business.get
 packages/ui/src/business-card.tsx            → shared card + sheet

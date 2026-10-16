@@ -185,7 +185,7 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
-  apps/native:
+  apps/mobile:
     dependencies:
       '@aqui-suena/config':
         specifier: workspace:*
@@ -8662,7 +8662,7 @@ snapshots:
 
   '@types/react-test-renderer@19.3.0':
     dependencies:
-      '@types/react': 19.2.2
+      '@types/react': 19.2.18
 
   '@types/react@19.2.18':
     dependencies:

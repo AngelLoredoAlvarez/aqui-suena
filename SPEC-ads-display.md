@@ -16,7 +16,7 @@
 ## Commands
 ```
 Dev web: pnpm --filter web dev
-Dev native: pnpm --filter native start
+Dev mobile: pnpm --filter mobile start
 Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
@@ -29,7 +29,7 @@ packages/api/src/routers/ads.ts        → ads.carousel (ranked)
 packages/ui/src/sponsor-carousel.tsx   → carousel (shared)
 packages/ui/src/business-sheet.tsx     → listing sheet (shared, player-safe)
 apps/web/app/page.tsx                  → home with carousel under/over player
-apps/native/app/index.tsx              → same on native
+apps/mobile/app/index.tsx              → same on mobile
 ```
 
 ## Code Style

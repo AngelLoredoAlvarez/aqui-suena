@@ -10,8 +10,8 @@
     "typecheck": "turbo run typecheck",
     "arch": "depcruise packages apps --config .dependency-cruiser.cjs",
     "dev:web": "pnpm --filter web dev",
-    "dev:native": "pnpm --filter native start",
-    "dev:native:android": "pnpm --filter native start -- --android",
+    "dev:mobile": "pnpm --filter mobile start",
+    "dev:mobile:android": "pnpm --filter mobile start -- --android",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -16,7 +16,7 @@ Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and 
 ## Commands
 ```
 Dev web: pnpm --filter web dev
-Dev native: pnpm --filter native start
+Dev mobile: pnpm --filter mobile start
 Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
@@ -28,7 +28,7 @@ DB push (dev): pnpm --filter db db:push
 ```
 apps/
   web/            → Next.js App Router (routes, player view)
-  native/         → Expo Router (player view, same route names as web)
+  mobile/         → Expo Router (player view, same route names as web)
 packages/
   player/         → shared playback logic (STREAM_FALLBACK_URLS, describeMediaError, usePlayer hook)
   ui/             → Tamagui-based PlayerCard, PlayButton, StatusDot (RN Web compatible, Solito Link only, tokens + themes)

@@ -18,7 +18,7 @@ Future (V2, no design): announcer console with Premium request queue for live me
 ## Commands
 ```
 Dev web: pnpm --filter web dev
-Dev native: pnpm --filter native start
+Dev mobile: pnpm --filter mobile start
 Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .

@@ -1,12 +1,12 @@
 # Aquí Suena
 
-Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turborepo monorepo where Next.js (web) and Expo (native) share Tamagui UI and Solito routes from day one.
+Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turborepo monorepo where Next.js (web) and Expo (mobile) share Tamagui UI and Solito routes from day one.
 
 ## Quick path
 
 1. Install: `pnpm install` (requires Node 22, pnpm 12.4.1)
 2. Run web: `pnpm dev:web` → http://localhost:3000/ (landing is the player)
-3. Run native: `pnpm dev:native` (Expo Go) or `pnpm dev:native:android` (emulator)
+3. Run mobile: `pnpm dev:mobile` (Expo Go) or `pnpm dev:mobile:android` (emulator)
 4. Verify: `pnpm -r build && pnpm -r typecheck && pnpm exec biome check .`
 
 ## Layout
@@ -14,7 +14,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | Path | What lives there |
 |------|------------------|
 | `apps/web` | Next.js 16 App Router + React Native Web |
-| `apps/native` | Expo 57 + Expo Router |
+| `apps/mobile` | Expo 57 + Expo Router |
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
 | `packages/navigation` | Shared Solito route contracts (deep links return in Task 5) |
 | `packages/ui` | Shared Tamagui provider + components (no `next/link`, no web-only CSS) |
@@ -25,8 +25,8 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | Command | Effect |
 |---------|--------|
 | `pnpm dev:web` | Web dev server |
-| `pnpm dev:native` | Native via Expo Go |
-| `pnpm dev:native:android` | Native on Android emulator |
+| `pnpm dev:mobile` | Mobile via Expo Go |
+| `pnpm dev:mobile:android` | Mobile on Android emulator |
 | `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |
 | `pnpm lint` | `biome check --write .` |
 
