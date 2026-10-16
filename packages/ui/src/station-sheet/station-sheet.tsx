@@ -1,5 +1,5 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
-import { Button, Paragraph, ScrollView, XStack, YStack } from "tamagui";
+import { Button, isWeb, Paragraph, ScrollView, XStack, YStack } from "tamagui";
 
 export type SheetStation = {
   readonly id: string;
@@ -36,7 +36,7 @@ export function StationSheet({
     <>
       <YStack
         testID="station-sheet-backdrop"
-        position="absolute"
+        position={isWeb ? "fixed" : "absolute"}
         t={0}
         l={0}
         r={0}
