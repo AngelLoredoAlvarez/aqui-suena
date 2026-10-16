@@ -48,5 +48,11 @@ describe("i18n contract", () => {
     expect(en.tapToEnableSound).toBe("Tap to enable sound");
     expect(en.signalUnavailable).toBe("Signal unavailable, trying mirror…");
     expect(en.loadingStation).toBe("Loading station status…");
+    expect(es.sheetTitle).toBe("Estaciones");
+    expect(en.sheetTitle).toBe("Stations");
+    expect(es.liveBadge).toBe("En vivo");
+    expect(en.liveBadge).toBe("Live");
+    expect(es.closeSheet).toBe("Cerrar");
+    expect(en.closeSheet).toBe("Close");
   });
 });

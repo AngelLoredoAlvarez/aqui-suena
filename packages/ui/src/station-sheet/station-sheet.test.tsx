@@ -60,6 +60,29 @@ describe("StationSheet", () => {
     expect(screen.getByText("Station 12")).toBeTruthy();
   });
 
+  it("renders Spanish title, live badge, and close", () => {
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <UiProvider>
+        <LocaleProvider locale="es" onChange={() => {}}>
+          {children}
+        </LocaleProvider>
+      </UiProvider>
+    );
+    render(
+      <StationSheet
+        open
+        stations={manyStations(3)}
+        onSelectStation={() => {}}
+        onClose={() => {}}
+      />,
+      { wrapper },
+    );
+
+    expect(screen.getByText("Estaciones")).toBeTruthy();
+    expect(screen.getAllByText("En vivo").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("button", { name: "Cerrar" })).toBeTruthy();
+  });
+
   it("notifies the chosen station and closes", () => {
     const onSelectStation = vi.fn();
     const onClose = vi.fn();
