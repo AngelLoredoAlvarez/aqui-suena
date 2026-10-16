@@ -53,7 +53,7 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 
 ## Progress
 - 2026-10-15: R3a idle GREEN (tapToPlay keys ES/EN, card idle branch + dot-null + pass-through, suite green, apps working). Next: R3b station sheet.
-- 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web verified). Next: commit + R3b-3 chips removal (explicit OK).
+- 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web by agent + headed native by user). Committed ecf00f9 (idle) + 6c50dd4 (overlay). Next: R3b-3 chips removal decision.
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
