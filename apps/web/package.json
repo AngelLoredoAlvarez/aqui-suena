@@ -14,14 +14,14 @@
     "@aqui-suena/navigation": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.2",
-    "next": "16.4.0",
+    "next": "16.4.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native-web": "0.21.4",
     "tamagui": "2.7.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.0",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^22.0.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "^19.2.0",
