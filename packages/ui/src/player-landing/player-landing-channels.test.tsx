@@ -56,63 +56,75 @@ describe("PlayerLanding with channels", () => {
     cleanup();
   });
 
-  it("list the three channels in Spanish once loaded", async () => {
+  it("lists the three channels in the sheet in Spanish once loaded", async () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
 
-    expect(screen.getByTestId("station-selector")).toBeTruthy();
-    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("Test Jingle")).toBeTruthy();
-    expect(screen.getByText("Test Night")).toBeTruthy();
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    const sheet = screen.getByTestId("station-sheet");
+    expect(within(sheet).getByText("Test Pop")).toBeTruthy();
+    expect(within(sheet).getByText("Test Jingle")).toBeTruthy();
+    expect(within(sheet).getByText("Test Night")).toBeTruthy();
   });
 
-  it("switches the stream when a channel is chosen", async () => {
+  it("switches the stream when a channel is chosen in the sheet", async () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
     expect(playSpy).toHaveBeenCalledWith("/test-streams/test-night.m4a");
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
   });
 
-  it("show the selected channel name as title", async () => {
+  it("shows the selected channel name as title", async () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Test Night").length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText("Test Night").length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it("keeps the selector visible while the new channel connects", async () => {
+  it("keeps the sheet opener while the new channel connects", async () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
 
     playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
-    expect(screen.getByTestId("station-selector")).toBeTruthy();
+    expect(screen.getByTestId("station-name")).toBeTruthy();
+    expect(screen.getByText("Test Pop")).toBeTruthy();
   });
 
-  it("disables the connecting channel while it loads", async () => {
+  it("marks the connecting channel with the active check in the sheet", async () => {
     renderLanding("es");
 
     await screen.findByText(/escuchando/);
 
     playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
-    expect(screen.getByText("Test Night").closest("button")?.getAttribute("aria-disabled")).toBe(
-      "true",
-    );
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    const sheet = screen.getByTestId("station-sheet");
+    const check = within(sheet).getByTestId("station-sheet-check");
+    expect(check.closest("button")?.getAttribute("aria-label")).toBe("Test Night");
   });
 
   it("keeps showing the previous channel name while the new one connects", async () => {
@@ -122,9 +134,10 @@ describe("PlayerLanding with channels", () => {
 
     playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
-    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Test Pop")).toBeTruthy();
   });
 
   it("does not pause the previous station when switching channels", async () => {
@@ -132,7 +145,8 @@ describe("PlayerLanding with channels", () => {
 
     await screen.findByText(/escuchando/);
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
     expect(pauseSpy).not.toHaveBeenCalled();
   });
@@ -144,9 +158,10 @@ describe("PlayerLanding with channels", () => {
 
     playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
 
-    fireEvent.click(screen.getByText("Test Night"));
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
 
-    expect(screen.getAllByText("Test Pop").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Test Pop")).toBeTruthy();
     expect(screen.getByText(/escuchando/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
   });

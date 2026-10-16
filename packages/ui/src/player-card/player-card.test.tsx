@@ -6,21 +6,13 @@ import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { StationRef } from "./player-card";
 import { PlayerCard } from "./player-card";
-
-const STATIONS: readonly StationRef[] = [
-  { id: "station-1", name: "Station One" },
-  { id: "station-2", name: "Station Two" },
-];
 
 function renderCard(props: {
   status: "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
   locale?: SupportedLocale;
   onResume?: () => void;
   onPause?: () => void;
-  stations?: readonly StationRef[];
-  onSelectStation?: (stationId: string) => void;
   onOpenSheet?: () => void;
 }) {
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -36,8 +28,6 @@ function renderCard(props: {
       listeners={42}
       onResume={props.onResume ?? (() => {})}
       onPause={props.onPause ?? (() => {})}
-      stations={props.stations}
-      onSelectStation={props.onSelectStation}
       onOpenSheet={props.onOpenSheet}
       status={props.status}
     />,
@@ -81,28 +71,18 @@ describe("PlayerCard", () => {
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
   });
 
-  it("selects a station from the selector when playing", () => {
-    const onSelectStation = vi.fn();
-    renderCard({ status: "playing", stations: STATIONS, onSelectStation });
-
-    fireEvent.click(screen.getByText("Station Two"));
-
-    expect(onSelectStation).toHaveBeenCalledTimes(1);
-    expect(onSelectStation).toHaveBeenCalledWith("station-2");
-  });
-
   it("hides the selector while blocked", () => {
-    renderCard({ status: "blocked", stations: STATIONS, onSelectStation: () => {} });
+    renderCard({ status: "blocked" });
 
     expect(screen.queryByText("Station Two")).toBeNull();
     expect(screen.getByRole("button", { name: "Tap to enable sound" })).toBeTruthy();
   });
 
-  it("keeps the selector as an escape hatch on error", () => {
-    renderCard({ status: "error", stations: STATIONS, onSelectStation: () => {} });
+  it("shows no inline selector on error, station name opens the sheet", () => {
+    renderCard({ status: "error" });
 
-    expect(screen.getByText("Station One")).toBeTruthy();
-    expect(screen.getByText("Station Two")).toBeTruthy();
+    expect(screen.queryByTestId("station-selector")).toBeNull();
+    expect(screen.getByTestId("station-name")).toBeTruthy();
   });
 
   it("shows a pause button while playing that calls onPause", () => {
@@ -125,15 +105,15 @@ describe("PlayerCard", () => {
     expect(screen.queryByText("Pause")).toBeNull();
   });
 
-  it("keeps the selector visible while paused", () => {
-    renderCard({ status: "paused", stations: STATIONS, onSelectStation: () => {} });
+  it("shows no inline selector while paused, station name opens the sheet", () => {
+    renderCard({ status: "paused" });
 
-    expect(screen.getByText("Station One")).toBeTruthy();
-    expect(screen.getByText("Station Two")).toBeTruthy();
+    expect(screen.queryByTestId("station-selector")).toBeNull();
+    expect(screen.getByTestId("station-name")).toBeTruthy();
   });
 
   it("hides the selector while loading", () => {
-    renderCard({ status: "loading", stations: STATIONS, onSelectStation: () => {} });
+    renderCard({ status: "loading" });
 
     expect(screen.queryByText("Station Two")).toBeNull();
   });
@@ -184,18 +164,8 @@ describe("PlayerCard", () => {
     expect(screen.queryByTestId("status-dot")).toBeNull();
   });
 
-  it("renders the station selector as chips", () => {
-    renderCard({ status: "playing", stations: STATIONS, onSelectStation: () => {} });
-
-    const selector = screen.getByTestId("station-selector");
-    expect(selector).toBeTruthy();
-    expect(selector.getAttribute("data-testid")).toBe("station-selector");
-    expect(screen.getByText("Station One")).toBeTruthy();
-    expect(screen.getByText("Station Two")).toBeTruthy();
-  });
-
   it("renders inside the bottom dock container", () => {
-    renderCard({ status: "playing", stations: STATIONS, onSelectStation: () => {} });
+    renderCard({ status: "playing" });
 
     expect(screen.getByTestId("player-dock")).toBeTruthy();
   });
@@ -209,12 +179,7 @@ describe("PlayerCard", () => {
 
   it("notifies when the station name is tapped", () => {
     const onOpenSheet = vi.fn();
-    renderCard({
-      status: "playing",
-      stations: STATIONS,
-      onSelectStation: () => {},
-      onOpenSheet,
-    });
+    renderCard({ status: "playing", onOpenSheet });
 
     fireEvent.click(screen.getByTestId("station-name"));
 

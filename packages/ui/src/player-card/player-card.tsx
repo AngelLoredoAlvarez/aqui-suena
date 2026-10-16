@@ -14,9 +14,6 @@ export type PlayerCardProps = {
   status: PlayerCardStatus;
   onResume: () => void;
   onPause: () => void;
-  stations?: readonly StationRef[];
-  onSelectStation?: (stationId: string) => void;
-  connectingStationId?: string;
   onOpenSheet?: () => void;
 };
 
@@ -45,9 +42,6 @@ export function PlayerCard({
   status,
   onResume,
   onPause,
-  stations,
-  onSelectStation,
-  connectingStationId,
   onOpenSheet,
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
@@ -176,30 +170,6 @@ export function PlayerCard({
         >
           {dictionary.tapToEnableSound}
         </Button>
-      ) : null}
-      {status !== "blocked" && status !== "loading" && stations && onSelectStation ? (
-        <XStack gap="$2" flexWrap="wrap" testID="station-selector">
-          {stations.map((station) => (
-            <Button
-              key={station.id}
-              type="button"
-              size="$2"
-              rounded={999}
-              bg="$brand3"
-              borderColor="$brand5"
-              borderWidth={1}
-              color="$brandCream"
-              onPress={() => onSelectStation(station.id)}
-              hoverStyle={{ bg: "$brand4" }}
-              pressStyle={{ bg: "$brand5" }}
-              focusStyle={{ bg: "$brand4" }}
-              disabled={station.id === connectingStationId}
-              minH={44}
-            >
-              {station.name}
-            </Button>
-          ))}
-        </XStack>
       ) : null}
     </YStack>
   );

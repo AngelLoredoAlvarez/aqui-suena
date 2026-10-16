@@ -6,7 +6,7 @@ import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
 import { StationSheet } from "@aqui-suena/ui/station-sheet";
 import { useEffect, useState } from "react";
-import { Button, H1, Paragraph, Theme, XStack, YStack } from "tamagui";
+import { H1, Paragraph, Theme, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
 
 type TestChannel = {
@@ -87,9 +87,6 @@ function StationPlayer({
             status="playing"
             onResume={resume}
             onPause={pause}
-            stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
-            onSelectStation={handleSelectStation}
-            connectingStationId={channel.id}
             onOpenSheet={() => setSheetOpen(true)}
           />
           {sheet}
@@ -98,31 +95,20 @@ function StationPlayer({
     }
 
     return (
-      <YStack gap="$2" items="center">
-        <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
-        <XStack gap="$2" flexWrap="wrap" testID="station-selector">
-          {TEST_CHANNELS.map((item) => (
-            <Button
-              key={item.id}
-              type="button"
-              size="$2"
-              rounded={999}
-              bg="$brand3"
-              borderColor="$brand5"
-              borderWidth={1}
-              color="$brandCream"
-              hoverStyle={{ bg: "$brand4" }}
-              pressStyle={{ bg: "$brand5" }}
-              focusStyle={{ bg: "$brand4" }}
-              disabled={item.id === channel.id}
-              onPress={() => handleSelectStation(item.id)}
-              minH={44}
-            >
-              {item.name}
-            </Button>
-          ))}
-        </XStack>
-      </YStack>
+      <>
+        <YStack gap="$2" items="center">
+          <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
+        </YStack>
+        <PlayerCard
+          stationName={committedChannel.name}
+          listeners={listeners}
+          status="loading"
+          onResume={resume}
+          onPause={pause}
+          onOpenSheet={() => setSheetOpen(true)}
+        />
+        {sheet}
+      </>
     );
   }
 
@@ -134,8 +120,6 @@ function StationPlayer({
         status={status}
         onResume={resume}
         onPause={pause}
-        stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
-        onSelectStation={handleSelectStation}
         onOpenSheet={() => setSheetOpen(true)}
       />
       {sheet}
