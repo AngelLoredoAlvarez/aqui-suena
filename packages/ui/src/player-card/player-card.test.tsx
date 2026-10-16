@@ -21,6 +21,7 @@ function renderCard(props: {
   onPause?: () => void;
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
+  onOpenSheet?: () => void;
 }) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <UiProvider>
@@ -37,6 +38,7 @@ function renderCard(props: {
       onPause={props.onPause ?? (() => {})}
       stations={props.stations}
       onSelectStation={props.onSelectStation}
+      onOpenSheet={props.onOpenSheet}
       status={props.status}
     />,
     { wrapper },
@@ -56,18 +58,18 @@ describe("PlayerCard", () => {
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
   });
 
-  it("shows exactly one resume tap and nothing else clickable when blocked", () => {
+  it("shows the blocked tap alongside the station name opener when blocked", () => {
     renderCard({ status: "blocked" });
 
-    expect(screen.getByText("Tap to enable sound")).toBeTruthy();
-    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Tap to enable sound" })).toBeTruthy();
+    expect(screen.getByTestId("station-name")).toBeTruthy();
   });
 
   it("calls onResume once when the resume tap is pressed", () => {
     const onResume = vi.fn();
     renderCard({ status: "blocked", onResume });
 
-    fireEvent.click(screen.getByRole("button"));
+    fireEvent.click(screen.getByRole("button", { name: "Tap to enable sound" }));
 
     expect(onResume).toHaveBeenCalledTimes(1);
   });
@@ -93,7 +95,7 @@ describe("PlayerCard", () => {
     renderCard({ status: "blocked", stations: STATIONS, onSelectStation: () => {} });
 
     expect(screen.queryByText("Station Two")).toBeNull();
-    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Tap to enable sound" })).toBeTruthy();
   });
 
   it("keeps the selector as an escape hatch on error", () => {
@@ -147,8 +149,8 @@ describe("PlayerCard", () => {
   it("renders the Spanish blocked tap under the es locale", () => {
     renderCard({ status: "blocked", locale: "es" });
 
-    expect(screen.getByText("Toca para activar el sonido")).toBeTruthy();
-    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Toca para activar el sonido" })).toBeTruthy();
+    expect(screen.getByTestId("station-name")).toBeTruthy();
   });
 
   it("renders the Spanish mirror message under the es locale", () => {
@@ -203,5 +205,19 @@ describe("PlayerCard", () => {
 
     expect(screen.getByRole("button", { name: "Tap to listen" })).toBeTruthy();
     expect(screen.queryByText("Loading")).toBeNull();
+  });
+
+  it("notifies when the station name is tapped", () => {
+    const onOpenSheet = vi.fn();
+    renderCard({
+      status: "playing",
+      stations: STATIONS,
+      onSelectStation: () => {},
+      onOpenSheet,
+    });
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    expect(onOpenSheet).toHaveBeenCalledTimes(1);
   });
 });

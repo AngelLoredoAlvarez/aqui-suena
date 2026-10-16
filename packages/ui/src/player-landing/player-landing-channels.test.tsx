@@ -4,7 +4,7 @@ import type { SupportedLocale } from "@aqui-suena/ui/i18n";
 import { LocaleProvider } from "@aqui-suena/ui/i18n";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayerLanding } from "./player-landing";
@@ -177,5 +177,28 @@ describe("PlayerLanding composition", () => {
     const content = screen.getByTestId("landing-content");
 
     expect(dock.compareDocumentPosition(content)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+});
+
+describe("PlayerLanding station sheet", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("opens the sheet from the station name and plays the chosen station", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    expect(screen.getByTestId("station-sheet")).toBeTruthy();
+
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Test Night"));
+
+    expect(playSpy).toHaveBeenCalledWith("/test-streams/test-night.m4a");
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
   });
 });

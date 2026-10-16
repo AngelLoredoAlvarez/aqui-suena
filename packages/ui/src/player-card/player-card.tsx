@@ -17,6 +17,7 @@ export type PlayerCardProps = {
   stations?: readonly StationRef[];
   onSelectStation?: (stationId: string) => void;
   connectingStationId?: string;
+  onOpenSheet?: () => void;
 };
 
 function statusDotColor(
@@ -47,6 +48,7 @@ export function PlayerCard({
   stations,
   onSelectStation,
   connectingStationId,
+  onOpenSheet,
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const dot = statusDotColor(status);
@@ -64,9 +66,16 @@ export function PlayerCard({
       borderWidth={1}
       rounded={24}
     >
-      <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
-        {stationName}
-      </Paragraph>
+      <Button
+        unstyled
+        testID="station-name"
+        onPress={() => onOpenSheet?.()}
+        aria-label={stationName}
+      >
+        <Paragraph fontSize="$8" fontWeight="700" color="$brandCream">
+          {stationName}
+        </Paragraph>
+      </Button>
       {status === "idle" ? (
         <Button
           type="button"

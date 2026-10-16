@@ -4,6 +4,7 @@ import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
+import { StationSheet } from "@aqui-suena/ui/station-sheet";
 import { useEffect, useState } from "react";
 import { Button, H1, Paragraph, Theme, XStack, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
@@ -42,6 +43,7 @@ function StationPlayer({
   onSelectStation: (stationId: string) => void;
 }) {
   const [committedChannel, setCommittedChannel] = useState(channel);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const driver = useExpoAudioDriver();
   const { status, activeUrl, pause, resume } = usePlayer({ urls: [channel.url], driver });
@@ -50,6 +52,19 @@ function StationPlayer({
   const handleSelectStation = (stationId: string): void => {
     onSelectStation(stationId);
   };
+
+  // One sheet instance shared by every loaded branch: a tap during
+  // switching opens it immediately instead of popping up later.
+  // Catalog liveness lands with real permissions; every dev channel plays today.
+  const sheet = (
+    <StationSheet
+      open={sheetOpen}
+      stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }))}
+      activeStationId={channel.id}
+      onSelectStation={handleSelectStation}
+      onClose={() => setSheetOpen(false)}
+    />
+  );
 
   useEffect(() => {
     if (status === "playing" && activeUrl === channel.url) {
@@ -65,16 +80,20 @@ function StationPlayer({
   if (status === "loading" || switching) {
     if (switching) {
       return (
-        <PlayerCard
-          stationName={committedChannel.name}
-          listeners={listeners}
-          status="playing"
-          onResume={resume}
-          onPause={pause}
-          stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
-          onSelectStation={handleSelectStation}
-          connectingStationId={channel.id}
-        />
+        <>
+          <PlayerCard
+            stationName={committedChannel.name}
+            listeners={listeners}
+            status="playing"
+            onResume={resume}
+            onPause={pause}
+            stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
+            onSelectStation={handleSelectStation}
+            connectingStationId={channel.id}
+            onOpenSheet={() => setSheetOpen(true)}
+          />
+          {sheet}
+        </>
       );
     }
 
@@ -108,15 +127,19 @@ function StationPlayer({
   }
 
   return (
-    <PlayerCard
-      stationName={stationName}
-      listeners={listeners}
-      status={status}
-      onResume={resume}
-      onPause={pause}
-      stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
-      onSelectStation={handleSelectStation}
-    />
+    <>
+      <PlayerCard
+        stationName={stationName}
+        listeners={listeners}
+        status={status}
+        onResume={resume}
+        onPause={pause}
+        stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name }))}
+        onSelectStation={handleSelectStation}
+        onOpenSheet={() => setSheetOpen(true)}
+      />
+      {sheet}
+    </>
   );
 }
 
@@ -158,6 +181,7 @@ export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa"
         flex={1}
         width="100%"
         maxW={390}
+        position="relative"
         mx={"auto"}
         items="center"
         justify="center"

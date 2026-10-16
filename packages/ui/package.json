@@ -11,6 +11,7 @@
     "./drivers": "./src/drivers/index.ts",
     "./i18n": "./src/i18n/index.ts",
     "./player-card": "./src/player-card/index.ts",
+    "./station-sheet": "./src/station-sheet/index.ts",
     "./shared": "./src/shared/index.ts"
   },
   "scripts": {

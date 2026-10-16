@@ -40,7 +40,7 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 ## Tasks
 - [x] R1 Noche/Brasa theme tokens + font wiring + token tests (route: dictated)
 - [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
-- [ ] R3 Missing states (idle branch + station sheet + state tests; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated)
+- [ ] R3 Missing states (idle branch + station sheet + state tests; sheet = BOTTOM OVERLAY per reference image Descargas/Selector de estaciones (en el lugar).png: drag handle, rows with dot + En vivo + accent check on active, backdrop dismiss; sheet scales to large catalogs via scroll + stable keys, virtualization deferred; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated)
 - [ ] R4 i18n additions ES/EN + parity tests (route: dictated)
 - [ ] R5 Full gates + headed web + native approval + close (route: dictated)
 
@@ -53,6 +53,7 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 
 ## Progress
 - 2026-10-15: R3a idle GREEN (tapToPlay keys ES/EN, card idle branch + dot-null + pass-through, suite green, apps working). Next: R3b station sheet.
+- 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web verified). Next: commit + R3b-3 chips removal (explicit OK).
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
