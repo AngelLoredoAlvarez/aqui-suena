@@ -66,16 +66,6 @@ export function StationSheet({
           <Paragraph fontSize="$6" fontWeight="700" color="$text">
             {dictionary.sheetTitle}
           </Paragraph>
-          <Button
-            type="button"
-            size="$2"
-            minH={44}
-            rounded={999}
-            onPress={onClose}
-            aria-label={dictionary.closeSheet}
-          >
-            {dictionary.closeSheet}
-          </Button>
         </XStack>
         <ScrollView width="100%" maxH={320}>
           <YStack gap="$2">

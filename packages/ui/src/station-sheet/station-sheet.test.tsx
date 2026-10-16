@@ -60,7 +60,7 @@ describe("StationSheet", () => {
     expect(screen.getByText("Station 12")).toBeTruthy();
   });
 
-  it("renders Spanish title, live badge, and close", () => {
+  it("renders Spanish title and live badge", () => {
     const wrapper = ({ children }: { children: ReactNode }) => (
       <UiProvider>
         <LocaleProvider locale="es" onChange={() => {}}>
@@ -80,7 +80,6 @@ describe("StationSheet", () => {
 
     expect(screen.getByText("Estaciones")).toBeTruthy();
     expect(screen.getAllByText("En vivo").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole("button", { name: "Cerrar" })).toBeTruthy();
   });
 
   it("notifies the chosen station and closes", () => {
@@ -93,18 +92,6 @@ describe("StationSheet", () => {
 
     expect(onSelectStation).toHaveBeenCalledTimes(1);
     expect(onSelectStation).toHaveBeenCalledWith("station-2");
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it("closes from the dismiss button without choosing", () => {
-    const onSelectStation = vi.fn();
-    const onClose = vi.fn();
-
-    renderSheet({ stations: manyStations(3), onSelectStation, onClose });
-
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-
-    expect(onSelectStation).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
