@@ -25,6 +25,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | Command | Effect |
 |---------|--------|
 | `pnpm dev:web` | Web dev server |
+| `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
 | `pnpm dev:mobile:android` | Mobile on Android emulator |
 | `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |

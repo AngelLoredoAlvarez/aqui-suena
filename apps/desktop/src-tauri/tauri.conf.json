@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Aqui Suena",
+  "version": "0.0.0",
+  "identifier": "com.seventeenlabs.aquisuena",
+  "build": {
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "pnpm dev:web",
+    "frontendDist": "../web/out"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Aqui Suena",
+        "width": 480,
+        "height": 860
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": []
+  }
+}

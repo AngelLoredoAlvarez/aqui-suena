@@ -1,0 +1,10 @@
+[package]
+name = "aqui-suena-desktop"
+version = "0.0.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = "2"
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-ico"] }
