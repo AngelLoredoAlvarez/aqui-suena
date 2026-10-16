@@ -6,7 +6,7 @@ import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
 import { StationSheet } from "@aqui-suena/ui/station-sheet";
 import { useEffect, useState } from "react";
-import { H1, Paragraph, Theme, YStack } from "tamagui";
+import { H1, isWeb, Paragraph, Theme, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
 
 type TestChannel = {
@@ -80,7 +80,8 @@ function StationPlayer({
   if (status === "loading" || switching) {
     if (switching) {
       return (
-        <>
+        <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+          {sheet}
           <PlayerCard
             stationName={committedChannel.name}
             listeners={listeners}
@@ -89,8 +90,7 @@ function StationPlayer({
             onPause={pause}
             onOpenSheet={() => setSheetOpen(true)}
           />
-          {sheet}
-        </>
+        </YStack>
       );
     }
 
@@ -99,21 +99,24 @@ function StationPlayer({
         <YStack gap="$2" items="center">
           <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         </YStack>
-        <PlayerCard
-          stationName={committedChannel.name}
-          listeners={listeners}
-          status="loading"
-          onResume={resume}
-          onPause={pause}
-          onOpenSheet={() => setSheetOpen(true)}
-        />
-        {sheet}
+        <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+          {sheet}
+          <PlayerCard
+            stationName={committedChannel.name}
+            listeners={listeners}
+            status="loading"
+            onResume={resume}
+            onPause={pause}
+            onOpenSheet={() => setSheetOpen(true)}
+          />
+        </YStack>
       </>
     );
   }
 
   return (
-    <>
+    <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+      {sheet}
       <PlayerCard
         stationName={stationName}
         listeners={listeners}
@@ -122,8 +125,7 @@ function StationPlayer({
         onPause={pause}
         onOpenSheet={() => setSheetOpen(true)}
       />
-      {sheet}
-    </>
+    </YStack>
   );
 }
 
@@ -165,6 +167,7 @@ export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa"
         flex={1}
         width="100%"
         maxW={390}
+        minH={isWeb ? "100vh" : undefined}
         position="relative"
         mx={"auto"}
         items="center"

@@ -49,11 +49,10 @@ export function StationSheet({
       />
       <YStack
         testID="station-sheet"
-        position="absolute"
-        l={0}
-        r={0}
-        b={0}
-        z={2}
+        position="relative"
+        z={1}
+        width="100%"
+        mb="$2"
         gap="$3"
         p="$4"
         bg="$surface"
