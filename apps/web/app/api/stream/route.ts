@@ -1,4 +1,4 @@
-import { fetchProxiedStream } from "@aqui-suena/api";
+import { fetchProxiedStream } from "@aqui-suena/api/client";
 
 // Thin Next.js adapter over the shared proxy core: the browser calls our
 // same-origin endpoint, the server fetches the mirror without hotlink
