@@ -40,6 +40,7 @@ Map the user's intent to the matching skill automatically:
 - When a fix, correction, or follow-up seems obvious, do NOT apply it. Finish the answer, then ask whether the user wants it done, and wait for confirmation.
 - This rule takes precedence over any workflow default (including automatic tracking or follow-up commits): when in doubt, ask and remain read-only.
 - Pushing to any remote is forbidden without the user's explicit instruction for that specific push. Commits, merges, and branch operations never imply push authorization; a push happens only when the user plainly says to push.
+- Never work directly on main. All code changes happen on feature branches (`feature/<name>`); main only receives merges. Never edit, commit, or run mutating commands with main checked out — a stray push would ship unreviewed work.
 - UI deviations from approved designs require explicit user approval before implementation. When a UI problem (accessibility or otherwise) calls for adding, removing, or changing any visible element beyond the approved design or reference image, propose it first with the problem, the suggested change, and the exact design delta, then STOP and wait. Never implement unapproved UI ideas solo, even when technically justified.
 
 ## Session Close (MANDATORY)
