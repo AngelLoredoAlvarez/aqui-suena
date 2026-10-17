@@ -17,10 +17,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "dependency-cruiser": "^18.6.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.6.0",
-    "turbo": "^2.11.9",
+    "dependency-cruiser": "18.6.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "turbo": "2.11.9",
     "typescript": "5.9.3"
   },
   "lint-staged": {
