@@ -104,6 +104,24 @@ describe("StationSheet", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("closes on Escape without choosing", () => {
+    const onClose = vi.fn();
+    renderSheet({ stations: manyStations(3), onClose });
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores non-Escape keys", () => {
+    const onClose = vi.fn();
+    renderSheet({ stations: manyStations(3), onClose });
+
+    fireEvent.keyDown(document, { key: "Enter" });
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it("marks the active station with a check", () => {
     renderSheet({ stations: manyStations(3), activeStationId: "station-1" });
 

@@ -4,7 +4,11 @@ import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
-import { StationSheet } from "@aqui-suena/ui/station-sheet";
+import {
+  StationSheetBackdrop,
+  StationSheetCard,
+  useEscapeToClose,
+} from "@aqui-suena/ui/station-sheet";
 import { useEffect, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
@@ -53,16 +57,27 @@ function StationPlayer({
     onSelectStation(stationId);
   };
 
-  // One sheet instance shared by every loaded branch: a tap during
-  // switching opens it immediately instead of popping up later.
+  // Backdrop lives at column level for full coverage while the card stays
+  // in the bottom-anchored wrapper above the dock; one backdrop+card pair
+  // shared by every loaded branch so a tap during switching opens
+  // immediately instead of popping up later.
   // Catalog liveness lands with real permissions; every dev channel plays today.
-  const sheet = (
-    <StationSheet
-      open={sheetOpen}
-      stations={TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }))}
+  const stations = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));
+
+  const closeSheet = (): void => {
+    setSheetOpen(false);
+  };
+
+  useEscapeToClose(sheetOpen, closeSheet);
+
+  const sheetBackdrop = <StationSheetBackdrop onClose={closeSheet} />;
+
+  const sheetCard = (
+    <StationSheetCard
+      stations={stations}
       activeStationId={channel.id}
       onSelectStation={handleSelectStation}
-      onClose={() => setSheetOpen(false)}
+      onClose={closeSheet}
     />
   );
 
@@ -80,17 +95,20 @@ function StationPlayer({
   if (status === "loading" || switching) {
     if (switching) {
       return (
-        <YStack position="absolute" b="$5" l={0} r={0} z={2}>
-          {sheet}
-          <PlayerCard
-            stationName={committedChannel.name}
-            listeners={listeners}
-            status="playing"
-            onResume={resume}
-            onPause={pause}
-            onOpenSheet={() => setSheetOpen(true)}
-          />
-        </YStack>
+        <>
+          {sheetOpen ? sheetBackdrop : null}
+          <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+            {sheetOpen ? sheetCard : null}
+            <PlayerCard
+              stationName={committedChannel.name}
+              listeners={listeners}
+              status="playing"
+              onResume={resume}
+              onPause={pause}
+              onOpenSheet={() => setSheetOpen(true)}
+            />
+          </YStack>
+        </>
       );
     }
 
@@ -99,8 +117,9 @@ function StationPlayer({
         <YStack gap="$2" items="center">
           <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         </YStack>
+        {sheetOpen ? sheetBackdrop : null}
         <YStack position="absolute" b="$5" l={0} r={0} z={2}>
-          {sheet}
+          {sheetOpen ? sheetCard : null}
           <PlayerCard
             stationName={committedChannel.name}
             listeners={listeners}
@@ -115,17 +134,20 @@ function StationPlayer({
   }
 
   return (
-    <YStack position="absolute" b="$5" l={0} r={0} z={2}>
-      {sheet}
-      <PlayerCard
-        stationName={stationName}
-        listeners={listeners}
-        status={status}
-        onResume={resume}
-        onPause={pause}
-        onOpenSheet={() => setSheetOpen(true)}
-      />
-    </YStack>
+    <>
+      {sheetOpen ? sheetBackdrop : null}
+      <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+        {sheetOpen ? sheetCard : null}
+        <PlayerCard
+          stationName={stationName}
+          listeners={listeners}
+          status={status}
+          onResume={resume}
+          onPause={pause}
+          onOpenSheet={() => setSheetOpen(true)}
+        />
+      </YStack>
+    </>
   );
 }
 
