@@ -1,11 +1,11 @@
 # Agent Skills (OpenCode)
 
-This project uses skills installed under `.opencode/skills/` (or a compatible path).
+This project uses the globally installed OpenCode skills. The local index is `.atl/skill-registry.md` (generated locally, gitignored).
 
 ## Core Rules
 
 - If a task matches a skill, invoke it with the `skill` tool before acting.
-- Skills are located in `.opencode/skills/<skill-name>/SKILL.md`.
+- Skills are installed globally, not inside the repo. Resolve one by name with the `skill` tool; when `.atl/skill-registry.md` exists, use it to find the matching skill path.
 - Follow the skill workflow strictly; do not partially apply it.
 - Never skip required steps such as spec, plan, or test when a skill demands them.
 
