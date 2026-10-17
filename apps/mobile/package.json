@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@aqui-suena/config": "workspace:*",
-    "@aqui-suena/navigation": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
