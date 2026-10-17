@@ -24,7 +24,7 @@ Out of scope: third language, ICU plural rules beyond a count function, URL-base
 - Branch `feat/i18n-locales`; local commits only, no push without explicit order.
 
 ## Authorized scope
-User: "va, hagamoslo a tu manera" after choosing Auto + switch manual. Covers implementation. No push, no PR.
+User: confirmed the Auto pace with manual phase switches after the workflow choice. Covers implementation. No push, no PR.
 
 ## TDD mode
 - Mode: ON. Runner: vitest via turbo. RED first per slice.

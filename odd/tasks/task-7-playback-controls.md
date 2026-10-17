@@ -24,7 +24,7 @@ Out of scope: lock-screen metadata, track-player evaluation, E2E, push/PR/merge.
 - Branch `feat/task-7-playback-controls`; local commits only, no push without explicit order.
 
 ## Authorized scope
-User: "inicia con la task 7". Covers implementation. No push, no PR.
+User: authorized the Task 7 start. Covers implementation. No push, no PR.
 
 ## TDD mode
 - Mode: ON. Runner: vitest via turbo. RED first per slice.

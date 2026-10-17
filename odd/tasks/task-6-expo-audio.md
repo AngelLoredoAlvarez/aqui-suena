@@ -24,7 +24,7 @@ Out of scope: background modes / silent-switch handling (Task 7), coverage thres
 - Branch `feat/task-6-expo-audio`; local commits only, no push without explicit order.
 
 ## Authorized scope
-User: "cierra la task 5, despues inicia con la task 6 e implementa el expo-audio". Covers research + implementation. No push, no PR.
+User: requested the Task 5 close and the Task 6 start with the expo-audio implementation. Covers research + implementation. No push, no PR.
 
 ## TDD mode
 - Mode: ON. Runner: vitest via turbo. RED first for bridge + mapper (mocked module), then GREEN.

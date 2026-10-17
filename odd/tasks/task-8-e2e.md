@@ -24,7 +24,7 @@ Out of scope: audible assertion automation (human ear), native e2e (Detox/Maestr
 - Branch `feat/task-8-e2e`; local commits only, no push without explicit order.
 
 ## Authorized scope
-User: "si papi, dele" after explicit Task 8 start question. Covers infra + specs + coverage. No push, no PR. User runs headed + listens and reports.
+User: approved the Task 8 start after an explicit kickoff question. Covers infra + specs + coverage. No push, no PR. User runs headed + listens and reports.
 
 ## TDD mode
 - Mode: ON. Runner: vitest via turbo (unit) + playwright (e2e). RED first per slice.

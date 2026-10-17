@@ -26,7 +26,7 @@ Out of scope: HTTP tRPC handler, live Postgres + verified `db:push`, native remo
 - Stale-sweep result (2026-10-08): no `/player` route in code (good); `SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `tasks/plan.md`, `tasks/todo.md`.
 
 ## Authorized scope
-User: "arranca la task 3 ajustada al landing... y corrigelo, hazlo en una nueva rama" + mock-first scope answer. Covers branch work listed in Scope. No push, no PR.
+User: authorized Task 3 adjusted to the landing, with corrections on a new branch, plus the mock-first scope answer. Covers branch work listed in Scope. No push, no PR.
 
 ## TDD mode
 - Mode: ON. Source: explicit user request + test-driven-development skill. Runner: `vitest run` via turbo.

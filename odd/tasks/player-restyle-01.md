@@ -1,7 +1,7 @@
 # Feature: player-restyle-01 — Restyle player + landing vs design section 01
 
 ## Objective
-Restyle the shared player landing to design section 01 (papá Claude package): Noche dark theme by default with bottom rounded player dock, Brasa light variant with player on top, Plus Jakarta Sans, all 9 player states, station sheet, 44px touch targets. Behavior stays green throughout.
+Restyle the shared player landing to design section 01: Noche dark theme by default with bottom rounded player dock, Brasa light variant with player on top, Plus Jakarta Sans, all 9 player states, station sheet, 44px touch targets. Behavior stays green throughout.
 
 ## Problem
 Current landing renders the proven playback core in a centered brand-plum card (`$brand2`, maxW 480) with inline station chips: no Noche/Brasa theme pair, no dock, system font, chips under 44px, and 4 of 9 design states missing (empty, ad countdown, station sheet, idle). Mapping evidence: explore handoff 2026-10-15.
@@ -29,7 +29,7 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 - Dictation: every file edit names the repo-relative file path plus exact line numbers plus a nearby code anchor. Test edits also ship the exact pnpm watch command for those tests.
 
 ## Authorized scope
-User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
+User: approved the console mock and authorized the slice (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
 
 ## TDD mode
 - Mode: ON (source: standing session agreement). Runner: vitest via `turbo run test -- --run`. RED observed before GREEN per slice.
@@ -45,7 +45,7 @@ User: "vamo a darle pues" after approving the console mock (2026-10-15). Covers 
 - [ ] R5 Full gates + headed web + native approval + close (route: dictated)
 
 ## Acceptance criteria
-- Landing matches design-01 Main (dark dock abajo) and Owner (light player arriba) compositions; all 9 states reachable and bilingual.
+- Landing matches design-01 Main (dark dock at the bottom) and Owner (light player on top) compositions; all 9 states reachable and bilingual.
 - `turbo run test -- --run` 8/8, typecheck + biome clean; user approves headed look on web + native.
 
 ## Applicable checks

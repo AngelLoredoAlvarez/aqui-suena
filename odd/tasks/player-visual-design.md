@@ -23,7 +23,7 @@ Out of scope: artwork/cover images, animations, dark/light toggle, ads carousel 
 - Branch `feat/player-visual-design`; local commits only, no push without explicit order.
 
 ## Authorized scope
-User: "quiero que ya este un componente visual y que sea funcional". Covers design + implementation. No push, no PR.
+User: requested a functional visual component for the landing. Covers design + implementation. No push, no PR.
 
 ## TDD mode
 - Mode: ON. Runner: vitest via turbo. RED first per slice.

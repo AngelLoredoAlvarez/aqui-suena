@@ -25,7 +25,7 @@ Out of scope: Playwright E2E, MSW, coverage thresholds, CI workflow, push/PR/mer
 - Generated files (lockfile, .next) are excluded from the authored-line count.
 
 ## Authorized scope
-User: "si hazlo" on the previous turn's proposal. Covers the files listed in Scope. Does not authorize push or PR.
+User: approved the previous turn's proposal. Covers the files listed in Scope. Does not authorize push or PR.
 
 ## TDD mode
 - Mode: ON. Source: explicit user request + test-driven-development skill. Runner: `vitest run` (to be installed), via `pnpm --filter @aqui-suena/ui test` and `turbo run test -- --run`.

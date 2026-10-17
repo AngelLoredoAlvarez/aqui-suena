@@ -24,7 +24,7 @@ Out of scope: Task 5+ UI, E2E, push/PR/merge.
 - Pure logic first: no audio elements, no DOM, no platform APIs in slices (a) and (b).
 
 ## Authorized scope
-User: "si me parece bien" on the ping-pong model + "qué comandos debo correr" (handoff request). Covers scaffold + RED tests by agent, implementation by user. No push, no PR.
+User: approved the ping-pong model and requested the exact commands to run (handoff request). Covers scaffold + RED tests by agent, implementation by user. No push, no PR.
 
 ## TDD mode
 - Mode: ON (strict). Source: explicit user request + test-driven-development skill. Runner: `vitest run` via turbo; watch mode via `vitest` (no `run`) for the tight loop.
