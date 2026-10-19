@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AudioDriver } from "./use-player";
+import type { AudioDriver, AudioDriverEvent, NowPlayingMetadata } from "./use-player";
 import { usePlayer } from "./use-player";
 
 const URL_A = "https://ice1.example/live";
@@ -11,6 +11,8 @@ const URL_B = "https://ice2.example/live";
 function createFakeDriver(failures: Record<string, unknown> = {}) {
   const played: string[] = [];
   const paused: number[] = [];
+  const published: Array<NowPlayingMetadata | null> = [];
+  const listeners = new Set<(event: AudioDriverEvent) => void>();
   const driver: AudioDriver = {
     play: async (url: string) => {
       played.push(url);
@@ -22,8 +24,22 @@ function createFakeDriver(failures: Record<string, unknown> = {}) {
     pause: () => {
       paused.push(1);
     },
+    setNowPlaying: (metadata) => {
+      published.push(metadata);
+    },
+    subscribePlayback: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
   };
-  return { driver, played, paused };
+  const emitPlayback = (playing: boolean): void => {
+    for (const listener of listeners) {
+      listener({ playing });
+    }
+  };
+  return { driver, played, paused, published, emitPlayback };
 }
 
 describe("usePlayer", () => {
@@ -319,5 +335,75 @@ describe("usePlayer", () => {
     });
     await waitFor(() => expect(result.current.status).toBe("playing"));
     expect(result.current.activeUrl).toBe(URL_B);
+  });
+});
+
+describe("usePlayer now playing", () => {
+  const NOW_PLAYING = { title: "Test Pop", artist: "Aqui Suena" };
+
+  it("publishes the station metadata once playback starts", async () => {
+    const { driver, published } = createFakeDriver();
+
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A], driver, nowPlaying: NOW_PLAYING }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+    expect(published.at(-1)).toEqual(NOW_PLAYING);
+  });
+
+  it("clears the system metadata when every mirror fails", async () => {
+    const { driver, published } = createFakeDriver({
+      [URL_A]: { code: 4 },
+      [URL_B]: { code: 4 },
+    });
+
+    const { result } = renderHook(() =>
+      usePlayer({ urls: [URL_A, URL_B], driver, nowPlaying: NOW_PLAYING }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(published.at(-1)).toBeNull();
+  });
+
+  it("reflects a system pause in the app status and back", async () => {
+    const { driver, emitPlayback } = createFakeDriver();
+
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("playing"));
+
+    await act(async () => {
+      emitPlayback(false);
+    });
+    expect(result.current.status).toBe("paused");
+
+    await act(async () => {
+      emitPlayback(true);
+    });
+    expect(result.current.status).toBe("playing");
+  });
+
+  it("ignores system events while a station switch is loading", async () => {
+    const { driver, emitPlayback } = createFakeDriver();
+    let settle!: () => void;
+    driver.play = () =>
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      });
+
+    const { result } = renderHook(() => usePlayer({ urls: [URL_A], driver }));
+
+    await waitFor(() => expect(result.current.status).toBe("loading"));
+
+    await act(async () => {
+      emitPlayback(false);
+    });
+    expect(result.current.status).toBe("loading");
+
+    await act(async () => {
+      settle();
+    });
+    await waitFor(() => expect(result.current.status).toBe("playing"));
   });
 });

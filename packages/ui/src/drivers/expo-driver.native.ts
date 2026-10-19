@@ -1,6 +1,11 @@
-import type { AudioDriver, MediaFailure } from "@aqui-suena/player";
+import type {
+  AudioDriver,
+  AudioDriverEvent,
+  MediaFailure,
+  NowPlayingMetadata,
+} from "@aqui-suena/player";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 type NativePlayer = ReturnType<typeof useAudioPlayer>;
 
@@ -11,6 +16,14 @@ type PendingPlay = {
   target: NativePlayer;
   previous: NativePlayer | null;
 };
+
+const LOCK_SCREEN_OPTIONS = {
+  isLiveStream: true,
+  showSeekForward: false,
+  showSeekBackward: false,
+  showNextTrack: false,
+  showPreviousTrack: false,
+} as const;
 
 // Map expo-audio status errors onto the player failure contract. Blocked
 // autoplay must surface as NotAllowedError so usePlayer shows resume;
@@ -28,6 +41,18 @@ export function toMediaFailure(audioError: string | null): MediaFailure {
   return {};
 }
 
+function metadataKey(metadata: NowPlayingMetadata): string {
+  return `${metadata.title}\u0000${metadata.artist ?? ""}`;
+}
+
+function activateLockScreen(player: NativePlayer, metadata: NowPlayingMetadata): void {
+  player.setActiveForLockScreen(
+    true,
+    { title: metadata.title, artist: metadata.artist },
+    LOCK_SCREEN_OPTIONS,
+  );
+}
+
 // Shared expo-audio driver for web and native: expo-audio play() is sync
 // and failures arrive later as status events, so this bridges one status
 // transition per play() call into the promise-based AudioDriver contract.
@@ -42,6 +67,33 @@ export function useExpoAudioDriver(): AudioDriver {
   const latestRef = useRef<NativePlayer | null>(null);
   const pendingsRef = useRef(new Map<NativePlayer, PendingPlay>());
   const playTokenRef = useRef(0);
+  const listenersRef = useRef(new Set<(event: AudioDriverEvent) => void>());
+  const lastPlayingRef = useRef(false);
+  const activeRef = useRef<{ player: NativePlayer; key: string } | null>(null);
+
+  const publish = useCallback((player: NativePlayer, metadata: NowPlayingMetadata): void => {
+    const key = metadataKey(metadata);
+    const active = activeRef.current;
+    if (active?.player === player) {
+      if (active.key !== key) {
+        player.updateLockScreenMetadata({ title: metadata.title, artist: metadata.artist });
+        activeRef.current = { player, key };
+      }
+      return;
+    }
+    activateLockScreen(player, metadata);
+    activeRef.current = { player, key };
+  }, []);
+
+  const release = useCallback((player: NativePlayer | null): void => {
+    if (!player) {
+      return;
+    }
+    player.clearLockScreenControls();
+    if (activeRef.current?.player === player) {
+      activeRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const statusByPlayer = new Map<NativePlayer, { playing: boolean; error: string | null }>([
@@ -59,14 +111,18 @@ export function useExpoAudioDriver(): AudioDriver {
         continue;
       }
       if (playTokenRef.current === pending.token) {
+        if (pending.previous && pending.previous !== pending.target) {
+          release(pending.previous);
+        }
         pending.previous?.pause();
         currentRef.current = pending.target;
+        lastPlayingRef.current = true;
       } else {
         pending.target.pause();
       }
       pending.resolve();
     }
-  }, [firstStatus, secondStatus, first, second]);
+  }, [first, firstStatus, publish, release, second, secondStatus]);
 
   useEffect((): void => {
     void setAudioModeAsync({
@@ -75,6 +131,24 @@ export function useExpoAudioDriver(): AudioDriver {
       interruptionMode: "doNotMix",
     });
   }, []);
+
+  const firstPlaying = firstStatus.playing;
+  const secondPlaying = secondStatus.playing;
+
+  useEffect((): void => {
+    const current = currentRef.current;
+    if (!current) {
+      return;
+    }
+    const playing = current === first ? firstPlaying : secondPlaying;
+    if (playing === lastPlayingRef.current) {
+      return;
+    }
+    lastPlayingRef.current = playing;
+    for (const listener of listenersRef.current) {
+      listener({ playing });
+    }
+  }, [first, firstPlaying, second, secondPlaying]);
 
   return useMemo<AudioDriver>(
     () => ({
@@ -91,7 +165,24 @@ export function useExpoAudioDriver(): AudioDriver {
       pause: () => {
         currentRef.current?.pause();
       },
+      setNowPlaying: (metadata: NowPlayingMetadata | null) => {
+        const current = currentRef.current;
+        if (!current) {
+          return;
+        }
+        if (!metadata) {
+          release(current);
+          return;
+        }
+        publish(current, metadata);
+      },
+      subscribePlayback: (listener: (event: AudioDriverEvent) => void) => {
+        listenersRef.current.add(listener);
+        return () => {
+          listenersRef.current.delete(listener);
+        };
+      },
     }),
-    [first, second],
+    [first, publish, release, second],
   );
 }

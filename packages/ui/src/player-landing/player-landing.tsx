@@ -60,8 +60,12 @@ function StationPlayer({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const driver = useExpoAudioDriver();
-  const { status, activeUrl, pause, resume } = usePlayer({ urls: channel.urls, driver });
   const { dictionary } = useLocale();
+  const { status, activeUrl, pause, resume } = usePlayer({
+    urls: channel.urls,
+    driver,
+    nowPlaying: { title: channel.name, artist: dictionary.appTitle },
+  });
 
   const handleSelectStation = (stationId: string): void => {
     onSelectStation(stationId);

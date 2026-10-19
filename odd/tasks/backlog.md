@@ -5,15 +5,13 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 ## Player / playback
 
-- [ ] Native Now Playing: while a station plays, show track/station metadata
+- [x] Native Now Playing: while a station plays, show track/station metadata
       with controls in the system UI (notification shade + lock screen),
-      like YouTube Music / browsers do. Native capabilities work; needs a
-      player that publishes metadata (evaluate expo-audio vs dev-client
-      options when the slice is scheduled). Requested 2026-10-15.
-      Updated 2026-10-19: `expo-audio` 58 (now installed) ships
-      lock-screen controls with playlists, so the metadata surface is
-      already in the dependency we use; the slice is wiring, not a driver
-      swap.
+      like YouTube Music / browsers do. Requested 2026-10-15.
+      Done 2026-10-19: `expo-audio` lock-screen session wired through the
+      driver and `usePlayer`; see `odd/tasks/native-now-playing.md`.
+      Follow-up: the Android notification still shows an inert previous
+      button and a progress line for the finite dev assets.
 
 ## Restyle follow-ups (from player-restyle-01)
 

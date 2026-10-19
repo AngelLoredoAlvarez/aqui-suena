@@ -8,6 +8,9 @@ type FakeNativePlayer = {
   replace: (url: string) => void;
   play: () => void;
   pause: () => void;
+  setActiveForLockScreen: ReturnType<typeof vi.fn>;
+  updateLockScreenMetadata: ReturnType<typeof vi.fn>;
+  clearLockScreenControls: ReturnType<typeof vi.fn>;
 };
 
 function playerAt(index: number): FakeNativePlayer {
@@ -36,7 +39,14 @@ vi.mock("expo-audio", () => ({
     if (existing) {
       return existing;
     }
-    const player: FakeNativePlayer = { replace: vi.fn(), play: vi.fn(), pause: vi.fn() };
+    const player: FakeNativePlayer = {
+      replace: vi.fn(),
+      play: vi.fn(),
+      pause: vi.fn(),
+      setActiveForLockScreen: vi.fn(),
+      updateLockScreenMetadata: vi.fn(),
+      clearLockScreenControls: vi.fn(),
+    };
     mocks.players.push(player);
     mocks.statuses.set(player, { playing: false, error: null });
     return player;
@@ -185,5 +195,117 @@ describe("useExpoAudioDriver", () => {
 
     expect(secondSettled).toBe(true);
     expect(first.pause).toHaveBeenCalledTimes(1);
+  });
+
+  it("activates the lock screen on the player that reports playing", async () => {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+    const metadata = { title: "Test Pop", artist: "Aqui Suena" };
+
+    const pending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await pending;
+
+    result.current.setNowPlaying?.(metadata);
+
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledWith(true, metadata, {
+      isLiveStream: true,
+      showSeekForward: false,
+      showSeekBackward: false,
+      showNextTrack: false,
+      showPreviousTrack: false,
+    });
+  });
+
+  it("moves the lock screen to the next player and clears the previous one", async () => {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+
+    const firstPending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await firstPending;
+    result.current.setNowPlaying?.({ title: "Test Pop" });
+
+    const secondPending = result.current.play("https://ice2.example/live");
+    await act(async () => {
+      setPlayerStatus(1, { playing: true, error: null });
+      rerender();
+    });
+    await secondPending;
+    result.current.setNowPlaying?.({ title: "Test Night" });
+
+    expect(playerAt(0).clearLockScreenControls).toHaveBeenCalledTimes(1);
+    expect(playerAt(1).setActiveForLockScreen).toHaveBeenCalledWith(
+      true,
+      { title: "Test Night" },
+      expect.objectContaining({ isLiveStream: true }),
+    );
+  });
+
+  it("updates metadata instead of rebuilding the session on the same player", async () => {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+    const metadata = { title: "Test Pop", artist: "Aqui Suena" };
+
+    const pending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await pending;
+
+    result.current.setNowPlaying?.(metadata);
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledTimes(1);
+
+    result.current.setNowPlaying?.(metadata);
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledTimes(1);
+
+    result.current.setNowPlaying?.({ title: "Test Night", artist: "Aqui Suena" });
+    expect(playerAt(0).updateLockScreenMetadata).toHaveBeenCalledWith({
+      title: "Test Night",
+      artist: "Aqui Suena",
+    });
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledTimes(1);
+  });
+
+  it("emits playback events only for the committed player", async () => {
+    const events: Array<{ playing: boolean }> = [];
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+    result.current.subscribePlayback?.((event) => {
+      events.push(event);
+    });
+
+    const pending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await pending;
+
+    expect(events).toEqual([]);
+
+    await act(async () => {
+      setPlayerStatus(0, { playing: false, error: null });
+      rerender();
+    });
+
+    expect(events).toEqual([{ playing: false }]);
+
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+
+    expect(events.at(-1)).toEqual({ playing: true });
+
+    await act(async () => {
+      setPlayerStatus(1, { playing: true, error: null });
+      rerender();
+    });
+
+    expect(events).toHaveLength(2);
   });
 });

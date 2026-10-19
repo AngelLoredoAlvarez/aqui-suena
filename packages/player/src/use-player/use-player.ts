@@ -3,9 +3,21 @@ import { pickFallbackUrl } from "@aqui-suena/player/fallback";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "blocked" | "error";
+
+export type NowPlayingMetadata = {
+  readonly title: string;
+  readonly artist?: string;
+};
+
+export type AudioDriverEvent = {
+  readonly playing: boolean;
+};
+
 export type AudioDriver = {
   play: (url: string) => Promise<void>;
   pause: () => void;
+  setNowPlaying?: (metadata: NowPlayingMetadata | null) => void;
+  subscribePlayback?: (listener: (event: AudioDriverEvent) => void) => () => void;
 };
 
 type UsePlayerState = {
@@ -17,6 +29,7 @@ export type UsePlayerProps = {
   urls: string[];
   autoplay?: boolean;
   driver: AudioDriver;
+  nowPlaying?: NowPlayingMetadata;
 };
 
 export type UsePlayerReturn = {
@@ -27,7 +40,12 @@ export type UsePlayerReturn = {
   resume: () => void;
 };
 
-export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): UsePlayerReturn {
+export function usePlayer({
+  urls,
+  autoplay = true,
+  driver,
+  nowPlaying,
+}: UsePlayerProps): UsePlayerReturn {
   const [player, setPlayerState] = useState<UsePlayerState>({
     status: "idle",
     activeUrl: null,
@@ -38,10 +56,12 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
   const lastUrlRef = useRef<string | null>(null);
   const runRef = useRef<number>(0);
   const statusRef = useRef<PlayerStatus>("idle");
+  const nowPlayingRef = useRef<NowPlayingMetadata | undefined>(nowPlaying);
 
   useEffect(() => {
     urlsRef.current = urls;
     driverRef.current = driver;
+    nowPlayingRef.current = nowPlaying;
   });
 
   const updatePlayerState = useCallback((playerStatus: PlayerStatus, url?: string | null): void => {
@@ -97,6 +117,7 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
 
         updatePlayerState("playing", url);
         lastUrlRef.current = url;
+        driverRef.current.setNowPlaying?.(nowPlayingRef.current ?? null);
 
         return;
       }
@@ -104,6 +125,7 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
       if (isCurrent()) {
         updatePlayerState("error", null);
         lastUrlRef.current = null;
+        driverRef.current.setNowPlaying?.(null);
       }
       // NOTE: attempt() never rejects: every await lives inside the
       // try/catch above and the mapper is total, so `void attempt(...)`
@@ -130,6 +152,33 @@ export function usePlayer({ urls, autoplay = true, driver }: UsePlayerProps): Us
   const play = useCallback(() => {
     void attempt(urlsRef.current[0]);
   }, [attempt]);
+
+  useEffect(() => {
+    const subscribe = driver.subscribePlayback;
+    if (!subscribe) {
+      return;
+    }
+    return subscribe(({ playing }) => {
+      if (playing && statusRef.current === "paused") {
+        updatePlayerState("playing");
+      } else if (!playing && statusRef.current === "playing") {
+        updatePlayerState("paused");
+      }
+    });
+  }, [driver, updatePlayerState]);
+
+  const nowPlayingTitle = nowPlaying?.title;
+  const nowPlayingArtist = nowPlaying?.artist;
+
+  useEffect(() => {
+    if (!nowPlayingTitle) {
+      return;
+    }
+    if (statusRef.current !== "playing" && statusRef.current !== "paused") {
+      return;
+    }
+    driverRef.current.setNowPlaying?.({ title: nowPlayingTitle, artist: nowPlayingArtist });
+  }, [nowPlayingTitle, nowPlayingArtist]);
 
   const pause = useCallback(() => {
     if (statusRef.current !== "playing" && statusRef.current !== "loading") {
