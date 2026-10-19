@@ -1,6 +1,32 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Single-version policy for every package that owns runtime state (React
+# contexts, native modules). pnpm materializes one directory per resolved peer
+# set, and @types/react is a peer too: two type versions fork the runtime module
+# into two module registries, so a provider and its consumer stop sharing a
+# context. Keep this catalog aligned with scripts/check-singletons.mjs.
+catalog:
+  "@tanstack/react-query": 5.104.4
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
+  react: 19.2.3
+  react-dom: 19.2.3
+  react-native: 0.86.3
+  react-native-gesture-handler: 2.32.0
+  react-native-reanimated: 4.5.1
+  react-native-safe-area-context: 5.7.0
+  react-native-screens: 4.26.2
+  tamagui: 2.7.7
+
+# Hard enforcement even if a transitive dependency asks for something else.
+overrides:
+  "@types/react": "catalog:"
+  "@types/react-dom": "catalog:"
+  react: "catalog:"
+  react-dom: "catalog:"
+
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
