@@ -40,13 +40,13 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 ## Tasks
 - [x] R1 Noche/Brasa theme tokens + font wiring + token tests (route: dictated)
 - [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
-- [ ] R3 Missing states (idle branch + station sheet + state tests; sheet = BOTTOM OVERLAY per reference image Descargas/Selector de estaciones (en el lugar).png: drag handle, rows with dot + En vivo + accent check on active, backdrop dismiss; sheet scales to large catalogs via scroll + stable keys, virtualization deferred; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated)
-- [ ] R4 i18n additions ES/EN + parity tests (route: dictated)
-- [ ] R5 Full gates + headed web + native approval + close (route: dictated)
+- [x] R3 Missing states (idle branch + station sheet + state tests; sheet = BOTTOM OVERLAY per reference image Descargas/Selector de estaciones (en el lugar).png: drag handle, rows with dot + En vivo + accent check on active, backdrop dismiss; sheet scales to large catalogs via scroll + stable keys, virtualization deferred; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated) — CLOSED 2026-10-19: idle `ecf00f9` + sheet `6c50dd4`, both ancestors of `main`; `packages/ui/src/station-sheet/` ships with `station-sheet.test.tsx`. R3b-3 closed as already satisfied: zero `chip` references remain in source and `player-landing-channels.test.tsx` already drives the sheet, so no test needed migrating.
+- [x] R4 i18n additions ES/EN + parity tests (route: dictated) — CLOSED 2026-10-19: `tapToPlay` + `sheetTitle` present in both dictionaries (`packages/ui/src/i18n/locales.ts:15,32,50`) with the parity suite in `packages/ui/src/i18n/i18n.test.ts`. The other keys the scope listed (dock line, chip label, countdown, empty copy) belonged to descoped surfaces: chips no longer exist and empty/ad-countdown are backlog items.
+- [x] R5 Full gates + headed web + native approval + close (route: dictated) — CLOSED 2026-10-19: gates re-verified on the merged result (see Verification evidence); headed approvals recorded at R2b/R2c/R2e/R2f/R3b. Brasa headed verification is NOT claimed here — it remains a backlog item.
 
 ## Acceptance criteria
-- Landing matches design-01 Main (dark dock at the bottom) and Owner (light player on top) compositions; all 9 states reachable and bilingual.
-- `turbo run test -- --run` 8/8, typecheck + biome clean; user approves headed look on web + native.
+- [x] Landing matches design-01 Main (dark dock at the bottom) and Owner (light player on top) compositions (order tests + headed web/native at R2f). 7 of 9 states reachable and bilingual: idle, loading, playing, paused, blocked, signal-error, station sheet. The "9 states" wording predates the R3 descope: empty and ad-countdown moved to their owner modules (no triggers exist) and live in the backlog. Brasa headed verification is still open in the backlog.
+- [x] Workspace gates green: `pnpm test` 7/7 packages (ui 9 files / 80 tests), `pnpm typecheck` 7/7, `biome check` clean (98 files); headed look approved by the user on web + native through R2/R3. The 8/8 in this line was correct when written — `packages/navigation` declared a test script then and no longer does.
 
 ## Applicable checks
 - Focused `vitest` runs, `turbo run test -- --run`, typecheck, biome.
@@ -65,8 +65,11 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 - 2026-10-15: R2e GREEN (9/9 config tests, suite green, headed web + native identical after dev restart — Turbopack had served a stale graph). Committed 125743a.
 - 2026-10-15: R2f RED (scheme order tests: dock after content in noche, before in brasa). Design 01 Main vs Owner compositions. Next: R2f GREEN + headed (closes R2).
 - 2026-10-15: R2f GREEN (scheme prop + Theme + order + 390 + centered + seamless $bg; 2 order tests green; headed web + native verified). R2 CLOSED. Committed 8006e50 + 0377421 + 6ded314. Next: R3 scope decision (idle + sheet now; empty + ad to their modules).
+- 2026-10-19: doc reconciliation (branch `feature/repo-debt-closure`). Every R3/R4/R5 deliverable was verified to be an ancestor of `main` (`ecf00f9` idle, `6c50dd4` sheet) and the branch `feature/player-restyle-01` no longer exists. No work was missing — only the checkboxes: `station-sheet/` + its test, `tapToPlay`/`sheetTitle` in both locales, and the i18n parity suite are all on `main`. R3b-3 needed no migration: `grep -ri chip` over source returns nothing and `player-landing-channels.test.tsx` drives the sheet via `station-name` + `station-sheet-check`.
+- 2026-10-19: gate counts corrected from 8/8 to 7/7. The original count included `packages/navigation`, which declared a test script then (verified with `git grep -l '"test"' 6ded314`) and does not today; `apps/native` is now `apps/mobile`.
 
 ## Verification evidence
+- 2026-10-19 (post-merge reconciliation on `main`): `pnpm --filter @aqui-suena/ui test` real run — 9 files / 80 tests green; workspace `pnpm test` 7/7 packages; `pnpm typecheck` 7/7; `pnpm exec biome check .` clean over 98 files.
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
 - R1b: web + native tsc clean, headed emulator font verified by user.
 - R2a: player-card suite all green including new dock test (old behavior untouched).
