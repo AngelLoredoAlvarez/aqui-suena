@@ -1,13 +1,19 @@
 import { expect, type Page, test } from "@playwright/test";
 
 // Player e2e: landing renders shared PlayerLanding (PlayerCard +
-// LocaleSwitcher + AdsCarousel); audio goes through the same-origin
-// /api/stream proxy. Media is stubbed at the network edge (route fulfill
-// with a minimal WAV, route abort for the primary mirror) so assertions are
-// deterministic headless; UI assertions use roles/text only, never CSS or
-// component internals.
+// LocaleSwitcher + AdsCarousel); web channels are same-origin
+// /test-streams/*.m4a assets played directly (the /api/stream proxy only
+// wraps remote hosts). Media is stubbed at the network edge (route fulfill
+// with a minimal WAV, route abort for a failed mirror) so assertions are
+// deterministic headless and never depend on the committed audio files; UI
+// assertions use roles/text only, never CSS or component internals.
 
 type Locale = "es" | "en";
+
+// Dev channels carry the same asset twice: the primary without a query and
+// a mirror marked with this query (see TEST_CHANNELS in @aqui-suena/ui).
+const MIRROR_QUERY = "mirror=1";
+const STREAM_ROUTE = /\/test-streams\//;
 
 const COPY: Record<
   Locale,
@@ -72,7 +78,7 @@ function trackConsole(page: Page): string[] {
 }
 
 async function fulfillStreamWithWav(page: Page): Promise<void> {
-  await page.route("**/api/stream*", async (route) => {
+  await page.route(STREAM_ROUTE, async (route) => {
     await route.fulfill({ body: WAV, contentType: "audio/wav" });
   });
 }
@@ -141,34 +147,44 @@ test("blocked autoplay resumes with one tap", async ({ page }, testInfo) => {
   expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
 });
 
-test("aborted primary mirror engages fallback and keeps playing", async ({ page }, testInfo) => {
+test("a failed primary stream falls back to its mirror and keeps playing", async ({
+  page,
+}, testInfo) => {
   const copy = COPY[localeOf(testInfo.project.name)];
   const errors = trackConsole(page);
   const requested: string[] = [];
-  page.on("request", (request) => {
-    if (request.url().includes("/api/stream")) {
-      requested.push(request.url());
-    }
-  });
-  await page.route("**/api/stream*", async (route) => {
-    if (route.request().url().includes("ice1")) {
-      await route.abort();
+
+  // Abort the primary so usePlayer's fallback chain is forced, and serve the
+  // mirror so playback settles. Both URLs must be requested, in that order:
+  // the log proves the failure happened before the fallback, not after.
+  await page.route(STREAM_ROUTE, async (route) => {
+    const url = route.request().url();
+    requested.push(url);
+
+    if (url.includes(MIRROR_QUERY)) {
+      await route.fulfill({ body: WAV, contentType: "audio/wav" });
       return;
     }
-    await route.fulfill({ body: WAV, contentType: "audio/wav" });
+
+    await route.abort();
   });
 
   await page.goto("/");
 
   await expect(page.getByText(copy.playing)).toBeVisible({ timeout: 20_000 });
+
   expect(
-    requested.some((url) => url.includes("ice1")),
-    "primary mirror requested",
+    requested.some((url) => url.endsWith("/test-streams/test-pop.m4a")),
+    "primary stream requested",
   ).toBe(true);
   expect(
-    requested.some((url) => url.includes("ice2")),
-    "fallback mirror requested",
+    requested.some((url) => url.includes(MIRROR_QUERY)),
+    "mirror stream requested",
   ).toBe(true);
+  expect(
+    requested.findIndex((url) => url.includes(MIRROR_QUERY)),
+    "mirror requested after the primary failed",
+  ).toBeGreaterThan(requested.findIndex((url) => url.endsWith("/test-streams/test-pop.m4a")));
 
   // The aborted primary surfaces one Chromium network-layer report
   // ("Failed to load resource: net::ERR_FAILED") without a URL; it is the

@@ -63,17 +63,3 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
       Frontier verified 2026-10-19: 23 packages in these four slices;
       the Rust side has nothing pending (tauri 2.12.4 / tauri-build 2.7.3
       are latest).
-
-## Repo hygiene
-
-- [ ] e2e `apps/web/e2e/player.spec.ts` is red on `main`: 10 passed /
-      2 failed — one test, "aborted primary mirror engages fallback and
-      keeps playing", failing in both locale projects at the
-      `primary mirror requested` assertion. It asserts a two-mirror
-      `/api/stream` flow the current fixture cannot reach: test channels
-      are relative `/test-streams/*.m4a`, so the web driver never proxies
-      through `/api/stream`. The capability itself is live
-      (`use-player.ts` calls `pickFallbackUrl`) and unit-covered in
-      `packages/player/src/fallback/fallback.test.ts`. Decision pending:
-      rewrite the spec against a two-URL fixture, or drop it as already
-      covered by the unit suite.
