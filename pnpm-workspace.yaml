@@ -11,13 +11,13 @@ catalog:
   "@tanstack/react-query": 5.104.4
   "@types/react": 19.3.0
   "@types/react-dom": 19.3.0
-  react: 19.2.3
-  react-dom: 19.2.3
-  react-native: 0.86.3
-  react-native-gesture-handler: 2.32.0
-  react-native-reanimated: 4.5.1
-  react-native-safe-area-context: 5.7.0
-  react-native-screens: 4.26.2
+  react: 19.3.0
+  react-dom: 19.3.0
+  react-native: 0.88.0
+  react-native-gesture-handler: 3.3.0
+  react-native-reanimated: 4.7.1
+  react-native-safe-area-context: 5.10.1
+  react-native-screens: 4.30.0
   tamagui: 2.7.7
 
 # Hard enforcement even if a transitive dependency asks for something else.
@@ -30,19 +30,19 @@ overrides:
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@expo/cli@57.0.30 || 57.0.31'
+  - '@expo/cli@57.0.30 || 57.0.31 || 58.1.13'
   - '@expo/prebuild-config@57.0.19'
-  - expo-asset@57.0.20
+  - expo-asset@57.0.20 || 58.0.17
   - expo-constants@57.0.22
   - expo-modules-autolinking@57.0.16
-  - expo-modules-core@57.0.23
-  - expo@57.0.29 || 57.0.30
+  - expo-modules-core@57.0.23 || 58.0.23
+  - expo@57.0.29 || 57.0.30 || 58.0.16
   - '@expo/metro-runtime@57.0.17'
   - '@expo/ui@57.0.24 || 57.0.25'
   - expo-linking@57.0.13
-  - expo-router@57.0.27 || 57.0.28
-  - '@expo/router-server@57.0.13'
-  - babel-preset-expo@57.0.16
+  - expo-router@57.0.27 || 57.0.28 || 58.0.24
+  - '@expo/router-server@57.0.13 || 58.0.15'
+  - babel-preset-expo@57.0.16 || 58.0.18
   - '@turbo/darwin-64@2.11.9'
   - '@turbo/darwin-arm64@2.11.9'
   - '@turbo/linux-64@2.11.9'
@@ -50,3 +50,9 @@ minimumReleaseAgeExclude:
   - '@turbo/windows-64@2.11.9'
   - '@turbo/windows-arm64@2.11.9'
   - turbo@2.11.9
+  - '@expo/metro-config@58.0.15'
+  - expo-file-system@58.0.10
+  - expo-font@58.0.9
+  - expo-localization@58.0.5
+  - expo-modules-cli@0.3.1
+  - expo-modules-jsi@58.0.16

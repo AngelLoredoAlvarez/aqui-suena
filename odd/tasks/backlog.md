@@ -10,6 +10,10 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
       like YouTube Music / browsers do. Native capabilities work; needs a
       player that publishes metadata (evaluate expo-audio vs dev-client
       options when the slice is scheduled). Requested 2026-10-15.
+      Updated 2026-10-19: `expo-audio` 58 (now installed) ships
+      lock-screen controls with playlists, so the metadata surface is
+      already in the dependency we use; the slice is wiring, not a driver
+      swap.
 
 ## Restyle follow-ups (from player-restyle-01)
 
@@ -48,18 +52,27 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 ## Dependencies (scheduled slices, not bedtime)
 
-- [ ] align-react: move web+ui+native together (never bump React in one
-      package — dual-copy breakage).
-- [ ] TypeScript migration (major line, touches every package). The
-      backlog said "TypeScript 6"; latest on 2026-10-19 is 7.0.2 against
-      an installed 5.9.3.
+- [x] align-react — done 2026-10-19. `@types/react` and `@types/react-dom`
+      pinned at 19.3.0 through the `pnpm-workspace.yaml` catalog plus
+      `overrides`, enforced by `scripts/check-singletons.mjs` in the
+      pre-commit hook. A partial bump now fails at commit time instead of
+      forking the runtime module graph.
+- [x] zod 3 → 4 in `@aqui-suena/api` — done 2026-10-19.
+- [x] Expo SDK 58 — done 2026-10-19 on `feature/expo-sdk-58`: expo
+      58.0.16, RN 0.88.0, react/react-dom 19.3.0, gesture-handler 3.3.0,
+      reanimated 4.7.1, safe-area 5.10.1, screens 4.30.0, router 58.0.24,
+      audio 58.0.9. No source change was needed. Pending only device
+      verification on the emulator.
+- [ ] TypeScript migration (major line, touches every package). Two
+      datums for whoever schedules it: latest on 2026-10-19 is 7.0.2, and
+      `expo install --check` on SDK 58 expects `~6.0.3` against the
+      installed 5.9.3. Upgrade stays out of the dependency slices until
+      the target line is chosen.
 - [ ] Tamagui 3 migration (major, needs dedicated slice): `tamagui` and
-      `@tamagui/config` 2.7.7 → 3.0.18, four packages.
-- [ ] Expo SDK 58 block: ~15 coordinated packages, do not split (see
-      align-react). Includes react/react-dom 19.3.1, react-native
-      0.86.3 → 0.88.0, reanimated, screens, safe-area-context,
-      @types/react 19.3.0.
-- [ ] zod 3 → 4 in `@aqui-suena/api`: isolated, the cheapest slice.
-      Frontier verified 2026-10-19: 23 packages in these four slices;
-      the Rust side has nothing pending (tauri 2.12.4 / tauri-build 2.7.3
-      are latest).
+      `@tamagui/config` 2.7.7 → 3.0.18, four packages. No longer coupled
+      to the SDK: Tamagui 2.7.7 typechecks and bundles on RN 0.88, and
+      `tamagui@3` does not require RN 0.88 either.
+- [ ] `@types/node` 22.20.5 → the 24 line (24.19.2), matching the host
+      Node 24.14.0. The 26 line is ahead of the runtime and was rejected.
+- Frontier verified 2026-10-19: the Rust side has nothing pending
+      (tauri 2.12.4 / tauri-build 2.7.3 are latest).

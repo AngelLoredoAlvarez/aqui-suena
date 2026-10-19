@@ -68,8 +68,15 @@ export default function RootLayout() {
     <UiProvider>
       <LocaleProvider locale={locale} onChange={handleChange}>
         <QueryClientProvider client={queryClient}>
-          {/* Screen backdrop mirrors $nocheBg, same as web body style. */}
-          <Stack screenOptions={{ contentStyle: { backgroundColor: "#0F1720" } }} />
+          {/* Screen backdrop mirrors $nocheBg, same as web body style. The
+              header stays hidden: the landing is the whole screen, and
+              expo-router 58 shows it by default. */}
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#0F1720" },
+            }}
+          />
         </QueryClientProvider>
       </LocaleProvider>
     </UiProvider>
