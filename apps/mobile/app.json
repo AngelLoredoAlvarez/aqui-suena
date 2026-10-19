@@ -7,6 +7,6 @@
     "android": {
       "package": "com.seventeenlabs.aquisuena"
     },
-    "plugins": ["expo-router", "expo-localization"]
+    "plugins": ["expo-router"]
   }
 }
