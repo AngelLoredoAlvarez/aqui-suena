@@ -5,7 +5,7 @@
   "packageManager": "pnpm@12.14.0",
   "scripts": {
     "build": "turbo run build",
-    "test": "turbo run test -- --run",
+    "test": "node --test scripts/check-singletons.test.mjs && turbo run test -- --run",
     "lint": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "arch": "depcruise packages apps --config .dependency-cruiser.cjs",

@@ -12,7 +12,7 @@
 // pnpm-workspace.yaml.
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const SINGLETONS = [
   "@tanstack/react-query",
@@ -30,16 +30,34 @@ const SINGLETONS = [
 
 const WORKSPACE_GROUPS = ["apps", "packages"];
 
-function workspaceDirs() {
+// Resolve the workspace root instead of trusting cwd: run from a subdirectory and
+// a relative scan would find nothing and report a false "ok".
+function findWorkspaceRoot(start) {
+  let dir = start;
+
+  for (;;) {
+    if (existsSync(join(dir, "pnpm-workspace.yaml"))) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return null;
+    }
+    dir = parent;
+  }
+}
+
+function workspaceDirs(root) {
   const dirs = [];
 
   for (const group of WORKSPACE_GROUPS) {
-    if (!existsSync(group)) {
+    const groupDir = join(root, group);
+    if (!existsSync(groupDir)) {
       continue;
     }
-    for (const entry of readdirSync(group)) {
+    for (const entry of readdirSync(groupDir)) {
       const dir = join(group, entry);
-      if (existsSync(join(dir, "package.json"))) {
+      if (existsSync(join(root, dir, "package.json"))) {
         dirs.push(dir);
       }
     }
@@ -48,8 +66,8 @@ function workspaceDirs() {
   return dirs;
 }
 
-function declaredDependencies(dir) {
-  const manifest = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+function declaredDependencies(root, dir) {
+  const manifest = JSON.parse(readFileSync(join(root, dir, "package.json"), "utf8"));
 
   return new Set([
     ...Object.keys(manifest.dependencies ?? {}),
@@ -58,8 +76,21 @@ function declaredDependencies(dir) {
   ]);
 }
 
-const dirs = workspaceDirs();
-const declared = new Map(dirs.map((dir) => [dir, declaredDependencies(dir)]));
+const root = findWorkspaceRoot(process.cwd());
+
+if (!root) {
+  console.error("check-singletons: pnpm-workspace.yaml not found above the current directory.");
+  process.exit(1);
+}
+
+const dirs = workspaceDirs(root);
+
+if (dirs.length === 0) {
+  console.error(`check-singletons: no workspace packages found in ${root}.`);
+  process.exit(1);
+}
+
+const declared = new Map(dirs.map((dir) => [dir, declaredDependencies(root, dir)]));
 const failures = [];
 
 for (const name of SINGLETONS) {
@@ -70,7 +101,7 @@ for (const name of SINGLETONS) {
       continue;
     }
 
-    const require = createRequire(join(process.cwd(), dir, "package.json"));
+    const require = createRequire(join(root, dir, "package.json"));
 
     let resolved;
     try {
@@ -82,10 +113,10 @@ for (const name of SINGLETONS) {
       process.exit(1);
     }
 
-    const root = realpathSync(resolved).replace(/\/package\.json$/, "");
-    const importers = copies.get(root) ?? [];
+    const copy = realpathSync(resolved).replace(/\/package\.json$/, "");
+    const importers = copies.get(copy) ?? [];
     importers.push(dir);
-    copies.set(root, importers);
+    copies.set(copy, importers);
   }
 
   if (copies.size > 1) {
