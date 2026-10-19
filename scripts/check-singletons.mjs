@@ -18,6 +18,7 @@ const SINGLETONS = [
   "@tanstack/react-query",
   "@types/react",
   "@types/react-dom",
+  "expo-audio",
   "react",
   "react-dom",
   "react-native",

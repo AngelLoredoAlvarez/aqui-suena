@@ -7,6 +7,6 @@
     "android": {
       "package": "com.seventeenlabs.aquisuena"
     },
-    "plugins": ["expo-router"]
+    "plugins": ["expo-router", ["expo-audio", { "recordAudioAndroid": false }]]
   }
 }
