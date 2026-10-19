@@ -4,6 +4,9 @@
     "slug": "aqui-suena",
     "version": "0.0.0",
     "scheme": "aqui-suena",
+    "android": {
+      "package": "com.seventeenlabs.aquisuena"
+    },
     "plugins": ["expo-router", "expo-localization"]
   }
 }
