@@ -13,7 +13,7 @@ export const listenerStatusOutput = z.object({
     id: z.string(),
     name: z.string(),
   }),
-  activeUrl: z.string().url(),
+  activeUrl: z.url(),
   listeners: z.number().int().nonnegative(),
 });
 
