@@ -16,19 +16,29 @@ import { useListenerStatus } from "./listener-status";
 type TestChannel = {
   id: string;
   name: string;
-  url: string;
+  // Primary first, then mirrors: usePlayer walks this list on failure. Every
+  // dev channel ships the same asset twice (the primary path and a distinct
+  // mirror URL) so the fallback chain is reachable end-to-end; production
+  // station data supplies real mirror hosts instead.
+  urls: string[];
 };
+
+function channelUrls(file: string): string[] {
+  const primary = `${streamBaseUrl}/test-streams/${file}`;
+
+  return [primary, `${primary}?mirror=1`];
+}
 
 const DEFAULT_CHANNEL: TestChannel = {
   id: "test-pop",
   name: "Test Pop",
-  url: `${streamBaseUrl}/test-streams/test-pop.m4a`,
+  urls: channelUrls("test-pop.m4a"),
 };
 
 const TEST_CHANNELS: readonly TestChannel[] = [
   DEFAULT_CHANNEL,
-  { id: "test-jingle", name: "Test Jingle", url: `${streamBaseUrl}/test-streams/test-jingle.m4a` },
-  { id: "test-night", name: "Test Night", url: `${streamBaseUrl}/test-streams/test-night.m4a` },
+  { id: "test-jingle", name: "Test Jingle", urls: channelUrls("test-jingle.m4a") },
+  { id: "test-night", name: "Test Night", urls: channelUrls("test-night.m4a") },
 ];
 
 function channelById(id: string): TestChannel {
@@ -50,7 +60,7 @@ function StationPlayer({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const driver = useExpoAudioDriver();
-  const { status, activeUrl, pause, resume } = usePlayer({ urls: [channel.url], driver });
+  const { status, activeUrl, pause, resume } = usePlayer({ urls: channel.urls, driver });
   const { dictionary } = useLocale();
 
   const handleSelectStation = (stationId: string): void => {
@@ -82,7 +92,11 @@ function StationPlayer({
   );
 
   useEffect(() => {
-    if (status === "playing" && activeUrl === channel.url) {
+    // A fallback can settle on any mirror, so the committed channel must
+    // accept every URL it owns. Matching only the primary would leave
+    // `switching` stuck true and keep the previous station card on screen
+    // while the new station actually plays.
+    if (status === "playing" && activeUrl !== null && channel.urls.includes(activeUrl)) {
       setCommittedChannel(channel);
     }
   }, [status, channel, activeUrl]);
