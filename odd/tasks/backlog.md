@@ -3,15 +3,13 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
+Last synced 2026-10-20 against `main` b529742.
+
 ## Player / playback
 
-- [x] Native Now Playing: while a station plays, show track/station metadata
-      with controls in the system UI (notification shade + lock screen),
-      like YouTube Music / browsers do. Requested 2026-10-15.
-      Done 2026-10-19: `expo-audio` lock-screen session wired through the
-      driver and `usePlayer`; see `odd/tasks/native-now-playing.md`.
-      Follow-up: the Android notification still shows an inert previous
-      button and a progress line for the finite dev assets.
+- [ ] Android media notification: the system controls still show an inert
+      previous button and a progress line for the finite dev assets
+      (follow-up from native-now-playing, closed 2026-10-19).
 
 ## Restyle follow-ups (from player-restyle-01)
 
@@ -26,51 +24,48 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 ## Platforms (accepted for development, dev-only)
 
-- [ ] Desktop app via Tauri v2 (dev-mode only, no Windows signing or
-      publishing yet): reuses the web app in a webview. REQUIREMENT:
-      system tray icon (taskbar/dock/menubar presence like media apps).
-      Accepted 2026-10-15 — user already verifies 2 platforms, one more
-      is marginal cost. Open for kickoff: tray menu contents (play/pause?
-      station switch?), first dev OS, packaging later.
-      Starts as its own feature (desktop-tauri-dev), next session.
-      Verified state 2026-10-19: CLI installed as an exact devDependency
-      (`@tauri-apps/cli` 2.12.3) and the root `pnpm build` command
-      resolution failure is gone. Blockers, all verified: (a) system —
-      `net-libs/webkit-gtk:4.1` is absent and is the only thing stopping
-      `cargo check`; the installed slot `6/0` is GTK4 and useless to
-      Tauri; (b) tray — `x11-misc/snixembed` is installed but has no
-      `~/.config/autostart/` entry, and XFCE has no SNI host, so the tray
-      icon will not appear until autostart is wired; (c) bundle-only and
-      inert in dev mode — `frontendDist` points at `apps/web/out`, which
-      does not exist and cannot (the web app is a Next server build with
-      no `output: 'export'`), and `bundle.icon` is empty with
-      `targets: "all"`. `@tauri-apps/api` is NOT required for the tray:
-      it is built in Rust, and `Cargo.toml` already declares the
-      `tray-icon` and `image-ico` features.
+- [ ] Desktop app via Tauri v2 (dev-only, no Windows signing or publishing
+      yet): reuses the web app in a webview. REQUIREMENT: system tray icon
+      (taskbar/dock/menubar presence like media apps). Accepted 2026-10-15:
+      the user already verifies 2 platforms and one more is marginal cost.
+      Still open for kickoff: final tray menu contents beyond the current
+      show/hide, play/pause and quit items; packaging later.
+      Verified state 2026-10-20:
+      (a) system dependency — `net-libs/webkit-gtk:4.1` is installed
+      (2.54.0) and `cargo check` passes; the missing-slot blocker is gone.
+      (b) tray — NOT blocked by snixembed. The XFCE 4.20.8 panel `systray`
+      plugin is itself the `org.kde.StatusNotifierWatcher`, so SNI items
+      render natively and `snixembed` cannot even acquire the watcher name.
+      Verified: the Tauri tray registers as an
+      `org/ayatana/NotificationItem/tray_icon_tray_app_*` item and its icon
+      renders in the panel.
+      (c) icons — the 1024px brand set is generated into
+      `apps/desktop/src-tauri/icons/` and the tray uses `32x32.png`
+      (commit b529742).
+      (d) `beforeDevCommand` fixed to `pnpm --dir ../.. dev:web`; `tauri dev`
+      boots the web server and the webview.
+      Remaining: the tray menu actions and the `tray-play-pause` event are
+      untested against the real player, and `tauri build` cannot bundle
+      because `frontendDist` points at `apps/web/out`, which does not exist
+      while the web app stays a Next server build with no `output: 'export'`.
+
+## Verification gaps
+
+- [ ] Metro 0.87.1 vs react-native 0.88.0 peer mismatch: suspected to be
+      the `@expo/metro@58` pin rather than a real fork. Confirm before
+      acting on it.
 
 ## Dependencies (scheduled slices, not bedtime)
 
-- [x] align-react — done 2026-10-19. `@types/react` and `@types/react-dom`
-      pinned at 19.3.0 through the `pnpm-workspace.yaml` catalog plus
-      `overrides`, enforced by `scripts/check-singletons.mjs` in the
-      pre-commit hook. A partial bump now fails at commit time instead of
-      forking the runtime module graph.
-- [x] zod 3 → 4 in `@aqui-suena/api` — done 2026-10-19.
-- [x] Expo SDK 58 — done 2026-10-19 on `feature/expo-sdk-58`: expo
-      58.0.16, RN 0.88.0, react/react-dom 19.3.0, gesture-handler 3.3.0,
-      reanimated 4.7.1, safe-area 5.10.1, screens 4.30.0, router 58.0.24,
-      audio 58.0.9. No source change was needed. Pending only device
-      verification on the emulator.
-- [ ] TypeScript migration (major line, touches every package). Two
-      datums for whoever schedules it: latest on 2026-10-19 is 7.0.2, and
-      `expo install --check` on SDK 58 expects `~6.0.3` against the
-      installed 5.9.3. Upgrade stays out of the dependency slices until
-      the target line is chosen.
-- [ ] Tamagui 3 migration (major, needs dedicated slice): `tamagui` and
-      `@tamagui/config` 2.7.7 → 3.0.18, four packages. No longer coupled
-      to the SDK: Tamagui 2.7.7 typechecks and bundles on RN 0.88, and
-      `tamagui@3` does not require RN 0.88 either.
-- [ ] `@types/node` 22.20.5 → the 24 line (24.19.2), matching the host
-      Node 24.14.0. The 26 line is ahead of the runtime and was rejected.
-- Frontier verified 2026-10-19: the Rust side has nothing pending
-      (tauri 2.12.4 / tauri-build 2.7.3 are latest).
+- [ ] TypeScript migration (major line, touches every package). Two datums
+      for whoever schedules it: latest on 2026-10-20 is 7.0.2, and
+      `expo install --check` on SDK 58 expects `~6.0.3` against the installed
+      5.9.3. The upgrade stays out until the target line is chosen.
+- [ ] `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major,
+      mobile only). Not started.
+- Frontier verified 2026-10-20 with `pnpm outdated -r`: the remaining bumps
+      are patches only — react 19.3.1, react-dom 19.3.1,
+      @tanstack/react-query 5.104.5, react-native-gesture-handler 3.4.0.
+      `@types/node` is installed at 24.19.2 and the 26 line is ahead of the
+      Node 24 runtime, so it stays. The Rust side has nothing pending
+      (tauri 2.12.4 / tauri-build 2.7.3).
