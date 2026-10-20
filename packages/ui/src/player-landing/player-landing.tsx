@@ -115,7 +115,7 @@ function StationPlayer({
       return (
         <>
           {sheetOpen ? sheetBackdrop : null}
-          <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+          <YStack position="absolute" b="5" l={0} r={0} z={2}>
             {sheetOpen ? sheetCard : null}
             <PlayerCard
               stationName={committedChannel.name}
@@ -132,11 +132,11 @@ function StationPlayer({
 
     return (
       <>
-        <YStack gap="$2" items="center">
-          <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
+        <YStack gap="2" items="center">
+          <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         </YStack>
         {sheetOpen ? sheetBackdrop : null}
-        <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+        <YStack position="absolute" b="5" l={0} r={0} z={2}>
           {sheetOpen ? sheetCard : null}
           <PlayerCard
             stationName={committedChannel.name}
@@ -154,7 +154,7 @@ function StationPlayer({
   return (
     <>
       {sheetOpen ? sheetBackdrop : null}
-      <YStack position="absolute" b="$5" l={0} r={0} z={2}>
+      <YStack position="absolute" b="5" l={0} r={0} z={2}>
         {sheetOpen ? sheetCard : null}
         <PlayerCard
           stationName={stationName}
@@ -192,9 +192,9 @@ export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa"
 
   if (!mounted || !listener) {
     return (
-      <YStack flex={1} width="100%" items="center" justify="center" gap="$5" p="$5" bg="$bg">
-        <H1 color="$brandCream">{dictionary.appTitle}</H1>
-        <Paragraph color="$brandCreamMuted">{dictionary.loadingStation}</Paragraph>
+      <YStack flex={1} width="100%" items="center" justify="center" gap="5" p="5" bg="bg">
+        <H1 color="brandCream">{dictionary.appTitle}</H1>
+        <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <LocaleSwitcher />
         <AdsCarousel />
       </YStack>
@@ -212,11 +212,11 @@ export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa"
         mx={"auto"}
         items="center"
         justify="center"
-        gap="$5"
-        p="$5"
-        bg="$bg"
+        gap="5"
+        p="5"
+        bg="bg"
       >
-        <H1 color="$brandCream">{dictionary.appTitle}</H1>
+        <H1 color="brandCream">{dictionary.appTitle}</H1>
         <LocaleSwitcher />
         {scheme === "brasa" ? player : null}
         <YStack testID="landing-content" width="100%" items="center">

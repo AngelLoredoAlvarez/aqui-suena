@@ -43,7 +43,7 @@ export function StationSheetBackdrop({ onClose }: { onClose: () => void }) {
       l={0}
       r={0}
       b={0}
-      bg="$bg"
+      bg="bg"
       opacity={0.7}
       z={1}
       cursor="pointer"
@@ -71,22 +71,22 @@ export function StationSheetCard({
       position="relative"
       z={1}
       width="100%"
-      mb="$2"
-      gap="$3"
-      p="$4"
-      bg="$surface"
-      borderColor="$borderColor"
+      mb="2"
+      gap="3"
+      p="4"
+      bg="surface"
+      borderColor="borderColor"
       borderWidth={1}
       rounded={24}
     >
-      <XStack width={40} height={4} rounded={999} bg="$muted" self="center" />
+      <XStack width={40} height={4} rounded={999} bg="muted" self="center" />
       <XStack items="center" justify="space-between">
-        <Paragraph fontSize="$6" fontWeight="700" color="$text">
+        <Paragraph fontSize="6" fontWeight="700" color="text">
           {dictionary.sheetTitle}
         </Paragraph>
       </XStack>
       <ScrollView width="100%" maxH={320}>
-        <YStack gap="$2">
+        <YStack gap="2">
           {stations.map((station) => {
             const active = station.id === activeStationId;
             return (
@@ -94,10 +94,13 @@ export function StationSheetCard({
                 key={station.id}
                 testID="station-sheet-row"
                 type="button"
+                height={44}
                 minH={44}
+                paddingInline={18}
+                paddingBlock={1}
                 rounded={999}
-                bg={active ? "$surface2" : "transparent"}
-                borderColor={active ? "$accent" : "$borderColor"}
+                bg={active ? "surface2" : "transparent"}
+                borderColor={active ? "accent" : "borderColor"}
                 borderWidth={1}
                 onPress={() => {
                   onSelectStation(station.id);
@@ -105,18 +108,18 @@ export function StationSheetCard({
                 }}
                 aria-label={station.name}
               >
-                <XStack gap="$2" items="center" width="100%">
+                <XStack gap="2" items="center" width="100%">
                   <XStack
                     testID="station-sheet-dot"
                     width={12}
                     height={12}
                     rounded={100}
-                    bg={active ? "$ok" : "$muted"}
+                    bg={active ? "ok" : "muted"}
                   />
                   <YStack flex={1} items="flex-start">
-                    <Paragraph color="$text">{station.name}</Paragraph>
+                    <Paragraph color="text">{station.name}</Paragraph>
                     {station.live ? (
-                      <Paragraph fontSize="$3" color="$muted">
+                      <Paragraph fontSize="3" color="muted">
                         {dictionary.liveBadge}
                       </Paragraph>
                     ) : null}
@@ -124,9 +127,9 @@ export function StationSheetCard({
                   {active ? (
                     <Paragraph
                       testID="station-sheet-check"
-                      fontSize="$5"
+                      fontSize="5"
                       fontWeight="700"
-                      color="$accent"
+                      color="accent"
                     >
                       ✓
                     </Paragraph>

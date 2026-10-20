@@ -8,11 +8,29 @@ import { useLocale } from "./locale-context";
 export function LocaleSwitcher() {
   const { locale, onChange } = useLocale();
   return (
-    <XStack gap="$2">
-      <Button type="button" size="$2" disabled={locale === "es"} onPress={() => onChange("es")}>
+    <XStack gap="2">
+      <Button
+        type="button"
+        size="xs"
+        rounded={5}
+        fontSize="2"
+        fontWeight="400"
+        opacity={1}
+        disabled={locale === "es"}
+        onPress={() => onChange("es")}
+      >
         Español
       </Button>
-      <Button type="button" size="$2" disabled={locale === "en"} onPress={() => onChange("en")}>
+      <Button
+        type="button"
+        size="xs"
+        rounded={5}
+        fontSize="2"
+        fontWeight="400"
+        opacity={1}
+        disabled={locale === "en"}
+        onPress={() => onChange("en")}
+      >
         English
       </Button>
     </XStack>
