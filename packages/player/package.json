@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./package.json": "./package.json",
     "./errors": "./src/errors/index.ts",
-    "./fallback": "./src/fallback/index.ts"
+    "./fallback": "./src/fallback/index.ts",
+    "./status": "./src/status/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

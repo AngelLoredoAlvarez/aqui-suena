@@ -1,4 +1,4 @@
-import type { PlayerStatus } from "@aqui-suena/player";
+import type { PlayerStatus } from "@aqui-suena/player/status";
 import { describe, expect, it } from "vitest";
 import { buildTrayMenuModel, type TrayLabels, type TrayStation } from "./tray-menu-model";
 

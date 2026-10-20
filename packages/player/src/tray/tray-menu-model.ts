@@ -1,4 +1,4 @@
-import type { PlayerStatus } from "@aqui-suena/player";
+import type { PlayerStatus } from "@aqui-suena/player/status";
 
 export type TrayLabels = {
   readonly play: string;
