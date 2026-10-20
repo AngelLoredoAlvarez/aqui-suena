@@ -19,11 +19,9 @@ fn main() -> tauri::Result<()> {
                 .item(&quit)
                 .build()?;
 
-            // Placeholder icon until the final 1024px brand asset lands.
-            let icon = tauri::image::Image::from_bytes(include_bytes!(
-                "../../../web/app/favicon.ico"
-            ))
-            .expect("tray icon placeholder missing: apps/web/app/favicon.ico");
+            // Tray icon from the generated desktop icon set (`tauri icon`).
+            let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/32x32.png"))
+                .expect("tray icon missing: apps/desktop/src-tauri/icons/32x32.png");
 
             TrayIconBuilder::new()
                 .tooltip("Aqui Suena")
