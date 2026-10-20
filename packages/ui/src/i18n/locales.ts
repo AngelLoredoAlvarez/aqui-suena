@@ -21,6 +21,10 @@ export type Dictionary = {
   readonly listening: (count: number) => string;
   readonly appTitle: string;
   readonly loadingStation: string;
+  readonly trayPlay: string;
+  readonly trayStations: string;
+  readonly trayToggleWindow: string;
+  readonly trayQuit: string;
 };
 
 export const es: Dictionary = {
@@ -39,6 +43,10 @@ export const es: Dictionary = {
   listening: (count: number) => `${count} escuchando`,
   appTitle: "Aqui Suena",
   loadingStation: "Cargando estado de la estación…",
+  trayPlay: "Reproducir",
+  trayStations: "Estaciones",
+  trayToggleWindow: "Mostrar/Ocultar ventana",
+  trayQuit: "Salir",
 };
 
 export const en: Dictionary = {
@@ -57,6 +65,10 @@ export const en: Dictionary = {
   listening: (count: number) => `${count} listening`,
   appTitle: "Aqui Suena",
   loadingStation: "Loading station status…",
+  trayPlay: "Play",
+  trayStations: "Stations",
+  trayToggleWindow: "Show/Hide window",
+  trayQuit: "Quit",
 };
 
 export const defaultLocale: SupportedLocale = "es";
