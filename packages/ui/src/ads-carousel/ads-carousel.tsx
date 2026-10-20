@@ -5,7 +5,7 @@ import { H2, Paragraph, YStack } from "tamagui";
 // ad logic here; replace this component when the ads-display module ships.
 export function AdsCarousel() {
   return (
-    <YStack items="center" justify="center" gap="$2" p="$4" aria-label="Advertisements">
+    <YStack items="center" justify="center" gap="2" p="4" aria-label="Advertisements">
       <H2>Ads</H2>
       <Paragraph>Ad carousel placeholder. Real ads land with the ads-display module.</Paragraph>
     </YStack>
