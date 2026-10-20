@@ -54,3 +54,4 @@ Objective: upgrade `tamagui` and `@tamagui/config` from 2.7.7 to 3.0.18, keep th
   - Root `pnpm build` still fails at `desktop:build` because `tauri build` expects `apps/web/out` and the host lacks `net-libs/webkit-gtk:4.1`; this is environmental and outside S5. The required web build was run separately and passed. The failed run also rewrote `apps/desktop/src-tauri/Cargo.toml`; the unintended edit was reverted.
   - `pnpm peers check` still reports the pre-existing `@react-native/metro-config` 0.87.1 vs 0.88.0 mismatch (wanted by `@react-native/community-cli-plugin@0.88.0`); unchanged by this slice.
   - `expo install --check` still flags TypeScript 5.9.3 vs expected `~6.0.3`; deferred to its own slice.
+- **L7 — 2026-10-19, commit.** Code, lockfile, and the initial feature document were committed as `b583c90` on `feature/tamagui-3`; no merge or push was performed.
