@@ -22,6 +22,7 @@ export type Dictionary = {
   readonly appTitle: string;
   readonly loadingStation: string;
   readonly trayPlay: string;
+  readonly trayPause: string;
   readonly trayStations: string;
   readonly trayToggleWindow: string;
   readonly trayQuit: string;
@@ -44,6 +45,7 @@ export const es: Dictionary = {
   appTitle: "Aquí Suena",
   loadingStation: "Cargando estado de la estación…",
   trayPlay: "Reproducir",
+  trayPause: "Pausar",
   trayStations: "Estaciones",
   trayToggleWindow: "Mostrar/Ocultar ventana",
   trayQuit: "Salir",
@@ -66,6 +68,7 @@ export const en: Dictionary = {
   appTitle: "Aquí Suena",
   loadingStation: "Loading station status…",
   trayPlay: "Play",
+  trayPause: "Pause",
   trayStations: "Stations",
   trayToggleWindow: "Show/Hide window",
   trayQuit: "Quit",

@@ -104,7 +104,7 @@ function StationPlayer({
   const trayLabels = useMemo<TrayLabels>(
     () => ({
       play: dictionary.trayPlay,
-      pause: dictionary.pause,
+      pause: dictionary.trayPause,
       stations: dictionary.trayStations,
       toggleWindow: dictionary.trayToggleWindow,
       quit: dictionary.trayQuit,
