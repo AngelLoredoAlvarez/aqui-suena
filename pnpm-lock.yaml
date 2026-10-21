@@ -296,12 +296,18 @@ importers:
       '@aqui-suena/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@aqui-suena/player':
+        specifier: workspace:*
+        version: link:../../packages/player
       '@aqui-suena/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.4(@types/react@19.3.0)(react@19.3.0)
+      '@tauri-apps/api':
+        specifier: 2.12.3
+        version: 2.12.3
       next:
         specifier: 16.4.2
         version: 16.4.2(@babel/core@7.29.7(supports-color@8.1.1))(@playwright/test@1.64.1)(@types/node@24.19.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2930,6 +2936,9 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@tauri-apps/api@2.12.3':
+    resolution: {integrity: sha512-9s0PKw0p4r3kFq92jhpivYSp+cSht15o0gXpZxuQd0+dV9KCexEVkNaLELVoLdJWyoH4KlfQo5h3W2LIM8siJg==}
 
   '@tauri-apps/cli-darwin-arm64@2.12.3':
     resolution: {integrity: sha512-xmVNoJOOKzKLj7GLHXmXLimRby9M42aBIJa0sB80N7o24eKV5JiVmToKTRLVH9yhL05GZ/B6rSSOmbzNFJwBAA==}
@@ -9033,6 +9042,8 @@ snapshots:
       react: 19.3.0
     optionalDependencies:
       '@types/react': 19.3.0
+
+  '@tauri-apps/api@2.12.3': {}
 
   '@tauri-apps/cli-darwin-arm64@2.12.3':
     optional: true

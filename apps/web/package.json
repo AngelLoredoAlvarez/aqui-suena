@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@aqui-suena/config": "workspace:*",
+    "@aqui-suena/player": "workspace:*",
     "@aqui-suena/ui": "workspace:*",
     "@tanstack/react-query": "catalog:",
+    "@tauri-apps/api": "2.12.3",
     "next": "16.4.2",
     "react": "catalog:",
     "react-dom": "catalog:",

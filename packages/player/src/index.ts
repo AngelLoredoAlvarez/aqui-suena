@@ -2,6 +2,8 @@ export type { MediaErrorDetail, MediaErrorKey, MediaFailure } from "./errors/err
 export { describeMediaError, narrowFailure } from "./errors/errors";
 export { STREAM_FALLBACK_URLS } from "./fallback/streams";
 export type { PlayerStatus } from "./status";
+export { cancelSafeSubscribe } from "./tray/cancel-safe-subscribe";
+export { noopTrayBridge } from "./tray/noop-tray-bridge";
 export type { TrayBridge, Unsubscribe } from "./tray/tray-bridge";
 export type {
   TrayLabels,
