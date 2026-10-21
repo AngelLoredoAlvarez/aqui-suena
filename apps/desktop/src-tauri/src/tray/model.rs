@@ -7,6 +7,7 @@ const STATION_MENU_ID_PREFIX: &str = "station:";
 pub struct TrayMenuModel {
     pub toggle: TrayToggleItem,
     pub stations: TrayStationsMenu,
+    pub close_to_tray: TrayCheckItem,
     pub toggle_window: TrayLabelItem,
     pub quit: TrayLabelItem,
 }
@@ -39,6 +40,13 @@ pub struct TrayLabelItem {
     pub label: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TrayCheckItem {
+    pub label: String,
+    pub checked: bool,
+}
+
 pub fn parse_model(payload: &str) -> Result<TrayMenuModel, serde_json::Error> {
     serde_json::from_str(payload)
 }
@@ -65,6 +73,7 @@ mod tests {
           { "id": "mar-del-plata", "name": "Mar del Plata", "active": false }
         ]
       },
+      "closeToTray": { "label": "Cerrar a la bandeja", "checked": true },
       "toggleWindow": { "label": "Mostrar/Ocultar" },
       "quit": { "label": "Salir" }
     }
@@ -83,6 +92,8 @@ mod tests {
         assert_eq!(model.stations.items[0].name, "La Quinta");
         assert!(model.stations.items[0].active);
         assert!(!model.stations.items[1].active);
+        assert_eq!(model.close_to_tray.label, "Cerrar a la bandeja");
+        assert!(model.close_to_tray.checked);
         assert_eq!(model.toggle_window.label, "Mostrar/Ocultar");
         assert_eq!(model.quit.label, "Salir");
     }
@@ -110,6 +121,7 @@ mod tests {
         const STALE_MODEL: &str = r#"
         {
           "stations": { "label": "Emisoras", "items": [] },
+          "closeToTray": { "label": "Cerrar a la bandeja", "checked": true },
           "toggleWindow": { "label": "Mostrar/Ocultar" },
           "quit": { "label": "Salir" }
         }
@@ -126,6 +138,7 @@ mod tests {
         {
           "toggle": { "label": "Pausar", "enabled": true },
           "stations": { "label": "Emisoras", "items": [] },
+          "closeToTray": { "label": "Cerrar a la bandeja", "checked": true },
           "toggleWindow": { "label": "Mostrar/Ocultar" },
           "quit": { "label": "Salir" },
           "badge": "nuevo"

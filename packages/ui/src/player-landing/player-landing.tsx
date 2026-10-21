@@ -106,6 +106,7 @@ function StationPlayer({
       play: dictionary.trayPlay,
       pause: dictionary.trayPause,
       stations: dictionary.trayStations,
+      closeToTray: dictionary.trayCloseToTray,
       toggleWindow: dictionary.trayToggleWindow,
       quit: dictionary.trayQuit,
     }),

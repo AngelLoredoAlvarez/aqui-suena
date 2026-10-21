@@ -1,5 +1,5 @@
 import type { PlayerStatus } from "@aqui-suena/player/status";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TrayBridge } from "./tray-bridge";
 import { buildTrayMenuModel, type TrayLabels, type TrayStation } from "./tray-menu-model";
 
@@ -22,9 +22,13 @@ export function useTraySync({
   onTogglePlayback,
   onSelectStation,
 }: UseTraySyncInput): void {
+  // The preference is read once: the bridge owns the storage, and the desktop
+  // runtime is the only source that can change it while the app runs.
+  const [closeToTray, setCloseToTray] = useState(() => bridge.readCloseToTray());
+
   const model = useMemo(
-    () => buildTrayMenuModel({ status, labels, stations, activeStationId }),
-    [status, labels, stations, activeStationId],
+    () => buildTrayMenuModel({ status, labels, stations, activeStationId, closeToTray }),
+    [status, labels, stations, activeStationId, closeToTray],
   );
 
   const lastPublished = useRef<{ bridge: TrayBridge; payload: string } | null>(null);
@@ -46,6 +50,7 @@ export function useTraySync({
 
   const toggleRef = useRef(onTogglePlayback);
   const selectRef = useRef(onSelectStation);
+  const closeToTrayRef = useRef(closeToTray);
 
   useEffect(() => {
     toggleRef.current = onTogglePlayback;
@@ -56,6 +61,10 @@ export function useTraySync({
   }, [onSelectStation]);
 
   useEffect(() => {
+    closeToTrayRef.current = closeToTray;
+  }, [closeToTray]);
+
+  useEffect(() => {
     return bridge.onTogglePlayback(() => {
       toggleRef.current();
     });
@@ -64,6 +73,18 @@ export function useTraySync({
   useEffect(() => {
     return bridge.onSelectStation((stationId) => {
       selectRef.current(stationId);
+    });
+  }, [bridge]);
+
+  // The native check item flips itself before this runs, so the model is
+  // republished with the value the app will actually honour on close; the
+  // rebuild is what keeps the check mark and the behaviour from drifting.
+  useEffect(() => {
+    return bridge.onToggleCloseToTray(() => {
+      const next = !closeToTrayRef.current;
+      closeToTrayRef.current = next;
+      bridge.writeCloseToTray(next);
+      setCloseToTray(next);
     });
   }, [bridge]);
 }

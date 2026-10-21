@@ -12,6 +12,7 @@ const labels: TrayLabels = {
   play: "Reproducir",
   pause: "Pausar",
   stations: "Estaciones",
+  closeToTray: "Cerrar a la bandeja",
   toggleWindow: "Mostrar/Ocultar ventana",
   quit: "Salir",
 };
@@ -21,15 +22,21 @@ const stations: readonly TrayStation[] = [
   { id: "test-jingle", name: "Test Jingle" },
 ];
 
-function createFakeBridge() {
+function createFakeBridge(initialCloseToTray = false) {
   const published: TrayMenuModel[] = [];
   const toggleListeners = new Set<() => void>();
   const stationListeners = new Set<(stationId: string) => void>();
+  const closeToTrayListeners = new Set<() => void>();
   let toggleAttaches = 0;
+  let storedCloseToTray = initialCloseToTray;
 
   const bridge: TrayBridge = {
     publish: (model) => {
       published.push(model);
+    },
+    readCloseToTray: () => storedCloseToTray,
+    writeCloseToTray: (value) => {
+      storedCloseToTray = value;
     },
     onTogglePlayback: (listener) => {
       toggleAttaches += 1;
@@ -44,12 +51,19 @@ function createFakeBridge() {
         stationListeners.delete(listener);
       };
     },
+    onToggleCloseToTray: (listener) => {
+      closeToTrayListeners.add(listener);
+      return () => {
+        closeToTrayListeners.delete(listener);
+      };
+    },
   };
 
   return {
     bridge,
     published,
-    listenerCount: () => toggleListeners.size + stationListeners.size,
+    storedCloseToTray: () => storedCloseToTray,
+    listenerCount: () => toggleListeners.size + stationListeners.size + closeToTrayListeners.size,
     toggleAttachCount: () => toggleAttaches,
     triggerToggle: () => {
       for (const listener of toggleListeners) {
@@ -59,6 +73,11 @@ function createFakeBridge() {
     triggerSelect: (stationId: string) => {
       for (const listener of stationListeners) {
         listener(stationId);
+      }
+    },
+    triggerCloseToTray: () => {
+      for (const listener of closeToTrayListeners) {
+        listener();
       }
     },
   };
@@ -130,6 +149,41 @@ describe("useTraySync", () => {
     });
 
     expect(onSelectStation).toHaveBeenCalledWith("test-jingle");
+  });
+
+  it("restores the stored close behaviour in the first model", () => {
+    const fake = createFakeBridge(true);
+
+    renderTraySync({ bridge: fake.bridge });
+
+    expect(fake.published[0]?.closeToTray).toEqual({
+      label: "Cerrar a la bandeja",
+      checked: true,
+    });
+  });
+
+  it("flips and persists the close behaviour when the tray asks", () => {
+    const { triggerCloseToTray, published, storedCloseToTray } = renderTraySync();
+
+    act(() => {
+      triggerCloseToTray();
+    });
+
+    expect(storedCloseToTray()).toBe(true);
+    expect(published[published.length - 1]?.closeToTray.checked).toBe(true);
+  });
+
+  it("publishes the flip back instead of trusting the tray's own check state", () => {
+    const { triggerCloseToTray, published } = renderTraySync();
+
+    act(() => {
+      triggerCloseToTray();
+    });
+    act(() => {
+      triggerCloseToTray();
+    });
+
+    expect(published[published.length - 1]?.closeToTray.checked).toBe(false);
   });
 
   it("unsubscribes on unmount", () => {

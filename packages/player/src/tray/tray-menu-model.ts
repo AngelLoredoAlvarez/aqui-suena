@@ -4,6 +4,7 @@ export type TrayLabels = {
   readonly play: string;
   readonly pause: string;
   readonly stations: string;
+  readonly closeToTray: string;
   readonly toggleWindow: string;
   readonly quit: string;
 };
@@ -31,9 +32,15 @@ export type TrayLabelItem = {
   readonly label: string;
 };
 
+export type TrayCheckItem = {
+  readonly label: string;
+  readonly checked: boolean;
+};
+
 export type TrayMenuModel = {
   readonly toggle: TrayToggleItem;
   readonly stations: TrayStationsMenu;
+  readonly closeToTray: TrayCheckItem;
   readonly toggleWindow: TrayLabelItem;
   readonly quit: TrayLabelItem;
 };
@@ -43,6 +50,7 @@ export type BuildTrayMenuInput = {
   readonly labels: TrayLabels;
   readonly stations: readonly TrayStation[];
   readonly activeStationId: string;
+  readonly closeToTray: boolean;
 };
 
 export function buildTrayMenuModel({
@@ -50,6 +58,7 @@ export function buildTrayMenuModel({
   labels,
   stations,
   activeStationId,
+  closeToTray,
 }: BuildTrayMenuInput): TrayMenuModel {
   const playing = status === "playing";
 
@@ -66,6 +75,7 @@ export function buildTrayMenuModel({
         active: station.id === activeStationId,
       })),
     },
+    closeToTray: { label: labels.closeToTray, checked: closeToTray },
     toggleWindow: { label: labels.toggleWindow },
     quit: { label: labels.quit },
   };

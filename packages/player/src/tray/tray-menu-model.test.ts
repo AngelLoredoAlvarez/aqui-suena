@@ -6,6 +6,7 @@ const labels: TrayLabels = {
   play: "Reproducir",
   pause: "Pausar",
   stations: "Estaciones",
+  closeToTray: "Cerrar a la bandeja",
   toggleWindow: "Mostrar/Ocultar ventana",
   quit: "Salir",
 };
@@ -19,6 +20,7 @@ const baseInput = {
   labels,
   stations,
   activeStationId: "test-pop",
+  closeToTray: false,
 };
 
 const playStates: readonly PlayerStatus[] = ["idle", "paused", "blocked", "error"];
@@ -65,6 +67,12 @@ describe("buildTrayMenuModel", () => {
     expect(model.stations.label).toBe("Stations");
     expect(model.toggleWindow.label).toBe("Mostrar/Ocultar ventana");
     expect(model.quit.label).toBe("Quit");
+  });
+
+  it("reports whether closing the window keeps the app in the tray", () => {
+    const model = buildTrayMenuModel({ ...baseInput, status: "playing", closeToTray: true });
+
+    expect(model.closeToTray).toEqual({ label: "Cerrar a la bandeja", checked: true });
   });
 
   it("drops station fields the tray contract does not define", () => {

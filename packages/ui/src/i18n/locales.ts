@@ -24,6 +24,7 @@ export type Dictionary = {
   readonly trayPlay: string;
   readonly trayPause: string;
   readonly trayStations: string;
+  readonly trayCloseToTray: string;
   readonly trayToggleWindow: string;
   readonly trayQuit: string;
 };
@@ -47,6 +48,7 @@ export const es: Dictionary = {
   trayPlay: "Reproducir",
   trayPause: "Pausar",
   trayStations: "Estaciones",
+  trayCloseToTray: "Cerrar a la bandeja",
   trayToggleWindow: "Mostrar/Ocultar ventana",
   trayQuit: "Salir",
 };
@@ -70,6 +72,7 @@ export const en: Dictionary = {
   trayPlay: "Play",
   trayPause: "Pause",
   trayStations: "Stations",
+  trayCloseToTray: "Close to tray",
   trayToggleWindow: "Show/Hide window",
   trayQuit: "Quit",
 };

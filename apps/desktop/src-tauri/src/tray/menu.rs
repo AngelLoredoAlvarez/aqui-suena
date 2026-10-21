@@ -4,6 +4,8 @@ use tauri::{
     AppHandle, Emitter, Listener, Manager, Wry,
 };
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use super::diagnostics;
 use super::model::{parse_model, station_id_from_menu_id, station_menu_id, TrayMenuModel};
 
@@ -11,10 +13,12 @@ pub const TRAY_ID: &str = "main-tray";
 pub const MENU_EVENT: &str = "tray-menu";
 pub const TOGGLE_EVENT: &str = "tray-toggle";
 pub const SELECT_STATION_EVENT: &str = "tray-select-station";
+pub const TOGGLE_CLOSE_TO_TRAY_EVENT: &str = "tray-toggle-close-to-tray";
 
 const WINDOW_LABEL: &str = "main";
 const MENU_SHOW: &str = "show";
 const MENU_PLAY_PAUSE: &str = "play-pause";
+const MENU_CLOSE_TO_TRAY: &str = "close-to-tray";
 const MENU_WINDOW: &str = "window";
 const MENU_QUIT: &str = "quit";
 
@@ -60,11 +64,10 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
         };
 
         match build_menu(&handle, &model) {
-            Ok(menu) => {
-                if let Err(error) = tray.set_menu(Some(menu)) {
-                    report(&handle, &format!("failed to replace tray menu: {error}"));
-                }
-            }
+            Ok(menu) => match tray.set_menu(Some(menu)) {
+                Ok(()) => store_close_to_tray(model.close_to_tray.checked),
+                Err(error) => report(&handle, &format!("failed to replace tray menu: {error}")),
+            },
             Err(error) => report(&handle, &format!("failed to build tray menu: {error}")),
         }
     });
@@ -103,6 +106,15 @@ fn build_menu(app: &AppHandle, model: &TrayMenuModel) -> tauri::Result<Menu<Wry>
     }
     let stations = stations.build()?;
 
+    let close_to_tray = CheckMenuItem::with_id(
+        app,
+        MENU_CLOSE_TO_TRAY,
+        &model.close_to_tray.label,
+        true,
+        model.close_to_tray.checked,
+        None::<&str>,
+    )?;
+
     let toggle_window = MenuItem::with_id(
         app,
         MENU_WINDOW,
@@ -116,6 +128,7 @@ fn build_menu(app: &AppHandle, model: &TrayMenuModel) -> tauri::Result<Menu<Wry>
         .item(&toggle)
         .item(&stations)
         .separator()
+        .item(&close_to_tray)
         .item(&toggle_window)
         .separator()
         .item(&quit)
@@ -130,6 +143,9 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
         MENU_PLAY_PAUSE => {
             let _ = app.emit(TOGGLE_EVENT, ());
         }
+        MENU_CLOSE_TO_TRAY => {
+            let _ = app.emit(TOGGLE_CLOSE_TO_TRAY_EVENT, ());
+        }
         MENU_WINDOW => toggle_window_visibility(app),
         MENU_QUIT => app.exit(0),
         _ => {
@@ -138,6 +154,19 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             }
         }
     }
+}
+
+// The webview owns the preference; this is only the last value it published, so
+// the close handler can answer without a round trip. Until a model arrives the
+// flag stays false, which makes closing a window behave like a normal app.
+static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(false);
+
+fn store_close_to_tray(value: bool) {
+    CLOSE_TO_TRAY.store(value, Ordering::Relaxed);
+}
+
+pub fn hides_on_close() -> bool {
+    CLOSE_TO_TRAY.load(Ordering::Relaxed)
 }
 
 fn toggle_window_visibility(app: &AppHandle) {
@@ -181,6 +210,21 @@ mod tests {
     const WEB_BRIDGE: &str = include_str!("../../../../../apps/web/app/tray-bridge.ts");
 
     #[test]
+    fn the_close_behaviour_follows_the_last_published_model() {
+        store_close_to_tray(true);
+        assert!(
+            hides_on_close(),
+            "a checked close-to-tray item must hide the window instead of exiting"
+        );
+
+        store_close_to_tray(false);
+        assert!(
+            !hides_on_close(),
+            "an unchecked close-to-tray item must let the window close exit"
+        );
+    }
+
+    #[test]
     fn event_channels_match_the_web_bridge() {
         let mut declared: Vec<&str> = WEB_BRIDGE
             .lines()
@@ -191,7 +235,12 @@ mod tests {
             .collect();
         declared.sort_unstable();
 
-        let mut rust = vec![MENU_EVENT, TOGGLE_EVENT, SELECT_STATION_EVENT];
+        let mut rust = vec![
+            MENU_EVENT,
+            TOGGLE_EVENT,
+            SELECT_STATION_EVENT,
+            TOGGLE_CLOSE_TO_TRAY_EVENT,
+        ];
         rust.sort_unstable();
 
         assert_eq!(
