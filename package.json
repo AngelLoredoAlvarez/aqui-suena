@@ -5,6 +5,7 @@
   "packageManager": "pnpm@12.14.0",
   "scripts": {
     "build": "turbo run build",
+    "build:desktop:web": "node scripts/build-desktop-web.mjs",
     "test": "node --test scripts/check-singletons.test.mjs && turbo run test -- --run",
     "lint": "biome check --write .",
     "typecheck": "turbo run typecheck",

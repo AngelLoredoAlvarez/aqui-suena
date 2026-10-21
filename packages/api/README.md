@@ -75,10 +75,12 @@ origins stay on by default.
 
 ### Base URL per client
 
-- **Web**: same-origin in the browser, so a relative `/trpc` works; set an
-  absolute base URL only when the API is deployed on another host.
-- **Desktop**: absolute URL, because the packaged app runs on `tauri://localhost`
-  and has no server of its own.
+- **Web**: same-origin in the browser, so a relative `/trpc` works; the server
+  build rewrites `/api/stream` to this server's `/stream`, so the browser keeps
+  its old URL. Set `NEXT_PUBLIC_API_BASE_URL` when the API is on another host.
+- **Desktop**: absolute URL from `NEXT_PUBLIC_API_BASE_URL`, baked at build time,
+  because the packaged app runs on `tauri://localhost` and has no server of its
+  own. The Tauri bundle is a static export, so it cannot host route handlers.
 - **Mobile**: `EXPO_PUBLIC_API_BASE_URL`, inlined at bundle time. Changing it at
   runtime is impossible; it must be passed when the bundle is built.
 

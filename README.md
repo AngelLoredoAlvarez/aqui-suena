@@ -18,7 +18,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
 | `packages/navigation` | Shared Solito route contracts (deep links return in Task 5) |
 | `packages/ui` | Shared Tamagui provider + components (no `next/link`, no web-only CSS) |
-| `packages/player`, `api`, `db` | Playback core (fallback picker, error mapper, `usePlayer`), tRPC status API (mock-first), Drizzle schema |
+| `packages/player`, `api`, `db` | Playback core (fallback picker, error mapper, `usePlayer`), shared tRPC contract and the HTTP server that deploys it, Drizzle schema |
 
 ## Scripts
 
@@ -28,8 +28,19 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
 | `pnpm dev:mobile:android` | Mobile on Android emulator |
+| `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
+| `pnpm --filter desktop build` | Packaged desktop app (Tauri; builds that export first) |
 | `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |
 | `pnpm lint` | `biome check --write .` |
+
+## Desktop packaging
+
+Tauri embeds a **static export** of `apps/web` (`apps/web/out`), built by `pnpm build:desktop:web`. A static bundle has no backend of its own, so:
+
+- the stream proxy lives in `packages/api`; the web server build keeps `/api/stream` working with a rewrite to it (`API_ORIGIN`, default `http://localhost:3001`);
+- the packaged app bakes an absolute API base at build time: `NEXT_PUBLIC_API_BASE_URL`. Unset, the build warns and falls back to `http://localhost:3001`, which is a development artifact, not a release.
+
+Because the export cannot host dynamic route handlers, `apps/web/app/**/route.ts` files would break packaging: backend work belongs in `packages/api`.
 
 ## Routes
 

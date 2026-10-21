@@ -1,5 +1,6 @@
 import type { AudioDriver } from "@aqui-suena/player";
 import { useMemo, useRef } from "react";
+import { apiBaseUrl } from "./stream-base-url";
 
 function toWebFailure(error: unknown): { name?: string; code?: number } {
   if (typeof error === "object" && error !== null) {
@@ -15,10 +16,20 @@ function toWebFailure(error: unknown): { name?: string; code?: number } {
 }
 
 // Remote mirror hosts answer 403 to browser Referer headers, so remote
-// URLs play through our same-origin /api/stream proxy (which strips them
+// URLs play through the API server's /stream proxy (which strips them
 // server-side). Same-origin dev paths need no proxy and play directly.
+// With a configured API base the proxy is absolute, because a packaged
+// desktop bundle is served from tauri://localhost and has no backend.
 function isSameOriginPath(url: string): boolean {
   return url.startsWith("/");
+}
+
+export function streamProxyUrl(url: string, baseUrl: string = apiBaseUrl): string {
+  const encoded = encodeURIComponent(url);
+  if (!baseUrl) {
+    return `/api/stream?url=${encoded}`;
+  }
+  return `${baseUrl.replace(/\/+$/, "")}/stream?url=${encoded}`;
 }
 
 export function useExpoAudioDriver(): AudioDriver {
@@ -32,7 +43,7 @@ export function useExpoAudioDriver(): AudioDriver {
         const element = new Audio();
         const token = ++playTokenRef.current;
 
-        element.src = isSameOriginPath(url) ? url : `/api/stream?url=${encodeURIComponent(url)}`;
+        element.src = isSameOriginPath(url) ? url : streamProxyUrl(url);
 
         return element.play().then(
           () => {

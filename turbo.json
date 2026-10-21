@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**", "!.next/cache/**"]
+      "env": ["DESKTOP_BUILD", "NEXT_PUBLIC_API_BASE_URL", "API_ORIGIN"],
+      "outputs": [".next/**", "dist/**", "out/**", "!.next/cache/**"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]
