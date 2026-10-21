@@ -4,6 +4,7 @@ import type {
   MediaFailure,
   NowPlayingMetadata,
 } from "@aqui-suena/player";
+import { isRunningInExpoGo, Platform } from "expo";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -53,6 +54,14 @@ function activateLockScreen(player: NativePlayer, metadata: NowPlayingMetadata):
   );
 }
 
+// Expo Go ships a fixed Android manifest, so the expo-audio playback service it
+// would bind here is not declared and every activation only logs a binding
+// failure. Development and release builds get the service from the expo-audio
+// config plugin, which keeps this check out of their way.
+function lockScreenControlsAvailable(): boolean {
+  return Platform.OS !== "android" || !isRunningInExpoGo();
+}
+
 // Shared expo-audio driver for web and native: expo-audio play() is sync
 // and failures arrive later as status events, so this bridges one status
 // transition per play() call into the promise-based AudioDriver contract.
@@ -72,6 +81,9 @@ export function useExpoAudioDriver(): AudioDriver {
   const activeRef = useRef<{ player: NativePlayer; key: string } | null>(null);
 
   const publish = useCallback((player: NativePlayer, metadata: NowPlayingMetadata): void => {
+    if (!lockScreenControlsAvailable()) {
+      return;
+    }
     const key = metadataKey(metadata);
     const active = activeRef.current;
     if (active?.player === player) {
@@ -86,7 +98,7 @@ export function useExpoAudioDriver(): AudioDriver {
   }, []);
 
   const release = useCallback((player: NativePlayer | null): void => {
-    if (!player) {
+    if (!player || !lockScreenControlsAvailable()) {
       return;
     }
     player.clearLockScreenControls();

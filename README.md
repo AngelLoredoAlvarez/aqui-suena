@@ -30,10 +30,17 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
 | `pnpm dev:mobile:android` | Mobile on Android emulator |
+| `pnpm dev:mobile:build` | Development build on the emulator, with lock-screen controls and background audio |
 | `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
 | `pnpm --filter desktop build` | Packaged desktop app (Tauri; builds that export first) |
 | `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |
 | `pnpm lint` | `biome check --write .` |
+
+## Mobile playback
+
+Expo Go runs `expo-audio` for foreground playback, but it ships its own fixed Android manifest and cannot declare the `AudioControlsService` that lock-screen controls and background audio need. The driver detects that case and skips lock-screen activation, so Expo Go never logs a service binding failure.
+
+Those two features need a development build: `pnpm dev:mobile:build` installs the app with the `expo-audio` config plugin applied, which declares the service. It starts its own Metro, so stop `pnpm dev` first, or pass `--no-bundler` when Metro is already running.
 
 ## Desktop packaging
 
