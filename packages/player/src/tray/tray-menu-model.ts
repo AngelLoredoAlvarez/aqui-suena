@@ -61,7 +61,8 @@ export function buildTrayMenuModel({
     stations: {
       label: labels.stations,
       items: stations.map((station) => ({
-        ...station,
+        id: station.id,
+        name: station.name,
         active: station.id === activeStationId,
       })),
     },

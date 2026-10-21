@@ -67,6 +67,14 @@ describe("buildTrayMenuModel", () => {
     expect(model.quit.label).toBe("Quit");
   });
 
+  it("drops station fields the tray contract does not define", () => {
+    const noisy = [{ id: "test-pop", name: "Test Pop", live: true }] as unknown as TrayStation[];
+
+    const model = buildTrayMenuModel({ ...baseInput, stations: noisy, status: "playing" });
+
+    expect(model.stations.items).toEqual([{ id: "test-pop", name: "Test Pop", active: true }]);
+  });
+
   it("does not mutate the stations it receives", () => {
     buildTrayMenuModel({ ...baseInput, status: "playing" });
 
