@@ -4,14 +4,19 @@ export function cancelSafeSubscribe(attach: () => Promise<Unsubscribe>): Unsubsc
   let release: Unsubscribe | undefined;
   let cancelled = false;
 
-  void attach().then((stop) => {
-    if (cancelled) {
-      stop();
-      return;
-    }
+  void attach().then(
+    (stop) => {
+      if (cancelled) {
+        stop();
+        return;
+      }
 
-    release = stop;
-  });
+      release = stop;
+    },
+    (error: unknown) => {
+      console.error("tray subscription failed; tray events will not arrive", error);
+    },
+  );
 
   return () => {
     cancelled = true;

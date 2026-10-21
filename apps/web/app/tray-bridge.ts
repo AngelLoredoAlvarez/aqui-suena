@@ -7,9 +7,7 @@ const TOGGLE_EVENT = "tray-toggle";
 const SELECT_STATION_EVENT = "tray-select-station";
 
 const tauriTrayBridge: TrayBridge = {
-  publish: (model: TrayMenuModel): void => {
-    void emit(MENU_EVENT, model);
-  },
+  publish: (model: TrayMenuModel): Promise<void> => emit(MENU_EVENT, model),
   onTogglePlayback: (listener: () => void): Unsubscribe =>
     cancelSafeSubscribe(() => listen(TOGGLE_EVENT, () => listener())),
   onSelectStation: (listener: (stationId: string) => void): Unsubscribe =>

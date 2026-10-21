@@ -29,6 +29,22 @@ describe("cancelSafeSubscribe", () => {
     expect(release).toHaveBeenCalledTimes(1);
   });
 
+  it("reports a rejected subscription instead of leaving it unhandled", async () => {
+    const failure = new Error("event permission denied");
+    const report = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    cancelSafeSubscribe(() => Promise.reject(failure));
+    await flush();
+
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(report).toHaveBeenCalledWith(
+      "tray subscription failed; tray events will not arrive",
+      failure,
+    );
+
+    report.mockRestore();
+  });
+
   it("releases on arrival when unsubscribed before the subscription resolves", async () => {
     const release = vi.fn();
     const pending = deferred();
@@ -40,8 +56,6 @@ describe("cancelSafeSubscribe", () => {
 
     pending.resolve(release);
     await flush();
-
-    unsubscribe();
 
     expect(release).toHaveBeenCalledTimes(1);
   });

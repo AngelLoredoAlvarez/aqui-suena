@@ -6,6 +6,8 @@ import type { TrayBridge } from "./tray-bridge";
 import type { TrayLabels, TrayMenuModel, TrayStation } from "./tray-menu-model";
 import { type UseTraySyncInput, useTraySync } from "./use-tray-sync";
 
+const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
 const labels: TrayLabels = {
   play: "Reproducir",
   pause: "Pausar",
@@ -23,12 +25,14 @@ function createFakeBridge() {
   const published: TrayMenuModel[] = [];
   const toggleListeners = new Set<() => void>();
   const stationListeners = new Set<(stationId: string) => void>();
+  let toggleAttaches = 0;
 
   const bridge: TrayBridge = {
     publish: (model) => {
       published.push(model);
     },
     onTogglePlayback: (listener) => {
+      toggleAttaches += 1;
       toggleListeners.add(listener);
       return () => {
         toggleListeners.delete(listener);
@@ -46,6 +50,7 @@ function createFakeBridge() {
     bridge,
     published,
     listenerCount: () => toggleListeners.size + stationListeners.size,
+    toggleAttachCount: () => toggleAttaches,
     triggerToggle: () => {
       for (const listener of toggleListeners) {
         listener();
@@ -176,5 +181,43 @@ describe("useTraySync", () => {
 
     expect(onTogglePlayback).not.toHaveBeenCalled();
     expect(nextToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a single subscription when only the callback identity changes", () => {
+    const { rerender, input, toggleAttachCount } = renderTraySync();
+
+    rerender({ ...input, onTogglePlayback: vi.fn() });
+    rerender({ ...input, onTogglePlayback: vi.fn() });
+
+    expect(toggleAttachCount()).toBe(1);
+  });
+
+  it("reports a rejected publish instead of leaving it unhandled", async () => {
+    const failure = new Error("emit rejected");
+    const report = vi.spyOn(console, "error").mockImplementation(() => {});
+    const bridge: TrayBridge = {
+      ...createFakeBridge().bridge,
+      publish: () => Promise.reject(failure),
+    };
+
+    renderTraySync({ bridge });
+
+    await act(async () => {
+      await flush();
+    });
+
+    expect(report).toHaveBeenCalledWith(
+      "tray menu publish failed; the tray menu is stale",
+      failure,
+    );
+    report.mockRestore();
+  });
+
+  it("does not republish an equal model carried by a new labels identity", () => {
+    const { rerender, published, input } = renderTraySync();
+
+    rerender({ ...input, labels: { ...labels } });
+
+    expect(published).toHaveLength(1);
   });
 });
