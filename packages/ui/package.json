@@ -24,7 +24,7 @@
     "@aqui-suena/config": "workspace:*",
     "@aqui-suena/player": "workspace:*",
     "@tanstack/react-query": "catalog:",
-    "expo": "58.0.16",
+    "expo": "58.0.17",
     "expo-audio": "catalog:",
     "tamagui": "catalog:"
   },
