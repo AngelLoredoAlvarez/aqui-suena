@@ -5,8 +5,8 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 ## Quick path
 
 1. Install: `pnpm install` (requires Node 22, pnpm 12.4.1)
-2. Run web: `pnpm dev:web` → http://localhost:3000/ (landing is the player)
-3. Run mobile: `pnpm dev:mobile` (Expo Go) or `pnpm dev:mobile:android` (emulator)
+2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on a running emulator.
+3. Run a single client: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm dev:desktop` (this one starts its own web).
 4. Verify: `pnpm -r build && pnpm -r typecheck && pnpm exec biome check .`
 
 ## Layout
@@ -24,7 +24,9 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 | Command | Effect |
 |---------|--------|
+| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the emulator build) |
 | `pnpm dev:web` | Web dev server |
+| `pnpm dev:api` | API only, needed by web and desktop audio |
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
 | `pnpm dev:mobile:android` | Mobile on Android emulator |
