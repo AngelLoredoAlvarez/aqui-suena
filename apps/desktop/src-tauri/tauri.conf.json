@@ -13,7 +13,11 @@
       {
         "title": "Aquí Suena",
         "width": 480,
-        "height": 860
+        "height": 860,
+        "minWidth": 440,
+        "minHeight": 620,
+        "maximized": true,
+        "resizable": true
       }
     ]
   },
