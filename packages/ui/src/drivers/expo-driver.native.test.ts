@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
   statuses: new Map<object, { playing: boolean; error: string | null }>(),
   nextPlayerIndex: 0,
   setAudioModeAsync: vi.fn(async () => {}),
+  expoGo: false,
+  platformOS: "android",
 }));
 
 function setPlayerStatus(index: number, status: { playing: boolean; error: string | null }) {
@@ -58,11 +60,22 @@ vi.mock("expo-audio", () => ({
   setAudioModeAsync: mocks.setAudioModeAsync,
 }));
 
+vi.mock("expo", () => ({
+  isRunningInExpoGo: () => mocks.expoGo,
+  Platform: {
+    get OS() {
+      return mocks.platformOS;
+    },
+  },
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.players.length = 0;
   mocks.statuses.clear();
   mocks.nextPlayerIndex = 0;
+  mocks.expoGo = false;
+  mocks.platformOS = "android";
 });
 
 describe("toMediaFailure", () => {
@@ -307,5 +320,59 @@ describe("useExpoAudioDriver", () => {
     });
 
     expect(events).toHaveLength(2);
+  });
+});
+
+describe("lock screen availability", () => {
+  async function playAndAnnounce(): Promise<{ metadata: { title: string; artist: string } }> {
+    const { result, rerender } = renderHook(() => useExpoAudioDriver());
+    const metadata = { title: "Test Pop", artist: "Aquí Suena" };
+
+    const pending = result.current.play("https://ice1.example/live");
+    await act(async () => {
+      setPlayerStatus(0, { playing: true, error: null });
+      rerender();
+    });
+    await pending;
+
+    result.current.setNowPlaying?.(metadata);
+
+    return { metadata };
+  }
+
+  it("skips lock screen controls inside Expo Go on Android", async () => {
+    mocks.expoGo = true;
+    mocks.platformOS = "android";
+
+    await playAndAnnounce();
+
+    expect(playerAt(0).setActiveForLockScreen).not.toHaveBeenCalled();
+    expect(playerAt(0).updateLockScreenMetadata).not.toHaveBeenCalled();
+  });
+
+  it("activates lock screen controls in a development build on Android", async () => {
+    mocks.expoGo = false;
+    mocks.platformOS = "android";
+
+    const { metadata } = await playAndAnnounce();
+
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledWith(
+      true,
+      metadata,
+      expect.objectContaining({ isLiveStream: true }),
+    );
+  });
+
+  it("keeps lock screen controls inside Expo Go on iOS", async () => {
+    mocks.expoGo = true;
+    mocks.platformOS = "ios";
+
+    const { metadata } = await playAndAnnounce();
+
+    expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledWith(
+      true,
+      metadata,
+      expect.objectContaining({ isLiveStream: true }),
+    );
   });
 });
