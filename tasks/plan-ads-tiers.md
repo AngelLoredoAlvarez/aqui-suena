@@ -26,7 +26,7 @@ Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. F
 ### Checkpoint A: Foundation
 
 - [ ] Tasks 1-2 green: matrix 100% covered, FREE product create denied with UPGRADE_REQUIRED + hint, flyer upload accepted against photo quota, headed FREE product attempt shows hint
-- [ ] `pnpm --filter api test` and `pnpm -r build` pass
+- [ ] `pnpm --filter @aqui-suena/api test` and `pnpm -r build` pass
 - [ ] Review with human before proceeding
 
 ### Phase 2: Sheet Contract + Ranked Carousel

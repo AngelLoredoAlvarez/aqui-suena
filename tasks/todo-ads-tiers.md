@@ -13,7 +13,7 @@
 - [ ] No hardcoded tier limits anywhere outside the resolver
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test`
+- [ ] Tests pass: `pnpm --filter @aqui-suena/api test`
 - [ ] Build succeeds: `pnpm -r build`
 
 **Dependencies:** None
@@ -52,7 +52,7 @@
 
 - [ ] Entitlements matrix 100% covered, no hardcoded limits elsewhere
 - [ ] Server caps hide (never delete) excess; `UPGRADE_REQUIRED` with hints verified
-- [ ] `pnpm --filter api test` and `pnpm -r build` green
+- [ ] `pnpm --filter @aqui-suena/api test` and `pnpm -r build` green
 - [ ] Review with human before proceeding
 
 ## Task 3: Sheet contract basic vs rich
@@ -66,7 +66,7 @@
 - [ ] Contract module has no router/UI imports
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test` (sheets contract tests)
+- [ ] Tests pass: `pnpm --filter @aqui-suena/api test` (sheets contract tests)
 - [ ] Build succeeds: `pnpm -r build`
 
 **Dependencies:** Tasks 1-2
@@ -88,7 +88,7 @@
 - [ ] 100% ranking coverage by unit tests
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test` (ranking tests)
+- [ ] Tests pass: `pnpm --filter @aqui-suena/api test` (ranking tests)
 - [ ] Build succeeds: `pnpm -r build`
 
 **Dependencies:** Tasks 1-3
@@ -165,7 +165,7 @@
 - [ ] FREE cap-hit shows inline upgrade hint, never silent
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter api test` (quota + fixture tests)
+- [ ] Tests pass: `pnpm --filter @aqui-suena/api test` (quota + fixture tests)
 - [ ] Manual check (headed): FREE cap-hit path shows inline hint in form and sheet hint slot
 
 **Dependencies:** Tasks 2, 5-6

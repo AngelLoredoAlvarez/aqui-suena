@@ -57,7 +57,7 @@
 - [x] `db:push` script exists (live run on a dev database deferred, pending)
 
 **Verification:**
-- [x] Tests pass: `pnpm --filter api test -- --run` and `pnpm --filter db test -- --run`
+- [x] Tests pass: `pnpm --filter @aqui-suena/api test -- --run` and `pnpm --filter @aqui-suena/db test -- --run`
 - [x] Build succeeds: `pnpm -r build`
 - [x] Manual check: landing shows loading, then station status (verified by user 2026-10-08)
 

@@ -20,7 +20,7 @@ module.exports = {
       name: "client-never-imports-server-entry",
       severity: "error",
       comment:
-        "Client code (apps, shared UI) may only use the client-safe api entry (@aqui-suena/api/client). Importing the api root evaluates initTRPC.create() in browsers and React Native, which throws.",
+        "Client code (apps, shared UI) may only use the client-safe api entry (@aqui-suena/api/client). Importing the api root evaluates initTRPC.create() in browsers and React Native, which throws, and the server entry pulls node:http into a client bundle.",
       from: { path: "(apps/[^/]+/(app|src)|packages/ui/src)" },
       to: {
         path: "packages/api/src",
