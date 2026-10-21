@@ -2,7 +2,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useExpoAudioDriver } from "./expo-driver";
+import { streamProxyUrl, useExpoAudioDriver } from "./expo-driver";
 
 type PlayBehavior = { kind: "resolve" } | { kind: "reject"; error: unknown };
 
@@ -33,6 +33,26 @@ class FakeAudio {
     pauseTargets.push(this);
   }
 }
+
+describe("streamProxyUrl", () => {
+  const remote = "https://ice1.example/live";
+
+  it("builds the proxy url against a configured api base", () => {
+    expect(streamProxyUrl(remote, "http://localhost:3001")).toBe(
+      "http://localhost:3001/stream?url=https%3A%2F%2Fice1.example%2Flive",
+    );
+  });
+
+  it("tolerates a trailing slash in the api base", () => {
+    expect(streamProxyUrl(remote, "https://api.example/")).toBe(
+      "https://api.example/stream?url=https%3A%2F%2Fice1.example%2Flive",
+    );
+  });
+
+  it("falls back to the same-origin proxy without a configured base", () => {
+    expect(streamProxyUrl(remote, "")).toBe("/api/stream?url=https%3A%2F%2Fice1.example%2Flive");
+  });
+});
 
 describe("useExpoAudioDriver (web)", () => {
   beforeEach(() => {
