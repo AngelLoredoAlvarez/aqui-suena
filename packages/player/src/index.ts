@@ -3,6 +3,13 @@ export { describeMediaError, narrowFailure } from "./errors/errors";
 export { STREAM_FALLBACK_URLS } from "./fallback/streams";
 export type { PlayerStatus } from "./status";
 export { cancelSafeSubscribe } from "./tray/cancel-safe-subscribe";
+export {
+  CLOSE_TO_TRAY_STORAGE_KEY,
+  DEFAULT_CLOSE_TO_TRAY,
+  readStoredCloseToTray,
+  type StringStorage,
+  writeStoredCloseToTray,
+} from "./tray/close-to-tray-storage";
 export { noopTrayBridge } from "./tray/noop-tray-bridge";
 export type { TrayBridge, Unsubscribe } from "./tray/tray-bridge";
 export type {

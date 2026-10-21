@@ -63,11 +63,17 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
             return;
         };
 
+        // The close behaviour follows the published preference even if the menu
+        // cannot be rebuilt: rendering is presentation, the choice is intent,
+        // and a stale menu must not overrule what the user asked for.
+        store_close_to_tray(model.close_to_tray.checked);
+
         match build_menu(&handle, &model) {
-            Ok(menu) => match tray.set_menu(Some(menu)) {
-                Ok(()) => store_close_to_tray(model.close_to_tray.checked),
-                Err(error) => report(&handle, &format!("failed to replace tray menu: {error}")),
-            },
+            Ok(menu) => {
+                if let Err(error) = tray.set_menu(Some(menu)) {
+                    report(&handle, &format!("failed to replace tray menu: {error}"));
+                }
+            }
             Err(error) => report(&handle, &format!("failed to build tray menu: {error}")),
         }
     });
@@ -75,7 +81,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-fn report(app: &AppHandle, message: &str) {
+pub fn report(app: &AppHandle, message: &str) {
     eprintln!("{message}");
 
     if let Ok(directory) = app.path().app_log_dir() {
@@ -144,7 +150,12 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             let _ = app.emit(TOGGLE_EVENT, ());
         }
         MENU_CLOSE_TO_TRAY => {
-            let _ = app.emit(TOGGLE_CLOSE_TO_TRAY_EVENT, ());
+            if let Err(error) = app.emit(TOGGLE_CLOSE_TO_TRAY_EVENT, ()) {
+                report(
+                    app,
+                    &format!("failed to tell the webview about the close-to-tray toggle: {error}"),
+                );
+            }
         }
         MENU_WINDOW => toggle_window_visibility(app),
         MENU_QUIT => app.exit(0),
@@ -156,10 +167,14 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     }
 }
 
+// Closing a window keeps the radio playing unless the user turns it off. This
+// must equal DEFAULT_CLOSE_TO_TRAY in the player package: the webview applies
+// that value until it publishes its first model, and a test keeps both in sync.
+const DEFAULT_CLOSE_TO_TRAY: bool = true;
+
 // The webview owns the preference; this is only the last value it published, so
-// the close handler can answer without a round trip. Until a model arrives the
-// flag stays false, which makes closing a window behave like a normal app.
-static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(false);
+// the close handler can answer without a round trip.
+static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(DEFAULT_CLOSE_TO_TRAY);
 
 fn store_close_to_tray(value: bool) {
     CLOSE_TO_TRAY.store(value, Ordering::Relaxed);
@@ -210,7 +225,29 @@ mod tests {
     const WEB_BRIDGE: &str = include_str!("../../../../../apps/web/app/tray-bridge.ts");
 
     #[test]
+    fn the_startup_default_matches_the_webview() {
+        let storage =
+            include_str!("../../../../../packages/player/src/tray/close-to-tray-storage.ts");
+        let declared = storage
+            .lines()
+            .find_map(|line| {
+                line.trim()
+                    .strip_prefix("export const DEFAULT_CLOSE_TO_TRAY = ")
+                    .map(|rest| rest.trim_end_matches(';').trim())
+            })
+            .expect("the player package must declare the close-to-tray default");
+
+        assert_eq!(
+            declared,
+            if DEFAULT_CLOSE_TO_TRAY { "true" } else { "false" },
+            "the native default must match the preference the webview applies before the first publish"
+        );
+    }
+
+    #[test]
     fn the_close_behaviour_follows_the_last_published_model() {
+        let previous = hides_on_close();
+
         store_close_to_tray(true);
         assert!(
             hides_on_close(),
@@ -222,6 +259,8 @@ mod tests {
             !hides_on_close(),
             "an unchecked close-to-tray item must let the window close exit"
         );
+
+        store_close_to_tray(previous);
     }
 
     #[test]
