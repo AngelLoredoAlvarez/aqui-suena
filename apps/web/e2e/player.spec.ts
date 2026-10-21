@@ -89,7 +89,7 @@ async function fulfillStreamWithWav(page: Page): Promise<void> {
 test("landing renders the shared player", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Aqui Suena");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Aquí Suena");
   await expect(page.getByRole("button", { name: "Español" })).toBeVisible();
   await expect(page.getByRole("button", { name: "English" })).toBeVisible();
   await expect(page.getByLabel("Advertisements")).toBeVisible();

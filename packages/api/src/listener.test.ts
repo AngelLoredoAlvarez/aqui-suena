@@ -7,7 +7,7 @@ import { listenerStatusOutput } from "./listener";
 // verified to accept and reject the same inputs, and this suite keeps that
 // behaviour from drifting silently.
 const validStatus = {
-  station: { id: "station-1", name: "Aqui Suena" },
+  station: { id: "station-1", name: "Aquí Suena" },
   activeUrl: "https://stream.example.com/live",
   listeners: 42,
 };

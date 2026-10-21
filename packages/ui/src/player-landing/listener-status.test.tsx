@@ -76,7 +76,7 @@ describe("PlayerLanding listener status", () => {
       defaultOptions: { queries: { retry: false } },
     });
     queryClient.setQueryData(["listener-status", defaultStationId], {
-      station: { id: defaultStationId, name: "Aqui Suena" },
+      station: { id: defaultStationId, name: "Aquí Suena" },
       activeUrl: "https://stream.example.com/live",
       listeners: 42,
     });

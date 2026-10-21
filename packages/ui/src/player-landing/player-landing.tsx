@@ -47,6 +47,7 @@ const TEST_CHANNELS: readonly TestChannel[] = [
   { id: "test-night", name: "Test Night", urls: channelUrls("test-night.m4a") },
 ];
 
+// Catalog liveness lands with real permissions; every dev channel plays today.
 const STATIONS = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));
 
 function channelById(id: string): TestChannel {
@@ -81,7 +82,6 @@ function StationPlayer({
   // in the bottom-anchored wrapper above the dock; one backdrop+card pair
   // shared by every loaded branch so a tap during switching opens
   // immediately instead of popping up later.
-  // Catalog liveness lands with real permissions; every dev channel plays today.
   const closeSheet = (): void => {
     setSheetOpen(false);
   };

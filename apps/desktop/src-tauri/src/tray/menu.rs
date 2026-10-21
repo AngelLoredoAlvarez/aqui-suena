@@ -34,7 +34,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let fallback_menu = MenuBuilder::new(app).item(&fallback_item).build()?;
 
     TrayIconBuilder::with_id(TRAY_ID)
-        .tooltip("Aqui Suena")
+        .tooltip("Aquí Suena")
         .icon(icon)
         .menu(&fallback_menu)
         .show_menu_on_left_click(false)

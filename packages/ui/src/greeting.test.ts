@@ -7,7 +7,7 @@ import { greeting, placeholderMessage } from "./index";
 // first, then minimal implementation (GREEN), then refactor.
 describe("greeting", () => {
   it("mentions the app name", () => {
-    expect(greeting()).toContain("Aqui Suena");
+    expect(greeting()).toContain("Aquí Suena");
   });
 
   it("exposes the placeholder message", () => {

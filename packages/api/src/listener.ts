@@ -21,7 +21,7 @@ export type ListenerStatus = z.infer<typeof listenerStatusOutput>;
 
 // Mock-first source: no live DB, no HTTP transport yet. Returns a fixed
 // station with the requested id so the landing can render real states.
-const MOCK_STATION_NAME = "Aqui Suena";
+const MOCK_STATION_NAME = "Aquí Suena";
 const MOCK_ACTIVE_URL = "https://stream.example.com/live";
 const MOCK_LISTENERS = 42;
 

@@ -9,8 +9,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "Aqui Suena",
-  description: "Aqui Suena web placeholder",
+  title: "Aquí Suena",
+  description: "Aquí Suena web placeholder",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

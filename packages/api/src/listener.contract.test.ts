@@ -16,7 +16,7 @@ const ACCEPT = [
 ];
 const REJECT = ["", "not-a-url", "//example.com", "https://", "https://exa mple.com"];
 const payload = {
-  station: { id: "station-1", name: "Aqui Suena" },
+  station: { id: "station-1", name: "Aquí Suena" },
   listeners: 42,
 };
 
