@@ -339,7 +339,7 @@ describe("usePlayer", () => {
 });
 
 describe("usePlayer now playing", () => {
-  const NOW_PLAYING = { title: "Test Pop", artist: "Aqui Suena" };
+  const NOW_PLAYING = { title: "Test Pop", artist: "Aquí Suena" };
 
   it("publishes the station metadata once playback starts", async () => {
     const { driver, published } = createFakeDriver();

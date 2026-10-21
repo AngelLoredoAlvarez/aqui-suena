@@ -24,7 +24,7 @@ function renderCard(props: {
   );
   return render(
     <PlayerCard
-      stationName="Aqui Suena"
+      stationName="Aquí Suena"
       listeners={42}
       onResume={props.onResume ?? (() => {})}
       onPause={props.onPause ?? (() => {})}

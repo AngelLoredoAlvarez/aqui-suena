@@ -1,8 +1,7 @@
 import { describeMediaError, narrowFailure } from "@aqui-suena/player/errors";
 import { pickFallbackUrl } from "@aqui-suena/player/fallback";
+import type { PlayerStatus } from "@aqui-suena/player/status";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "blocked" | "error";
 
 export type NowPlayingMetadata = {
   readonly title: string;

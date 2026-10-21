@@ -1,5 +1,11 @@
 import { defaultStationId } from "@aqui-suena/config";
-import { usePlayer } from "@aqui-suena/player";
+import {
+  noopTrayBridge,
+  type TrayBridge,
+  type TrayLabels,
+  usePlayer,
+  useTraySync,
+} from "@aqui-suena/player";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
@@ -9,7 +15,7 @@ import {
   StationSheetCard,
   useEscapeToClose,
 } from "@aqui-suena/ui/station-sheet";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
 
@@ -41,6 +47,9 @@ const TEST_CHANNELS: readonly TestChannel[] = [
   { id: "test-night", name: "Test Night", urls: channelUrls("test-night.m4a") },
 ];
 
+// Catalog liveness lands with real permissions; every dev channel plays today.
+const STATIONS = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));
+
 function channelById(id: string): TestChannel {
   return TEST_CHANNELS.find((channel) => channel.id === id) ?? DEFAULT_CHANNEL;
 }
@@ -50,11 +59,13 @@ function StationPlayer({
   stationName,
   listeners,
   onSelectStation,
+  trayBridge,
 }: {
   channel: TestChannel;
   stationName: string;
   listeners: number;
   onSelectStation: (stationId: string) => void;
+  trayBridge: TrayBridge;
 }) {
   const [committedChannel, setCommittedChannel] = useState(channel);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -67,20 +78,50 @@ function StationPlayer({
     nowPlaying: { title: channel.name, artist: dictionary.appTitle },
   });
 
-  const handleSelectStation = (stationId: string): void => {
-    onSelectStation(stationId);
-  };
-
   // Backdrop lives at column level for full coverage while the card stays
   // in the bottom-anchored wrapper above the dock; one backdrop+card pair
   // shared by every loaded branch so a tap during switching opens
   // immediately instead of popping up later.
-  // Catalog liveness lands with real permissions; every dev channel plays today.
-  const stations = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));
-
   const closeSheet = (): void => {
     setSheetOpen(false);
   };
+
+  const handleSelectStation = useCallback(
+    (stationId: string): void => {
+      onSelectStation(stationId);
+    },
+    [onSelectStation],
+  );
+
+  const handleTogglePlayback = useCallback((): void => {
+    if (status === "playing") {
+      pause();
+    } else {
+      resume();
+    }
+  }, [status, pause, resume]);
+
+  const trayLabels = useMemo<TrayLabels>(
+    () => ({
+      play: dictionary.trayPlay,
+      pause: dictionary.trayPause,
+      stations: dictionary.trayStations,
+      closeToTray: dictionary.trayCloseToTray,
+      toggleWindow: dictionary.trayToggleWindow,
+      quit: dictionary.trayQuit,
+    }),
+    [dictionary],
+  );
+
+  useTraySync({
+    bridge: trayBridge,
+    status,
+    labels: trayLabels,
+    stations: STATIONS,
+    activeStationId: committedChannel.id,
+    onTogglePlayback: handleTogglePlayback,
+    onSelectStation: handleSelectStation,
+  });
 
   useEscapeToClose(sheetOpen, closeSheet);
 
@@ -88,7 +129,7 @@ function StationPlayer({
 
   const sheetCard = (
     <StationSheetCard
-      stations={stations}
+      stations={STATIONS}
       activeStationId={channel.id}
       onSelectStation={handleSelectStation}
       onClose={closeSheet}
@@ -169,7 +210,13 @@ function StationPlayer({
   );
 }
 
-export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa" }) {
+export function PlayerLanding({
+  scheme = "noche",
+  trayBridge = noopTrayBridge,
+}: {
+  scheme?: "noche" | "brasa";
+  trayBridge?: TrayBridge;
+}) {
   const [mounted, setMounted] = useState(false);
   const [selectedStationId, setSelectedStationId] = useState("test-pop");
 
@@ -187,6 +234,7 @@ export function PlayerLanding({ scheme = "noche" }: { scheme?: "noche" | "brasa"
       stationName={channel.name}
       listeners={listener?.listeners ?? 0}
       onSelectStation={setSelectedStationId}
+      trayBridge={trayBridge}
     />
   );
 

@@ -21,6 +21,12 @@ export type Dictionary = {
   readonly listening: (count: number) => string;
   readonly appTitle: string;
   readonly loadingStation: string;
+  readonly trayPlay: string;
+  readonly trayPause: string;
+  readonly trayStations: string;
+  readonly trayCloseToTray: string;
+  readonly trayToggleWindow: string;
+  readonly trayQuit: string;
 };
 
 export const es: Dictionary = {
@@ -37,8 +43,14 @@ export const es: Dictionary = {
   signalUnavailable: "Señal no disponible, probando espejo…",
   playbackFailed: "Falló la reproducción.",
   listening: (count: number) => `${count} escuchando`,
-  appTitle: "Aqui Suena",
+  appTitle: "Aquí Suena",
   loadingStation: "Cargando estado de la estación…",
+  trayPlay: "Reproducir",
+  trayPause: "Pausar",
+  trayStations: "Estaciones",
+  trayCloseToTray: "Cerrar a la bandeja",
+  trayToggleWindow: "Mostrar/Ocultar ventana",
+  trayQuit: "Salir",
 };
 
 export const en: Dictionary = {
@@ -55,8 +67,14 @@ export const en: Dictionary = {
   signalUnavailable: "Signal unavailable, trying mirror…",
   playbackFailed: "Playback failed.",
   listening: (count: number) => `${count} listening`,
-  appTitle: "Aqui Suena",
+  appTitle: "Aquí Suena",
   loadingStation: "Loading station status…",
+  trayPlay: "Play",
+  trayPause: "Pause",
+  trayStations: "Stations",
+  trayCloseToTray: "Close to tray",
+  trayToggleWindow: "Show/Hide window",
+  trayQuit: "Quit",
 };
 
 export const defaultLocale: SupportedLocale = "es";

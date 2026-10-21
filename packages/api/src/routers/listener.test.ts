@@ -10,7 +10,7 @@ describe("listener.getStatus", () => {
     });
 
     expect(status.station.id).toBe("placeholder-station");
-    expect(status.station.name).toBe("Aqui Suena");
+    expect(status.station.name).toBe("Aquí Suena");
     expect(typeof status.activeUrl).toBe("string");
     expect(status.listeners).toBeGreaterThanOrEqual(0);
   });

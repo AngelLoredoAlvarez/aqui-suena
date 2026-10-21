@@ -199,7 +199,7 @@ describe("useExpoAudioDriver", () => {
 
   it("activates the lock screen on the player that reports playing", async () => {
     const { result, rerender } = renderHook(() => useExpoAudioDriver());
-    const metadata = { title: "Test Pop", artist: "Aqui Suena" };
+    const metadata = { title: "Test Pop", artist: "Aquí Suena" };
 
     const pending = result.current.play("https://ice1.example/live");
     await act(async () => {
@@ -248,7 +248,7 @@ describe("useExpoAudioDriver", () => {
 
   it("updates metadata instead of rebuilding the session on the same player", async () => {
     const { result, rerender } = renderHook(() => useExpoAudioDriver());
-    const metadata = { title: "Test Pop", artist: "Aqui Suena" };
+    const metadata = { title: "Test Pop", artist: "Aquí Suena" };
 
     const pending = result.current.play("https://ice1.example/live");
     await act(async () => {
@@ -263,10 +263,10 @@ describe("useExpoAudioDriver", () => {
     result.current.setNowPlaying?.(metadata);
     expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledTimes(1);
 
-    result.current.setNowPlaying?.({ title: "Test Night", artist: "Aqui Suena" });
+    result.current.setNowPlaying?.({ title: "Test Night", artist: "Aquí Suena" });
     expect(playerAt(0).updateLockScreenMetadata).toHaveBeenCalledWith({
       title: "Test Night",
-      artist: "Aqui Suena",
+      artist: "Aquí Suena",
     });
     expect(playerAt(0).setActiveForLockScreen).toHaveBeenCalledTimes(1);
   });

@@ -28,26 +28,32 @@ Last synced 2026-10-20 against `main` b529742.
       yet): reuses the web app in a webview. REQUIREMENT: system tray icon
       (taskbar/dock/menubar presence like media apps). Accepted 2026-10-15:
       the user already verifies 2 platforms and one more is marginal cost.
-      Still open for kickoff: final tray menu contents beyond the current
-      show/hide, play/pause and quit items; packaging later.
-      Verified state 2026-10-20:
+      Verified state 2026-10-21 — tray menu complete and verified by hand:
       (a) system dependency — `net-libs/webkit-gtk:4.1` is installed
       (2.54.0) and `cargo check` passes; the missing-slot blocker is gone.
-      (b) tray — NOT blocked by snixembed. The XFCE 4.20.8 panel `systray`
-      plugin is itself the `org.kde.StatusNotifierWatcher`, so SNI items
-      render natively and `snixembed` cannot even acquire the watcher name.
-      Verified: the Tauri tray registers as an
-      `org/ayatana/NotificationItem/tray_icon_tray_app_*` item and its icon
-      renders in the panel.
+      (b) tray host — the XFCE 4.20.8 panel `systray` plugin is itself the
+      `org.kde.StatusNotifierWatcher`, so SNI items render natively and
+      `snixembed` cannot even acquire the watcher name.
       (c) icons — the 1024px brand set is generated into
       `apps/desktop/src-tauri/icons/` and the tray uses `32x32.png`
       (commit b529742).
-      (d) `beforeDevCommand` fixed to `pnpm --dir ../.. dev:web`; `tauri dev`
-      boots the web server and the webview.
-      Remaining: the tray menu actions and the `tray-play-pause` event are
-      untested against the real player, and `tauri build` cannot bundle
-      because `frontendDist` points at `apps/web/out`, which does not exist
-      while the web app stays a Next server build with no `output: 'export'`.
+      (d) menu — Rust renders the model the webview publishes: play/pause,
+      a stations submenu with a check on the active station, show/hide and
+      quit, all localized by the webview. Rust owns no state and no
+      translations. `beforeDevCommand` fixed to `pnpm --dir ../.. dev:web`.
+      (e) two runtime requirements found while verifying: the Linux
+      AppIndicator backend does not publish the item until a menu is set (an
+      empty one is enough; the first published model replaces it), and the
+      webview needs a capability granting `core:event:default` or every
+      `emit`/`listen` is rejected. On Linux the click events and the tooltip
+      are unsupported by that backend, so the menu item is the only way to
+      show the window.
+      (f) verified by hand on the panel: play/pause, station switch with the
+      check moving, live language switch, show/hide and quit.
+      Remaining: packaging only — `tauri build` cannot bundle because
+      `frontendDist` points at `apps/web/out`, which does not exist while the
+      web app stays a Next server build with no `output: 'export'` — plus
+      Windows/macOS signing, out of scope while the desktop stays dev-only.
 
 ## Verification gaps
 
