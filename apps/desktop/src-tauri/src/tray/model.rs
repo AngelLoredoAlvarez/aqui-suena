@@ -3,7 +3,7 @@ use serde::Deserialize;
 const STATION_MENU_ID_PREFIX: &str = "station:";
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TrayMenuModel {
     pub toggle: TrayToggleItem,
     pub stations: TrayStationsMenu,
@@ -12,18 +12,21 @@ pub struct TrayMenuModel {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrayToggleItem {
     pub label: String,
     pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrayStationsMenu {
     pub label: String,
     pub items: Vec<TrayStationEntry>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrayStationEntry {
     pub id: String,
     pub name: String,
@@ -31,8 +34,13 @@ pub struct TrayStationEntry {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrayLabelItem {
     pub label: String,
+}
+
+pub fn parse_model(payload: &str) -> Result<TrayMenuModel, serde_json::Error> {
+    serde_json::from_str(payload)
 }
 
 pub fn station_menu_id(station_id: &str) -> String {
@@ -94,6 +102,39 @@ mod tests {
 
     #[test]
     fn ignores_menu_ids_that_are_not_stations() {
-        assert_eq!(station_id_from_menu_id("toggle"), None);
+        assert_eq!(station_id_from_menu_id("play-pause"), None);
+    }
+
+    #[test]
+    fn rejects_a_payload_missing_a_required_field() {
+        const STALE_MODEL: &str = r#"
+        {
+          "stations": { "label": "Emisoras", "items": [] },
+          "toggleWindow": { "label": "Mostrar/Ocultar" },
+          "quit": { "label": "Salir" }
+        }
+        "#;
+
+        let error = parse_model(STALE_MODEL).expect_err("a payload without toggle is rejected");
+
+        assert!(error.to_string().contains("toggle"));
+    }
+
+    #[test]
+    fn rejects_a_payload_with_a_field_it_does_not_understand() {
+        const EXTRA_FIELD_MODEL: &str = r#"
+        {
+          "toggle": { "label": "Pausar", "enabled": true },
+          "stations": { "label": "Emisoras", "items": [] },
+          "toggleWindow": { "label": "Mostrar/Ocultar" },
+          "quit": { "label": "Salir" },
+          "badge": "nuevo"
+        }
+        "#;
+
+        assert!(
+            parse_model(EXTRA_FIELD_MODEL).is_err(),
+            "a payload carrying a field this binary does not render must be rejected, not silently truncated"
+        );
     }
 }

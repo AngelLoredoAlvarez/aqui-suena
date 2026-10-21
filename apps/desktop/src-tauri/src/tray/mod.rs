@@ -1,3 +1,4 @@
+mod diagnostics;
 mod menu;
 pub mod model;
 

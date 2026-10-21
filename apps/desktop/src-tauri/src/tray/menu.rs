@@ -4,7 +4,8 @@ use tauri::{
     AppHandle, Emitter, Listener, Manager, Wry,
 };
 
-use super::model::{station_id_from_menu_id, station_menu_id, TrayMenuModel};
+use super::diagnostics;
+use super::model::{parse_model, station_id_from_menu_id, station_menu_id, TrayMenuModel};
 
 pub const TRAY_ID: &str = "main-tray";
 pub const MENU_EVENT: &str = "tray-menu";
@@ -12,22 +13,30 @@ pub const TOGGLE_EVENT: &str = "tray-toggle";
 pub const SELECT_STATION_EVENT: &str = "tray-select-station";
 
 const WINDOW_LABEL: &str = "main";
-const MENU_TOGGLE: &str = "toggle";
-const MENU_TOGGLE_WINDOW: &str = "toggle-window";
+const MENU_SHOW: &str = "show";
+const MENU_PLAY_PAUSE: &str = "play-pause";
+const MENU_WINDOW: &str = "window";
 const MENU_QUIT: &str = "quit";
+
+// The product name. It is a brand string, not translated copy, so the fallback
+// ribbon is the one label Rust may own.
+const FALLBACK_LABEL: &str = "Aquí Suena";
 
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let icon = tauri::image::Image::from_bytes(include_bytes!("../../icons/32x32.png"))
         .expect("tray icon missing: apps/desktop/src-tauri/icons/32x32.png");
 
     // The Linux AppIndicator backend never publishes the item until a menu is
-    // set; an empty one is enough and the first published model replaces it.
-    let empty_menu = Menu::new(app)?;
+    // set, and this fallback is also the floor under a webview that never
+    // publishes: one item that restores the window, so a broken bridge leaves a
+    // usable tray instead of a dead icon. The first published model replaces it.
+    let fallback_item = MenuItem::with_id(app, MENU_SHOW, FALLBACK_LABEL, true, None::<&str>)?;
+    let fallback_menu = MenuBuilder::new(app).item(&fallback_item).build()?;
 
     TrayIconBuilder::with_id(TRAY_ID)
         .tooltip("Aqui Suena")
         .icon(icon)
-        .menu(&empty_menu)
+        .menu(&fallback_menu)
         .show_menu_on_left_click(false)
         .on_menu_event(on_menu_event)
         .on_tray_icon_event(on_tray_icon_event)
@@ -35,10 +44,13 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
 
     let handle = app.clone();
     app.listen(MENU_EVENT, move |event| {
-        let model: TrayMenuModel = match serde_json::from_str(event.payload()) {
+        let model = match parse_model(event.payload()) {
             Ok(model) => model,
             Err(error) => {
-                eprintln!("ignoring malformed {MENU_EVENT} payload: {error}");
+                report(
+                    &handle,
+                    &format!("ignoring malformed {MENU_EVENT} payload: {error}"),
+                );
                 return;
             }
         };
@@ -50,20 +62,28 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
         match build_menu(&handle, &model) {
             Ok(menu) => {
                 if let Err(error) = tray.set_menu(Some(menu)) {
-                    eprintln!("failed to replace tray menu: {error}");
+                    report(&handle, &format!("failed to replace tray menu: {error}"));
                 }
             }
-            Err(error) => eprintln!("failed to build tray menu: {error}"),
+            Err(error) => report(&handle, &format!("failed to build tray menu: {error}")),
         }
     });
 
     Ok(())
 }
 
+fn report(app: &AppHandle, message: &str) {
+    eprintln!("{message}");
+
+    if let Ok(directory) = app.path().app_log_dir() {
+        diagnostics::record(&directory, message);
+    }
+}
+
 fn build_menu(app: &AppHandle, model: &TrayMenuModel) -> tauri::Result<Menu<Wry>> {
     let toggle = MenuItem::with_id(
         app,
-        MENU_TOGGLE,
+        MENU_PLAY_PAUSE,
         &model.toggle.label,
         model.toggle.enabled,
         None::<&str>,
@@ -85,7 +105,7 @@ fn build_menu(app: &AppHandle, model: &TrayMenuModel) -> tauri::Result<Menu<Wry>
 
     let toggle_window = MenuItem::with_id(
         app,
-        MENU_TOGGLE_WINDOW,
+        MENU_WINDOW,
         &model.toggle_window.label,
         true,
         None::<&str>,
@@ -106,10 +126,11 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     let menu_id = event.id.as_ref();
 
     match menu_id {
-        MENU_TOGGLE => {
+        MENU_SHOW => show_window(app),
+        MENU_PLAY_PAUSE => {
             let _ = app.emit(TOGGLE_EVENT, ());
         }
-        MENU_TOGGLE_WINDOW => toggle_window(app),
+        MENU_WINDOW => toggle_window_visibility(app),
         MENU_QUIT => app.exit(0),
         _ => {
             if let Some(station_id) = station_id_from_menu_id(menu_id) {
@@ -119,7 +140,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     }
 }
 
-fn toggle_window(app: &AppHandle) {
+fn toggle_window_visibility(app: &AppHandle) {
     let Some(window) = app.get_webview_window(WINDOW_LABEL) else {
         return;
     };
@@ -130,6 +151,16 @@ fn toggle_window(app: &AppHandle) {
     };
 }
 
+fn show_window(app: &AppHandle) {
+    let Some(window) = app.get_webview_window(WINDOW_LABEL) else {
+        return;
+    };
+
+    let _ = window.unminimize();
+    let _ = window.show();
+    let _ = window.set_focus();
+}
+
 fn on_tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
     if let TrayIconEvent::Click {
         button: MouseButton::Left,
@@ -137,10 +168,35 @@ fn on_tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
         ..
     } = event
     {
-        if let Some(window) = tray.app_handle().get_webview_window(WINDOW_LABEL) {
-            let _ = window.unminimize();
-            let _ = window.show();
-            let _ = window.set_focus();
-        }
+        show_window(tray.app_handle());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The wire contract lives in two languages. This test is the only thing
+    // that fails when one side renames a channel and the other does not.
+    const WEB_BRIDGE: &str = include_str!("../../../../../apps/web/app/tray-bridge.ts");
+
+    #[test]
+    fn event_channels_match_the_web_bridge() {
+        let mut declared: Vec<&str> = WEB_BRIDGE
+            .lines()
+            .filter_map(|line| {
+                let (_, rest) = line.trim().split_once("_EVENT = \"")?;
+                rest.split_once('"').map(|(value, _)| value)
+            })
+            .collect();
+        declared.sort_unstable();
+
+        let mut rust = vec![MENU_EVENT, TOGGLE_EVENT, SELECT_STATION_EVENT];
+        rust.sort_unstable();
+
+        assert_eq!(
+            declared, rust,
+            "the web bridge and the Rust tray must declare the same event channels"
+        );
     }
 }
