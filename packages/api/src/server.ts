@@ -1,9 +1,9 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { Readable } from "node:stream";
-import { fetchProxiedStream } from "@aqui-suena/api/client";
-import { appRouter } from "@aqui-suena/api/router";
 import { nodeHTTPRequestHandler } from "@trpc/server/adapters/node-http";
+import { fetchProxiedStream } from "./client";
 import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
+import { appRouter } from "./router";
 
 const TRPC_PREFIX = "/trpc";
 const STREAM_PATH = "/stream";

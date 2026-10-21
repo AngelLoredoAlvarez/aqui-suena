@@ -1,9 +1,9 @@
 import { request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
-import type { AppRouter } from "@aqui-suena/api/router";
 import { createTRPCClient, httpLink } from "@trpc/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_ALLOWED_ORIGINS } from "./cors";
+import type { AppRouter } from "./router";
 import { createApiServer } from "./server";
 
 interface RawResponse {
