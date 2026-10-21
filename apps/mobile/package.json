@@ -16,12 +16,12 @@
     "@expo-google-fonts/plus-jakarta-sans": "0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "catalog:",
-    "expo": "58.0.16",
+    "expo": "58.0.17",
     "expo-audio": "catalog:",
     "expo-font": "58.0.9",
     "expo-localization": "58.0.5",
-    "expo-router": "58.0.24",
-    "expo-status-bar": "58.0.3",
+    "expo-router": "58.0.25",
+    "expo-status-bar": "58.0.4",
     "react": "catalog:",
     "react-native": "catalog:",
     "react-native-gesture-handler": "catalog:",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@types/react": "catalog:",
-    "babel-preset-expo": "58.0.18",
+    "babel-preset-expo": "58.0.19",
     "typescript": "5.9.3"
   }
 }
