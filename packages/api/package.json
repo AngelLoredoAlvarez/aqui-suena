@@ -17,7 +17,8 @@
     "start": "tsx src/main.ts",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@trpc/server": "11.19.0",

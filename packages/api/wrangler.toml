@@ -1,0 +1,10 @@
+name = "aqui-suena-api"
+main = "src/worker.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Browser origins allowed by CORS, on top of the built-in dev/platform origins
+# (http://localhost:3000, tauri://localhost, http://tauri.localhost). Add the
+# deployed web domain(s) here once the web app is live, e.g.:
+# ALLOWED_ORIGINS = "https://staging.example.com,https://app.example.com"
