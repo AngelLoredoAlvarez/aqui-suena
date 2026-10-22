@@ -40,10 +40,11 @@ Replace `<worker>` with the deployed URL.
 
 2. **tRPC** — proves the shared router runs on the edge (GET query):
    ```bash
-   curl 'https://<worker>/trpc/listener.getStatus?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22stationId%22%3A%22station-1%22%7D%7D%7D'
+   curl 'https://<worker>/trpc/listener.getStatus?input=%7B%22stationId%22%3A%22station-1%22%7D'
    ```
-   The exact `input` encoding is tRPC's; an easier check is to point the web app
-   at the Worker and confirm the landing shows the listener status.
+   The `input` is the URL-encoded JSON of the procedure input — tRPC v11 with the
+   default transformer sends it unwrapped (no `"json"` envelope). Expected:
+   `{"result":{"data":{"station":{...},"listeners":42}}}`.
 
 3. **Stream** — the critical one. Fetch the proxied mirror and let it run for
    several minutes, confirming bytes keep arriving (this is what the Cloudflare
