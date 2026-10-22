@@ -24,7 +24,7 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 - [x] T1 — Bump TypeScript to 6.0.3 across all packages, run typecheck, fix any breaks (S1).
 - [x] T2 — Apply patch bumps (react, react-dom, react-query, tauri, turbo, dependency-cruiser) (S2).
 - [x] T3 — Apply Tamagui minor bump and verify config/UI tests (S3).
-- [ ] T4 — Full verification (typecheck, test, biome, singletons, web build, e2e) + close (S4).
+- [x] T4 — Full verification (typecheck, test, biome, singletons, web build, e2e) + close (S4).
 
 ## Log
 
@@ -96,3 +96,16 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 - **L13 — 2026-10-22, risk.** Risk: item 5 (dependency minor touching the shared UI framework) +
   item 6 (a visual regression would not be caught by unit tests alone) — mitigated by config token
   assertions, RTL rendering tests, and the headed-capable web e2e suite. Commit recorded below.
+
+- **L14 — 2026-10-22, RDD assessment + independent verifier (T4).** `gentle-ai review assess
+  --base-ref main --committed-only` → `risk: medium`, `review_due: false` (`under_budget`): no native
+  review required for this slice. Independent verifier (Risk line names item 5) ran on `bcce562` with
+  fresh context: S1–S3 MET, S4 authorized checks green, no change-caused failures; the only
+  pre-existing item is the `scripts/dev.mjs` biome formatting error (confirmed byte-identical to
+  `main`). Web e2e was observed 12/12 by the parent (recorded in L12). VERDICT: PASS.
+
+- **L15 — 2026-10-22, close.** Feature complete on `chore/deps-typescript` (commits `08c821f`,
+  `c865095`, `bcce562`). Deferred to separate slices: `@react-native-async-storage/async-storage`
+  2.2.0→3.1.1 (major, native), `react-native-gesture-handler` 3.3.0→3.4.0 (native minor),
+  `@types/node` 24.x (26 line ahead of Node 24), `@biomejs/biome` 2.5.15→2.6.2. Push/PR/merge remain
+  user decisions.
