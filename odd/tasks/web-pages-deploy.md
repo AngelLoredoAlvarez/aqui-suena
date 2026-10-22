@@ -1,6 +1,6 @@
 # Web deploy to Cloudflare Pages
 
-Branch: `chore/api-deploy-config` · Status: in progress (2026-10-22)
+Branch: `chore/api-deploy-config` · Status: implemented + verified (2026-10-22)
 
 ## Specs
 
@@ -18,18 +18,15 @@ S5. `wrangler` resolves from every workspace package that needs it (the API
 
 ## Tasks
 
-- [ ] T1 — Generalize `DESKTOP_BUILD` → `STATIC_EXPORT` in `apps/web/next.config.ts`
-      and `scripts/build-desktop-web.mjs` (S2). Route: inline.
-- [ ] T2 — Move `wrangler` to the root devDependencies so both packages resolve
-      it (S5). Route: inline.
-- [ ] T3 — Add `scripts/deploy-web-pages.mjs` and the root `deploy:web` script
-      (S1, S3). Route: inline.
-- [ ] T4 — Set `ALLOWED_ORIGINS` in `packages/api/wrangler.toml` to the defaults
-      plus the Pages origin (S4). Route: inline.
-- [ ] T5 — Add `apps/web/DEPLOY.md` and cross-link it from
-      `packages/api/DEPLOY.md` (S3, S4). Route: inline.
-- [ ] T6 — Verify: lint, typecheck, api tests, static export build, desktop
-      build, arch.
+- [x] T1 — Generalize `DESKTOP_BUILD` → `STATIC_EXPORT` (S2). Commit `d46999f`.
+- [x] T2 — Move `wrangler` to the root devDependencies (S5). Commit `d46999f`.
+- [x] T3 — Add `scripts/deploy-web-pages.mjs` and the root `deploy:web` script
+      (S1, S3). Commit `d46999f`.
+- [x] T4 — Set `ALLOWED_ORIGINS` to the defaults plus the Pages origin (S4).
+      Commit `d46999f`.
+- [x] T5 — Add `apps/web/DEPLOY.md` and cross-link it from
+      `packages/api/DEPLOY.md` (S3, S4). Commit `d46999f`.
+- [x] T6 — Verify (all). Evidence in L4.
 
 ## Log
 
@@ -43,3 +40,20 @@ funcionan, prepara el deploy para la web"
 - L3: `parseAllowedOrigins` REPLACES the built-in defaults when `ALLOWED_ORIGINS`
   is set (contrary to the old `wrangler.toml` comment). The value must list every
   origin that must keep working, including the Tauri and localhost defaults.
+- L4 (2026-10-22, verification green): `pnpm lint`, `pnpm typecheck`,
+  `pnpm test` (7 tasks; 52 API + 90 UI tests), `pnpm arch` (117 modules);
+  `STATIC_EXPORT=1 NEXT_PUBLIC_API_BASE_URL=https://example.invalid pnpm --filter web build`
+  wrote `apps/web/out/index.html` with the URL baked into `out/_next`;
+  `pnpm build:desktop:web` still passes; both `web` and `@aqui-suena/api`
+  resolve `wrangler` 4.151.3 from the root. Native assess over
+  `fb692a2..d46999f`: medium / under_budget, no native review due.
+- L5 (2026-10-22, process incident): the independent verifier probed
+  `pnpm --filter @aqui-suena/api run deploy:worker -- --help`; wrangler treated
+  `--` as end-of-options and executed a real deploy (version `e6e1e26f-...`).
+  Net effect: the live Worker now carries this change's `ALLOWED_ORIGINS`, which
+  is the intended config, but it happened without user authorization. Post-check:
+  `/health` 200, Pages origin 200, unknown origin 403. Repo untouched; nothing
+  pushed; the verifier scratch dir was removed.
+- L6 (advisories, not corrected): `globalPassThroughEnv: ["PAGES_PROJECT"]` only
+  silences biome's turbo rule; the deploy script spawns bare `wrangler` from
+  PATH, which works under `pnpm deploy:web` but not a bare `node` invocation.
