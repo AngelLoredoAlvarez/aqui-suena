@@ -18,7 +18,7 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "deploy": "wrangler deploy"
+    "deploy:worker": "wrangler deploy"
   },
   "dependencies": {
     "@trpc/server": "11.19.0",

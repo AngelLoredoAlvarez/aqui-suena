@@ -17,7 +17,7 @@ the smoke test that confirms long-lived audio streaming works on the free plan.
 ## Deploy
 
 ```bash
-pnpm --filter @aqui-suena/api deploy
+pnpm --filter @aqui-suena/api deploy:worker
 ```
 
 This runs `wrangler deploy`, which bundles `src/worker.ts` (and its relative
@@ -71,5 +71,5 @@ does not charge. To remove the deployment entirely (e.g. after a test):
 pnpm --filter @aqui-suena/api exec wrangler delete
 ```
 
-This deletes the Worker and its route. Re-deploy later with the `deploy`
+This deletes the Worker and its route. Re-deploy later with the `deploy:worker`
 command above.
