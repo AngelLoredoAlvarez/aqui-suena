@@ -8,9 +8,11 @@ the smoke test that confirms long-lived audio streaming works on the free plan.
 ## Prerequisites
 
 1. A Cloudflare account (free plan is enough).
-2. `wrangler` installed and authenticated. Either:
-   - globally: `npm i -g wrangler` then `wrangler login`, or
-   - as a workspace devDependency: `pnpm add -Dw wrangler` then `pnpm wrangler login`.
+2. `wrangler` authenticated once. It is a devDependency of `packages/api`, so
+   `pnpm install` already provides it — only the login is manual:
+   ```bash
+   pnpm --filter @aqui-suena/api exec wrangler login
+   ```
 
 ## Deploy
 
