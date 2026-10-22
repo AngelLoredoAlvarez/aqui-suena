@@ -22,7 +22,7 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 ## Tasks
 
 - [x] T1 — Bump TypeScript to 6.0.3 across all packages, run typecheck, fix any breaks (S1).
-- [ ] T2 — Apply patch bumps (react, react-dom, react-query, tauri, turbo, dependency-cruiser) (S2).
+- [x] T2 — Apply patch bumps (react, react-dom, react-query, tauri, turbo, dependency-cruiser) (S2).
 - [ ] T3 — Apply Tamagui minor bump and verify config/UI tests (S3).
 - [ ] T4 — Full verification (typecheck, test, biome, singletons, web build, e2e) + close (S4).
 
@@ -59,3 +59,21 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 
 - **L7 — 2026-10-22, risk.** Risk: item 5 — a toolchain/dependency major bump touches every package;
   mitigated by typecheck + full test suite + web build. Commit recorded below.
+
+- **L8 — 2026-10-22, implementation (T2).** Patch bumps applied: `react`/`react-dom` 19.3.1 (catalog),
+  `@tanstack/react-query` 5.104.5 (catalog), `@tauri-apps/api` 2.12.4 (web), `@tauri-apps/cli` 2.12.4
+  (desktop), `turbo` 2.11.10 and `dependency-cruiser` 18.7.0 (root). `@types/react`/`@types/react-dom`
+  stay at 19.3.0 (no newer patch). No source code changed.
+
+- **L9 — 2026-10-22, verification (T2).**
+  - `pnpm typecheck`: 7/7 tasks successful.
+  - `pnpm test`: 7/7 tasks (config 10, api 52, player 66, db 2, ui 90).
+  - `pnpm check:singletons`: 12 singletons, one physical copy each.
+  - `pnpm arch`: no violations (101 modules).
+  - `pnpm --filter web build`: compiled successfully.
+  - `pnpm peers check`: only the pre-existing `@react-native/metro-config` 0.87.1 vs 0.88.0 mismatch
+    (unchanged, backlog `Verification gaps`).
+
+- **L10 — 2026-10-22, note.** The `minimumReleaseAgeExclude` list in `pnpm-workspace.yaml` still
+  carries `turbo@2.11.9`/`@turbo/*@2.11.9`; `turbo` 2.11.10 installed without needing a new exclusion,
+  so those entries are now stale but inert. Left untouched to keep the diff focused.
