@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-10-21 against `main` 2c496c0.
+Last synced 2026-10-22 against `main` d47dad4 (deps-followups branch).
 
 ## Player / playback
 
@@ -40,24 +40,30 @@ Last synced 2026-10-21 against `main` 2c496c0.
 
 ## Verification gaps
 
-- [ ] Metro vs react-native question, still unconfirmed: `metro` 0.87.1 is
-      resolved through `@expo/metro` 58.0.0, while `react-native` 0.88.0
-      declares no metro dependency and `@react-native/metro-config` 0.88 is
-      not installed. Find where the original peer warning came from before
-      acting on it.
+- [x] Metro vs react-native question — RESOLVED benign 2026-10-22: the peer
+      warning comes from `@react-native/community-cli-plugin@0.88.0`
+      (transitive via `react-native@0.88.0`) declaring a peer on
+      `@react-native/metro-config@0.88.0`, while `@expo/metro@58.0.0` pins
+      `metro@0.87.1`. Expo uses its own CLI (`@expo/cli`), not the community
+      CLI, so the plugin is dead code and the mismatch is harmless. Forcing
+      `@react-native/metro-config@0.88.0` would break Expo's bundler. Leave
+      as-is.
 
 ## Dependencies (scheduled slices, not bedtime)
 
-- [ ] TypeScript migration (major line, touches every package). Latest on
-      2026-10-21 is 7.0.2, and `expo install --check` on SDK 58 expects
-      `~6.0.3` against the installed 5.9.3. The upgrade stays out until the
-      target line is chosen.
+- [x] TypeScript migration — DONE 2026-10-22: 5.9.3 → 7.0.2 (the native Go
+      compiler). Deliberately ahead of `expo install --check` (SDK 58 expects
+      `~6.0.3`); `tsconfig.base.json` dropped `baseUrl`, so it is TS7-ready.
+      Feature: `odd/tasks/deps-typescript.md`.
 - [ ] `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major,
-      mobile only). Not started.
-- Frontier verified 2026-10-21 with `pnpm outdated -r`: patch bumps only for
-      react 19.3.0 → 19.3.1, react-dom 19.3.0 → 19.3.1, @tanstack/react-query
-      5.104.4 → 5.104.5, @tauri-apps/api 2.12.3 → 2.12.4, turbo 2.11.9 →
-      2.11.10 and dependency-cruiser 18.6.0 → 18.7.0; `@tamagui/config` 3.0.18
-      → 3.1.0 is the only minor. `@types/node` is installed at 24.19.2 and the
-      26 line is ahead of the Node 24 runtime, so it stays. The Rust side has
-      nothing pending (tauri 2.12.4 / tauri-build 2.7.3).
+      mobile only). BLOCKED while on Expo Go: SDK 58's
+      `bundledNativeModules.json` pins 2.2.0, so a 3.x JS bump desyncs the
+      native module and breaks Expo Go (same class as the expo-audio playback
+      service). Defer until a dev/release build or a future SDK that bundles
+      3.x.
+- Patch/minor bumps applied 2026-10-22 (`chore/deps-typescript`):
+      `@tanstack/react-query` 5.104.5, `@tauri-apps/api`/`@tauri-apps/cli`
+      2.12.4, `turbo` 2.11.10, `dependency-cruiser` 18.7.0, `tamagui` +
+      `@tamagui/config` 3.1.2. `react`/`react-dom` were bumped to 19.3.1 then
+      REVERTED to 19.3.0 to match Expo SDK 58. `@types/node` stays at 24.19.2
+      (the 26 line is ahead of Node 24). Rust side: nothing pending.

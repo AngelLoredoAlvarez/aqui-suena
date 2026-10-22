@@ -30,8 +30,7 @@ function lanAddress() {
 
 // Native plays the fixture URLs directly, so they must be absolute and reachable
 // from the emulator or the phone: the host's LAN address, not localhost.
-const streamBase =
-  process.env.EXPO_PUBLIC_STREAM_BASE_URL ?? `http://${lanAddress()}:3000`;
+const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL ?? `http://${lanAddress()}:3000`;
 
 // The desktop window loads the web dev server that this script already owns.
 // Leaving beforeDevCommand in place would try to bind :3000 a second time.
@@ -50,25 +49,12 @@ const tasks = [
   },
   {
     name: "mobile",
-    args: [
-      "--filter",
-      "mobile",
-      "start",
-      ...(openAndroid ? ["--", "--android"] : []),
-    ],
+    args: ["--filter", "mobile", "start", ...(openAndroid ? ["--", "--android"] : [])],
     env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase },
   },
   {
     name: "desktop",
-    args: [
-      "--filter",
-      "desktop",
-      "exec",
-      "tauri",
-      "dev",
-      "--config",
-      tauriConfig,
-    ],
+    args: ["--filter", "desktop", "exec", "tauri", "dev", "--config", tauriConfig],
     env: {},
   },
 ];
@@ -136,9 +122,7 @@ for (const task of tasks) {
     if (shuttingDown) {
       return;
     }
-    console.error(
-      `\n[dev] ${task.name} exited (${signal ?? code}); stopping the rest`,
-    );
+    console.error(`\n[dev] ${task.name} exited (${signal ?? code}); stopping the rest`);
     shutdown(code ?? 1);
   });
 }
