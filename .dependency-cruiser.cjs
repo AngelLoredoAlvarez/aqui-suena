@@ -31,10 +31,7 @@ module.exports = {
   options: {
     doNotFollow: { path: "node_modules" },
     exclude: "node_modules|\\.next|\\.turbo|\\.expo|/dist/|/build/|/out/",
-    // TypeScript 7 ships the native compiler, which no longer exposes the JS
-    // API dependency-cruiser relies on, so it falls back to parsing nothing.
-    // swc parses the TypeScript syntax directly and keeps the layer rules
-    // meaningful. Revisit once dependency-cruiser supports typescript >= 7.
+    // dependency-cruiser can't parse typescript >= 7, so swc keeps the layer rules working.
     parser: "swc",
   },
 };

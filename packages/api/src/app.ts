@@ -13,11 +13,6 @@ export interface AppOptions {
   upstreamFetch?: typeof fetch;
 }
 
-// Portable request handler: a pure `Request -> Response` function with no
-// node built-ins, so the same core serves the Node process (via the bridge in
-// server.ts) and a Cloudflare Worker (worker.ts). CORS is a browser mechanism,
-// not authentication, so the policy is enforced here exactly as it was in the
-// node:http server.
 export async function handleRequest(request: Request, options: AppOptions): Promise<Response> {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const origin = request.headers.get("origin");
@@ -65,9 +60,6 @@ export async function handleRequest(request: Request, options: AppOptions): Prom
   });
 }
 
-// A `Response` is immutable once constructed, so the proxied stream and the
-// tRPC response are re-wrapped to carry the CORS headers. The body is passed
-// through untouched, so streaming is preserved (bytes pipe, never buffer).
 function withCors(response: Response, cors: Record<string, string>): Response {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(cors)) {

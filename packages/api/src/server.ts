@@ -8,11 +8,6 @@ export interface ApiServerOptions {
   upstreamFetch?: typeof fetch;
 }
 
-// Node bridge: adapts the portable `Request -> Response` handler to node:http,
-// so `pnpm dev` keeps working while the exact same core runs in a Cloudflare
-// Worker. The request body is buffered (tRPC bodies are small JSON); the
-// response body is streamed via Readable.fromWeb so the /stream proxy never
-// buffers audio.
 export function createApiServer(options: ApiServerOptions): Server {
   return createServer((request, response) => {
     handleNodeRequest(request, response, options).catch((error: unknown) => {
