@@ -1,6 +1,6 @@
 # Spike: free staging on Cloudflare Workers (audio stream proxy)
 
-Branch: `spike/cloudflare-streaming` · Status: verified-viable (2026-10-22)
+Branch: `spike/cloudflare-streaming` · Status: verified-viable + implemented (2026-10-22)
 
 ## Question
 
@@ -34,18 +34,21 @@ kept the same layout but serves it from a long-running Node process
 (`node:http` + `tsx`), because of the `/stream` proxy. The streaming core,
 however, is already platform-agnostic.
 
-## What the adaptation touches (not done — this is the spike only)
+## What the adaptation touches (DONE on this branch)
 
-- `packages/api/src/server.ts`: replace the `node:http` `createServer` wrapper
-  with a `fetch(request) => Response` handler. The `handleStream` path becomes
-  `return proxied` directly (a `Response` with a streamed body).
+Implemented in commits `c344868` (`src/app.ts` portable fetch handler, `src/server.ts`
+node:http bridge, `src/worker.ts` Workers entry) and `bb65fe3` (dependency-cruiser
+now parses with swc, since it does not support typescript >= 7 yet):
+
+- `packages/api/src/server.ts`: the `node:http` `createServer` wrapper now bridges
+  `IncomingMessage` → `Request` and pipes the `Response` back; the routing lives in
+  `app.ts`.
 - tRPC adapter: `@trpc/server/adapters/node-http` → `@trpc/server/adapters/fetch`.
-- `packages/api/src/main.ts` (`tsx` process) → `export default { fetch }` entry.
-- `packages/api/src/env.ts`: `PORT`/`HOST` → Worker env vars via `wrangler.toml`.
-- Build/runtime: `tsx` → bundled Worker (`wrangler` / esbuild).
-- `packages/api/src/stream-proxy.ts` (`fetchProxiedStream`): **unchanged** — it
-  already takes injected `fetch` and returns a `Response`, which is exactly the
-  Worker shape.
+- `packages/api/src/main.ts` (`tsx` process): unchanged, still starts the Node server.
+- `packages/api/src/worker.ts`: `export default { fetch }` for Cloudflare.
+- `packages/api/src/stream-proxy.ts` (`fetchProxiedStream`): **unchanged**.
+- `tsx` → `wrangler` build for Workers is the remaining deploy step (needs a
+  Cloudflare account); the code is already the Worker shape.
 
 Illustrative Worker shape (NOT tested, intent only):
 
