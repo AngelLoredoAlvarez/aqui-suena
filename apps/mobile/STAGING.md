@@ -140,19 +140,10 @@ iOS builds run on EAS, so no local Xcode or macOS is needed to produce the
 
 ### Bundle identifier
 
-`app.json` has no `ios.bundleIdentifier` yet, so the first iOS build prompts for
-one. Use `com.seventeenlabs.aquisuena` to match the Android package, then review
-and commit the `app.json` edit EAS writes. To skip the prompt, add it before the
-first build:
-
-```json
-"ios": {
-  "bundleIdentifier": "com.seventeenlabs.aquisuena"
-}
-```
-
-Treat the identifier as permanent: changing it after the app is published means a
-new app identity.
+`app.json` sets `ios.bundleIdentifier` to `com.seventeenlabs.aquisuena`, matching
+the Android package, so the first iOS build does not prompt for it. Treat the
+identifier as permanent: changing it after the app is published means a new app
+identity.
 
 ### Physical iPhone (internal distribution)
 
