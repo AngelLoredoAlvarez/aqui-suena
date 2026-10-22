@@ -23,7 +23,7 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 
 - [x] T1 — Bump TypeScript to 6.0.3 across all packages, run typecheck, fix any breaks (S1).
 - [x] T2 — Apply patch bumps (react, react-dom, react-query, tauri, turbo, dependency-cruiser) (S2).
-- [ ] T3 — Apply Tamagui minor bump and verify config/UI tests (S3).
+- [x] T3 — Apply Tamagui minor bump and verify config/UI tests (S3).
 - [ ] T4 — Full verification (typecheck, test, biome, singletons, web build, e2e) + close (S4).
 
 ## Log
@@ -77,3 +77,22 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 - **L10 — 2026-10-22, note.** The `minimumReleaseAgeExclude` list in `pnpm-workspace.yaml` still
   carries `turbo@2.11.9`/`@turbo/*@2.11.9`; `turbo` 2.11.10 installed without needing a new exclusion,
   so those entries are now stale but inert. Left untouched to keep the diff focused.
+
+- **L11 — 2026-10-22, implementation (T3).** Tamagui 3.0.18 → 3.1.2 (catalog) and `@tamagui/config`
+  3.0.18 → 3.1.2 (packages/config). This minor is NOT inert: Tamagui 3.1 removes the longhand of any
+  style prop that has a shorthand in the active config (v5 → `@tamagui/shorthands/v4`), and TypeScript
+  surfaces the failures one prop at a time. The repo was already shorthand-migrated except for three
+  longhands in `packages/ui/src/player-card/player-card.tsx`, which were converted to their v4
+  shorthands (note: v4 shorthands are full words, not the v3 terse set):
+  `justifyContent` → `justify`, `textAlign` → `text`, `minHeight` → `minH`.
+
+- **L12 — 2026-10-22, verification (T3).**
+  - `pnpm typecheck`: 7/7 tasks successful.
+  - `pnpm test`: 7/7 tasks (config 10, api 52, player 66, db 2, ui 90).
+  - `pnpm check:singletons`: 12 singletons, one physical copy each.
+  - `pnpm --filter web build`: compiled successfully.
+  - `E2E_PORT=3000 pnpm --filter web test:e2e`: 12/12 passed (chromium-es + chromium-en).
+
+- **L13 — 2026-10-22, risk.** Risk: item 5 (dependency minor touching the shared UI framework) +
+  item 6 (a visual regression would not be caught by unit tests alone) — mitigated by config token
+  assertions, RTL rendering tests, and the headed-capable web e2e suite. Commit recorded below.
