@@ -75,3 +75,27 @@ Tasks 1–4 done and published to main (scaffold, UI foundation, status API mock
 
 - Documents in English; Biome for lint/format (no ESLint/Prettier).
 - Conventional Commits on feature branches; push/PR/merge are maintainer decisions.
+
+### Secret scanning (gitleaks)
+
+`gitleaks` scans commits and the working tree for leaked credentials. The
+pre-commit hook runs it on staged changes when the binary is installed; CI
+(`.github/workflows/gitleaks.yml`) enforces it on every push and pull request.
+
+Install the binary (not an npm package):
+
+- macOS: `brew install gitleaks`
+- Linux: download the latest release from
+  https://github.com/gitleaks/gitleaks/releases, or
+  `go install github.com/zricethezav/gitleaks/v8@latest` (add `~/go/bin` to
+  `PATH`).
+- Windows: `scoop install gitleaks` or `choco install gitleaks`.
+
+Run manually:
+
+- `pnpm gitleaks` — scan staged changes (pre-commit mode)
+- `pnpm gitleaks:scan` — scan the whole git history
+- `pnpm gitleaks:dir` — scan the working tree
+
+Configuration lives in `.gitleaks.toml`; allowlist generated/vendored paths
+there. Use `// gitleaks:allow` on a line to suppress a single false positive.

@@ -1,3 +1,9 @@
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --config .gitleaks.toml
+else
+  echo "gitleaks not installed; skipping local secret scan (CI still enforces it)."
+  echo "Install: brew install gitleaks (macOS) or see README."
+fi
 pnpm lint-staged
 pnpm check:singletons
 pnpm typecheck

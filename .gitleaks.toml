@@ -1,0 +1,20 @@
+# Gitleaks configuration for aqui-suena.
+# Built-in rules are used as-is; this file only adds an allowlist for
+# generated, vendored, and public paths.
+
+[allowlist]
+  description = "Global allowlist for generated, vendored, and public paths"
+  paths = [
+    '''node_modules/''',
+    '''\.turbo/''',
+    '''\.expo/''',
+    '''\.next/''',
+    '''dist/''',
+    '''build/''',
+    '''out/''',
+    '''apps/mobile/android/''',
+    '''apps/mobile/ios/''',
+    '''pnpm-lock\.yaml''',
+    '''tools/''',
+    '''\.gitleaks\.toml''',
+  ]
