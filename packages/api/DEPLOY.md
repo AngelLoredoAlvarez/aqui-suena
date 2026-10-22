@@ -61,3 +61,15 @@ Replace `<worker>` with the deployed URL.
 - mobile: `EXPO_PUBLIC_API_BASE_URL=https://<worker>` when bundling
 
 Production web domains go into `ALLOWED_ORIGINS` in `wrangler.toml`.
+
+## Tear down (turn it off)
+
+The Workers free plan is $0 and never bills — exceeding a limit throttles, it
+does not charge. To remove the deployment entirely (e.g. after a test):
+
+```bash
+pnpm --filter @aqui-suena/api exec wrangler delete
+```
+
+This deletes the Worker and its route. Re-deploy later with the `deploy`
+command above.
