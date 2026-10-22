@@ -66,15 +66,15 @@ export function PlayerCard({
         onPress={() => onOpenSheet?.()}
         aria-label={stationName}
         width="100%"
-        justifyContent="flex-start"
+        justify="flex-start"
         paddingInline={6}
         paddingBlock={1}
         borderWidth={0}
-        minHeight={0}
+        minH={0}
         gap={0}
         opacity={1}
       >
-        <Paragraph width="100%" textAlign="center" fontSize="8" fontWeight="700" color="brandCream">
+        <Paragraph width="100%" text="center" fontSize="8" fontWeight="700" color="brandCream">
           {stationName}
         </Paragraph>
       </Button>

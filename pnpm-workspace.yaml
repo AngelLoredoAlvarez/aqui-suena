@@ -8,18 +8,18 @@ packages:
 # into two module registries, so a provider and its consumer stop sharing a
 # context. Keep this catalog aligned with scripts/check-singletons.mjs.
 catalog:
-  "@tanstack/react-query": 5.104.4
+  "@tanstack/react-query": 5.104.5
   "@types/react": 19.3.0
   "@types/react-dom": 19.3.0
   expo-audio: 58.0.10
-  react: 19.3.0
-  react-dom: 19.3.0
+  react: 19.3.1
+  react-dom: 19.3.1
   react-native: 0.88.0
   react-native-gesture-handler: 3.3.0
   react-native-reanimated: 4.7.1
   react-native-safe-area-context: 5.10.1
   react-native-screens: 4.30.0
-  tamagui: 3.0.18
+  tamagui: 3.1.2
 
 # Hard enforcement even if a transitive dependency asks for something else.
 overrides:

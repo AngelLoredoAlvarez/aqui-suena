@@ -17,18 +17,17 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
-      "@aqui-suena/api": ["packages/api/src"],
-      "@aqui-suena/api/*": ["packages/api/src/*"],
-      "@aqui-suena/config": ["packages/config/src"],
-      "@aqui-suena/config/*": ["packages/config/src/*"],
-      "@aqui-suena/db": ["packages/db/src"],
-      "@aqui-suena/db/*": ["packages/db/src/*"],
-      "@aqui-suena/player": ["packages/player/src"],
-      "@aqui-suena/player/*": ["packages/player/src/*"],
-      "@aqui-suena/ui": ["packages/ui/src"],
-      "@aqui-suena/ui/*": ["packages/ui/src/*"]
+      "@aqui-suena/api": ["./packages/api/src"],
+      "@aqui-suena/api/*": ["./packages/api/src/*"],
+      "@aqui-suena/config": ["./packages/config/src"],
+      "@aqui-suena/config/*": ["./packages/config/src/*"],
+      "@aqui-suena/db": ["./packages/db/src"],
+      "@aqui-suena/db/*": ["./packages/db/src/*"],
+      "@aqui-suena/player": ["./packages/player/src"],
+      "@aqui-suena/player/*": ["./packages/player/src/*"],
+      "@aqui-suena/ui": ["./packages/ui/src"],
+      "@aqui-suena/ui/*": ["./packages/ui/src/*"]
     }
   }
 }
