@@ -86,7 +86,9 @@ origins stay on by default.
   because the packaged app runs on `tauri://localhost` and has no server of its
   own. The Tauri bundle is a static export, so it cannot host route handlers.
 - **Mobile**: `EXPO_PUBLIC_API_BASE_URL`, inlined at bundle time. Changing it at
-  runtime is impossible; it must be passed when the bundle is built.
+  runtime is impossible; it must be passed when the bundle is built. Native also
+  needs `EXPO_PUBLIC_STREAM_BASE_URL` for the `/test-streams` fixtures served by
+  the web deployment; see `apps/mobile/STAGING.md`.
 
 ## Why a static desktop client is safe here
 

@@ -1,0 +1,18 @@
+{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "staging": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://aqui-suena-api.angel-loredo-alvarez.workers.dev",
+        "EXPO_PUBLIC_STREAM_BASE_URL": "https://aqui-suena-web.pages.dev"
+      }
+    }
+  }
+}

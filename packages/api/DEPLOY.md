@@ -60,7 +60,9 @@ Replace `<worker>` with the deployed URL.
 - web: see `apps/web/DEPLOY.md` (`pnpm deploy:web` builds the static export
   with the Worker URL baked in and deploys it to Cloudflare Pages)
 - desktop: `NEXT_PUBLIC_API_BASE_URL=https://<worker>` at `pnpm --filter desktop build`
-- mobile: `EXPO_PUBLIC_API_BASE_URL=https://<worker>` when bundling
+- mobile: `EXPO_PUBLIC_API_BASE_URL=https://<worker>` for the `/stream` proxy
+  and `EXPO_PUBLIC_STREAM_BASE_URL=https://<pages>` for the `/test-streams`
+  fixtures when bundling; see `apps/mobile/STAGING.md`
 
 Production web domains go into `ALLOWED_ORIGINS` in `wrangler.toml`. Setting
 that variable replaces the built-in defaults, so keep the origins you still need

@@ -19,7 +19,8 @@
     "dev:mobile": "pnpm --filter mobile start",
     "dev:mobile:android": "pnpm --filter mobile start -- --android",
     "dev:mobile:build": "pnpm --filter mobile android",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:mobile:staging": "node scripts/build-mobile-staging.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
