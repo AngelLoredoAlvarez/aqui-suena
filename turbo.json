@@ -1,15 +1,16 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
+  "globalPassThroughEnv": ["PAGES_PROJECT"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["DESKTOP_BUILD", "NEXT_PUBLIC_API_BASE_URL", "API_ORIGIN"],
+      "env": ["STATIC_EXPORT", "NEXT_PUBLIC_API_BASE_URL", "API_ORIGIN"],
       "outputs": [".next/**", "dist/**", "out/**", "!.next/cache/**"]
     },
     "desktop#build": {
       "dependsOn": ["^build", "web#build"],
       "cache": false,
-      "env": ["DESKTOP_BUILD", "NEXT_PUBLIC_API_BASE_URL", "API_ORIGIN"],
+      "env": ["STATIC_EXPORT", "NEXT_PUBLIC_API_BASE_URL", "API_ORIGIN"],
       "outputs": [".next/**", "dist/**", "out/**", "!.next/cache/**"]
     },
     "typecheck": {

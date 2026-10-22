@@ -8,10 +8,10 @@ the smoke test that confirms long-lived audio streaming works on the free plan.
 ## Prerequisites
 
 1. A Cloudflare account (free plan is enough).
-2. `wrangler` authenticated once. It is a devDependency of `packages/api`, so
-   `pnpm install` already provides it — only the login is manual:
+2. `wrangler` authenticated once. It is a root devDependency, so `pnpm install`
+   already provides it — only the login is manual:
    ```bash
-   pnpm --filter @aqui-suena/api exec wrangler login
+   pnpm exec wrangler login
    ```
 
 ## Deploy
@@ -57,11 +57,14 @@ Replace `<worker>` with the deployed URL.
 
 ## Wiring the clients afterward
 
-- web: `NEXT_PUBLIC_API_BASE_URL=https://<worker> pnpm --filter web build`
-- desktop: same variable at `pnpm --filter desktop build`
+- web: see `apps/web/DEPLOY.md` (`pnpm deploy:web` builds the static export
+  with the Worker URL baked in and deploys it to Cloudflare Pages)
+- desktop: `NEXT_PUBLIC_API_BASE_URL=https://<worker>` at `pnpm --filter desktop build`
 - mobile: `EXPO_PUBLIC_API_BASE_URL=https://<worker>` when bundling
 
-Production web domains go into `ALLOWED_ORIGINS` in `wrangler.toml`.
+Production web domains go into `ALLOWED_ORIGINS` in `wrangler.toml`. Setting
+that variable replaces the built-in defaults, so keep the origins you still need
+in the list.
 
 ## Tear down (turn it off)
 

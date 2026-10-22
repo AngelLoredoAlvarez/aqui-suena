@@ -4,7 +4,10 @@ compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-# Browser origins allowed by CORS, on top of the built-in dev/platform origins
-# (http://localhost:3000, tauri://localhost, http://tauri.localhost). Add the
-# deployed web domain(s) here once the web app is live, e.g.:
-# ALLOWED_ORIGINS = "https://staging.example.com,https://app.example.com"
+# Browser origins allowed by CORS. Setting this variable REPLACES the built-in
+# defaults, so it must list every origin that has to keep working:
+# http://localhost:3000 (web dev), tauri://localhost and http://tauri.localhost
+# (desktop), plus the deployed web domain. The Pages origin depends on the
+# project name used by `pnpm deploy:web` (default aqui-suena-web). Redeploy the
+# Worker after changing it.
+ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhost,https://aqui-suena-web.pages.dev"

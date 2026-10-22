@@ -19,7 +19,7 @@ const result = spawnSync("pnpm", ["--filter", "web", "build"], {
   stdio: "inherit",
   env: {
     ...process.env,
-    DESKTOP_BUILD: "1",
+    STATIC_EXPORT: "1",
     NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
   },
   // pnpm is a .cmd shim on Windows.

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "build:desktop:web": "node scripts/build-desktop-web.mjs",
+    "deploy:web": "node scripts/deploy-web-pages.mjs",
     "dev": "node scripts/dev.mjs",
     "test": "node --test scripts/check-singletons.test.mjs && turbo run test -- --run",
     "lint": "biome check --write .",
@@ -27,7 +28,8 @@
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
     "turbo": "2.11.10",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "wrangler": "4.151.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc}": [
