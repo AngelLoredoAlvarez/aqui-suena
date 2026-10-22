@@ -31,6 +31,7 @@ module.exports = {
   options: {
     doNotFollow: { path: "node_modules" },
     exclude: "node_modules|\\.next|\\.turbo|\\.expo|/dist/|/build/|/out/",
-    tsConfig: { fileName: "tsconfig.base.json" },
+    // dependency-cruiser can't parse typescript >= 7, so swc keeps the layer rules working.
+    parser: "swc",
   },
 };
