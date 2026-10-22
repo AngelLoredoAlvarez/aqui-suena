@@ -1,15 +1,17 @@
-# Feature: deps-typescript — TypeScript 6 + patch/minor dependency bumps
+# Feature: deps-typescript — TypeScript 7 (native) + patch/minor dependency bumps
 
 Branch: `chore/deps-typescript` · Delivery: `ask-on-risk` · Runner: `pnpm test` (vitest, node env) + `pnpm typecheck`
 
-Objective: migrate TypeScript from 5.9.3 to 6.0.3 (the SDK 58 expected line) and apply the
+Objective: migrate TypeScript from 5.9.3 to 7.0.2 (the native Go compiler) and apply the
 patch/minor dependency bumps already scheduled in the backlog, without changing runtime behavior.
 
 ## Specs
 
-- **S1 — TypeScript 6.0.3.** `typescript` is pinned to exact `6.0.3` in the root and in every
-  package that pins it (apps/mobile, apps/web, packages/api, packages/config, packages/db,
-  packages/player, packages/ui). `pnpm typecheck` passes for all packages.
+- **S1 — TypeScript 7.0.2.** `typescript` is pinned to exact `7.0.2` (the native Go compiler, shipped
+  as `bin/tsc`) in the root and in every package that pins it (apps/mobile, apps/web, packages/api,
+  packages/config, packages/db, packages/player, packages/ui). `pnpm typecheck` passes for all
+  packages. Note: `expo install --check` on SDK 58 expects `~6.0.3`, so 7.0.2 is ahead of the Expo
+  toolchain line — accepted deliberately (see Log L18).
 - **S2 — Patch bumps.** The catalog and manifests move `react` and `react-dom` to `19.3.1`,
   `@tanstack/react-query` to `5.104.5`, `@tauri-apps/api` (web) and `@tauri-apps/cli` (desktop)
   to `2.12.4`, `turbo` (root) to `2.11.10`, and `dependency-cruiser` (root) to `18.7.0`.
@@ -21,7 +23,7 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 
 ## Tasks
 
-- [x] T1 — Bump TypeScript to 6.0.3 across all packages, run typecheck, fix any breaks (S1).
+- [x] T1 — Bump TypeScript to 7.0.2 across all packages, run typecheck, fix any breaks (S1).
 - [x] T2 — Apply patch bumps (react, react-dom, react-query, tauri, turbo, dependency-cruiser) (S2).
 - [x] T3 — Apply Tamagui minor bump and verify config/UI tests (S3).
 - [x] T4 — Full verification (typecheck, test, biome, singletons, web build, e2e) + close (S4).
@@ -109,3 +111,20 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
   2.2.0→3.1.1 (major, native), `react-native-gesture-handler` 3.3.0→3.4.0 (native minor),
   `@types/node` 24.x (26 line ahead of Node 24), `@biomejs/biome` 2.5.15→2.6.2. Push/PR/merge remain
   user decisions.
+
+- **L16 — 2026-10-22, user request (verbatim) — reopens T1/S1:**
+  > si ya quedo para typescript 7 pues migralo de una vez wey pa que lo dejas pa despues
+
+- **L17 — 2026-10-22, implementation + verification (TypeScript 6.0.3 → 7.0.2).** `typescript` moved
+  to `7.0.2` in all 8 manifests. Verified `typescript@7.0.2` is the native Go compiler (ships
+  `@typescript/typescript-<platform>` binaries, exposed as `bin/tsc`). Empirically a drop-in here:
+  `pnpm typecheck` 7/7 (4.4s vs ~21s on 6.0.3), `pnpm test` 7/7 (config 10, api 52, db 2, player 66,
+  ui 90), `pnpm check:singletons` 12/12, `pnpm --filter web build` green (Next "Running TypeScript"
+  passed). Sanity check: a deliberate `TS2322` in `/tmp` was correctly caught, confirming tsgo
+  actually type-checks. The `baseUrl` removal from L5 is what makes the tsconfig 7-compatible.
+
+- **L18 — 2026-10-22, caveat (Expo alignment).** `npx expo install --check` (SDK 58) flags two
+  versions as ahead of its expected line: `typescript@7.0.2` (expects `~6.0.3`) — the direct
+  consequence of this decision — and `react@19.3.1` (expects `19.3.0`, an artifact of the T2 patch
+  bump). Neither fails the build; they are toolchain-alignment signals, not errors. Recorded so the
+  choice to stay ahead of Expo's supported TypeScript line is explicit and reversible.
