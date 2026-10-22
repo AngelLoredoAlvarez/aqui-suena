@@ -1,13 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { Readable } from "node:stream";
-import { nodeHTTPRequestHandler } from "@trpc/server/adapters/node-http";
-import { fetchProxiedStream } from "./client";
-import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
-import { appRouter } from "./router";
-
-const TRPC_PREFIX = "/trpc";
-const STREAM_PATH = "/stream";
-const HEALTH_PATH = "/health";
+import { handleRequest } from "./app";
 
 export interface ApiServerOptions {
   allowedOrigins: readonly string[];
@@ -15,108 +8,70 @@ export interface ApiServerOptions {
   upstreamFetch?: typeof fetch;
 }
 
+// Node bridge: adapts the portable `Request -> Response` handler to node:http,
+// so `pnpm dev` keeps working while the exact same core runs in a Cloudflare
+// Worker. The request body is buffered (tRPC bodies are small JSON); the
+// response body is streamed via Readable.fromWeb so the /stream proxy never
+// buffers audio.
 export function createApiServer(options: ApiServerOptions): Server {
-  const upstreamFetch = options.upstreamFetch ?? fetch;
-
   return createServer((request, response) => {
-    handleRequest(request, response, options.allowedOrigins, upstreamFetch).catch(
-      (error: unknown) => {
-        console.error("api: request failed", error);
-        if (!response.headersSent) {
-          response.writeHead(500, { "content-type": "text/plain" });
-        }
-        response.end("internal error");
-      },
-    );
+    handleNodeRequest(request, response, options).catch((error: unknown) => {
+      console.error("api: request failed", error);
+      if (!response.headersSent) {
+        response.writeHead(500, { "content-type": "text/plain" });
+      }
+      response.end("internal error");
+    });
   });
 }
 
-async function handleRequest(
+async function handleNodeRequest(
   request: IncomingMessage,
   response: ServerResponse,
-  allowedOrigins: readonly string[],
-  upstreamFetch: typeof fetch,
+  options: ApiServerOptions,
 ): Promise<void> {
-  const origin = request.headers.origin ?? null;
-  const decision = resolveCors(origin, allowedOrigins);
-
-  if (!decision.allowed) {
-    response.writeHead(403, { vary: "Origin", "content-type": "text/plain" });
-    response.end("forbidden origin");
-    return;
-  }
-
-  if (request.method === "OPTIONS") {
-    response.writeHead(
-      204,
-      decision.origin === null ? { vary: "Origin" } : preflightHeaders(decision.origin),
-    );
-    response.end();
-    return;
-  }
-
-  const url = new URL(request.url ?? "/", "http://localhost");
-  const cors = corsHeaders(decision.origin);
-
-  if (url.pathname === HEALTH_PATH && request.method === "GET") {
-    response.writeHead(200, { ...cors, "content-type": "application/json" });
-    response.end(JSON.stringify({ status: "ok" }));
-    return;
-  }
-
-  if (url.pathname === STREAM_PATH && request.method === "GET") {
-    await handleStream(request, response, cors, upstreamFetch, url);
-    return;
-  }
-
-  if (url.pathname === TRPC_PREFIX || url.pathname.startsWith(`${TRPC_PREFIX}/`)) {
-    // The adapter writes its own status and headers; headers set here survive
-    // writeHead and are only overridden on a name collision.
-    for (const [name, value] of Object.entries(cors)) {
-      response.setHeader(name, value);
-    }
-
-    await nodeHTTPRequestHandler({
-      router: appRouter,
-      req: request,
-      res: response,
-      path: url.pathname.slice(TRPC_PREFIX.length).replace(/^\//, ""),
-      createContext: () => ({}),
-    });
-    return;
-  }
-
-  response.writeHead(404, { ...cors, "content-type": "text/plain" });
-  response.end("not found");
+  const webResponse = await handleRequest(await toRequest(request), options);
+  await sendResponse(response, webResponse);
 }
 
-async function handleStream(
-  request: IncomingMessage,
-  response: ServerResponse,
-  cors: Record<string, string>,
-  upstreamFetch: typeof fetch,
-  url: URL,
-): Promise<void> {
-  const proxied = await fetchProxiedStream(upstreamFetch, url.searchParams.get("url"));
+async function toRequest(request: IncomingMessage): Promise<Request> {
+  const host = request.headers.host ?? "localhost";
+  const url = new URL(request.url ?? "/", `http://${host}`);
 
-  for (const [name, value] of proxied.headers) {
-    response.setHeader(name, value);
-  }
-  for (const [name, value] of Object.entries(cors)) {
-    response.setHeader(name, value);
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(request.headers)) {
+    if (value === undefined) continue;
+    headers.set(name, Array.isArray(value) ? value.join(", ") : value);
   }
 
-  response.writeHead(proxied.status);
+  const method = request.method ?? "GET";
+  const body = method === "GET" || method === "HEAD" ? undefined : await readBody(request);
 
-  if (proxied.body === null) {
+  return new Request(url, { method, headers, body });
+}
+
+function readBody(request: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    request.on("data", (chunk: Buffer) => chunks.push(chunk));
+    request.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    request.on("error", reject);
+  });
+}
+
+async function sendResponse(response: ServerResponse, webResponse: Response): Promise<void> {
+  const headers: Record<string, string | string[]> = {};
+  webResponse.headers.forEach((value, name) => {
+    headers[name] = value;
+  });
+  response.writeHead(webResponse.status, headers);
+
+  if (webResponse.body === null) {
     response.end();
     return;
   }
 
-  // Audio is streamed, never buffered: the client starts playing while the
-  // mirrors keep sending. A dropped client tears the upstream body down.
-  const body = Readable.fromWeb(proxied.body);
-  request.on("close", () => body.destroy());
+  const body = Readable.fromWeb(webResponse.body as ReadableStream);
   body.on("error", (error: unknown) => {
     console.error("api: stream interrupted", error);
     response.destroy();
