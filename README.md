@@ -51,6 +51,8 @@ Tauri embeds a **static export** of `apps/web` (`apps/web/out`), built by `pnpm 
 
 Because the export cannot host dynamic route handlers, `apps/web/app/**/route.ts` files would break packaging: backend work belongs in `packages/api`.
 
+Both the dashboard build and the export compile from `apps/web`, and Next takes an exclusive lock on `.next`, so `pnpm build` orders them: `desktop#build` waits for `web#build`. The export runs last, which leaves `.next` holding the static export; run `pnpm --filter web build` if you need the server build there.
+
 ## Routes
 
 Landing `/` is the player + ads carousel on both platforms, rendered from shared code. Station deep links return in Task 5.

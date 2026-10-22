@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Aquí Suena",
+  "productName": "Aqui Suena",
   "version": "0.0.0",
   "identifier": "com.seventeenlabs.aquisuena",
   "build": {
