@@ -5,8 +5,35 @@
     "version": "0.0.0",
     "scheme": "aqui-suena",
     "android": {
-      "package": "com.seventeenlabs.aquisuena"
+      "package": "com.seventeenlabs.aquisuena",
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
-    "plugins": ["expo-router", ["expo-audio", { "recordAudioAndroid": false }]]
+    "ios": {
+      "bundleIdentifier": "com.seventeenlabs.aquisuena"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": false
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "bdb5c405-db13-4b78-b60b-98b4e4298128"
+      }
+    },
+    "owner": "angelorn"
   }
 }

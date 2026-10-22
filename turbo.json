@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
-  "globalPassThroughEnv": ["PAGES_PROJECT"],
+  "globalPassThroughEnv": ["PAGES_PROJECT", "ANDROID_HOME", "ANDROID_SDK_ROOT"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
