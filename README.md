@@ -17,10 +17,10 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `apps/mobile` | Expo SDK 58 + Expo Router |
 | `apps/desktop` | Tauri shell that wraps the web static export |
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
-| `packages/ui` | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n) — no `next/link`, no web-only CSS |
+| `packages/ui` | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS |
 | `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`) |
-| `packages/api` | tRPC contract (`listener.getStatus`) + the HTTP server/Worker (`/stream` proxy) |
-| `packages/db` | Drizzle schema (`stations`, `listen_sessions`) |
+| `packages/api` | tRPC contract (`listener.getStatus`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy |
+| `packages/db` | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`) |
 
 ## Scripts
 
@@ -89,7 +89,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Status
 
-The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now also matches the T4 Stack on `feature/t4-stack-parity` (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake intentionally skipped — webpack-only, Turbopack-incompatible): branch has 7 commits, not yet merged. Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file (SPEC defined; generation + implementation pending).
 - Desktop wide (1440) composition, ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
