@@ -8,6 +8,7 @@ This project uses the globally installed OpenCode skills. The local index is `.a
 - Skills are installed globally, not inside the repo. Resolve one by name with the `skill` tool; when `.atl/skill-registry.md` exists, use it to find the matching skill path.
 - Follow the skill workflow strictly; do not partially apply it.
 - Never skip required steps such as spec, plan, or test when a skill demands them.
+- **Documentation maintenance is part of the work, not a follow-up:** whenever any update, improvement, fix, or feature is made, update the project's SPECs (`SPEC-*.md`) and `README.md` to reflect the change. Never leave specs or the README stale after a change.
 
 ## Intent → Skill Mapping
 
