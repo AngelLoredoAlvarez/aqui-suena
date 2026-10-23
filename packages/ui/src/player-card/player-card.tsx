@@ -1,5 +1,5 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
-import { Button, Paragraph, XStack } from "tamagui";
+import { Button, Paragraph, Text, XStack, YStack } from "tamagui";
 
 export type PlayerCardStatus = "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
 
@@ -18,6 +18,121 @@ export type PlayerCardProps = {
 };
 
 type Dictionary = ReturnType<typeof useLocale>["dictionary"];
+
+export type PlaybackIcon = "play" | "pause" | "loading";
+
+export function getPlaybackIcon(status: PlayerCardStatus): PlaybackIcon | null {
+  switch (status) {
+    case "playing":
+      return "pause";
+    case "paused":
+    case "idle":
+    case "blocked":
+      return "play";
+    case "loading":
+      return "loading";
+    case "error":
+      return null;
+  }
+}
+
+function PlaybackIcon({ icon }: { icon: PlaybackIcon }) {
+  if (icon === "pause") {
+    return (
+      <XStack
+        width={24}
+        height={24}
+        items="center"
+        justify="center"
+        gap={4}
+        data-testid="playback-icon"
+      >
+        <YStack width={4} height={14} rounded={1} bg="onAccent" />
+        <YStack width={4} height={14} rounded={1} bg="onAccent" />
+      </XStack>
+    );
+  }
+
+  if (icon === "play") {
+    return (
+      <YStack
+        data-testid="playback-icon"
+        width={0}
+        height={0}
+        borderTopWidth={7}
+        borderBottomWidth={7}
+        borderLeftWidth={12}
+        borderTopColor="transparent"
+        borderBottomColor="transparent"
+        borderLeftColor="onAccent"
+      />
+    );
+  }
+
+  return (
+    <Text
+      fontSize={20}
+      lineHeight={20}
+      color="onAccent"
+      aria-hidden={true}
+      data-testid="playback-icon"
+    >
+      ⟳
+    </Text>
+  );
+}
+
+export function PlayButton({
+  status,
+  onResume,
+  onPause,
+}: {
+  status: PlayerCardStatus;
+  onResume: () => void;
+  onPause: () => void;
+}) {
+  const { dictionary } = useLocale();
+  const icon = getPlaybackIcon(status);
+
+  if (!icon) {
+    return null;
+  }
+
+  const label =
+    status === "playing"
+      ? dictionary.pause
+      : status === "paused"
+        ? dictionary.resume
+        : status === "idle"
+          ? dictionary.tapToPlay
+          : status === "blocked"
+            ? dictionary.tapToEnableSound
+            : dictionary.loading;
+
+  return (
+    <Button
+      type="button"
+      aria-label={label}
+      width={64}
+      height={64}
+      rounded={32}
+      borderWidth={0}
+      bg="accent"
+      color="onAccent"
+      paddingInline={0}
+      paddingBlock={0}
+      m={6}
+      shadowColor="surface2"
+      shadowRadius={6}
+      shadowOffset={{ width: 0, height: 0 }}
+      onPress={status === "playing" ? onPause : onResume}
+      disabled={status === "loading"}
+      opacity={status === "loading" ? 0.5 : 1}
+    >
+      <PlaybackIcon icon={icon} />
+    </Button>
+  );
+}
 
 function statusDotColor(
   status: PlayerCardStatus,
@@ -56,90 +171,18 @@ function statusLabel(status: PlayerCardStatus, dictionary: Dictionary): string |
 
 function PlaybackAction({
   status,
-  dictionary,
   onResume,
   onPause,
 }: {
   status: PlayerCardStatus;
-  dictionary: Dictionary;
   onResume: () => void;
   onPause: () => void;
 }) {
-  switch (status) {
-    case "idle":
-      return (
-        <Button
-          type="button"
-          size="md"
-          rounded={999}
-          bg="brandAccent hover:brandAccentHover press:brandAccentPress"
-          color="brand1"
-          fontWeight="700"
-          paddingInline={20}
-          onPress={onResume}
-          aria-label={dictionary.tapToPlay}
-          minH={52}
-        >
-          {dictionary.tapToPlay}
-        </Button>
-      );
-    case "playing":
-      return (
-        <Button
-          type="button"
-          size="md"
-          rounded={999}
-          bg="brandAccent hover:brandAccentHover press:brandAccentPress"
-          color="brand1"
-          fontWeight="700"
-          paddingInline={20}
-          onPress={onPause}
-          aria-label={dictionary.pause}
-          minH={52}
-        >
-          {dictionary.pause}
-        </Button>
-      );
-    case "paused":
-      return (
-        <Button
-          type="button"
-          size="md"
-          rounded={999}
-          bg="brandAccent hover:brandAccentHover press:brandAccentPress"
-          color="brand1"
-          fontWeight="700"
-          paddingInline={20}
-          onPress={onResume}
-          aria-label={dictionary.resume}
-          minH={52}
-        >
-          {dictionary.resume}
-        </Button>
-      );
-    case "blocked":
-      return (
-        <Button
-          type="button"
-          size="md"
-          rounded={999}
-          paddingInline={18}
-          fontSize="4"
-          lineHeight="4"
-          bg="brandAccent hover:brandAccentHover press:brandAccentPress"
-          color="brand1"
-          fontWeight="700"
-          onPress={onResume}
-          aria-label={dictionary.tapToEnableSound}
-          minH={52}
-        >
-          {dictionary.tapToEnableSound}
-        </Button>
-      );
-    case "loading":
-    case "error":
-      return null;
+  if (status === "error") {
+    return null;
   }
+
+  return <PlayButton status={status} onResume={onResume} onPause={onPause} />;
 }
 
 function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }: PlayerCardProps) {
@@ -162,12 +205,7 @@ function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }
       borderWidth={1}
       rounded={20}
     >
-      <PlaybackAction
-        status={status}
-        dictionary={dictionary}
-        onResume={onResume}
-        onPause={onPause}
-      />
+      <PlaybackAction status={status} onResume={onResume} onPause={onPause} />
       <XStack flex={1} items="center" gap="2" minW={0}>
         {dot ? <XStack testID="status-dot" width={10} height={10} rounded={100} bg={dot} /> : null}
         {statusText ? (
