@@ -7,7 +7,7 @@ import {
   useTraySync,
 } from "@aqui-suena/player";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
-import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
+import { useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
 import { selectedStationIdAtom } from "@aqui-suena/ui/state";
@@ -19,44 +19,10 @@ import {
 import { useAtom } from "jotai";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
+import { channelById, STATIONS, type TestChannel } from "./channels";
 import { useListenerStatus } from "./listener-status";
 import { getResponsiveMaxW } from "./responsive";
 import { selectListenerStatus } from "./select-listener-status";
-
-type TestChannel = {
-  id: string;
-  name: string;
-  // Primary first, then mirrors: usePlayer walks this list on failure. Every
-  // dev channel ships the same asset twice (the primary path and a distinct
-  // mirror URL) so the fallback chain is reachable end-to-end; production
-  // station data supplies real mirror hosts instead.
-  urls: string[];
-};
-
-function channelUrls(file: string): string[] {
-  const primary = `${streamBaseUrl}/test-streams/${file}`;
-
-  return [primary, `${primary}?mirror=1`];
-}
-
-const DEFAULT_CHANNEL: TestChannel = {
-  id: "test-pop",
-  name: "Test Pop",
-  urls: channelUrls("test-pop.m4a"),
-};
-
-const TEST_CHANNELS: readonly TestChannel[] = [
-  DEFAULT_CHANNEL,
-  { id: "test-jingle", name: "Test Jingle", urls: channelUrls("test-jingle.m4a") },
-  { id: "test-night", name: "Test Night", urls: channelUrls("test-night.m4a") },
-];
-
-// Catalog liveness lands with real permissions; every dev channel plays today.
-const STATIONS = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));
-
-function channelById(id: string): TestChannel {
-  return TEST_CHANNELS.find((channel) => channel.id === id) ?? DEFAULT_CHANNEL;
-}
 
 function PlayerDock({
   isWide,
