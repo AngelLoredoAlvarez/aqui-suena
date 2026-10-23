@@ -1,11 +1,8 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { trpcServer } from "@hono/trpc-server";
+import { Hono } from "hono";
 import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
 import { appRouter } from "./router";
 import { fetchProxiedStream } from "./stream-proxy";
-
-const TRPC_PREFIX = "/trpc";
-const HEALTH_PATH = "/health";
-const STREAM_PATH = "/stream";
 
 export interface AppOptions {
   allowedOrigins: readonly string[];
@@ -13,57 +10,46 @@ export interface AppOptions {
   upstreamFetch?: typeof fetch;
 }
 
-export async function handleRequest(request: Request, options: AppOptions): Promise<Response> {
+export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
-  const origin = request.headers.get("origin");
-  const decision = resolveCors(origin, options.allowedOrigins);
+  const app = new Hono();
 
-  if (!decision.allowed) {
-    return new Response("forbidden origin", {
-      status: 403,
-      headers: { vary: "Origin", "content-type": "text/plain" },
-    });
-  }
+  // Origin policy: refuse unknown origins before anything runs, answer
+  // preflight, and stamp CORS headers on the final response of every route.
+  // Headers are applied after `next()` on `c.res` so they survive handlers
+  // that return a raw Response (the tRPC adapter and the stream proxy do).
+  app.use("*", async (c, next) => {
+    const origin = c.req.header("origin") ?? null;
+    const decision = resolveCors(origin, options.allowedOrigins);
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: decision.origin === null ? { vary: "Origin" } : preflightHeaders(decision.origin),
-    });
-  }
+    if (!decision.allowed) {
+      return c.text("forbidden origin", 403, { vary: "Origin" });
+    }
 
-  const url = new URL(request.url);
-  const cors = corsHeaders(decision.origin);
+    if (c.req.method === "OPTIONS") {
+      const headers =
+        decision.origin === null ? { vary: "Origin" } : preflightHeaders(decision.origin);
+      for (const [name, value] of Object.entries(headers)) c.header(name, value);
+      return c.body(null, 204);
+    }
 
-  if (url.pathname === HEALTH_PATH && request.method === "GET") {
-    return Response.json({ status: "ok" }, { headers: cors });
-  }
+    await next();
 
-  if (url.pathname === STREAM_PATH && request.method === "GET") {
-    const proxied = await fetchProxiedStream(upstreamFetch, url.searchParams.get("url"));
-    return withCors(proxied, cors);
-  }
-
-  if (url.pathname === TRPC_PREFIX || url.pathname.startsWith(`${TRPC_PREFIX}/`)) {
-    const response = await fetchRequestHandler({
-      endpoint: TRPC_PREFIX,
-      req: request,
-      router: appRouter,
-      createContext: () => ({}),
-    });
-    return withCors(response, cors);
-  }
-
-  return new Response("not found", {
-    status: 404,
-    headers: { ...cors, "content-type": "text/plain" },
+    for (const [name, value] of Object.entries(corsHeaders(decision.origin))) {
+      c.res.headers.set(name, value);
+    }
   });
-}
 
-function withCors(response: Response, cors: Record<string, string>): Response {
-  const headers = new Headers(response.headers);
-  for (const [name, value] of Object.entries(cors)) {
-    headers.set(name, value);
-  }
-  return new Response(response.body, { status: response.status, headers });
+  app.get("/health", (c) => c.json({ status: "ok" }));
+
+  app.get("/stream", async (c) => {
+    const proxied = await fetchProxiedStream(upstreamFetch, c.req.query("url") ?? null);
+    return new Response(proxied.body, { status: proxied.status, headers: proxied.headers });
+  });
+
+  app.use("/trpc/*", trpcServer({ router: appRouter, createContext: () => ({}) }));
+
+  app.notFound((c) => c.text("not found", 404));
+
+  return app;
 }

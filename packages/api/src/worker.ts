@@ -1,4 +1,4 @@
-import { handleRequest } from "./app";
+import { createApp } from "./app";
 import { parseAllowedOrigins } from "./env";
 
 export interface WorkerEnv {
@@ -7,8 +7,7 @@ export interface WorkerEnv {
 
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
-    return handleRequest(request, {
-      allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
-    });
+    const app = createApp({ allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS) });
+    return app.fetch(request, env);
   },
 };
