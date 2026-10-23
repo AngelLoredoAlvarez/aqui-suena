@@ -19,6 +19,7 @@ const SINGLETONS = [
   "@types/react",
   "@types/react-dom",
   "expo-audio",
+  "jotai",
   "react",
   "react-dom",
   "react-native",
