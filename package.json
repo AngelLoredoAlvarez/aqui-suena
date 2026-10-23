@@ -26,7 +26,8 @@
     "build:mobile:staging": "node scripts/build-mobile-staging.mjs",
     "varlock:load": "varlock load",
     "varlock:audit": "varlock audit",
-    "varlock:codegen": "varlock codegen"
+    "varlock:codegen": "varlock codegen",
+    "dev:infisical": "infisical run -- pnpm dev"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

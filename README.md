@@ -86,7 +86,7 @@ runtime with `infisical run -- <command>`; no `.env` files are committed
 - `pnpm varlock:load` — resolve and validate the current environment.
 - `pnpm varlock:audit` — check that schema and code references agree.
 - `pnpm varlock:codegen` — regenerate the auto-generated `env.d.ts` types.
-- `infisical run -- pnpm dev` — run any command with secrets injected.
+- `pnpm exec infisical run -- pnpm dev` — run any command with secrets injected.
 
 ### Secret scanning (gitleaks)
 
