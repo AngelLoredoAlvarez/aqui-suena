@@ -104,7 +104,7 @@ The radio-playback MVP is done and published to main (scaffold, UI foundation, s
 Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
-- Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web. See `SPEC-radio-playback.md` (Responsive composition).
+- Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `SPEC-radio-playback.md` (Responsive composition).
 - Ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 

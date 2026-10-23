@@ -6,7 +6,7 @@ import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PlayerCard } from "./player-card";
+import { getPlaybackIcon, PlayButton, PlayerCard, type PlayerCardStatus } from "./player-card";
 
 function renderCard(props: {
   status: "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
@@ -30,6 +30,32 @@ function renderCard(props: {
       onPause={props.onPause ?? (() => {})}
       onOpenSheet={props.onOpenSheet}
       status={props.status}
+    />,
+    { wrapper },
+  );
+}
+
+function renderPlayButton(
+  status: PlayerCardStatus,
+  options?: {
+    locale?: SupportedLocale;
+    onResume?: () => void;
+    onPause?: () => void;
+  },
+) {
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <UiProvider>
+      <LocaleProvider locale={options?.locale ?? "en"} onChange={() => {}}>
+        {children}
+      </LocaleProvider>
+    </UiProvider>
+  );
+
+  return render(
+    <PlayButton
+      status={status}
+      onResume={options?.onResume ?? (() => {})}
+      onPause={options?.onPause ?? (() => {})}
     />,
     { wrapper },
   );
@@ -88,7 +114,7 @@ describe("PlayerCard", () => {
     const onPause = vi.fn();
     renderCard({ status: "playing", onPause });
 
-    fireEvent.click(screen.getByText("Pause"));
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
 
     expect(onPause).toHaveBeenCalledTimes(1);
   });
@@ -98,7 +124,7 @@ describe("PlayerCard", () => {
     renderCard({ status: "paused", onResume, onPause: () => {} });
 
     expect(screen.getByText("Paused")).toBeTruthy();
-    fireEvent.click(screen.getByText("Resume"));
+    fireEvent.click(screen.getByRole("button", { name: "Resume" }));
 
     expect(onResume).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Pause")).toBeNull();
@@ -121,7 +147,7 @@ describe("PlayerCard", () => {
     renderCard({ status: "playing", locale: "es" });
 
     expect(screen.getByText(/Reproduciendo · 42 escuchando/)).toBeTruthy();
-    expect(screen.getByText("Pausar")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
   });
 
   it("renders the Spanish blocked tap under the es locale", () => {
@@ -182,5 +208,58 @@ describe("PlayerCard", () => {
     fireEvent.click(screen.getByTestId("station-name"));
 
     expect(onOpenSheet).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("getPlaybackIcon", () => {
+  it("returns pause for playing", () => {
+    expect(getPlaybackIcon("playing")).toBe("pause");
+  });
+
+  it("returns play for paused, idle and blocked", () => {
+    expect(getPlaybackIcon("paused")).toBe("play");
+    expect(getPlaybackIcon("idle")).toBe("play");
+    expect(getPlaybackIcon("blocked")).toBe("play");
+  });
+
+  it("returns loading for loading", () => {
+    expect(getPlaybackIcon("loading")).toBe("loading");
+  });
+
+  it("returns null for error", () => {
+    expect(getPlaybackIcon("error")).toBeNull();
+  });
+});
+
+describe("PlayButton", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders a 64px pause icon button for playing", () => {
+    renderPlayButton("playing", { locale: "en" });
+
+    const button = screen.getByRole("button", { name: "Pause" });
+
+    expect(button.getAttribute("aria-label")).toBe("Pause");
+    expect(button.querySelector('[data-testid="playback-icon"]')).not.toBeNull();
+    expect(screen.queryByText("Pause")).toBeNull();
+  });
+
+  it("renders a play icon button for paused", () => {
+    renderPlayButton("paused", { locale: "en" });
+
+    const button = screen.getByRole("button", { name: "Resume" });
+
+    expect(button.querySelector('[data-testid="playback-icon"]')).not.toBeNull();
+  });
+
+  it("renders a disabled loading icon button for loading", () => {
+    renderPlayButton("loading", { locale: "en" });
+
+    const button = screen.getByRole("button", { name: "Loading…" });
+
+    expect(button.getAttribute("disabled")).not.toBeNull();
+    expect(button.querySelector('[data-testid="playback-icon"]')).not.toBeNull();
   });
 });
