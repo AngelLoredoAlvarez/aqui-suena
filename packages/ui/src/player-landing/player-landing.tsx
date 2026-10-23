@@ -17,9 +17,10 @@ import {
   useEscapeToClose,
 } from "@aqui-suena/ui/station-sheet";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { H1, isWeb, Paragraph, Theme, YStack } from "tamagui";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
+import { getResponsiveMaxW } from "./responsive";
 import { selectListenerStatus } from "./select-listener-status";
 
 type TestChannel = {
@@ -57,6 +58,45 @@ function channelById(id: string): TestChannel {
   return TEST_CHANNELS.find((channel) => channel.id === id) ?? DEFAULT_CHANNEL;
 }
 
+function PlayerDock({
+  isWide,
+  sheet,
+  children,
+}: {
+  isWide: boolean;
+  sheet: ReactNode;
+  children: ReactNode;
+}) {
+  if (isWide) {
+    return (
+      <YStack width="100%" mt="auto" position="relative">
+        {sheet ? (
+          <YStack
+            position="absolute"
+            b="100%"
+            l={0}
+            r={0}
+            width="100%"
+            items="flex-end"
+            z={4}
+            pointerEvents="none"
+          >
+            {sheet}
+          </YStack>
+        ) : null}
+        {children}
+      </YStack>
+    );
+  }
+
+  return (
+    <YStack position="absolute" b="5" l={0} r={0} z={2}>
+      {sheet}
+      {children}
+    </YStack>
+  );
+}
+
 function StationPlayer({
   channel,
   stationName,
@@ -75,6 +115,8 @@ function StationPlayer({
 
   const driver = useExpoAudioDriver();
   const { dictionary } = useLocale();
+  const media = useMedia();
+  const isWide = media.md;
   const { status, activeUrl, pause, resume } = usePlayer({
     urls: channel.urls,
     driver,
@@ -128,7 +170,9 @@ function StationPlayer({
 
   useEscapeToClose(sheetOpen, closeSheet);
 
-  const sheetBackdrop = <StationSheetBackdrop onClose={closeSheet} />;
+  const sheetBackdrop = (
+    <StationSheetBackdrop onClose={closeSheet} dim={!isWide} zIndex={isWide ? 3 : 1} />
+  );
 
   const sheetCard = (
     <StationSheetCard
@@ -138,6 +182,9 @@ function StationPlayer({
       onClose={closeSheet}
     />
   );
+
+  const sheet = sheetOpen ? sheetCard : null;
+  const backdrop = sheetOpen ? sheetBackdrop : null;
 
   useEffect(() => {
     // A fallback can settle on any mirror, so the committed channel must
@@ -158,9 +205,8 @@ function StationPlayer({
     if (switching) {
       return (
         <>
-          {sheetOpen ? sheetBackdrop : null}
-          <YStack position="absolute" b="5" l={0} r={0} z={2}>
-            {sheetOpen ? sheetCard : null}
+          {backdrop}
+          <PlayerDock isWide={isWide} sheet={sheet}>
             <PlayerCard
               stationName={committedChannel.name}
               listeners={listeners}
@@ -169,7 +215,7 @@ function StationPlayer({
               onPause={pause}
               onOpenSheet={() => setSheetOpen(true)}
             />
-          </YStack>
+          </PlayerDock>
         </>
       );
     }
@@ -179,9 +225,8 @@ function StationPlayer({
         <YStack gap="2" items="center">
           <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         </YStack>
-        {sheetOpen ? sheetBackdrop : null}
-        <YStack position="absolute" b="5" l={0} r={0} z={2}>
-          {sheetOpen ? sheetCard : null}
+        {backdrop}
+        <PlayerDock isWide={isWide} sheet={sheet}>
           <PlayerCard
             stationName={committedChannel.name}
             listeners={listeners}
@@ -190,16 +235,15 @@ function StationPlayer({
             onPause={pause}
             onOpenSheet={() => setSheetOpen(true)}
           />
-        </YStack>
+        </PlayerDock>
       </>
     );
   }
 
   return (
     <>
-      {sheetOpen ? sheetBackdrop : null}
-      <YStack position="absolute" b="5" l={0} r={0} z={2}>
-        {sheetOpen ? sheetCard : null}
+      {backdrop}
+      <PlayerDock isWide={isWide} sheet={sheet}>
         <PlayerCard
           stationName={stationName}
           listeners={listeners}
@@ -208,7 +252,7 @@ function StationPlayer({
           onPause={pause}
           onOpenSheet={() => setSheetOpen(true)}
         />
-      </YStack>
+      </PlayerDock>
     </>
   );
 }
@@ -224,8 +268,12 @@ export function PlayerLanding({
   const [selectedStationId, setSelectedStationId] = useAtom(selectedStationIdAtom);
 
   const listenerQuery = useListenerStatus(defaultStationId);
-  const listenerState = selectListenerStatus(listenerQuery);
   const { dictionary } = useLocale();
+  const media = useMedia();
+  const isWide = media.md;
+  const responsiveMaxW = getResponsiveMaxW(media);
+
+  const listenerState = selectListenerStatus(listenerQuery);
   const channel = channelById(selectedStationId);
 
   useEffect(() => {
@@ -244,7 +292,17 @@ export function PlayerLanding({
 
   if (!mounted || listenerState.status !== "success") {
     return (
-      <YStack flex={1} width="100%" items="center" justify="center" gap="5" p="5" bg="bg">
+      <YStack
+        flex={1}
+        width="100%"
+        maxW={responsiveMaxW}
+        mx="auto"
+        items={isWide ? "stretch" : "center"}
+        justify="center"
+        gap={20}
+        p={isWide ? 24 : 20}
+        bg="bg"
+      >
         <H1 color="brandCream">{dictionary.appTitle}</H1>
         <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <LocaleSwitcher />
@@ -258,20 +316,36 @@ export function PlayerLanding({
       <YStack
         flex={1}
         width="100%"
-        maxW={390}
+        maxW={responsiveMaxW}
         minH={isWeb ? "100vh" : undefined}
         position="relative"
-        mx={"auto"}
-        items="center"
-        justify="center"
-        gap="5"
-        p="5"
+        mx="auto"
+        items={isWide ? "stretch" : "center"}
+        justify={isWide ? "flex-start" : "center"}
+        gap={isWide ? 16 : 20}
+        px={isWide ? 24 : 20}
+        py={20}
         bg="bg"
       >
-        <H1 color="brandCream">{dictionary.appTitle}</H1>
-        <LocaleSwitcher />
+        {isWide ? (
+          <XStack width="100%" items="center" justify="space-between" gap="4">
+            <H1 color="brandCream">{dictionary.appTitle}</H1>
+            <LocaleSwitcher />
+          </XStack>
+        ) : (
+          <>
+            <H1 color="brandCream">{dictionary.appTitle}</H1>
+            <LocaleSwitcher />
+          </>
+        )}
         {scheme === "brasa" ? player : null}
-        <YStack testID="landing-content" width="100%" items="center">
+        <YStack
+          testID="landing-content"
+          width="100%"
+          items="center"
+          justify={isWide ? "center" : undefined}
+          flex={isWide ? 1 : undefined}
+        >
           <AdsCarousel />
         </YStack>
         {scheme === "brasa" ? null : player}

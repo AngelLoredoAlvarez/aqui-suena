@@ -1,6 +1,6 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { useEffect } from "react";
-import { Button, isWeb, Paragraph, ScrollView, XStack, YStack } from "tamagui";
+import { Button, isWeb, Paragraph, ScrollView, useMedia, XStack, YStack } from "tamagui";
 
 export type SheetStation = {
   readonly id: string;
@@ -34,7 +34,15 @@ export function useEscapeToClose(open: boolean, onClose: () => void): void {
   }, [open, onClose]);
 }
 
-export function StationSheetBackdrop({ onClose }: { onClose: () => void }) {
+export function StationSheetBackdrop({
+  onClose,
+  dim = true,
+  zIndex = 1,
+}: {
+  onClose: () => void;
+  dim?: boolean;
+  zIndex?: number;
+}) {
   return (
     <YStack
       testID="station-sheet-backdrop"
@@ -43,9 +51,9 @@ export function StationSheetBackdrop({ onClose }: { onClose: () => void }) {
       l={0}
       r={0}
       b={0}
-      bg="bg"
-      opacity={0.7}
-      z={1}
+      bg={dim ? "bg" : "transparent"}
+      opacity={dim ? 0.7 : undefined}
+      z={zIndex}
       cursor="pointer"
       onPress={onClose}
     />
@@ -64,6 +72,10 @@ export function StationSheetCard({
   onClose: () => void;
 }) {
   const { dictionary } = useLocale();
+  const media = useMedia();
+  // Tablet and up anchor the selector to the dock's right edge as a compact
+  // popover (design sections 09 and 11) instead of a full-bleed sheet.
+  const isWide = media.md;
 
   return (
     <YStack
@@ -71,6 +83,8 @@ export function StationSheetCard({
       position="relative"
       z={1}
       width="100%"
+      maxW={isWide ? 480 : undefined}
+      self={isWide ? "flex-end" : undefined}
       mb="2"
       gap="3"
       p="4"
@@ -78,8 +92,9 @@ export function StationSheetCard({
       borderColor="borderColor"
       borderWidth={1}
       rounded={24}
+      pointerEvents="auto"
     >
-      <XStack width={40} height={4} rounded={999} bg="muted" self="center" />
+      {isWide ? null : <XStack width={40} height={4} rounded={999} bg="muted" self="center" />}
       <XStack items="center" justify="space-between">
         <Paragraph fontSize="6" fontWeight="700" color="text">
           {dictionary.sheetTitle}
