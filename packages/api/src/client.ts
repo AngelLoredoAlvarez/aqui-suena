@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import type { ListenerStatus } from "./listener";
 import { getMockListenerStatus, listenerStatusInput } from "./listener";
 
@@ -11,9 +12,9 @@ export { listenerStatusInput, listenerStatusOutput } from "./listener";
 export { fetchProxiedStream } from "./stream-proxy";
 
 // Client-safe fetcher for TanStack Query: validates the mock through the
-// same zod schemas the server router enforces, with no @trpc/server import
+// same valibot schemas the server router enforces, with no @trpc/server import
 // anywhere in this module graph (see client.test.ts guard).
 export async function getListenerStatus(stationId: string): Promise<ListenerStatus> {
-  const { stationId: validId } = listenerStatusInput.parse({ stationId });
+  const { stationId: validId } = v.parse(listenerStatusInput, { stationId });
   return getMockListenerStatus(validId);
 }

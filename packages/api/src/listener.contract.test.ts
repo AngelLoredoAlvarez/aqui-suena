@@ -1,10 +1,12 @@
+import { parse, safeParse } from "valibot";
 import { describe, expect, it } from "vitest";
 
 import { listenerStatusOutput } from "./listener";
 
-// Pins the zod 3 -> 4 migration contract. The URL check moved from the
-// deprecated `z.string().url()` to `z.url()`; both accept and reject the same
-// inputs, but zod 4 trims surrounding whitespace from the parsed value.
+// Pins the zod -> valibot migration contract. The URL check moved from
+// `z.url()` to valibot's `v.pipe(v.string(), v.trim(), v.url())`; both accept
+// and reject the same inputs, and valibot trims surrounding whitespace like
+// zod 4 did before validating.
 const ACCEPT = [
   "http://example.com",
   "https://example.com",
@@ -22,15 +24,15 @@ const payload = {
 
 describe("listenerStatusOutput url contract", () => {
   it.each(ACCEPT)("accepts %s", (activeUrl) => {
-    expect(listenerStatusOutput.safeParse({ ...payload, activeUrl }).success).toBe(true);
+    expect(safeParse(listenerStatusOutput, { ...payload, activeUrl }).success).toBe(true);
   });
 
   it.each(REJECT)("rejects %j", (activeUrl) => {
-    expect(listenerStatusOutput.safeParse({ ...payload, activeUrl }).success).toBe(false);
+    expect(safeParse(listenerStatusOutput, { ...payload, activeUrl }).success).toBe(false);
   });
 
   it("trims surrounding whitespace from the parsed url", () => {
-    const parsed = listenerStatusOutput.parse({
+    const parsed = parse(listenerStatusOutput, {
       ...payload,
       activeUrl: " https://example.com ",
     });
@@ -41,7 +43,7 @@ describe("listenerStatusOutput url contract", () => {
   it("rejects negative, fractional and non-finite listener counts", () => {
     for (const listeners of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(
-        listenerStatusOutput.safeParse({
+        safeParse(listenerStatusOutput, {
           ...payload,
           activeUrl: "https://example.com",
           listeners,
