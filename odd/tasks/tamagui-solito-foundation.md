@@ -32,9 +32,9 @@ Task 2 is the UI foundation for all playback UI (Tasks 4-7). Without shared toke
 User authorized Task 2 after verifying Task 1 web + native boot. Only files listed above plus minimal wiring (package.json, tsconfig, next.config, babel). Push/PR/merge remain user decisions.
 
 ## Acceptance criteria (from tasks/todo.md Task 2)
-- [ ] Same Tamagui button renders on web and native from shared code
-- [ ] `/player` resolves on web and native via Solito with no `next/link` in `packages/ui`
-- [ ] Themes/tokens apply with no web-only CSS leak
+- [x] Same Tamagui button renders on web and native from shared code
+- [x] `/player` resolves on web and native via Solito with no `next/link` in `packages/ui`
+- [x] Themes/tokens apply with no web-only CSS leak
 
 ## Applicable checks
 - `pnpm --filter ui test -- --run`
@@ -58,3 +58,4 @@ User authorized Task 2 after verifying Task 1 web + native boot. Only files list
 ## Progress
 - 2026-10-07: document created, 4 tasks. Next: delegate writer for T2.1-T2.4.
 - 2026-10-07: T2.1-T2.4 implemented on branch `feature/tamagui-solito-foundation` (commits 9dafea2, ee5b08f, ef25c8c, 5282786). Parent spot check: `biome check .` 33 files exit 0, `pnpm -r typecheck` clean. Native review medium/slice_budget_reached, consent granted, START created (lineage review-5f443cb8a369d433), reliability lens unavailable in this runtime (free-tier execution block) — recorded as unavailable, no PASS invented. Manual `/player` check pending user.
+- 2026-10-23: CLOSED. All acceptance criteria met at the time (ticked). The `/player` route shells created here were later removed by the `player-landing` product decision (landing `/` is the player; no station screens).

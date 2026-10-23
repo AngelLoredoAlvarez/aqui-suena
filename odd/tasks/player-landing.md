@@ -35,9 +35,9 @@ The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate s
 User authorized the product change, the new branch, and the commits. Only the files above plus minimal wiring.
 
 ## Acceptance criteria
-- [ ] `/` renders player + carousel placeholder on web and native from shared code
-- [ ] No `/player` route remains on either platform (route grep clean, no dangling imports)
-- [ ] Themes/tokens apply with no web-only CSS leak
+- [x] `/` renders player + carousel placeholder on web and native from shared code
+- [x] No `/player` route remains on either platform (route grep clean, no dangling imports)
+- [x] Themes/tokens apply with no web-only CSS leak
 
 ## Applicable checks
 - `pnpm -r build`
@@ -62,3 +62,4 @@ User authorized the product change, the new branch, and the commits. Only the fi
 ## Progress
 - 2026-10-08: document created. Next: create branch, delegate writer for L1-L5.
 - 2026-10-08: L1-L5 implemented on `feature/player-landing` (4de008a ui, cfac568 web, 1ea1ee8 native, 778f1ff docs). Parent: README de-staled (5067ace), spot check `biome check .` 34 files exit 0. Native review: medium/under_budget, no lifecycle. Manual `/` check pending user.
+- 2026-10-23: CLOSED. All acceptance criteria met (ticked). Feature shipped and later evolved by `player-landing` (landing `/` is the player; `/player` route removed by product decision).

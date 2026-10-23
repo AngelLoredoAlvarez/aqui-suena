@@ -29,9 +29,9 @@ The legacy short scope was terse but opaque to outsiders. The user chose the exp
 User authorized the rename to `@aqui-suena` and the commits. Only the rename above.
 
 ## Acceptance criteria
-- [ ] Zero remaining legacy-scope references outside git history (grep clean)
-- [ ] `pnpm -r build` and `pnpm -r typecheck` pass
-- [ ] `pnpm exec biome check .` passes
+- [x] Zero remaining legacy-scope references outside git history (grep clean)
+- [x] `pnpm -r build` and `pnpm -r typecheck` pass
+- [x] `pnpm exec biome check .` passes
 
 ## Applicable checks
 - `grep -rn for the legacy scope prefix across .ts/.tsx/.json in apps, packages, and tsconfig.base.json` returns nothing (excluding lockfile regen noise and git history)
@@ -56,3 +56,4 @@ User authorized the rename to `@aqui-suena` and the commits. Only the rename abo
 ## Progress
 - 2026-10-07: document created. Next: delegate writer for R1-R2.
 - 2026-10-07: R1-R2 completed (commits 17c4f17 code+lockfile, 7c294b8 docs). Parent spot check: grep `@aqui/` clean (exit 1), `biome check .` 33 files exit 0. Writer gates: install/build/typecheck/biome all pass.
+- 2026-10-23: CLOSED. All acceptance criteria met (ticked). Scope rename shipped; no legacy-scope references remain.
