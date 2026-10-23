@@ -5,6 +5,7 @@ import { LocaleProvider } from "@aqui-suena/ui/i18n";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
+import { createStore, Provider as JotaiProvider } from "jotai";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useListenerStatus } from "./listener-status";
@@ -32,12 +33,15 @@ function renderLanding(locale: SupportedLocale = "en") {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  const jotaiStore = createStore();
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <UiProvider>
-      <LocaleProvider locale={locale} onChange={() => {}}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </LocaleProvider>
-    </UiProvider>
+    <JotaiProvider store={jotaiStore}>
+      <UiProvider>
+        <LocaleProvider locale={locale} onChange={() => {}}>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </LocaleProvider>
+      </UiProvider>
+    </JotaiProvider>
   );
   return render(<PlayerLanding />, { wrapper });
 }
@@ -81,11 +85,13 @@ describe("PlayerLanding listener status", () => {
       listeners: 42,
     });
     const wrapper = ({ children }: { children: ReactNode }) => (
-      <UiProvider>
-        <LocaleProvider locale="en" onChange={() => {}}>
-          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-        </LocaleProvider>
-      </UiProvider>
+      <JotaiProvider store={createStore()}>
+        <UiProvider>
+          <LocaleProvider locale="en" onChange={() => {}}>
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+          </LocaleProvider>
+        </UiProvider>
+      </JotaiProvider>
     );
     render(<PlayerLanding />, { wrapper });
 

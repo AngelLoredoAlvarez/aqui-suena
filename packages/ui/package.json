@@ -12,6 +12,7 @@
     "./i18n": "./src/i18n/index.ts",
     "./player-card": "./src/player-card/index.ts",
     "./station-sheet": "./src/station-sheet/index.ts",
+    "./state": "./src/state/index.ts",
     "./shared": "./src/shared/index.ts"
   },
   "scripts": {
@@ -26,7 +27,9 @@
     "@tanstack/react-query": "catalog:",
     "expo": "58.0.17",
     "expo-audio": "catalog:",
-    "tamagui": "catalog:"
+    "jotai": "^3.0.1",
+    "tamagui": "catalog:",
+    "ts-pattern": "^5.9.2"
   },
   "devDependencies": {
     "@testing-library/react": "16.3.3",

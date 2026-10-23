@@ -5,6 +5,7 @@ import { LocaleProvider } from "@aqui-suena/ui/i18n";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { createStore, Provider as JotaiProvider } from "jotai";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayerLanding } from "./player-landing";
@@ -39,13 +40,18 @@ function renderLanding(locale: SupportedLocale = "en", scheme: "noche" | "brasa"
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  // Fresh Jotai store per render so the global station atom does not leak
+  // between test cases.
+  const jotaiStore = createStore();
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <UiProvider>
-      <LocaleProvider locale={locale} onChange={() => {}}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </LocaleProvider>
-    </UiProvider>
+    <JotaiProvider store={jotaiStore}>
+      <UiProvider>
+        <LocaleProvider locale={locale} onChange={() => {}}>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </LocaleProvider>
+      </UiProvider>
+    </JotaiProvider>
   );
 
   return render(<PlayerLanding scheme={scheme} />, { wrapper });

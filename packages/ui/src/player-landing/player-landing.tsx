@@ -10,14 +10,17 @@ import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { streamBaseUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
+import { selectedStationIdAtom } from "@aqui-suena/ui/state";
 import {
   StationSheetBackdrop,
   StationSheetCard,
   useEscapeToClose,
 } from "@aqui-suena/ui/station-sheet";
+import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, YStack } from "tamagui";
 import { useListenerStatus } from "./listener-status";
+import { selectListenerStatus } from "./select-listener-status";
 
 type TestChannel = {
   id: string;
@@ -218,9 +221,10 @@ export function PlayerLanding({
   trayBridge?: TrayBridge;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [selectedStationId, setSelectedStationId] = useState("test-pop");
+  const [selectedStationId, setSelectedStationId] = useAtom(selectedStationIdAtom);
 
-  const { data: listener } = useListenerStatus(defaultStationId);
+  const listenerQuery = useListenerStatus(defaultStationId);
+  const listenerState = selectListenerStatus(listenerQuery);
   const { dictionary } = useLocale();
   const channel = channelById(selectedStationId);
 
@@ -232,13 +236,13 @@ export function PlayerLanding({
     <StationPlayer
       channel={channel}
       stationName={channel.name}
-      listeners={listener?.listeners ?? 0}
+      listeners={listenerState.status === "success" ? listenerState.data.listeners : 0}
       onSelectStation={setSelectedStationId}
       trayBridge={trayBridge}
     />
   );
 
-  if (!mounted || !listener) {
+  if (!mounted || listenerState.status !== "success") {
     return (
       <YStack flex={1} width="100%" items="center" justify="center" gap="5" p="5" bg="bg">
         <H1 color="brandCream">{dictionary.appTitle}</H1>
