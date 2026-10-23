@@ -77,3 +77,11 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-stor
   a 3.x JS bump desyncs the native module and breaks Expo Go (same class as the
   expo-audio playback service). Decided: keep 2.2.0 while on Expo Go. Revisit
   only when moving to a dev/release build or a future SDK that bundles 3.x.
+
+## New features (planned — docs/specs created 2026-10-23)
+
+- [ ] Push notifications (SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Free tier. Depends on: none.
+- [ ] Offline/no-connection handling (SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none.
+- [ ] Cloudflare media storage (SPEC-media-storage.md) — R2 upload + image optimization (lazy loading, WebP/AVIF, blur placeholder). Free tier (10GB + 1M ops/month). Depends on: none. Blocks: business-directory photos, ads-display flyers, owner-portal uploads, radio-spots audio.
+- [ ] Chatbot with Cloudflare Workers AI — update SPEC-owner-portal.md (replaces Gemini with Workers AI, free: 10k neurons/day). Depends on: owner-portal auth (Supabase).
+- [ ] Image loading optimization for flyers — part of SPEC-media-storage (responsive sizes, lazy loading, blur placeholder). Depends on: SPEC-media-storage.
