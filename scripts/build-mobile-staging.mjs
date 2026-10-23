@@ -27,7 +27,7 @@ try {
 const stagingEnv = easConfig.build?.staging?.env ?? {};
 
 function endpoint(name) {
-  const value = process.env[name] ?? stagingEnv[name];
+  const value = process.env[name] || stagingEnv[name];
   if (!value) {
     console.error(
       `error: ${name} is missing from apps/mobile/eas.json (build.staging.env).\n` +

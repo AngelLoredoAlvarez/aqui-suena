@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "./with-infisical.mjs";
 // Boots everything the three clients need in development:
 //
 //   api      http://localhost:3001  shared backend: tRPC router + /stream proxy
@@ -6,16 +7,26 @@
 //   mobile   Metro on :8081         fixtures loaded from the web dev server
 //   desktop  Tauri window           reuses :3000 instead of starting a second one
 //
+// Pass --android to open the app on a running emulator (starts Pixel_7 if needed).
+// Pass --emulator to only start the emulator without opening the app.
+//
 // Ctrl-C stops the whole group. Pass --android to open the app on a running
 // emulator or device once Metro is up.
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const openAndroid = process.argv.includes("--android");
+// The emulator is opt-in: pass --android (open the app on it) or --emulator
+// (start it only). Launch it manually otherwise.
+const emulatorOnly = process.argv.includes("--emulator");
+const startEmulator = process.argv.includes("--android") || emulatorOnly;
+const openAndroid = process.argv.includes("--android") || emulatorOnly;
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
+const children = new Set();
 
 function lanAddress() {
   for (const entries of Object.values(networkInterfaces())) {
@@ -30,11 +41,60 @@ function lanAddress() {
 
 // Native plays the fixture URLs directly, so they must be absolute and reachable
 // from the emulator or the phone: the host's LAN address, not localhost.
-const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL ?? `http://${lanAddress()}:3000`;
+const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lanAddress()}:3000`;
 
 // The desktop window loads the web dev server that this script already owns.
 // Leaving beforeDevCommand in place would try to bind :3000 a second time.
 const tauriConfig = JSON.stringify({ build: { beforeDevCommand: "" } });
+
+// Start the Android emulator (Pixel_7) if requested and not already running.
+if (startEmulator) {
+  const sdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+  const emulatorBin = sdkRoot ? join(sdkRoot, "emulator", "emulator") : null;
+  const adbBin = sdkRoot ? join(sdkRoot, "platform-tools", "adb") : "adb";
+
+  function adbDevices() {
+    try {
+      return execFileSync(adbBin, ["devices"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  const alreadyRunning = /emulator-\d+\s+device/.test(adbDevices());
+
+  if (alreadyRunning) {
+    console.log("[dev] emulator already running");
+  } else if (emulatorBin && existsSync(emulatorBin)) {
+    console.log("[dev] starting emulator Pixel_7 (this can take ~30s)...");
+    const emulatorChild = spawn(emulatorBin, ["-avd", "Pixel_7"], {
+      stdio: "ignore",
+      detached: true,
+    });
+    emulatorChild.unref();
+    children.add(emulatorChild);
+
+    const deadline = Date.now() + 120000;
+    let ready = false;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (/emulator-\d+\s+device/.test(adbDevices())) {
+        ready = true;
+        break;
+      }
+    }
+    if (ready) {
+      console.log("[dev] emulator Pixel_7 ready");
+    } else {
+      console.error("[dev] emulator did not become ready within 120s; continuing anyway");
+    }
+  } else {
+    console.error("[dev] emulator binary not found (ANDROID_HOME/ANDROID_SDK_ROOT); skipping");
+  }
+}
 
 const tasks = [
   {
@@ -45,7 +105,9 @@ const tasks = [
   {
     name: "web",
     args: ["--filter", "web", "dev"],
-    env: {},
+    // Pin the port so an injected PORT (e.g. 3001 from Infisical) does not
+    // make Next.js clash with the API on :3001.
+    env: { PORT: "3000" },
   },
   {
     name: "mobile",
@@ -58,9 +120,6 @@ const tasks = [
     env: {},
   },
 ];
-
-const children = new Set();
-let shuttingDown = false;
 
 function killTree(child) {
   if (child.exitCode !== null || child.signalCode !== null) {
@@ -82,16 +141,19 @@ function killTree(child) {
 }
 
 function shutdown(code) {
-  if (!shuttingDown) {
-    shuttingDown = true;
-    for (const child of children) {
-      killTree(child);
-    }
-    process.exitCode = code;
-    // Do not hang forever on a process that ignores SIGTERM.
-    setTimeout(() => process.exit(code), 4000).unref();
+  if (shuttingDown) {
+    return;
   }
+  shuttingDown = true;
+  for (const child of children) {
+    killTree(child);
+  }
+  process.exitCode = code;
+  // Do not hang forever on a process that ignores SIGTERM.
+  setTimeout(() => process.exit(code), 4000).unref();
 }
+
+let shuttingDown = false;
 
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));

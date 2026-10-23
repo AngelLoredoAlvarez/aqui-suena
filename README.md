@@ -38,6 +38,10 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Mobile playback
 
+`pnpm dev` does not start the emulator by default. To boot Pixel_7 and open the
+app on it, run `pnpm dev -- --android` (or `pnpm dev -- --emulator` to start
+the emulator only). The emulator is reused if already running.
+
 Expo Go runs `expo-audio` for foreground playback, but it ships its own fixed Android manifest and cannot declare the `AudioControlsService` that lock-screen controls and background audio need. The driver detects that case and skips lock-screen activation, so Expo Go never logs a service binding failure.
 
 Those two features need a development build: `pnpm dev:mobile:build` installs the app with the `expo-audio` config plugin applied, which declares the service. It starts its own Metro, so stop `pnpm dev` first, or pass `--no-bundler` when Metro is already running.
@@ -75,3 +79,38 @@ Tasks 1–4 done and published to main (scaffold, UI foundation, status API mock
 
 - Documents in English; Biome for lint/format (no ESLint/Prettier).
 - Conventional Commits on feature branches; push/PR/merge are maintainer decisions.
+
+### Environment variables (Varlock + Infisical)
+
+`.env.schema` is the single source of truth for environment variables (types,
+required/optional, defaults). Secrets live in Infisical and are injected at
+runtime with `infisical run -- <command>`; no `.env` files are committed
+(`.env*` is gitignored, except `.env.schema` and `.env.example`).
+
+- `pnpm varlock:load` — resolve and validate the current environment.
+- `pnpm varlock:audit` — check that schema and code references agree.
+- `pnpm varlock:codegen` — regenerate the auto-generated `env.d.ts` types.
+- `pnpm exec infisical run -- pnpm dev` — run any command with secrets injected.
+
+### Secret scanning (gitleaks)
+
+`gitleaks` scans commits and the working tree for leaked credentials. The
+pre-commit hook runs it on staged changes when the binary is installed; CI
+(`.github/workflows/gitleaks.yml`) enforces it on every push and pull request.
+
+Install the binary (not an npm package):
+
+- macOS: `brew install gitleaks`
+- Linux: download the latest release from
+  https://github.com/gitleaks/gitleaks/releases, or
+  `go install github.com/zricethezav/gitleaks/v8@latest` (add `~/go/bin` to
+  `PATH`).
+- Windows: `scoop install gitleaks` or `choco install gitleaks`.
+
+Run manually:
+
+- `pnpm gitleaks:scan` — scan the whole git history
+- `pnpm gitleaks:dir` — scan the working tree
+
+Configuration lives in `.gitleaks.toml`; allowlist generated/vendored paths
+there. Use `// gitleaks:allow` on a line to suppress a single false positive.
