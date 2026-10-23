@@ -10,7 +10,6 @@
     "dev": "node scripts/dev.mjs",
     "test": "node --test scripts/check-singletons.test.mjs && turbo run test -- --run",
     "lint": "biome check --write .",
-    "gitleaks": "gitleaks git --pre-commit --staged --config .gitleaks.toml",
     "gitleaks:scan": "gitleaks git --config .gitleaks.toml",
     "gitleaks:dir": "gitleaks dir . --config .gitleaks.toml",
     "typecheck": "turbo run typecheck",
@@ -26,8 +25,7 @@
     "build:mobile:staging": "node scripts/build-mobile-staging.mjs",
     "varlock:load": "varlock load",
     "varlock:audit": "varlock audit",
-    "varlock:codegen": "varlock codegen",
-    "dev:infisical": "infisical run -- pnpm dev"
+    "varlock:codegen": "varlock codegen"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

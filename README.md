@@ -105,7 +105,6 @@ Install the binary (not an npm package):
 
 Run manually:
 
-- `pnpm gitleaks` — scan staged changes (pre-commit mode)
 - `pnpm gitleaks:scan` — scan the whole git history
 - `pnpm gitleaks:dir` — scan the working tree
 
