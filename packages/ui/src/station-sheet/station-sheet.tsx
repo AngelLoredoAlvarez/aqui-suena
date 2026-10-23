@@ -38,10 +38,12 @@ export function StationSheetBackdrop({
   onClose,
   dim = true,
   zIndex = 1,
+  bottom = 0,
 }: {
   onClose: () => void;
   dim?: boolean;
   zIndex?: number;
+  bottom?: number;
 }) {
   return (
     <YStack
@@ -50,7 +52,7 @@ export function StationSheetBackdrop({
       t={0}
       l={0}
       r={0}
-      b={0}
+      b={bottom}
       bg={dim ? "bg" : "transparent"}
       opacity={dim ? 0.7 : undefined}
       z={zIndex}
@@ -109,14 +111,13 @@ export function StationSheetCard({
                 key={station.id}
                 testID="station-sheet-row"
                 type="button"
-                height={44}
-                minH={44}
-                paddingInline={18}
-                paddingBlock={1}
-                rounded={999}
+                height={56}
+                minH={56}
+                paddingInline={12}
+                paddingBlock={0}
+                rounded={16}
                 bg={active ? "surface2" : "transparent"}
-                borderColor={active ? "accent" : "borderColor"}
-                borderWidth={1}
+                borderWidth={0}
                 onPress={() => {
                   onSelectStation(station.id);
                   onClose();
@@ -126,15 +127,17 @@ export function StationSheetCard({
                 <XStack gap="2" items="center" width="100%">
                   <XStack
                     testID="station-sheet-dot"
-                    width={12}
-                    height={12}
+                    width={10}
+                    height={10}
                     rounded={100}
-                    bg={active ? "ok" : "muted"}
+                    bg={active ? "ok" : "borderColor"}
                   />
                   <YStack flex={1} items="flex-start">
-                    <Paragraph color="text">{station.name}</Paragraph>
+                    <Paragraph color="text" fontWeight="700">
+                      {station.name}
+                    </Paragraph>
                     {station.live ? (
-                      <Paragraph fontSize="3" color="muted">
+                      <Paragraph fontSize={13} color="muted">
                         {dictionary.liveBadge}
                       </Paragraph>
                     ) : null}

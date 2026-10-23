@@ -1,5 +1,5 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
-import { Button, Paragraph, Text, XStack, YStack } from "tamagui";
+import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type PlayerCardStatus = "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
 
@@ -15,6 +15,7 @@ export type PlayerCardProps = {
   onResume: () => void;
   onPause: () => void;
   onOpenSheet?: () => void;
+  sheetOpen?: boolean;
 };
 
 type Dictionary = ReturnType<typeof useLocale>["dictionary"];
@@ -185,8 +186,17 @@ function PlaybackAction({
   return <PlayButton status={status} onResume={onResume} onPause={onPause} />;
 }
 
-function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }: PlayerCardProps) {
+function Dock({
+  stationName,
+  listeners,
+  status,
+  onResume,
+  onPause,
+  onOpenSheet,
+  sheetOpen,
+}: PlayerCardProps) {
   const { dictionary } = useLocale();
+  const media = useMedia();
   const dot = statusDotColor(status);
   const label = statusLabel(status, dictionary);
   const statusText =
@@ -197,7 +207,7 @@ function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }
       testID="player-dock"
       width="100%"
       items="center"
-      gap="4"
+      gap={media.md ? 16 : 12}
       px={16}
       py={10}
       bg="surface"
@@ -206,15 +216,19 @@ function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }
       rounded={20}
     >
       <PlaybackAction status={status} onResume={onResume} onPause={onPause} />
-      <XStack flex={1} items="center" gap="2" minW={0}>
-        {dot ? <XStack testID="status-dot" width={10} height={10} rounded={100} bg={dot} /> : null}
-        {statusText ? (
-          <Paragraph color="brandCreamMuted" fontSize="3" flex={1}>
-            {statusText}
-          </Paragraph>
-        ) : null}
-      </XStack>
-      <StationButton stationName={stationName} onOpenSheet={onOpenSheet} />
+      <YStack flex={1} gap={6} items="flex-start">
+        <XStack items="center" gap={2} minW={0}>
+          {dot ? (
+            <XStack testID="status-dot" width={10} height={10} rounded={100} bg={dot} />
+          ) : null}
+          {statusText ? (
+            <Paragraph color="brandCreamMuted" fontSize={13} flex={1}>
+              {statusText}
+            </Paragraph>
+          ) : null}
+        </XStack>
+        <StationButton stationName={stationName} onOpenSheet={onOpenSheet} sheetOpen={sheetOpen} />
+      </YStack>
     </XStack>
   );
 }
@@ -222,28 +236,34 @@ function Dock({ stationName, listeners, status, onResume, onPause, onOpenSheet }
 function StationButton({
   stationName,
   onOpenSheet,
+  sheetOpen,
 }: {
   stationName: string;
   onOpenSheet?: () => void;
+  sheetOpen?: boolean;
 }) {
+  const { dictionary } = useLocale();
+
   return (
     <Button
       variant="quiet"
       testID="station-name"
       onPress={() => onOpenSheet?.()}
-      aria-label={stationName}
-      paddingInline={14}
-      paddingBlock={8}
-      borderWidth={1}
-      borderColor="borderColor"
-      rounded={999}
-      minH={44}
-      gap={0}
+      aria-haspopup="listbox"
+      aria-label={dictionary.changeStation(stationName)}
+      paddingInline={0}
+      paddingBlock={0}
+      borderWidth={0}
+      minH={32}
+      gap={6}
       opacity={1}
     >
-      <Paragraph fontSize="5" fontWeight="700" color="brandCream">
+      <Paragraph fontSize={17} fontWeight="700" color="brandCream">
         {stationName}
       </Paragraph>
+      <Text fontSize={18} color="brandCream" aria-hidden={true} data-testid="station-chevron">
+        {sheetOpen ? "▴" : "▾"}
+      </Text>
     </Button>
   );
 }

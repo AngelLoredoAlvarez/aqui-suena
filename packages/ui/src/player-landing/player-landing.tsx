@@ -73,11 +73,11 @@ function PlayerDock({
         {sheet ? (
           <YStack
             position="absolute"
-            b="100%"
-            l={0}
-            r={0}
-            width="100%"
-            items="flex-end"
+            b={112}
+            l={100}
+            r="auto"
+            width={320}
+            items="stretch"
             z={4}
             pointerEvents="none"
           >
@@ -91,7 +91,11 @@ function PlayerDock({
 
   return (
     <YStack position="absolute" b="5" l={0} r={0} z={2}>
-      {sheet}
+      {sheet ? (
+        <YStack position="absolute" b={118} l={0} r={0} z={4} pointerEvents="none">
+          {sheet}
+        </YStack>
+      ) : null}
       {children}
     </YStack>
   );
@@ -171,7 +175,12 @@ function StationPlayer({
   useEscapeToClose(sheetOpen, closeSheet);
 
   const sheetBackdrop = (
-    <StationSheetBackdrop onClose={closeSheet} dim={!isWide} zIndex={isWide ? 3 : 1} />
+    <StationSheetBackdrop
+      onClose={closeSheet}
+      dim={!isWide}
+      zIndex={isWide ? 3 : 1}
+      bottom={isWide ? 0 : 106}
+    />
   );
 
   const sheetCard = (
@@ -214,6 +223,7 @@ function StationPlayer({
               onResume={resume}
               onPause={pause}
               onOpenSheet={() => setSheetOpen(true)}
+              sheetOpen={sheetOpen}
             />
           </PlayerDock>
         </>
@@ -234,6 +244,7 @@ function StationPlayer({
             onResume={resume}
             onPause={pause}
             onOpenSheet={() => setSheetOpen(true)}
+            sheetOpen={sheetOpen}
           />
         </PlayerDock>
       </>
@@ -251,6 +262,7 @@ function StationPlayer({
           onResume={resume}
           onPause={pause}
           onOpenSheet={() => setSheetOpen(true)}
+          sheetOpen={sheetOpen}
         />
       </PlayerDock>
     </>

@@ -53,8 +53,9 @@ Routes:
 - From `md` up the landing caps at the 1440px canvas with 24px side padding,
   the header becomes a row (title left, locale switcher right), and the player
   is the same horizontal dock bar in normal flow at the end of the column:
-  playback action left, `<status> · <listeners>` middle, station selector
-  right. The same horizontal dock is used below `md` as well.
+  playback action left, a flexible status area with the station selector below
+  the status text, and, on web, a 44px move button at the far right. The same
+  horizontal dock is used below `md` as well.
 - The station selector is a full-bleed sheet with a dimming backdrop below
   `md`; from `md` up it is a 480px popover anchored to the dock's right edge
   that floats above the dock without reflowing the page. The popover
@@ -62,6 +63,15 @@ Routes:
   outside clicks — including side margins — reach the transparent backdrop and
   close the popover. Wide keeps a transparent full-viewport click-catcher and
   drops the drag handle.
+- **Station sheet visual spec (mobile, matching EstacionesSheet design):**
+  - Card: `bg="surface"`, `borderColor="borderColor"`, `borderWidth={1}`, `rounded={24}`, `p={4}`, `gap={3}`.
+  - Drag handle (mobile only): `width={40}`, `height={4}`, `rounded={999}`, `bg="muted"`.
+  - Title: `fontSize="6"` (18px), `fontWeight="700"`, `color="text"`.
+  - Station row: `height={56}`, `minH={56}`, `paddingInline={12}`, `paddingBlock={0}`, `rounded={16}`, `borderWidth={0}`.
+    - Active: `bg="surface2"`, dot `bg="ok"` (green), checkmark `✓` color `accent`.
+    - Inactive: `bg="transparent"`, dot `bg="borderColor"` (grey).
+    - Live badge: `fontSize="3"` (13px), `color="muted"`.
+  - Max height: `320px` with scroll.
 - The dock's playback action is the design's 64px circular `.pb` button with
   a 24px icon (pause/play/loading), using the theme's primary/onPrimary
   colors, not a text button.

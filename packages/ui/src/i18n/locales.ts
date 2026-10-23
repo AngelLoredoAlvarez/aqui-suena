@@ -14,6 +14,7 @@ export type Dictionary = {
   readonly tapToEnableSound: string;
   readonly tapToPlay: string;
   readonly sheetTitle: string;
+  readonly changeStation: (name: string) => string;
   readonly liveBadge: string;
   readonly closeSheet: string;
   readonly signalUnavailable: string;
@@ -37,6 +38,7 @@ export const es: Dictionary = {
   resume: "Reanudar",
   tapToPlay: "Toca para escuchar",
   sheetTitle: "Estaciones",
+  changeStation: (name: string) => `Cambiar estación, actual: ${name}`,
   liveBadge: "En vivo",
   closeSheet: "Cerrar",
   tapToEnableSound: "Toca para activar el sonido",
@@ -61,6 +63,7 @@ export const en: Dictionary = {
   resume: "Resume",
   tapToPlay: "Tap to listen",
   sheetTitle: "Stations",
+  changeStation: (name: string) => `Change station, current: ${name}`,
   liveBadge: "Live",
   closeSheet: "Close",
   tapToEnableSound: "Tap to enable sound",
