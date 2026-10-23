@@ -31,6 +31,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `pnpm dev:api` | API only, needed by web and desktop audio |
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
+| `pnpm dev:mobile:lan` | Mobile via Expo Go with LAN IP injected (use when api/web already running) |
 | `pnpm dev:mobile:android` | Mobile on the Android emulator |
 | `pnpm dev:mobile:build` | Development build on the emulator, with lock-screen controls and background audio |
 | `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
