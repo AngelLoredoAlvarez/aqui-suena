@@ -8,8 +8,8 @@ Single source of truth for Aquí Suena small-business listings (restaurants, clo
 - Native: React Native + Expo (managed)
 - Navigation: TBD — routes `/business/[businessId]`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (universal cards, sheets, image lists)
-- Data: tRPC + TanStack Query (list/get with cache), zod validation
-- DB: Drizzle + PostgreSQL (`businesses`, `products`, `photos`, `hours`)
+- Data: tRPC + TanStack Query (list/get with cache), valibot validation
+- DB: Drizzle + SQLite/D1 (`businesses`, `products`, `photos`, `hours`)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
@@ -56,7 +56,7 @@ export function BusinessCard({ name, category, open, onPress }: {
 }
 ```
 
-Conventions: zod schemas shared between API and forms; hours stored as weekly ranges; `open` derived server-side from hours + now in the business timezone (stored IANA zone, never device time); no client-only open logic.
+Conventions: valibot schemas shared between API and forms; hours stored as weekly ranges; `open` derived server-side from hours + now in the business timezone (stored IANA zone, never device time); no client-only open logic. Product photos stored on Cloudflare R2 (see SPEC-media-storage): presigned PUT upload, content-addressed keys, client-side compression (max 2MB, JPG/PNG/WebP), immutable cache.
 
 ## Testing Strategy
 - Framework: Vitest + Testing Library; Playwright headed for sheet flows.
@@ -65,8 +65,8 @@ Conventions: zod schemas shared between API and forms; hours stored as weekly ra
 - Levels: unit (hours→open, phone/address formatting) → integration (tRPC list/get) → e2e (open listing from carousel, audio keeps playing).
 
 ## Boundaries
-- Always: validate listing inputs with zod, derive `open` from hours, show delivery only when applicable, run `typecheck + lint + test` before commit.
-- Ask first: add a listing field, change hours model, add image hosting provider.
+- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, run `typecheck + lint + test` before commit.
+- Ask first: add a listing field, change hours model, add image hosting provider (now R2 — see SPEC-media-storage).
 - Never: expose owner emails/phones to scrapers without rate limits, hardcode categories in UI (use shared enum), stop audio when opening a listing.
 
 ## Success Criteria
@@ -83,4 +83,5 @@ Conventions: zod schemas shared between API and forms; hours stored as weekly ra
 - Stats count a carousel view after 2s visible and a detail visit on sheet open, with detail visits as the primary stat.
 
 ## Open Questions
-- Image hosting provider for product photos (2MB max per photo in JPG/PNG/WebP with client-side compression decided)?
+
+- Image hosting: resolved — Cloudflare R2 (free tier: 10GB + 1M Class A ops/month + egress free). See SPEC-media-storage for upload flow and optimization.

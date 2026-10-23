@@ -11,7 +11,8 @@ Future (V2, no design): announcer console with Premium request queue for live me
 - Navigation: n/a (audio-only; management in `/owner/spots`)
 - UI: Tamagui (upload + schedule list in owner portal)
 - Data: tRPC + TanStack Query (`spots.upload`, `spots.schedule`, `spots.plays`)
-- DB: Drizzle + PostgreSQL (`spots`, `spot_plays`)
+- DB: Drizzle + SQLite/D1 (`spots`, `spot_plays`)
+- Storage: Cloudflare R2 for spot audio (max 30s MP3, loudness normalized at upload — see SPEC-media-storage)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 

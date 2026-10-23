@@ -9,7 +9,8 @@
 - Navigation: TBD — carousel card → `/business/[businessId]` sheet. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (carousel, cards, bottom/top sheet that coexists with persistent player)
 - Data: tRPC + TanStack Query (`ads.carousel` ranked by plan priority + recency)
-- DB: Drizzle + PostgreSQL (reads `businesses` + `subscriptions`)
+- DB: Drizzle + SQLite/D1 (reads `businesses` + `subscriptions`)
+- Media: Cloudflare R2 for flyer images (presigned PUT upload, content-addressed keys, optimized delivery — see SPEC-media-storage)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
