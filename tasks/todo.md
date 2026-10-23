@@ -2,11 +2,11 @@
 
 ## Task 1: Monorepo scaffold
 
-**Description:** Create pnpm workspaces with `apps/web` (Next.js App Router + React Native Web), `apps/native` (Expo Router), and `packages/*` with shared TypeScript strict config.
+**Description:** Create pnpm workspaces with `apps/web` (Next.js App Router + React Native Web), `apps/mobile` (Expo Router), and `packages/*` with shared TypeScript strict config.
 
 **Acceptance criteria:**
 - [x] `pnpm -r build` resolves all workspaces without errors
-- [x] `apps/web` renders a placeholder route and `apps/native` boots in Expo Go (verified by user 2026-10-07)
+- [x] `apps/web` renders a placeholder route and `apps/mobile` boots in Expo Go (verified by user 2026-10-07)
 - [x] Shared `@aqui-suena/*` aliases resolve from apps
 
 **Verification:**
@@ -20,7 +20,7 @@
 - `package.json`
 - `pnpm-workspace.yaml`
 - `apps/web/app/page.tsx`
-- `apps/native/app/index.tsx`
+- `apps/mobile/app/index.tsx`
 
 **Estimated scope:** Medium: 3-5 files
 
@@ -81,14 +81,14 @@
 **Description:** Implement `STREAM_FALLBACK_URLS`, `describeMediaError` (incl. `NotAllowedError` → `blocked`, code 4 human message), and `usePlayer({ autoplay: true })` with mount autostart and mirror rotation.
 
 **Acceptance criteria:**
-- [ ] Primary 403/timeout auto-switches to next mirror and logs active URL
-- [ ] `NotAllowedError` maps to `blocked`, code 4 maps to human message
-- [ ] 100% coverage on fallback picker + error mapper
+- [x] Primary 403/timeout auto-switches to next mirror and logs active URL
+- [x] `NotAllowedError` maps to `blocked`, code 4 maps to human message
+- [x] 100% coverage on fallback picker + error mapper
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter player test -- --run`
-- [ ] Build succeeds: `pnpm -r typecheck`
-- [ ] Manual check: force primary failure, fallback engages
+- [x] Tests pass: `pnpm --filter @aqui-suena/player test -- --run`
+- [x] Build succeeds: `pnpm -r typecheck`
+- [x] Manual check: force primary failure, fallback engages
 
 **Dependencies:** Tasks 1-3
 
@@ -153,8 +153,8 @@
 - [x] Same landing and card as web
 
 **Verification:**
-- [x] Tests pass: `pnpm --filter native test -- --run`
-- [x] Build succeeds: `pnpm --filter native build`
+- [x] Tests pass: `pnpm --filter mobile test -- --run`
+- [x] Build succeeds: `pnpm --filter mobile build`
 - [x] Manual check: open app, hear audio without tapping play
 
 **Dependencies:** Tasks 4-5

@@ -126,7 +126,7 @@
 **Files likely touched:**
 - `packages/ui/src/ads-carousel.tsx`
 - `apps/web/app/page.tsx`
-- `apps/native/app/index.tsx`
+- `apps/mobile/app/index.tsx`
 - `e2e/ads.spec.ts`
 
 **Estimated scope:** Medium: 3-5 files

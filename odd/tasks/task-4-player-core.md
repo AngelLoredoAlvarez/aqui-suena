@@ -38,7 +38,7 @@ User: approved the ping-pong model and requested the exact commands to run (hand
 - [x] T2 GREEN implementation of slice (a) (user)
 - [x] T3 Slice (b) error mapper: RED (agent) + GREEN (user)
 - [x] T4 Slice (c) `usePlayer`: RED (agent) + GREEN (user) + senior hardening (agent on user request: run generations, asMediaFailure narrowing, stable play/resume, rotation test for non-object rejections)
-- [ ] T5 Full verification + close
+- [x] T5 Full verification + close
 
 ## Acceptance criteria
 - `pickFallbackUrl` + `describeMediaError` at 100% coverage of their branches.
@@ -52,12 +52,18 @@ User: approved the ping-pong model and requested the exact commands to run (hand
 
 ## Progress
 - 2026-10-08: branch created from main (ca3cdb2). Model agreed.
+- 2026-10-23: closed as OBSOLETE. The ping-pong model was superseded: the player
+  core was completed agent-side and verified in Task 8 e2e (`odd/tasks/task-8-e2e.md`,
+  commit `d596477`) — `packages/player` reaches 100% lines/statements/functions and
+  90.69% branches, with `turbo run test` / `typecheck` / `biome check .` green.
 
 ## Verification evidence
-- (pending)
+- `pnpm --filter @aqui-suena/player exec vitest run --coverage` → lines 100% (78/78),
+  statements 100% (81/81), functions 100% (15/15), branches 90.69% (39/43).
 
 ## Next step
-- Agent: scaffold + RED test slice (a). Then user GREEN.
+- Done. Closed 2026-10-23 (superseded by Task 8; see `odd/tasks/task-8-e2e.md`).
 
 ## Commits
-- (pending)
+- Player core landed on main across the Task 4–8 slices; final coverage locked by
+  `d596477` (Task 8 e2e).
