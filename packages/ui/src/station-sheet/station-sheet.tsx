@@ -1,6 +1,6 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
-import { useEffect } from "react";
 import { Button, isWeb, Paragraph, ScrollView, useMedia, XStack, YStack } from "tamagui";
+import { useEscapeToClose } from "./use-escape-to-close";
 
 export type SheetStation = {
   readonly id: string;
@@ -20,19 +20,6 @@ export type StationSheetProps = {
 // backdrop, per the reference image. Closed renders nothing. The drag
 // handle is visual-only until gestures land; backdrop tap, Escape, or
 // choosing a station dismiss.
-export function useEscapeToClose(open: boolean, onClose: () => void): void {
-  useEffect(() => {
-    if (typeof document === "undefined" || !open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
-}
 
 export function StationSheetBackdrop({
   onClose,
