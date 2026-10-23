@@ -22,3 +22,12 @@ apps/mobile/ios/
 
 # Local tooling binaries (e.g. gitleaks)
 tools/
+
+# Environment files (secrets live in Infisical; config lives in .env.schema)
+.env
+.env.*
+!.env.schema
+!.env.example
+
+# Varlock generated types
+env.d.ts

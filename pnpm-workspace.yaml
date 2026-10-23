@@ -30,6 +30,7 @@ overrides:
 
 allowBuilds:
   esbuild: true
+  "@infisical/cli": true
   "@swc/core": true
   workerd: true
 minimumReleaseAgeExclude:

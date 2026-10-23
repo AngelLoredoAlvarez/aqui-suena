@@ -76,6 +76,18 @@ Tasks 1–4 done and published to main (scaffold, UI foundation, status API mock
 - Documents in English; Biome for lint/format (no ESLint/Prettier).
 - Conventional Commits on feature branches; push/PR/merge are maintainer decisions.
 
+### Environment variables (Varlock + Infisical)
+
+`.env.schema` is the single source of truth for environment variables (types,
+required/optional, defaults). Secrets live in Infisical and are injected at
+runtime with `infisical run -- <command>`; no `.env` files are committed
+(`.env*` is gitignored, except `.env.schema` and `.env.example`).
+
+- `pnpm varlock:load` — resolve and validate the current environment.
+- `pnpm varlock:audit` — check that schema and code references agree.
+- `pnpm varlock:codegen` — regenerate the auto-generated `env.d.ts` types.
+- `infisical run -- pnpm dev` — run any command with secrets injected.
+
 ### Secret scanning (gitleaks)
 
 `gitleaks` scans commits and the working tree for leaked credentials. The
