@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-10-22 against `main` d47dad4 (deps-followups branch).
+Last synced 2026-10-23 against `main` (T4 parity + docs close merged).
 
 ## Player / playback
 
