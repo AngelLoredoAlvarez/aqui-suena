@@ -67,3 +67,11 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged).
       `@tamagui/config` 3.1.2. `react`/`react-dom` were bumped to 19.3.1 then
       REVERTED to 19.3.0 to match Expo SDK 58. `@types/node` stays at 24.19.2
       (the 26 line is ahead of Node 24). Rust side: nothing pending.
+
+## Deferred (T4 parity — webpack-only, revisit if Turbopack-compatible)
+
+- [ ] Million.js — React compiler. DEFERRED: webpack-only, incompatible with
+      Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-compatible
+      compiler or a new maintained option emerges.
+- [ ] PattyCake — zero-runtime ts-pattern compiler. DEFERRED: same webpack/
+      Turbopack concern. Revisit alongside Million.js.

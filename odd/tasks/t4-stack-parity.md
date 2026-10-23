@@ -25,10 +25,11 @@ S4 (ts-pattern). Add `ts-pattern` and use it for the data-fetching UI states
 S5 (Jotai). Add `jotai` for client-side global state (selected station / dock
     position), alongside TanStack Query (server state stays in Query).
 
-S6 (Million.js). Add Million.js compiler to the Next.js web build.
-
-S7 (PattyCake). Add PattyCake zero-runtime pattern matching, paired with
-    ts-pattern.
+S6 (Million.js). DEFERRED (not implemented): webpack-only compiler, incompatible
+    with Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-
+    compatible compiler emerges.
+S7 (PattyCake). DEFERRED (not implemented): same webpack/Turbopack concern.
+    Revisit alongside Million.js.
 
 S8 (Supabase Auth). Add Supabase auth client + cross-platform scaffolding
     (client + SSR helper), groundwork for the owner-portal module.
@@ -50,4 +51,4 @@ L1 (2026-10-23, user): "ya merge y hice el push a main, ahora, en una nueva rama
 L2 (2026-10-23, user, scope answer): "manten pnpm e ignora solito, lo demas si debe de quedar igual"
 L3 (2026-10-23): T3 D1/SQLite done (commit cbbad2b): schema.ts → sqlite-core, drizzle.config → sqlite + d1-http. T2 Valibot done (commit 27d5d9d): valibot 1.5.0, zod removed, tRPC v11 accepts Valibot via Standard Schema (~standard). 52 api + 2 db tests green.
 L4 (2026-10-23): T1 Hono done (commit 14ff38d): hono 4.13.13 + @hono/node-server (createAdaptorServer) + @hono/trpc-server; CORS applied post-next on c.res. T4 ts-pattern (5.9.2) + T5 jotai (3.0.1) done (commit 13bd6ed): select-listener-status helper + selectedStationIdAtom (fresh jotai store per test render). T8 Supabase done: @supabase/supabase-js 2.118.0 + null-safe createSupabaseClient factory + env schema entries. T6/T7 BLOCKED: Million.js and PattyCake are webpack-era compiler plugins; this repo builds web with Turbopack (Next 16) + Babel/Metro (Expo), so they either no-op under Turbopack or force a webpack downgrade, and Million.js has known React 19 incompatibilities.
-L5 (2026-10-23, user): "ok, no los agreguemos" — T6 Million.js and T7 PattyCake SKIPPED by decision. Parity considered complete except those two perf opts (justified: Turbopack-incompatible). Feature complete.
+L5 (2026-10-23, user): "ok, no los agreguemos" — T6 Million.js and T7 PattyCake DEFERRED by decision. Revisit if Turbopack-compatible options emerge. Parity considered complete except those two perf opts (justified: Turbopack-incompatible). Added to backlog as deferred items. Feature complete.
