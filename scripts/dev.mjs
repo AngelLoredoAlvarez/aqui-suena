@@ -7,16 +7,23 @@ import "./with-infisical.mjs";
 //   mobile   Metro on :8081         fixtures loaded from the web dev server
 //   desktop  Tauri window           reuses :3000 instead of starting a second one
 //
+// Pass --android to open the app on a running emulator (starts Pixel_7 if needed).
+// Pass --emulator to only start the emulator without opening the app.
+//
 // Ctrl-C stops the whole group. Pass --android to open the app on a running
 // emulator or device once Metro is up.
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const openAndroid = process.argv.includes("--android");
+const startEmulator = process.argv.includes("--emulator") || process.argv.includes("--android");
+const openAndroid = process.argv.includes("--android") || startEmulator;
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
+const children = new Set();
 
 function lanAddress() {
   for (const entries of Object.values(networkInterfaces())) {
@@ -36,6 +43,55 @@ const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lanAddre
 // The desktop window loads the web dev server that this script already owns.
 // Leaving beforeDevCommand in place would try to bind :3000 a second time.
 const tauriConfig = JSON.stringify({ build: { beforeDevCommand: "" } });
+
+// Start the Android emulator (Pixel_7) if requested and not already running.
+if (startEmulator) {
+  const sdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+  const emulatorBin = sdkRoot ? join(sdkRoot, "emulator", "emulator") : null;
+  const adbBin = sdkRoot ? join(sdkRoot, "platform-tools", "adb") : "adb";
+
+  function adbDevices() {
+    try {
+      return execFileSync(adbBin, ["devices"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  const alreadyRunning = /emulator-\d+\s+device/.test(adbDevices());
+
+  if (alreadyRunning) {
+    console.log("[dev] emulator already running");
+  } else if (emulatorBin && existsSync(emulatorBin)) {
+    console.log("[dev] starting emulator Pixel_7 (this can take ~30s)...");
+    const emulatorChild = spawn(emulatorBin, ["-avd", "Pixel_7"], {
+      stdio: "ignore",
+      detached: true,
+    });
+    emulatorChild.unref();
+    children.add(emulatorChild);
+
+    const deadline = Date.now() + 120000;
+    let ready = false;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (/emulator-\d+\s+device/.test(adbDevices())) {
+        ready = true;
+        break;
+      }
+    }
+    if (ready) {
+      console.log("[dev] emulator Pixel_7 ready");
+    } else {
+      console.error("[dev] emulator did not become ready within 120s; continuing anyway");
+    }
+  } else {
+    console.error("[dev] emulator binary not found (ANDROID_HOME/ANDROID_SDK_ROOT); skipping");
+  }
+}
 
 const tasks = [
   {
@@ -62,9 +118,6 @@ const tasks = [
   },
 ];
 
-const children = new Set();
-let shuttingDown = false;
-
 function killTree(child) {
   if (child.exitCode !== null || child.signalCode !== null) {
     return;
@@ -85,16 +138,19 @@ function killTree(child) {
 }
 
 function shutdown(code) {
-  if (!shuttingDown) {
-    shuttingDown = true;
-    for (const child of children) {
-      killTree(child);
-    }
-    process.exitCode = code;
-    // Do not hang forever on a process that ignores SIGTERM.
-    setTimeout(() => process.exit(code), 4000).unref();
+  if (shuttingDown) {
+    return;
   }
+  shuttingDown = true;
+  for (const child of children) {
+    killTree(child);
+  }
+  process.exitCode = code;
+  // Do not hang forever on a process that ignores SIGTERM.
+  setTimeout(() => process.exit(code), 4000).unref();
 }
+
+let shuttingDown = false;
 
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
