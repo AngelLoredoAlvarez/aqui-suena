@@ -1,13 +1,14 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 import type { PlayerCardProps, PlayerCardStatus } from "./player-card.types";
+import { StationButton } from "./station-button";
 import { StatusRow } from "./status-indicator";
 
 export { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 export type { PlayerCardProps, PlayerCardStatus, StationRef } from "./player-card.types";
 export { StatusRow, statusDotColor, statusLabel } from "./status-indicator";
 
-import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
+import { Button, useMedia, XStack, YStack } from "tamagui";
 
 export function PlayButton({
   status,
@@ -88,6 +89,8 @@ function Dock({
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const media = useMedia();
+  const stationAriaLabel = dictionary.changeStation(stationName);
+  const chevron = sheetOpen ? "▴" : "▾";
 
   return (
     <XStack
@@ -105,44 +108,14 @@ function Dock({
       <PlaybackAction status={status} onResume={onResume} onPause={onPause} />
       <YStack flex={1} gap={6} items="flex-start">
         <StatusRow status={status} listeners={listeners} dictionary={dictionary} />
-        <StationButton stationName={stationName} onOpenSheet={onOpenSheet} sheetOpen={sheetOpen} />
+        <StationButton
+          stationName={stationName}
+          ariaLabel={stationAriaLabel}
+          chevron={chevron}
+          onOpenSheet={onOpenSheet}
+        />
       </YStack>
     </XStack>
-  );
-}
-
-function StationButton({
-  stationName,
-  onOpenSheet,
-  sheetOpen,
-}: {
-  stationName: string;
-  onOpenSheet?: () => void;
-  sheetOpen?: boolean;
-}) {
-  const { dictionary } = useLocale();
-
-  return (
-    <Button
-      variant="quiet"
-      testID="station-name"
-      onPress={() => onOpenSheet?.()}
-      aria-haspopup="listbox"
-      aria-label={dictionary.changeStation(stationName)}
-      paddingInline={0}
-      paddingBlock={0}
-      borderWidth={0}
-      minH={32}
-      gap={6}
-      opacity={1}
-    >
-      <Paragraph fontSize={17} fontWeight="700" color="brandCream">
-        {stationName}
-      </Paragraph>
-      <Text fontSize={18} color="brandCream" aria-hidden={true} data-testid="station-chevron">
-        {sheetOpen ? "▴" : "▾"}
-      </Text>
-    </Button>
   );
 }
 
