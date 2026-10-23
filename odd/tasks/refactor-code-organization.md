@@ -25,3 +25,5 @@ S4. Keep cross-platform compatibility (web + mobile + tests) without platform-sp
 ## Log
 
 L1: User request: refactor whole project for readability, TDD/SOLID/clean code, commits verified.
+
+L2: Completed T1-T7 refactor; typecheck, tests (106), and web build pass.
