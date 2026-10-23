@@ -102,6 +102,12 @@ horizontal bottom dock, so `PlayerCard` now renders one horizontal dock at
 every breakpoint instead of a separate vertical mobile card. The responsive
 card width helper and its tests were removed.
 
+L8 (2026-10-23, user): "no, tenemos qe hacerlo ahora" — fixed: the dock's
+playback action now matches the design's 64px circular `.pb` button with a
+24px icon (pause/play/loading), implemented cross-platform with Tamagui
+primitives instead of raw SVG or a native dependency. The button now uses
+primary/onPrimary colors.
+
 Verification evidence: dock 1392×74 at x=24 on 1440×900 (canvas minus 24px
 margins), popover 480×220 ending at x=1436 sitting above the dock with the
 ads box unchanged at y=386, outside click closes it, dock 720 wide at 768,

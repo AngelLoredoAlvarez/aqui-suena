@@ -62,6 +62,9 @@ Routes:
   outside clicks — including side margins — reach the transparent backdrop and
   close the popover. Wide keeps a transparent full-viewport click-catcher and
   drops the drag handle.
+- The dock's playback action is the design's 64px circular `.pb` button with
+  a 24px icon (pause/play/loading), using the theme's primary/onPrimary
+  colors, not a text button.
 - The two-column business directory (380px list + 480px flyer/detail) is out
   of scope here; it belongs to the `business-directory` feature.
 
