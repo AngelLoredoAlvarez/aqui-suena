@@ -6,7 +6,7 @@ Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and 
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web (shared components)
 - Native: React Native + Expo (managed)
-- Navigation: Solito (unified navigation across Next.js + Expo + React Native Web)
+- Navigation: none today — no station screens by product decision; the player switches stations in place on the landing `/`. Navigation (and any reserved `packages/navigation`) is deferred until a future module needs route screens.
 - UI: Tamagui (universal components, styling, tokens + themes for Next.js + Expo + React Native Web)
 - Data: tRPC + TanStack Query (server state, cache, retry)
 - DB: Drizzle + PostgreSQL (metadata / listen sessions only in this module, no audio)
@@ -21,7 +21,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter db db:push
+DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 
 ## Project Structure
@@ -29,12 +29,12 @@ DB push (dev): pnpm --filter db db:push
 apps/
   web/            → Next.js App Router (routes, player view)
   mobile/         → Expo Router (player view, same route names as web)
+  desktop/        → Tauri shell wrapping the web static export
 packages/
   player/         → shared playback logic (STREAM_FALLBACK_URLS, describeMediaError, usePlayer hook)
-  ui/             → Tamagui-based PlayerCard, PlayButton, StatusDot (RN Web compatible, Solito Link only, tokens + themes)
+  ui/             → Tamagui-based PlayerCard, station selector, ads carousel, i18n (tokens + themes)
   config/         → tamagui.config (tokens, themes, fonts, media)
-  navigation/     → Solito helpers (createParam, shared route constants)
-  api/            → tRPC routers (e.g. listener.getStatus)
+  api/            → tRPC routers (e.g. listener.getStatus) + the HTTP server / Worker
   db/             → Drizzle schema (test-stations harness catalog + listen_sessions; see catalog table below, no audio stored)
 ```
 
@@ -99,7 +99,7 @@ export function PlayerCard({ urls, stations, onSelectStation }: {
   // plus written-permission indie streams. Never invent stream URLs,
   // never scrape aggregators, never embed third-party catalogues
   // (SomaFM, Radio Paradise, NCS, Nightride) without signed permission.
-  const { status, play, resume } = usePlayer({ urls, autoplay: true }); // ice1 → ice2 → ice3, autostart on mount
+  const { status, play, resume } = usePlayer({ urls, autoplay: true }); // mirror1 → mirror2 → mirror3, autostart on mount
   // status: 'idle' | 'loading' | 'playing' | 'blocked' | 'error'
   // 'blocked' = browser autoplay policy rejected audible autoplay; render one-tap resume.
   return (
@@ -120,7 +120,7 @@ export function PlayerCard({ urls, stations, onSelectStation }: {
 // Always attempt audible autoplay on mount; first visit must not require pressing play. Only the browser-blocked case renders a single resume tap.
 ```
 
-Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMediaError`, no unjustified `any`. Shared components must use Tamagui primitives + tokens and `solito/link` / `solito/router`, never `next/link`, `next/router`, raw `div`, or `View` with inline web-only CSS inside `packages/ui`.
+Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMediaError`, no unjustified `any`. Shared components must use Tamagui primitives + tokens, never `next/link`, `next/router`, raw `div`, or `View` with inline web-only CSS inside `packages/ui`.
 
 ## Testing Strategy
 - Framework: Vitest + Testing Library (web), Jest + Expo test (native), headed Playwright for audio e2e (headless hosts often return 403).
@@ -129,8 +129,8 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Levels: unit (fallback picker, error mapper, autoplay-blocked mapper) → integration (tRPC + Query) → headed e2e (autoplay audible <5s when allowed, one-tap resume when blocked, no sustained 403) → navigation (landing `/` renders the shared player on web + native) → visual (Tamagui card renders on web + native with same tokens).
 
 ## Boundaries
-- Always: attempt audible autoplay on app open / first visit with no manual play required, exercise ice1→ice2→ice3 fallback, render status/error/blocked, run `typecheck + lint + test` before commit, validate inputs with zod, use Tamagui primitives + tokens in shared code, keep router imports out of shared code (apps wire navigation with their own routers).
-- Ask first: add a native dependency (expo-audio / track-player), change DB schema, add a new permanent stream, upgrade Solito / Expo Router / Tamagui major, add a custom Tamagui theme or font.
+- Always: attempt audible autoplay on app open / first visit with no manual play required, exercise mirror fallback, render status/error/blocked, run `typecheck + lint + test` before commit, validate inputs with zod, use Tamagui primitives + tokens in shared code, keep router imports out of shared code (apps wire navigation with their own routers).
+- Ask first: add a native dependency (expo-audio / track-player), change DB schema, add a new permanent stream, upgrade Expo Router / Tamagui major, add a custom Tamagui theme or font.
 - Never: commit secrets/signed URLs, require manual play on first visit, delete failing fallback tests without approval, run audio e2e headless against third-party stream hosts, import `next/link` or `next/router` inside `packages/ui`, use raw `div` / RN `View` with web-only CSS inside `packages/ui` bypassing Tamagui tokens, embed SomaFM / Radio Paradise / NCS / Nightride or any commercial catalogue without signed written permission, use aggregator-scraped URLs, invent stream URLs, proxy/re-serve/cache/transcode third-party streams.
 
 ## Success Criteria
@@ -151,6 +151,6 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Live metadata per test station (artist/track via Icecast JSON or just "Live" label)?
 - Fallback order across harness stations (per-station mirrors first, then next station, or fixed global order)?
 - Is `expo-audio` background enough for MVP or do we need track-player from day one?
-- Solito + Expo Router version pin and Next.js App Router as canonical (Pages Router excluded)?
+- Expo Router version pin and Next.js App Router as canonical (Pages Router excluded)?
 - Tamagui compiler enabled from day one? Which themes, tokens, and fonts are canonical?
 - Autoplay policy: audible-first attempt with `NotAllowedError` → `blocked` resume tap, or muted probe first? iOS silent-switch and Media Engagement Index expectations?
