@@ -17,55 +17,13 @@ import {
   useEscapeToClose,
 } from "@aqui-suena/ui/station-sheet";
 import { useAtom } from "jotai";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
 import { channelById, STATIONS, type TestChannel } from "./channels";
 import { useListenerStatus } from "./listener-status";
+import { PlayerDock } from "./player-dock";
 import { getResponsiveMaxW } from "./responsive";
 import { selectListenerStatus } from "./select-listener-status";
-
-function PlayerDock({
-  isWide,
-  sheet,
-  children,
-}: {
-  isWide: boolean;
-  sheet: ReactNode;
-  children: ReactNode;
-}) {
-  if (isWide) {
-    return (
-      <YStack width="100%" mt="auto" position="relative">
-        {sheet ? (
-          <YStack
-            position="absolute"
-            b={112}
-            l={100}
-            r="auto"
-            width={320}
-            items="stretch"
-            z={4}
-            pointerEvents="none"
-          >
-            {sheet}
-          </YStack>
-        ) : null}
-        {children}
-      </YStack>
-    );
-  }
-
-  return (
-    <YStack position="absolute" b="5" l={0} r={0} z={2}>
-      {sheet ? (
-        <YStack position="absolute" b={118} l={0} r={0} z={4} pointerEvents="none">
-          {sheet}
-        </YStack>
-      ) : null}
-      {children}
-    </YStack>
-  );
-}
 
 function StationPlayer({
   channel,
