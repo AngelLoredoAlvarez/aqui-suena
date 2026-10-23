@@ -9,6 +9,8 @@ import "./with-infisical.mjs";
 //
 // Pass --android to open the app on a running emulator (starts Pixel_7 if needed).
 // Pass --emulator to only start the emulator without opening the app.
+// Pass --mobile-only to start only Metro (with LAN IP injection) without
+// api/web/desktop — use when those are already running manually.
 //
 // Ctrl-C stops the whole group. Pass --android to open the app on a running
 // emulator or device once Metro is up.
@@ -22,6 +24,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // The emulator is opt-in: pass --android (open the app on it) or --emulator
 // (start it only). Launch it manually otherwise.
 const emulatorOnly = process.argv.includes("--emulator");
+const mobileOnly = process.argv.includes("--mobile-only");
 const startEmulator = process.argv.includes("--android") || emulatorOnly;
 const openAndroid = process.argv.includes("--android") || emulatorOnly;
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
@@ -119,7 +122,7 @@ const tasks = [
     args: ["--filter", "desktop", "exec", "tauri", "dev", "--config", tauriConfig],
     env: {},
   },
-];
+].filter((task) => !mobileOnly || task.name === "mobile");
 
 function killTree(child) {
   if (child.exitCode !== null || child.signalCode !== null) {
@@ -158,11 +161,17 @@ let shuttingDown = false;
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-console.log("[dev] api      http://localhost:3001");
-console.log("[dev] web      http://localhost:3000");
-console.log(`[dev] mobile   Metro on :8081, fixtures at ${streamBase}`);
-console.log("[dev] desktop  Tauri dev window against :3000");
-console.log("[dev] Ctrl-C stops everything\n");
+if (mobileOnly) {
+  console.log(`[dev] mobile-only: Metro on :8081, fixtures at ${streamBase}`);
+  console.log("[dev] api/web/desktop NOT started (start them manually if needed)");
+  console.log("[dev] Ctrl-C stops Metro\n");
+} else {
+  console.log("[dev] api      http://localhost:3001");
+  console.log("[dev] web      http://localhost:3000");
+  console.log(`[dev] mobile   Metro on :8081, fixtures at ${streamBase}`);
+  console.log("[dev] desktop  Tauri dev window against :3000");
+  console.log("[dev] Ctrl-C stops everything\n");
+}
 
 for (const task of tasks) {
   const child = spawn(pnpm, task.args, {

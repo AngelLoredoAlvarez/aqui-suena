@@ -43,8 +43,7 @@ describe("PlayerCard", () => {
   it("shows the status and listeners with no resume button when playing", () => {
     renderCard({ status: "playing" });
 
-    expect(screen.getByText("Playing")).toBeTruthy();
-    expect(screen.getByText(/42 listening/)).toBeTruthy();
+    expect(screen.getByText(/Playing · 42 listening/)).toBeTruthy();
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
   });
 
@@ -121,8 +120,7 @@ describe("PlayerCard", () => {
   it("renders Spanish copy under the es locale", () => {
     renderCard({ status: "playing", locale: "es" });
 
-    expect(screen.getByText("Reproduciendo")).toBeTruthy();
-    expect(screen.getByText("42 escuchando")).toBeTruthy();
+    expect(screen.getByText(/Reproduciendo · 42 escuchando/)).toBeTruthy();
     expect(screen.getByText("Pausar")).toBeTruthy();
   });
 

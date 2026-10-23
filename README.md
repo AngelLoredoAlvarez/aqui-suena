@@ -31,6 +31,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `pnpm dev:api` | API only, needed by web and desktop audio |
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
+| `pnpm dev:mobile:lan` | Mobile via Expo Go with LAN IP injected (use when api/web already running) |
 | `pnpm dev:mobile:android` | Mobile on the Android emulator |
 | `pnpm dev:mobile:build` | Development build on the emulator, with lock-screen controls and background audio |
 | `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
@@ -103,7 +104,8 @@ The radio-playback MVP is done and published to main (scaffold, UI foundation, s
 Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
-- Desktop wide (1440) composition, ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
+- Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web. See `SPEC-radio-playback.md` (Responsive composition).
+- Ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 
 ## Conventions
