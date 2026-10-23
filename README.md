@@ -38,6 +38,10 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Mobile playback
 
+`pnpm dev` boots the Android emulator (Pixel_7) automatically and opens the app
+on it. Use `pnpm dev -- --no-emulator` for web-only development without the
+emulator. The emulator is reused if already running.
+
 Expo Go runs `expo-audio` for foreground playback, but it ships its own fixed Android manifest and cannot declare the `AudioControlsService` that lock-screen controls and background audio need. The driver detects that case and skips lock-screen activation, so Expo Go never logs a service binding failure.
 
 Those two features need a development build: `pnpm dev:mobile:build` installs the app with the `expo-audio` config plugin applied, which declares the service. It starts its own Metro, so stop `pnpm dev` first, or pass `--no-bundler` when Metro is already running.

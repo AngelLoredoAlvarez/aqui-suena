@@ -19,8 +19,12 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const startEmulator = process.argv.includes("--emulator") || process.argv.includes("--android");
-const openAndroid = process.argv.includes("--android") || startEmulator;
+// By default the Pixel_7 emulator boots alongside everything else (the user
+// asked for it to come up with `pnpm dev`). Use --no-emulator for web-only dev.
+const noEmulator = process.argv.includes("--no-emulator");
+const emulatorOnly = process.argv.includes("--emulator");
+const startEmulator = !noEmulator;
+const openAndroid = process.argv.includes("--android") || (startEmulator && !emulatorOnly);
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 const children = new Set();
