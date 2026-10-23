@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "./with-infisical.mjs";
 // Boots everything the three clients need in development:
 //
 //   api      http://localhost:3001  shared backend: tRPC router + /stream proxy
@@ -30,7 +31,7 @@ function lanAddress() {
 
 // Native plays the fixture URLs directly, so they must be absolute and reachable
 // from the emulator or the phone: the host's LAN address, not localhost.
-const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL ?? `http://${lanAddress()}:3000`;
+const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lanAddress()}:3000`;
 
 // The desktop window loads the web dev server that this script already owns.
 // Leaving beforeDevCommand in place would try to bind :3000 a second time.
