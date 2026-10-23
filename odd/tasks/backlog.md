@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-10-23 against `main` (T4 parity + docs close merged).
+Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-storage blocked on Expo Go moved out of active items).
 
 ## Player / playback
 
@@ -55,12 +55,6 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged).
       compiler). Deliberately ahead of `expo install --check` (SDK 58 expects
       `~6.0.3`); `tsconfig.base.json` dropped `baseUrl`, so it is TS7-ready.
       Feature: `odd/tasks/deps-typescript.md`.
-- [ ] `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major,
-      mobile only). BLOCKED while on Expo Go: SDK 58's
-      `bundledNativeModules.json` pins 2.2.0, so a 3.x JS bump desyncs the
-      native module and breaks Expo Go (same class as the expo-audio playback
-      service). Defer until a dev/release build or a future SDK that bundles
-      3.x.
 - Patch/minor bumps applied 2026-10-22 (`chore/deps-typescript`):
       `@tanstack/react-query` 5.104.5, `@tauri-apps/api`/`@tauri-apps/cli`
       2.12.4, `turbo` 2.11.10, `dependency-cruiser` 18.7.0, `tamagui` +
@@ -75,3 +69,11 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged).
       compiler or a new maintained option emerges.
 - [ ] PattyCake — zero-runtime ts-pattern compiler. DEFERRED: same webpack/
       Turbopack concern. Revisit alongside Million.js.
+
+## Blocked (Expo Go — decided, not changing)
+
+- `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major, mobile only).
+  BLOCKED while on Expo Go: SDK 58's `bundledNativeModules.json` pins 2.2.0, so
+  a 3.x JS bump desyncs the native module and breaks Expo Go (same class as the
+  expo-audio playback service). Decided: keep 2.2.0 while on Expo Go. Revisit
+  only when moving to a dev/release build or a future SDK that bundles 3.x.
