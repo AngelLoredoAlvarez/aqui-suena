@@ -21,10 +21,7 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-stor
 
 ## Restyle follow-ups (from player-restyle-01)
 
-- [ ] Wide desktop composition (1440): no design evidence in section 01
-      (mobile only). Needs tablet/web variant input before composing. Nothing
-      composes for wide viewports yet: the config keeps Tamagui's default
-      media untouched and the shared surfaces only cap width (`maxW` 390/480).
+- [x] Wide desktop composition (1440): DONE 2026-10-23. From `md` up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector is a 480px popover at the dock's right edge. The same horizontal dock is used on mobile, tablet and web. Verified with unit tests, Playwright e2e at 1440×900, and Chrome DevTools at 390/768/1024/1440. Feature: odd/tasks/wide-desktop-composition.md. The two-column business directory (380px list + 480px flyer/detail) remains `business-directory` scope.
 - [ ] Empty + ad-countdown states → ads-display / owner modules.
       `AdsCarousel` is still a static placeholder, so no trigger exists yet.
 - [ ] System-following themes (`useColorScheme` → noche/brasa) + brasa headed

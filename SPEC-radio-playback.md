@@ -45,6 +45,26 @@ Routes:
                stations in place, never by navigating to station screens.
 ```
 
+### Responsive composition (tablet and desktop)
+- The design's wide layout (section 09 tablet 1024×768, section 11 web
+  1440×900) is a bottom dock bar, not a stretched mobile column.
+- Below the Tamagui `md` breakpoint (< 768px) the landing keeps the 390px
+  mobile canvas: stacked centered header, dock pinned above the fold.
+- From `md` up the landing caps at the 1440px canvas with 24px side padding,
+  the header becomes a row (title left, locale switcher right), and the player
+  is the same horizontal dock bar in normal flow at the end of the column:
+  playback action left, `<status> · <listeners>` middle, station selector
+  right. The same horizontal dock is used below `md` as well.
+- The station selector is a full-bleed sheet with a dimming backdrop below
+  `md`; from `md` up it is a 480px popover anchored to the dock's right edge
+  that floats above the dock without reflowing the page. The popover
+  container is pointer-transparent; only the card itself handles presses, so
+  outside clicks — including side margins — reach the transparent backdrop and
+  close the popover. Wide keeps a transparent full-viewport click-catcher and
+  drops the drag handle.
+- The two-column business directory (380px list + 480px flyer/detail) is out
+  of scope here; it belongs to the `business-directory` feature.
+
 ## Catalog (safe test-stations harness)
 
 `stations` rows carry:
@@ -144,6 +164,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Empty catalog: with no verified playable stations the selector renders an honest empty message (no fake entries, no invented URLs); unverified or permission-pending entries render as link-out.
 - Persistence: player shell persists across all routes and sheets; opening a listing, carousel card, or owner link never pauses or unmounts audio. Dock position (`top` | `bottom`) is user-selectable and persisted.
 - UI: `PlayerCard` renders with Tamagui on web and native from the same code, themes/tokens apply, no web-only CSS leak.
+- Responsive: at 1440×900 the dock spans the canvas (24px side margins) and the station selector stays ≤480px at the dock's right edge; at 390 the mobile column is unchanged; no horizontal scroll at 390/768/1024/1440.
 - tRPC `listener.getStatus` returns 200 with `{ station, activeUrl, listeners }` mock.
 
 ## Open Questions
