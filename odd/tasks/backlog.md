@@ -5,14 +5,19 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-storage blocked on Expo Go moved out of active items).
 
-## Player / playback
+## Known limitations (platform)
 
-- [ ] Android media notification: the system controls still show an inert
-      previous button and a progress line for the finite dev assets
-      (follow-up from native-now-playing, closed 2026-10-19). Not observable
-      headless: Expo Go ships a fixed manifest, so the playback service only
-      exists in a development or release build (see the comment in
-      `packages/ui/src/drivers/expo-driver.native.ts`).
+- Android media notification (cosmetic, dev assets only): the system notification
+  may show an inert "previous" button and a progress bar for finite dev assets
+  (test-pop.m4a, etc.). Root cause: expo-audio's `AudioLockScreenOptions`
+  (`showPreviousTrack`, `showNextTrack`, `isLiveStream`) are already set to
+  hide these, but Android's `MediaStyle` notification can still render default
+  transport controls and a progress bar for media items with a known duration.
+  On production live streams (`isLiveStream: true` with no finite duration),
+  the progress bar is hidden. The previous button is a known expo-audio/Android
+  limitation not controllable via the public API. No action taken — documented
+  as expected dev-only cosmetic. See `packages/ui/src/drivers/expo-driver.native.ts`
+  (`LOCK_SCREEN_OPTIONS`).
 
 ## Restyle follow-ups (from player-restyle-01)
 
