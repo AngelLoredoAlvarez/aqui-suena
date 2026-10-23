@@ -232,3 +232,60 @@ test("locale switcher flips es/en copy and persists across reload", async ({ pag
 
   expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
 });
+
+// Wide desktop regression (design sections 09 and 11): from the md
+// breakpoint up the player is a dock bar spanning the 1440 canvas, and the
+// station selector is a compact popover anchored to its right edge instead
+// of a full-bleed sheet.
+test.describe("wide desktop composition", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("dock spans the canvas and the station selector stays compact", async ({ page }) => {
+    const errors = trackConsole(page);
+    await fulfillStreamWithWav(page);
+
+    await page.goto("/");
+
+    const dock = page.getByTestId("player-dock");
+    await expect(dock).toBeVisible({ timeout: 20_000 });
+
+    // The dock re-renders when playback settles from loading to playing, so
+    // poll the box instead of sampling it once.
+    await expect
+      .poll(async () => (await dock.boundingBox())?.width ?? 0, {
+        message: "dock spans the 1440 canvas minus the 24px margins",
+      })
+      .toBeGreaterThanOrEqual(1390);
+
+    // Opening the popover must not reflow the page: it floats above the dock.
+    const adsBefore = await page.getByLabel("Advertisements").boundingBox();
+
+    await page.getByTestId("station-name").click();
+
+    const sheet = page.getByTestId("station-sheet");
+    await expect(sheet).toBeVisible();
+
+    await expect
+      .poll(async () => (await sheet.boundingBox())?.width ?? 0, {
+        message: "station selector stays a compact popover",
+      })
+      .toBeLessThanOrEqual(480);
+
+    const sheetBox = await sheet.boundingBox();
+    expect(
+      (sheetBox?.x ?? 0) + (sheetBox?.width ?? 0),
+      "popover right edge stays on canvas",
+    ).toBeLessThanOrEqual(1440);
+
+    const adsAfter = await page.getByLabel("Advertisements").boundingBox();
+    expect(adsAfter?.y, "opening the popover leaves the content in place").toBe(adsBefore?.y);
+
+    // Clicking outside the card — including the side margins of the popover
+    // container — must close the sheet. The container is pointer-transparent
+    // and only the card itself is interactive.
+    await page.mouse.click(100, 700);
+    await expect(sheet).toBeHidden();
+
+    expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
+  });
+});
