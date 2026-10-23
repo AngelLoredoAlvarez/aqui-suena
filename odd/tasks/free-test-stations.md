@@ -34,9 +34,9 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 
 ## Checklist
 - [x] FS1 SPEC cleaned: every local-only catalog reference removed (names, localities, local scope, local seed rule) — verified: SPEC contains zero Rioverde/Fernandez/Refugio/local-only refs
-- [ ] FS2 Harness schema defined in SPEC (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes + playable seed rule + explicit forbids + concrete 3-channel table, all owned synth)
-- [ ] FS3 Proof-file process defined (harness doc + SPEC table + generation commands; no license entries while all channels are synthesized) + generation approach (ffmpeg only with `-c:a aac`: synth motifs, zero downloads) + .gitignore rule for public/test-streams/*.m4a
-- [ ] FS4 Implementation deferred until the harness loops are hosted and proof files exist
+- [x] FS2 Harness schema defined in SPEC (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes + playable seed rule + explicit forbids + concrete 3-channel table, all owned synth)
+- [x] FS3 Proof-file process defined (harness doc + SPEC table + generation commands; no license entries while all channels are synthesized) + generation approach (ffmpeg only with `-c:a aac`: synth motifs, zero downloads) + .gitignore rule for public/test-streams/*.m4a
+- [x] FS4 Implementation done: 3 channels live in `packages/ui/src/player-landing/player-landing.tsx` (TEST_CHANNELS), .m4a binaries present in `apps/web/public/test-streams/` (gitignored), .gitignore rule active.
 
 ## Acceptance criteria
 - SPEC objective describes the safe test-stations harness, not a local catalog.
@@ -48,5 +48,11 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 ## Applicable checks
 - Docs-only change: no tests or builds required. Verify with `git status --short` and `git diff --stat`; read back all three files.
 
-## After FS4
+## Status
+
+CLOSED 2026-10-23. All FS1-FS4 items verified done:
+- FS1: SPEC cleaned of local-only references.
+- FS2: Catalog schema (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes) + seed rule + explicit forbids + 3-channel table already in SPEC-radio-playback.md "Catalog (safe test-stations harness)".
+- FS3: Proof-file process and generation approach (ffmpeg, `-c:a aac`, zero downloads) documented in SPEC + feature doc; `.gitignore` rule active for `public/test-streams/*.m4a`.
+- FS4: Implementation live — 3 channels (test-pop, test-jingle, test-night) in `packages/ui/src/player-landing/player-landing.tsx` (TEST_CHANNELS), .m4a binaries present in `apps/web/public/test-streams/` (gitignored), selector switches in place, no station screens.
 Build order by reference: Phase 1 player restyle per `SPEC-radio-playback.md` → Phase 2 Supabase Auth per `SPEC-owner-portal.md` → registration → plans/Conekta → downgrade → directory/spots/stats/feedback → ads-tiers. Designs may change, so each phase re-verifies against the SPECs before coding.

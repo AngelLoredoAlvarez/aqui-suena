@@ -91,7 +91,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now also matches the T4 Stack on `feature/t4-stack-parity` (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge): branch has 8 commits, not yet merged. Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
-- Safe test-stations harness: 3 self-hosted dev channels + proof file (SPEC defined; generation + implementation pending).
+- Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
 - Desktop wide (1440) composition, ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 
