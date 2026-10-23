@@ -1,13 +1,13 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 import type { PlayerCardProps, PlayerCardStatus } from "./player-card.types";
+import { StatusRow } from "./status-indicator";
 
 export { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 export type { PlayerCardProps, PlayerCardStatus, StationRef } from "./player-card.types";
+export { StatusRow, statusDotColor, statusLabel } from "./status-indicator";
 
 import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
-
-type Dictionary = ReturnType<typeof useLocale>["dictionary"];
 
 export function PlayButton({
   status,
@@ -61,41 +61,6 @@ export function PlayButton({
   );
 }
 
-function statusDotColor(
-  status: PlayerCardStatus,
-): "brandSuccess" | "brandAccent" | "brand6" | "brandDanger" | null {
-  switch (status) {
-    case "idle":
-      return null;
-    case "playing":
-      return "brandSuccess";
-    case "paused":
-      return "brandAccent";
-    case "loading":
-      return "brand6";
-    case "error":
-      return "brandDanger";
-    case "blocked":
-      return null;
-  }
-}
-
-function statusLabel(status: PlayerCardStatus, dictionary: Dictionary): string | null {
-  switch (status) {
-    case "playing":
-      return dictionary.playing;
-    case "paused":
-      return dictionary.paused;
-    case "loading":
-      return dictionary.loading;
-    case "error":
-      return dictionary.signalUnavailable;
-    case "idle":
-    case "blocked":
-      return null;
-  }
-}
-
 function PlaybackAction({
   status,
   onResume,
@@ -123,10 +88,6 @@ function Dock({
 }: PlayerCardProps) {
   const { dictionary } = useLocale();
   const media = useMedia();
-  const dot = statusDotColor(status);
-  const label = statusLabel(status, dictionary);
-  const statusText =
-    status === "playing" ? `${dictionary.playing} · ${dictionary.listening(listeners)}` : label;
 
   return (
     <XStack
@@ -143,16 +104,7 @@ function Dock({
     >
       <PlaybackAction status={status} onResume={onResume} onPause={onPause} />
       <YStack flex={1} gap={6} items="flex-start">
-        <XStack items="center" gap={2} minW={0}>
-          {dot ? (
-            <XStack testID="status-dot" width={10} height={10} rounded={100} bg={dot} />
-          ) : null}
-          {statusText ? (
-            <Paragraph color="brandCreamMuted" fontSize={13} flex={1}>
-              {statusText}
-            </Paragraph>
-          ) : null}
-        </XStack>
+        <StatusRow status={status} listeners={listeners} dictionary={dictionary} />
         <StationButton stationName={stationName} onOpenSheet={onOpenSheet} sheetOpen={sheetOpen} />
       </YStack>
     </XStack>
