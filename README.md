@@ -1,40 +1,45 @@
 # Aquí Suena
 
-Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turborepo monorepo where Next.js (web) and Expo (mobile) share Tamagui UI and Solito routes from day one.
+Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turborepo monorepo where Next.js (web), Expo (mobile), and Tauri (desktop) share one Tamagui UI and one playback core from day one.
 
 ## Quick path
 
-1. Install: `pnpm install` (requires Node 22, pnpm 12.4.1)
-2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on a running emulator.
+1. Install: `pnpm install` (requires Node 22+, pnpm 12.14.0)
+2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on an emulator.
 3. Run a single client: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm dev:desktop` (this one starts its own web).
-4. Verify: `pnpm -r build && pnpm -r typecheck && pnpm exec biome check .`
+4. Verify: `pnpm build && pnpm typecheck && pnpm exec biome check .`
 
 ## Layout
 
 | Path | What lives there |
 |------|------------------|
 | `apps/web` | Next.js 16 App Router + React Native Web |
-| `apps/mobile` | Expo 57 + Expo Router |
+| `apps/mobile` | Expo SDK 58 + Expo Router |
+| `apps/desktop` | Tauri shell that wraps the web static export |
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
-| `packages/navigation` | Shared Solito route contracts (deep links return in Task 5) |
-| `packages/ui` | Shared Tamagui provider + components (no `next/link`, no web-only CSS) |
-| `packages/player`, `api`, `db` | Playback core (fallback picker, error mapper, `usePlayer`), shared tRPC contract and the HTTP server that deploys it, Drizzle schema |
+| `packages/ui` | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n) — no `next/link`, no web-only CSS |
+| `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`) |
+| `packages/api` | tRPC contract (`listener.getStatus`) + the HTTP server/Worker (`/stream` proxy) |
+| `packages/db` | Drizzle schema (`stations`, `listen_sessions`) |
 
 ## Scripts
 
 | Command | Effect |
 |---------|--------|
-| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the emulator build) |
+| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the app on the emulator, `--emulator` only starts it) |
 | `pnpm dev:web` | Web dev server |
 | `pnpm dev:api` | API only, needed by web and desktop audio |
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
 | `pnpm dev:mobile` | Mobile via Expo Go |
-| `pnpm dev:mobile:android` | Mobile on Android emulator |
+| `pnpm dev:mobile:android` | Mobile on the Android emulator |
 | `pnpm dev:mobile:build` | Development build on the emulator, with lock-screen controls and background audio |
 | `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
+| `pnpm build:mobile:staging` | Release Android APK pointing at the deployed backend (see `apps/mobile/STAGING.md`) |
+| `pnpm deploy:web` | Deploy the web static export to Cloudflare Pages |
 | `pnpm --filter desktop build` | Packaged desktop app (Tauri; builds that export first) |
 | `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |
 | `pnpm lint` | `biome check --write .` |
+| `pnpm arch` | Dependency-cruiser architecture check |
 
 ## Mobile playback
 
@@ -57,9 +62,19 @@ Because the export cannot host dynamic route handlers, `apps/web/app/**/route.ts
 
 Both the dashboard build and the export compile from `apps/web`, and Next takes an exclusive lock on `.next`, so `pnpm build` orders them: `desktop#build` waits for `web#build`. The export runs last, which leaves `.next` holding the static export; run `pnpm --filter web build` if you need the server build there.
 
+## Deploys
+
+| Target | Command | Where |
+|--------|---------|-------|
+| Web | `NEXT_PUBLIC_API_BASE_URL=https://<worker> pnpm deploy:web` | Cloudflare Pages (`https://aqui-suena-web.pages.dev`) |
+| API / stream proxy | `pnpm --filter @aqui-suena/api run deploy:worker` | Cloudflare Worker (`https://aqui-suena-api.angel-loredo-alvarez.workers.dev`) |
+| Mobile staging | `pnpm build:mobile:staging` | Local release APK; EAS builds Android + iOS in the cloud |
+
+The web app builds as a static export with `NEXT_PUBLIC_API_BASE_URL` baked, so the browser calls the deployed Worker for audio. See `apps/web/DEPLOY.md`, `packages/api/DEPLOY.md`, and `apps/mobile/STAGING.md`.
+
 ## Routes
 
-Landing `/` is the player + ads carousel on both platforms, rendered from shared code. Station deep links return in Task 5.
+Landing `/` is the player + ads carousel on both platforms, rendered from shared code. There are no station screens by product decision: the player switches stations in place via its selector.
 
 ## Docs and planning
 
@@ -67,13 +82,18 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 |-----|---------|
 | `tasks/plan.md` | Implementation plan and task list |
 | `tasks/todo.md` | Task checkboxes and acceptance criteria |
-| `SPEC-radio-playback.md` | MVP spec: autoplay, fallback, status |
+| `SPEC-radio-playback.md` | MVP spec: autoplay, fallback, status, test-stations harness |
 | `CAPABILITY-MAP.md` | Module map |
 | `odd/tasks/` | Per-task execution trackers |
+| `odd/tasks/backlog.md` | Cross-feature TODO list |
 
 ## Status
 
-Tasks 1–4 done and published to main (scaffold, UI foundation, status API mock, player core). Next: Task 5 PlayerCard UI + deep links, then autoplay integration (Tasks 6–7).
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
+
+- Safe test-stations harness: 3 self-hosted dev channels + proof file (SPEC defined; generation + implementation pending).
+- Desktop wide (1440) composition, ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
+- Windows/macOS signing and publishing (desktop stays dev-only until then).
 
 ## Conventions
 
