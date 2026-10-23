@@ -46,7 +46,9 @@ const tasks = [
   {
     name: "web",
     args: ["--filter", "web", "dev"],
-    env: {},
+    // Pin the port so an injected PORT (e.g. 3001 from Infisical) does not
+    // make Next.js clash with the API on :3001.
+    env: { PORT: "3000" },
   },
   {
     name: "mobile",
