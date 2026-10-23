@@ -1,74 +1,13 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
+import { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 import type { PlayerCardProps, PlayerCardStatus } from "./player-card.types";
 
+export { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
 export type { PlayerCardProps, PlayerCardStatus, StationRef } from "./player-card.types";
 
 import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 type Dictionary = ReturnType<typeof useLocale>["dictionary"];
-
-export type PlaybackIcon = "play" | "pause" | "loading";
-
-export function getPlaybackIcon(status: PlayerCardStatus): PlaybackIcon | null {
-  switch (status) {
-    case "playing":
-      return "pause";
-    case "paused":
-    case "idle":
-    case "blocked":
-      return "play";
-    case "loading":
-      return "loading";
-    case "error":
-      return null;
-  }
-}
-
-function PlaybackIcon({ icon }: { icon: PlaybackIcon }) {
-  if (icon === "pause") {
-    return (
-      <XStack
-        width={24}
-        height={24}
-        items="center"
-        justify="center"
-        gap={4}
-        data-testid="playback-icon"
-      >
-        <YStack width={4} height={14} rounded={1} bg="onAccent" />
-        <YStack width={4} height={14} rounded={1} bg="onAccent" />
-      </XStack>
-    );
-  }
-
-  if (icon === "play") {
-    return (
-      <YStack
-        data-testid="playback-icon"
-        width={0}
-        height={0}
-        borderTopWidth={7}
-        borderBottomWidth={7}
-        borderLeftWidth={12}
-        borderTopColor="transparent"
-        borderBottomColor="transparent"
-        borderLeftColor="onAccent"
-      />
-    );
-  }
-
-  return (
-    <Text
-      fontSize={20}
-      lineHeight={20}
-      color="onAccent"
-      aria-hidden={true}
-      data-testid="playback-icon"
-    >
-      ⟳
-    </Text>
-  );
-}
 
 export function PlayButton({
   status,
