@@ -6,7 +6,7 @@ Single source of truth for Aquí Suena small-business listings (restaurants, clo
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed)
-- Navigation: Solito (routes `/business/[businessId]`)
+- Navigation: TBD — routes `/business/[businessId]`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (universal cards, sheets, image lists)
 - Data: tRPC + TanStack Query (list/get with cache), zod validation
 - DB: Drizzle + PostgreSQL (`businesses`, `products`, `photos`, `hours`)
@@ -21,7 +21,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter db db:push
+DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 
 ## Project Structure
@@ -39,18 +39,19 @@ Functional components, Tamagui primitives + tokens, `kebab-case` files, `PascalC
 ```tsx
 // packages/ui/src/business-card.tsx
 import { Card, Image, Text, YStack } from 'tamagui';
-import { Link } from 'solito/link';
 
-export function BusinessCard({ id, name, category, open }: { id: string; name: string; category: string; open: boolean }) {
+// No router imports in shared code: the app wires onPress to its own router
+// (next/link on web, expo-router on native). packages/navigation is reserved.
+export function BusinessCard({ name, category, open, onPress }: {
+  name: string; category: string; open: boolean; onPress: () => void;
+}) {
   return (
-    <Link href={`/business/${id}`}>
-      <Card>
-        <YStack padding="$3">
-          <Text>{name}</Text>
-          <Text>{category} · {open ? 'Open' : 'Closed'}</Text>
-        </YStack>
-      </Card>
-    </Link>
+    <Card onPress={onPress}>
+      <YStack padding="$3">
+        <Text>{name}</Text>
+        <Text>{category} · {open ? 'Open' : 'Closed'}</Text>
+      </YStack>
+    </Card>
   );
 }
 ```

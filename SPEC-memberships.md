@@ -6,7 +6,7 @@ Free vs Premium plans for Aquí Suena business owners, billed by 17Labs. Free re
 ## Tech Stack
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed, owners mostly on web)
-- Navigation: Solito (`/owner/billing`)
+- Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (plan cards, entitlement badges)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
 - DB: Drizzle + PostgreSQL (`plans`, `subscriptions`, `entitlements`)
@@ -20,7 +20,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter db db:push
+DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 
 ## Project Structure

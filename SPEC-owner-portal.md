@@ -6,7 +6,7 @@ Aquí Suena for Business (by 17Labs): web-first portal where business owners cre
 ## Tech Stack
 - Web: React + Next.js (App Router) (portal is web-first; native read-only)
 - Native: n/a for editing (owners use web)
-- Navigation: Solito (`/owner`, `/owner/listings`, `/owner/billing`)
+- Navigation: TBD — `/owner`, `/owner/listings`, `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (forms, uploads, schedules)
 - Data: tRPC + TanStack Query + React Hook Form + zod resolvers
 - Auth: Supabase Auth (Google, Facebook, email/password, OTP; 50k MAU free tier)
@@ -21,7 +21,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter db db:push
+DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 
 ## Project Structure

@@ -23,7 +23,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter db db:push
+DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 
 ## Project Structure
