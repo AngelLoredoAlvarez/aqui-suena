@@ -22,8 +22,12 @@ export {
 export { LocaleSwitcher } from "./i18n/locale-switcher";
 export type { Dictionary, SupportedLocale } from "./i18n/locales";
 export { defaultLocale, en, es, getDictionary, resolveLocale } from "./i18n/locales";
-export type { PlayerCardProps, PlayerCardStatus, StationRef } from "./player-card/player-card";
 export { PlayerCard } from "./player-card/player-card";
+export type {
+  PlayerCardProps,
+  PlayerCardStatus,
+  StationRef,
+} from "./player-card/player-card.types";
 export { useListenerStatus } from "./player-landing/listener-status";
 export { PlayerLanding } from "./player-landing/player-landing";
 export { UiProvider } from "./shared/provider";
