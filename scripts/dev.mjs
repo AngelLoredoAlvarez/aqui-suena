@@ -19,6 +19,7 @@ import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import net from "node:net";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // The emulator is opt-in: pass --android (open the app on it) or --emulator
@@ -102,11 +103,13 @@ if (startEmulator) {
 const tasks = [
   {
     name: "api",
+    port: 3001,
     args: ["--filter", "@aqui-suena/api", "dev"],
     env: {},
   },
   {
     name: "web",
+    port: 3000,
     args: ["--filter", "web", "dev"],
     // Pin the port so an injected PORT (e.g. 3001 from Infisical) does not
     // make Next.js clash with the API on :3001.
@@ -114,11 +117,13 @@ const tasks = [
   },
   {
     name: "mobile",
+    port: 8081,
     args: ["--filter", "mobile", "start", ...(openAndroid ? ["--", "--android"] : [])],
     env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase },
   },
   {
     name: "desktop",
+    port: null,
     args: ["--filter", "desktop", "exec", "tauri", "dev", "--config", tauriConfig],
     env: {},
   },
@@ -161,6 +166,24 @@ let shuttingDown = false;
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
+function isPortOpen(port, host = "127.0.0.1", timeout = 500) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let done = false;
+    const finish = (result) => {
+      if (done) return;
+      done = true;
+      socket.destroy();
+      resolve(result);
+    };
+    socket.setTimeout(timeout);
+    socket.once("connect", () => finish(true));
+    socket.once("timeout", () => finish(false));
+    socket.once("error", () => finish(false));
+    socket.connect(port, host);
+  });
+}
+
 if (mobileOnly) {
   console.log(`[dev] mobile-only: Metro on :8081, fixtures at ${streamBase}`);
   console.log("[dev] api/web/desktop NOT started (start them manually if needed)");
@@ -173,7 +196,19 @@ if (mobileOnly) {
   console.log("[dev] Ctrl-C stops everything\n");
 }
 
+const reused = [];
+const toStart = [];
+
 for (const task of tasks) {
+  if (task.port && (await isPortOpen(task.port))) {
+    reused.push(task);
+    console.log(`[dev] ${task.name} already running on :${task.port}; reusing (not restarted)`);
+  } else {
+    toStart.push(task);
+  }
+}
+
+for (const task of toStart) {
   const child = spawn(pnpm, task.args, {
     cwd: root,
     stdio: "inherit",
@@ -193,7 +228,28 @@ for (const task of tasks) {
     if (shuttingDown) {
       return;
     }
+    if (task.port) {
+      isPortOpen(task.port).then((open) => {
+        if (open) {
+          console.error(`\n[dev] ${task.name} exited (${signal ?? code}) but :${task.port} is still serving; continuing`);
+          return;
+        }
+        console.error(`\n[dev] ${task.name} exited (${signal ?? code}); stopping the rest`);
+        shutdown(code ?? 1);
+      });
+      return;
+    }
     console.error(`\n[dev] ${task.name} exited (${signal ?? code}); stopping the rest`);
     shutdown(code ?? 1);
   });
+}
+
+if (reused.length > 0) {
+  console.log(`[dev] reused: ${reused.map((task) => task.name).join(", ")}\n`);
+}
+
+if (children.size === 0 && reused.length > 0) {
+  console.log("[dev] all requested services already running; nothing to start.");
+  console.log("[dev] Ctrl-C to exit this watcher\n");
+  await new Promise(() => {});
 }
