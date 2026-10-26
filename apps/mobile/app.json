@@ -14,7 +14,8 @@
       "package": "com.seventeenlabs.aquisuena",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F1720"
+        "backgroundImage": "./assets/adaptive-background.png",
+        "monochromeImage": "./assets/monochrome.png"
       },
       "permissions": [
         "android.permission.MODIFY_AUDIO_SETTINGS",
