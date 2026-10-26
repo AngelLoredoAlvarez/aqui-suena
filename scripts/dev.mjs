@@ -28,7 +28,8 @@ const emulatorOnly = process.argv.includes("--emulator");
 const mobileOnly = process.argv.includes("--mobile-only");
 const startEmulator = process.argv.includes("--android") || emulatorOnly;
 const openAndroid = process.argv.includes("--android") || emulatorOnly;
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+// (services are spawned directly from their package binaries; pnpm is no longer
+// used as a wrapper, which avoids its failure banners on shutdown)
 
 const children = new Set();
 
@@ -104,13 +105,17 @@ const tasks = [
   {
     name: "api",
     port: 3001,
-    args: ["--filter", "@aqui-suena/api", "dev"],
+    cmd: "tsx",
+    args: ["watch", "src/main.ts"],
+    cwd: "packages/api",
     env: {},
   },
   {
     name: "web",
     port: 3000,
-    args: ["--filter", "web", "dev"],
+    cmd: "next",
+    args: ["dev"],
+    cwd: "apps/web",
     // Pin the port so an injected PORT (e.g. 3001 from Infisical) does not
     // make Next.js clash with the API on :3001.
     env: { PORT: "3000" },
@@ -118,13 +123,17 @@ const tasks = [
   {
     name: "mobile",
     port: 8081,
-    args: ["--filter", "mobile", "start", ...(openAndroid ? ["--", "--android"] : [])],
+    cmd: "expo",
+    args: ["start", ...(openAndroid ? ["--android"] : [])],
+    cwd: "apps/mobile",
     env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase },
   },
   {
     name: "desktop",
     port: null,
-    args: ["--filter", "desktop", "exec", "tauri", "dev", "--config", tauriConfig],
+    cmd: "tauri",
+    args: ["dev", "--config", tauriConfig],
+    cwd: "apps/desktop",
     env: {},
   },
 ].filter((task) => !mobileOnly || task.name === "mobile");
@@ -243,15 +252,35 @@ for (const task of tasks) {
   }
 }
 
+function resolveBin(name, pkgDir) {
+  const suffix = process.platform === "win32" ? ".cmd" : "";
+  const candidates = [
+    join(root, pkgDir, "node_modules", ".bin", name + suffix),
+    join(root, "node_modules", ".bin", name + suffix),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return name;
+}
+
+const binPathEnv = [
+  join(root, "node_modules", ".bin"),
+  ...tasks.map((task) => join(root, task.cwd, "node_modules", ".bin")),
+].join(process.platform === "win32" ? ";" : ":");
+
 for (const task of toStart) {
-  const child = spawn(pnpm, task.args, {
-    cwd: root,
-    // Pipe stdout/stderr so we can drop pnpm's noisy failure banners (e.g.
-    // ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL) that fire when a child is terminated
-    // during shutdown, while keeping real build/runtime logs visible.
+  const child = spawn(resolveBin(task.cmd, task.cwd), task.args, {
+    cwd: join(root, task.cwd),
+    // Pipe stdout/stderr so we can drop any noisy failure banners, while
+    // keeping real build/runtime logs visible.
     stdio: ["inherit", "pipe", "pipe"],
     detached: process.platform !== "win32",
-    env: { ...process.env, ...task.env },
+    env: {
+      ...process.env,
+      ...task.env,
+      PATH: `${binPathEnv}${process.platform === "win32" ? ";" : ":"}${process.env.PATH || ""}`,
+    },
   });
 
   const forward = (stream, out) => {
@@ -313,10 +342,6 @@ if (reused.length > 0) {
 
 if (children.size === 0 && reused.length > 0) {
   console.log("[dev] all requested services already running; nothing to start.");
-  console.log("[dev] Ctrl-C to exit this watcher\n");
-  // Keep the event loop alive without an unsettled top-level await (which Node
-  // warns about and which can make the process exit non-zero). The SIGINT
-  // handler above is responsible for terminating.
-  const keepAlive = setInterval(() => {}, 1 << 30);
-  process.on("exit", () => clearInterval(keepAlive));
+  console.log("[dev] (the already-running instance owns them; Ctrl-C there to stop everything)\n");
+  process.exit(0);
 }
