@@ -28,8 +28,6 @@ const emulatorOnly = process.argv.includes("--emulator");
 const mobileOnly = process.argv.includes("--mobile-only");
 const startEmulator = process.argv.includes("--android") || emulatorOnly;
 const openAndroid = process.argv.includes("--android") || emulatorOnly;
-// (services are spawned directly from their package binaries; pnpm is no longer
-// used as a wrapper, which avoids its failure banners on shutdown)
 
 const children = new Set();
 
@@ -167,7 +165,6 @@ function shutdown(code) {
       try {
         killTree(child);
       } catch {
-        // ignore per-child failures
       }
       setTimeout(() => {
         if (child.exitCode === null && child.signalCode === null) {
@@ -177,7 +174,6 @@ function shutdown(code) {
             try {
               child.kill("SIGKILL");
             } catch {
-              // already gone
             }
           }
         }
@@ -212,9 +208,6 @@ function probePortOnce(port, host = "127.0.0.1", timeout = 500) {
   });
 }
 
-// A service that is still starting up may not accept connections on the first
-// probe. Retry a couple of times so a just-launched instance is not mistaken
-// for "not running" (which would spawn a duplicate and crash on the port).
 async function isPortOpen(port, host = "127.0.0.1", timeout = 500, retries = 2) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (await probePortOnce(port, host, timeout)) {
@@ -276,8 +269,6 @@ const binPathEnv = [
 for (const task of toStart) {
   const child = spawn(resolveBin(task.cmd, task.cwd), task.args, {
     cwd: join(root, task.cwd),
-    // Pipe stdout/stderr so we can drop any noisy failure banners, while
-    // keeping real build/runtime logs visible.
     stdio: ["inherit", "pipe", "pipe"],
     detached: process.platform !== "win32",
     env: {
