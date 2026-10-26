@@ -6,6 +6,7 @@ import { selectedStationIdAtom } from "@aqui-suena/ui/state";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
+import { useAdsCarousel } from "./ads-status";
 import { channelById } from "./channels";
 import { useListenerStatus } from "./listener-status";
 import { getResponsiveMaxW } from "./responsive";
@@ -23,6 +24,7 @@ export function PlayerLanding({
   const [selectedStationId, setSelectedStationId] = useAtom(selectedStationIdAtom);
 
   const listenerQuery = useListenerStatus(defaultStationId);
+  const adsQuery = useAdsCarousel();
   const { dictionary } = useLocale();
   const media = useMedia();
   const isWide = media.md;
@@ -61,7 +63,7 @@ export function PlayerLanding({
         <H1 color="brandCream">{dictionary.appTitle}</H1>
         <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
         <LocaleSwitcher />
-        <AdsCarousel />
+        <AdsCarousel items={adsQuery.data ?? []} />
       </YStack>
     );
   }
@@ -101,7 +103,7 @@ export function PlayerLanding({
           justify={isWide ? "center" : undefined}
           flex={isWide ? 1 : undefined}
         >
-          <AdsCarousel />
+          <AdsCarousel items={adsQuery.data ?? []} />
         </YStack>
         {scheme === "brasa" ? null : player}
       </YStack>
