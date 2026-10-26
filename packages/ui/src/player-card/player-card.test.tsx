@@ -262,4 +262,15 @@ describe("PlayButton", () => {
     expect(button.getAttribute("disabled")).not.toBeNull();
     expect(button.querySelector('[data-testid="playback-icon"]')).not.toBeNull();
   });
+
+  it("marks the button as playing only while playing", () => {
+    renderPlayButton("playing", { locale: "en" });
+    const playing = screen.getByRole("button", { name: "Pause" });
+    expect(playing.getAttribute("data-playing")).toBe("true");
+
+    cleanup();
+    renderPlayButton("paused", { locale: "en" });
+    const paused = screen.getByRole("button", { name: "Resume" });
+    expect(paused.getAttribute("data-playing")).toBeNull();
+  });
 });
