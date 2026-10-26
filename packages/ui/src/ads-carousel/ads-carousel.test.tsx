@@ -48,7 +48,6 @@ describe("AdsCarousel", () => {
 
     fireEvent.mouseEnter(carousel);
     act(() => vi.advanceTimersByTime(300));
-    // Should still show first item (paused)
     expect(screen.getByAltText("Ad A")).toBeTruthy();
 
     fireEvent.mouseLeave(carousel);

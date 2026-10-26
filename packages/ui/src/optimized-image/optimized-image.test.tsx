@@ -76,10 +76,8 @@ describe("OptimizedImage", () => {
       <OptimizedImage src="https://example.com/img.png" alt="test" width={100} height={100} />,
       { wrapper },
     );
-    // Not yet in view -> no img
     expect(screen.queryByAltText("test")).toBeNull();
 
-    // Simulate entering viewport
     act(() => {
       cb?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
     });

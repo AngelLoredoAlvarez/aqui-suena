@@ -12,15 +12,6 @@ export type OptimizedImageProps = {
 
 type ImageStatus = "idle" | "loading" | "loaded" | "error";
 
-/**
- * Shared, optimized image for web + native.
- *
- * - Lazy-loads via IntersectionObserver (unless `priority`).
- * - Shows a blur placeholder while loading.
- * - Fades in on load; renders a fallback on error.
- *
- * Homogeneous: same component, same behavior on web and native (Tamagui).
- */
 export function OptimizedImage({
   src,
   alt,
@@ -32,7 +23,6 @@ export function OptimizedImage({
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
 
-  // Lazy-load trigger.
   useEffect(() => {
     if (priority) {
       setStatus("loading");
