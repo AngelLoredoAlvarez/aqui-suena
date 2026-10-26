@@ -6,6 +6,7 @@ export function greeting(): string {
   return `Hello from ${appName} UI placeholder`;
 }
 
+export type { AdsCarouselItem, AdsCarouselProps } from "./ads-carousel/ads-carousel";
 export { AdsCarousel } from "./ads-carousel/ads-carousel";
 export type { LocaleContextValue, LocaleProviderProps } from "./i18n/locale-context";
 export { LocaleProvider, useLocale } from "./i18n/locale-context";
@@ -22,6 +23,8 @@ export {
 export { LocaleSwitcher } from "./i18n/locale-switcher";
 export type { Dictionary, SupportedLocale } from "./i18n/locales";
 export { defaultLocale, en, es, getDictionary, resolveLocale } from "./i18n/locales";
+export type { OptimizedImageProps } from "./optimized-image";
+export { OptimizedImage } from "./optimized-image";
 export { PlayerCard } from "./player-card/player-card";
 export type {
   PlayerCardProps,
