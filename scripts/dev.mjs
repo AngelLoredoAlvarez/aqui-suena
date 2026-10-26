@@ -166,7 +166,7 @@ let shuttingDown = false;
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-function isPortOpen(port, host = "127.0.0.1", timeout = 500) {
+function probePortOnce(port, host = "127.0.0.1", timeout = 500) {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     let done = false;
@@ -182,6 +182,21 @@ function isPortOpen(port, host = "127.0.0.1", timeout = 500) {
     socket.once("error", () => finish(false));
     socket.connect(port, host);
   });
+}
+
+// A service that is still starting up may not accept connections on the first
+// probe. Retry a couple of times so a just-launched instance is not mistaken
+// for "not running" (which would spawn a duplicate and crash on the port).
+async function isPortOpen(port, host = "127.0.0.1", timeout = 500, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (await probePortOnce(port, host, timeout)) {
+      return true;
+    }
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
+  return false;
 }
 
 if (mobileOnly) {
@@ -200,6 +215,11 @@ const reused = [];
 const toStart = [];
 
 for (const task of tasks) {
+  if (task.name === "desktop" && (await isPortOpen(3000))) {
+    reused.push(task);
+    console.log("[dev] desktop: web already running; reusing (no second Tauri window)");
+    continue;
+  }
   if (task.port && (await isPortOpen(task.port))) {
     reused.push(task);
     console.log(`[dev] ${task.name} already running on :${task.port}; reusing (not restarted)`);
