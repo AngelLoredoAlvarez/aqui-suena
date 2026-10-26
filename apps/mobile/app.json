@@ -1,20 +1,25 @@
 {
   "expo": {
-    "name": "Aquí Suena",
+    "name": "Aqu\u00ed Suena",
     "slug": "aqui-suena",
     "version": "0.0.0",
     "scheme": "aqui-suena",
     "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-light.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0F1720"
+      "backgroundColor": "#FFFFFF",
+      "dark": {
+        "image": "./assets/splash-dark.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0F1720"
+      }
     },
     "android": {
       "package": "com.seventeenlabs.aquisuena",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundImage": "./assets/adaptive-background.png",
+        "backgroundColor": "#0F1720",
         "monochromeImage": "./assets/monochrome.png"
       },
       "permissions": [
