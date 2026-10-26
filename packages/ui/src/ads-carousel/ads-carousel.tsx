@@ -1,15 +1,13 @@
+import type { AdsCarouselItem } from "@aqui-suena/api/client";
+import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useCallback, useEffect, useState } from "react";
-import { H2, Paragraph, useMedia, YStack } from "tamagui";
+import { Button, Paragraph, useMedia, YStack } from "tamagui";
+import { composeMeta } from "./compose-meta";
+import { PaginationDots } from "./pagination-dots";
+import { getResponsiveCarouselMaxW, getResponsiveFlyerWidth } from "./responsive";
 
-import { getResponsiveCarouselMaxW } from "./responsive";
-
-export type AdsCarouselItem = {
-  readonly id: string;
-  readonly imageUrl: string;
-  readonly alt: string;
-  readonly href?: string;
-};
+export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
 export type AdsCarouselProps = {
   readonly items?: readonly AdsCarouselItem[];
@@ -18,12 +16,20 @@ export type AdsCarouselProps = {
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
 
+// Flyer portrait aspect (3:4) approximates the design's "≈70% of the height"
+// card. Exact viewport-height sizing is a landing-composition concern and is
+// refined separately.
+const FLYER_ASPECT = 4 / 3;
+
 export function AdsCarousel({
   items = [],
   autoAdvanceMs = DEFAULT_AUTO_ADVANCE_MS,
 }: AdsCarouselProps) {
   const media = useMedia();
+  const { dictionary } = useLocale();
   const maxW = getResponsiveCarouselMaxW(media);
+  const flyerWidth = getResponsiveFlyerWidth(media);
+  const isWide = flyerWidth !== undefined;
 
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -45,53 +51,109 @@ export function AdsCarousel({
   if (!hasItems) {
     return (
       <YStack
-        items="center"
-        justify="center"
-        gap="2"
-        p="4"
+        testID="ads-carousel-placeholder"
         width="100%"
         maxW={maxW}
-        aria-label="Advertisements"
-        testID="ads-carousel-placeholder"
+        items="center"
+        justify="center"
+        gap={12}
+        p={24}
+        bg="surface"
+        borderWidth={1}
+        borderColor="borderColor"
+        rounded={28}
       >
-        <H2>Ads</H2>
-        <Paragraph>Ad carousel placeholder. Real ads land with the ads-display module.</Paragraph>
+        <Paragraph text="center" fontWeight="700" fontSize={22}>
+          {dictionary.noSponsoredBusinesses}
+        </Paragraph>
+        <Paragraph text="center" color="muted" fontSize={14}>
+          {dictionary.noSponsoredBusinessesHint}
+        </Paragraph>
       </YStack>
     );
   }
 
   const current = items[safeIndex]!;
+  const flyerW = flyerWidth ?? maxW;
+  const flyerH = Math.round(flyerW * FLYER_ASPECT);
+  const groupLabel = dictionary.adGroupLabel(safeIndex + 1, items.length);
+  const meta = composeMeta(current, {
+    isWide,
+    deliveryLabel: dictionary.delivery,
+  });
+  const statusLabel = current.isOpen ? dictionary.open : dictionary.closed;
+  const statusColor = current.isOpen ? "ok" : "error";
+  const nameFontSize = media.xl ? 26 : isWide ? 24 : 22;
 
   return (
     <YStack
       testID="ads-carousel"
-      items="center"
-      justify="center"
-      gap="2"
-      p="4"
       width="100%"
       maxW={maxW}
-      aria-label="Advertisements"
+      flexDirection={isWide ? "row" : "column"}
+      bg="surface"
+      borderWidth={1}
+      borderColor="borderColor"
+      rounded={28}
+      overflow="hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
     >
-      <OptimizedImage
-        src={current.imageUrl}
-        alt={current.alt}
-        width={maxW}
-        height={Math.round((maxW * 9) / 16)}
-        priority={safeIndex === 0}
-      />
-      {current.href ? (
-        <a href={current.href} style={{ textDecoration: "none" }}>
-          <Paragraph>{current.alt}</Paragraph>
-        </a>
-      ) : (
-        <Paragraph>{current.alt}</Paragraph>
-      )}
+      <YStack position="relative" overflow="hidden" shrink={isWide ? 0 : undefined}>
+        <OptimizedImage
+          src={current.imageUrl}
+          alt={current.alt}
+          width={flyerW}
+          height={flyerH}
+          objectFit="cover"
+          objectPosition="center top"
+          rounded={0}
+          priority={safeIndex === 0}
+        />
+        <YStack
+          position="absolute"
+          r={12}
+          t={12}
+          rounded={999}
+          py={4}
+          px={10}
+          bg="surface"
+          borderWidth={1}
+          borderColor="borderColor"
+        >
+          <Paragraph fontSize={12} fontWeight="700" color={statusColor}>
+            {statusLabel}
+          </Paragraph>
+        </YStack>
+        <PaginationDots count={items.length} activeIndex={safeIndex} label={groupLabel} />
+      </YStack>
+      <YStack flex={isWide ? 1 : undefined} p={16} gap={6}>
+        <Paragraph fontWeight="700" fontSize={nameFontSize}>
+          {current.name}
+        </Paragraph>
+        <Paragraph color="muted" fontSize={14}>
+          {meta}
+        </Paragraph>
+        {!isWide ? (
+          <Button
+            type="button"
+            mt={8}
+            rounded={999}
+            bg="accent"
+            color="onAccent"
+            fontWeight="700"
+            fontSize={15}
+            minH={52}
+            px={22}
+            self="flex-start"
+          >
+            {dictionary.viewBusiness}
+          </Button>
+        ) : null}
+      </YStack>
     </YStack>
   );
 }

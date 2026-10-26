@@ -8,6 +8,9 @@ export type OptimizedImageProps = {
   readonly height?: number;
   readonly priority?: boolean;
   readonly blurDataURL?: string;
+  readonly objectFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+  readonly objectPosition?: "center" | "center top" | "center bottom" | "top" | "bottom";
+  readonly rounded?: number;
 };
 
 type ImageStatus = "idle" | "loading" | "loaded" | "error";
@@ -19,6 +22,9 @@ export function OptimizedImage({
   height,
   priority = false,
   blurDataURL,
+  objectFit,
+  objectPosition = "center",
+  rounded = 8,
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
@@ -55,7 +61,7 @@ export function OptimizedImage({
         items="center"
         justify="center"
         bg="surface2"
-        rounded={8}
+        rounded={rounded}
       />
     );
   }
@@ -71,7 +77,7 @@ export function OptimizedImage({
       width={width}
       height={height}
       bg="surface2"
-      rounded={8}
+      rounded={rounded}
     >
       {blurDataURL && status !== "loaded" && (
         <Image
@@ -89,11 +95,12 @@ export function OptimizedImage({
           alt={alt}
           width={width}
           height={height}
+          objectFit={objectFit}
           onLoad={() => setStatus("loaded")}
           onError={() => setStatus("error")}
           opacity={status === "loaded" ? 1 : 0}
           animation="quick"
-          style={{ position: "absolute", inset: 0 }}
+          style={{ position: "absolute", inset: 0, objectPosition }}
         />
       )}
     </YStack>

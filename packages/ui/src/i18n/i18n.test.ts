@@ -55,4 +55,19 @@ describe("i18n contract", () => {
     expect(es.closeSheet).toBe("Cerrar");
     expect(en.closeSheet).toBe("Close");
   });
+
+  it("ships the ads carousel translations", () => {
+    expect(es.open).toBe("Abierto");
+    expect(en.open).toBe("Open");
+    expect(es.closed).toBe("Cerrado");
+    expect(en.closed).toBe("Closed");
+    expect(es.delivery).toBe("Servicio a domicilio");
+    expect(en.delivery).toBe("Home delivery");
+    expect(es.viewBusiness).toBe("Ver negocio");
+    expect(en.viewBusiness).toBe("View business");
+    expect(es.noSponsoredBusinesses).toBe("Aún no hay negocios patrocinados");
+    expect(en.noSponsoredBusinesses).toBe("No sponsored businesses yet");
+    expect(es.adGroupLabel(1, 4)).toBe("Anuncio 1 de 4");
+    expect(en.adGroupLabel(1, 4)).toBe("Ad 1 of 4");
+  });
 });

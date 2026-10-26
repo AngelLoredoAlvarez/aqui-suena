@@ -28,6 +28,13 @@ export type Dictionary = {
   readonly trayCloseToTray: string;
   readonly trayToggleWindow: string;
   readonly trayQuit: string;
+  readonly open: string;
+  readonly closed: string;
+  readonly delivery: string;
+  readonly viewBusiness: string;
+  readonly noSponsoredBusinesses: string;
+  readonly noSponsoredBusinessesHint: string;
+  readonly adGroupLabel: (index: number, count: number) => string;
 };
 
 export const es: Dictionary = {
@@ -53,6 +60,13 @@ export const es: Dictionary = {
   trayCloseToTray: "Cerrar a la bandeja",
   trayToggleWindow: "Mostrar/Ocultar ventana",
   trayQuit: "Salir",
+  open: "Abierto",
+  closed: "Cerrado",
+  delivery: "Servicio a domicilio",
+  viewBusiness: "Ver negocio",
+  noSponsoredBusinesses: "Aún no hay negocios patrocinados",
+  noSponsoredBusinessesHint: "Vuelve pronto: aquí verás los negocios cerca de ti.",
+  adGroupLabel: (index: number, count: number) => `Anuncio ${index} de ${count}`,
 };
 
 export const en: Dictionary = {
@@ -78,6 +92,13 @@ export const en: Dictionary = {
   trayCloseToTray: "Close to tray",
   trayToggleWindow: "Show/Hide window",
   trayQuit: "Quit",
+  open: "Open",
+  closed: "Closed",
+  delivery: "Home delivery",
+  viewBusiness: "View business",
+  noSponsoredBusinesses: "No sponsored businesses yet",
+  noSponsoredBusinessesHint: "Check back soon — you'll see businesses near you here.",
+  adGroupLabel: (index: number, count: number) => `Ad ${index} of ${count}`,
 };
 
 export const defaultLocale: SupportedLocale = "es";
