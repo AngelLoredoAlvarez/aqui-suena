@@ -31,9 +31,6 @@ const R2_PUBLIC_URL =
   process.env.EXPO_PUBLIC_R2_PUBLIC_URL ||
   "https://pub-placeholder.r2.dev";
 
-// Placeholder seed mirroring the design's example businesses so the card is
-// verifiable against the design (section 01). Real ads land with the
-// ranked `ads.carousel` query over `businesses` + `subscriptions`.
 const SEED: readonly AdsCarouselItem[] = [
   {
     id: "ad-1",

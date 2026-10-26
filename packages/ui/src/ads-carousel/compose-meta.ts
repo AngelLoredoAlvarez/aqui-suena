@@ -9,11 +9,6 @@ export type ComposeMetaOptions = {
   readonly deliveryLabel: string;
 };
 
-// One shared composition for the card meta line across platforms:
-// "category · delivery · opensLabel". Delivery is present only when true
-// (no negative badge, per spec); opensLabel is mobile-only (wide shows the
-// horario in its own row). Keeping this in a single function means mobile,
-// tablet, and web never duplicate the presentation logic.
 export function composeMeta(source: MetaSource, options: ComposeMetaOptions): string {
   const segments: string[] = [source.category];
   if (source.delivery) {

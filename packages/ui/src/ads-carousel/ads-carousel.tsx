@@ -16,9 +16,6 @@ export type AdsCarouselProps = {
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
 
-// Flyer portrait aspect (3:4) approximates the design's "≈70% of the height"
-// card. Exact viewport-height sizing is a landing-composition concern and is
-// refined separately.
 const FLYER_ASPECT = 4 / 3;
 
 export function AdsCarousel({
