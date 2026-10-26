@@ -26,13 +26,13 @@
     "@hono/trpc-server": "^0.4.2",
     "@supabase/supabase-js": "^2.118.0",
     "@trpc/server": "11.19.0",
-    "hono": "^4.13.13",
+    "hono": "^4.13.14",
     "tsx": "4.23.15",
     "valibot": "^1.5.0"
   },
   "devDependencies": {
     "@trpc/client": "11.19.0",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.5",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
   }
