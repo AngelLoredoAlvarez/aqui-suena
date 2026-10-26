@@ -4,8 +4,18 @@
     "slug": "aqui-suena",
     "version": "0.0.0",
     "scheme": "aqui-suena",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F1720"
+    },
     "android": {
       "package": "com.seventeenlabs.aquisuena",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F1720"
+      },
       "permissions": [
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
