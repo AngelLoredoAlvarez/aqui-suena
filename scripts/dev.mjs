@@ -231,10 +231,34 @@ for (const task of tasks) {
 for (const task of toStart) {
   const child = spawn(pnpm, task.args, {
     cwd: root,
-    stdio: "inherit",
+    // Pipe stdout/stderr so we can drop pnpm's noisy failure banners (e.g.
+    // ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL) that fire when a child is terminated
+    // during shutdown, while keeping real build/runtime logs visible.
+    stdio: ["inherit", "pipe", "pipe"],
     detached: process.platform !== "win32",
     env: { ...process.env, ...task.env },
   });
+
+  const forward = (stream, out) => {
+    let buffer = "";
+    stream.on("data", (chunk) => {
+      buffer += chunk.toString();
+      const lines = buffer.split("\\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (/ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL|ELIFECYCLE|failed in/.test(line)) {
+          continue;
+        }
+        out.write(line + "\\n");
+      }
+    });
+    stream.on("end", () => {
+      if (buffer) out.write(buffer);
+    });
+  };
+
+  forward(child.stdout, process.stdout);
+  forward(child.stderr, process.stderr);
 
   children.add(child);
 
