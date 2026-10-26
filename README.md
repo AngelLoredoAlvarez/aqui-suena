@@ -5,7 +5,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 ## Quick path
 
 1. Install: `pnpm install` (requires Node 22+, pnpm 12.14.0)
-2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on an emulator.
+2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on an emulator. If any of those services is already running, `pnpm dev` reuses it instead of restarting it and keeps the rest of the group up (Ctrl-C stops only what this invocation started).
 3. Run a single client: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm dev:desktop` (this one starts its own web).
 4. Verify: `pnpm build && pnpm typecheck && pnpm exec biome check .`
 
@@ -26,7 +26,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 | Command | Effect |
 |---------|--------|
-| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the app on the emulator, `--emulator` only starts it) |
+| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the app on the emulator, `--emulator` only starts it). Reuses any service already listening on its port instead of restarting it. |
 | `pnpm dev:web` | Web dev server |
 | `pnpm dev:api` | API only, needed by web and desktop audio |
 | `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
