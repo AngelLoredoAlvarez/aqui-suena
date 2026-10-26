@@ -271,5 +271,9 @@ if (reused.length > 0) {
 if (children.size === 0 && reused.length > 0) {
   console.log("[dev] all requested services already running; nothing to start.");
   console.log("[dev] Ctrl-C to exit this watcher\n");
-  await new Promise(() => {});
+  // Keep the event loop alive without an unsettled top-level await (which Node
+  // warns about and which can make the process exit non-zero). The SIGINT
+  // handler above is responsible for terminating.
+  const keepAlive = setInterval(() => {}, 1 << 30);
+  process.on("exit", () => clearInterval(keepAlive));
 }
