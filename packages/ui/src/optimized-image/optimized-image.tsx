@@ -30,7 +30,7 @@ export function OptimizedImage({
   blurDataURL,
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
-  const containerRef = useRef<any>(null);
+  const containerRef = useRef<Element | null>(null);
 
   // Lazy-load trigger.
   useEffect(() => {
@@ -72,7 +72,9 @@ export function OptimizedImage({
 
   return (
     <YStack
-      ref={containerRef}
+      ref={(node) => {
+        containerRef.current = node as Element | null;
+      }}
       testID="optimized-image"
       position="relative"
       overflow="hidden"

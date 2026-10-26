@@ -13,7 +13,8 @@
     "./player-card": "./src/player-card/index.ts",
     "./station-sheet": "./src/station-sheet/index.ts",
     "./state": "./src/state/index.ts",
-    "./shared": "./src/shared/index.ts"
+    "./shared": "./src/shared/index.ts",
+    "./optimized-image": "./src/optimized-image/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
