@@ -162,27 +162,31 @@ function shutdown(code) {
     return;
   }
   shuttingDown = true;
-  for (const child of children) {
-    killTree(child);
-    // Escalate to SIGKILL if SIGTERM did not finish promptly, so a single
-    // Ctrl+C actually stops everything instead of leaving processes alive.
-    setTimeout(() => {
-      if (child.exitCode === null && child.signalCode === null) {
-        try {
-          process.kill(-child.pid, "SIGKILL");
-        } catch {
+  try {
+    for (const child of children) {
+      try {
+        killTree(child);
+      } catch {
+        // ignore per-child failures
+      }
+      setTimeout(() => {
+        if (child.exitCode === null && child.signalCode === null) {
           try {
-            child.kill("SIGKILL");
+            process.kill(-child.pid, "SIGKILL");
           } catch {
-            // already gone
+            try {
+              child.kill("SIGKILL");
+            } catch {
+              // already gone
+            }
           }
         }
-      }
-    }, 500).unref();
+      }, 500).unref();
+    }
+  } finally {
+    process.exitCode = code;
+    setTimeout(() => process.exit(code), 1000);
   }
-  process.exitCode = code;
-  // Do not hang forever on a process that ignores SIGTERM.
-  setTimeout(() => process.exit(code), 1500).unref();
 }
 
 let shuttingDown = false;
