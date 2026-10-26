@@ -155,10 +155,25 @@ function shutdown(code) {
   shuttingDown = true;
   for (const child of children) {
     killTree(child);
+    // Escalate to SIGKILL if SIGTERM did not finish promptly, so a single
+    // Ctrl+C actually stops everything instead of leaving processes alive.
+    setTimeout(() => {
+      if (child.exitCode === null && child.signalCode === null) {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // already gone
+          }
+        }
+      }
+    }, 500).unref();
   }
   process.exitCode = code;
   // Do not hang forever on a process that ignores SIGTERM.
-  setTimeout(() => process.exit(code), 4000).unref();
+  setTimeout(() => process.exit(code), 1500).unref();
 }
 
 let shuttingDown = false;
@@ -241,19 +256,23 @@ for (const task of toStart) {
 
   const forward = (stream, out) => {
     let buffer = "";
+    const drop = (line) =>
+      /ERR_PNPM|ELIFECYCLE|failed in/.test(line);
+
     stream.on("data", (chunk) => {
       buffer += chunk.toString();
       const lines = buffer.split("\\n");
       buffer = lines.pop();
       for (const line of lines) {
-        if (/ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL|ELIFECYCLE|failed in/.test(line)) {
-          continue;
-        }
+        if (drop(line)) continue;
         out.write(line + "\\n");
       }
     });
     stream.on("end", () => {
-      if (buffer) out.write(buffer);
+      if (!buffer) return;
+      for (const line of buffer.split("\\n")) {
+        if (line && !drop(line)) out.write(line + "\\n");
+      }
     });
   };
 
