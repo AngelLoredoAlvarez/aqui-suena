@@ -73,7 +73,10 @@ export function AdsCarousel({
     );
   }
 
-  const current = items[safeIndex]!;
+  const current = items[safeIndex];
+  if (!current) {
+    return null;
+  }
   const flyerW = flyerWidth ?? maxW;
   const flyerH = Math.round(flyerW * FLYER_ASPECT);
   const groupLabel = dictionary.adGroupLabel(safeIndex + 1, items.length);
