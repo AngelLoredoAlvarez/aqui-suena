@@ -6,10 +6,10 @@ inlined into the JS bundle at build time, so changing an endpoint requires
 rebuilding the app. The local path builds Android on this machine; the EAS path
 builds Android and iOS in the cloud.
 
-| Purpose | Variable | Value |
-| --- | --- | --- |
-| Worker base for the shared API client and `/stream` proxy | `EXPO_PUBLIC_API_BASE_URL` | `https://aqui-suena-api.angel-loredo-alvarez.workers.dev` |
-| `/test-streams/*` fixtures used by the native player | `EXPO_PUBLIC_STREAM_BASE_URL` | `https://aqui-suena-web.pages.dev` |
+| Purpose                                                   | Variable                      | Value                                                     |
+| --------------------------------------------------------- | ----------------------------- | --------------------------------------------------------- |
+| Worker base for the shared API client and `/stream` proxy | `EXPO_PUBLIC_API_BASE_URL`    | `https://aqui-suena-api.angel-loredo-alvarez.workers.dev` |
+| `/test-streams/*` fixtures used by the native player      | `EXPO_PUBLIC_STREAM_BASE_URL` | `https://aqui-suena-web.pages.dev`                        |
 
 Two bases are required because a native app has no same-origin server. The test
 fixtures live in `apps/web/public/test-streams` and are deployed to Cloudflare
@@ -133,10 +133,10 @@ pnpm dlx --allow-build=dtrace-provider --allow-build=protobufjs eas-cli@latest b
 iOS builds run on EAS, so no local Xcode or macOS is needed to produce the
 `.ipa`. The install target decides the prerequisites:
 
-| Target | Apple Developer Program | Where it runs |
-| --- | --- | --- |
-| Physical iPhone (internal distribution) | Required (paid) | EAS install link on the device |
-| iOS Simulator | Not required | macOS with Xcode only |
+| Target                                  | Apple Developer Program | Where it runs                  |
+| --------------------------------------- | ----------------------- | ------------------------------ |
+| Physical iPhone (internal distribution) | Required (paid)         | EAS install link on the device |
+| iOS Simulator                           | Not required            | macOS with Xcode only          |
 
 ### Bundle identifier
 

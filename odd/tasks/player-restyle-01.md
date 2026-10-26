@@ -1,15 +1,19 @@
 # Feature: player-restyle-01 — Restyle player + landing vs design section 01
 
 ## Objective
+
 Restyle the shared player landing to design section 01: Noche dark theme by default with bottom rounded player dock, Brasa light variant with player on top, Plus Jakarta Sans, all 9 player states, station sheet, 44px touch targets. Behavior stays green throughout.
 
 ## Problem
+
 Current landing renders the proven playback core in a centered brand-plum card (`$brand2`, maxW 480) with inline station chips: no Noche/Brasa theme pair, no dock, system font, chips under 44px, and 4 of 9 design states missing (empty, ad countdown, station sheet, idle). Mapping evidence: explore handoff 2026-10-15.
 
 ## Why
+
 Playback + gapless + i18n risks are retired and merged. Design-01 is the user-selected next slice (2026-10-14 next-steps) and the visual contract for oyente screens.
 
 ## Scope
+
 - Theme tokens in `packages/config/tamagui.config.ts` (additive Noche/Brasa pairs: bg/surface/surface-2/border/text/muted/accent/on-accent/ok/error; no existing-token edits — Tamagui strict TS only accepts tokens, lesson from player-visual-design).
 - Font: Plus Jakarta Sans 400/600/700, base 14px (web via next/font or link in `apps/web`; native via expo-font loading; fallback system-ui).
 - Dock layout in `packages/ui` player-landing/player-card: bottom rounded dock (dark) / player-on-top order (light), 390px single-screen composition, 44px min targets (52px primary), Tamagui primitives only, keyboard accessible, bilingual aria-labels.
@@ -20,6 +24,7 @@ Playback + gapless + i18n risks are retired and merged. Design-01 is the user-se
 Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new locales, animations.
 
 ## Constraints
+
 - TDD ON (RED first per slice); user verifies headed on web + native (agent cannot see).
 - No hardcoded copy; no router imports in shared code; additive tokens only.
 - Branch `feature/player-restyle-01`; work-unit commits on the branch, local only, no push without explicit order.
@@ -29,15 +34,19 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 - Dictation: every file edit names the repo-relative file path plus exact line numbers plus a nearby code anchor. Test edits also ship the exact pnpm watch command for those tests.
 
 ## Authorized scope
+
 User: approved the console mock and authorized the slice (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
 
 ## TDD mode
+
 - Mode: ON (source: standing session agreement). Runner: vitest via `turbo run test -- --run`. RED observed before GREEN per slice.
 
 ## Delivery strategy
+
 - Strategy: `ask-on-risk` (default). Forecast: ~350-450 authored lines (near the ~400 advisory heuristic: if the running count exceeds ~400, stop and ask for chain strategy before the next commit).
 
 ## Tasks
+
 - [x] R1 Noche/Brasa theme tokens + font wiring + token tests (route: dictated)
 - [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
 - [x] R3 Missing states (idle branch + station sheet + state tests; sheet = BOTTOM OVERLAY per reference image Descargas/Selector de estaciones (en el lugar).png: drag handle, rows with dot + En vivo + accent check on active, backdrop dismiss; sheet scales to large catalogs via scroll + stable keys, virtualization deferred; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated) — CLOSED 2026-10-19: idle `ecf00f9` + sheet `6c50dd4`, both ancestors of `main`; `packages/ui/src/station-sheet/` ships with `station-sheet.test.tsx`. R3b-3 closed as already satisfied: zero `chip` references remain in source and `player-landing-channels.test.tsx` already drives the sheet, so no test needed migrating.
@@ -45,13 +54,16 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 - [x] R5 Full gates + headed web + native approval + close (route: dictated) — CLOSED 2026-10-19: gates re-verified on the merged result (see Verification evidence); headed approvals recorded at R2b/R2c/R2e/R2f/R3b. Brasa headed verification is NOT claimed here — it remains a backlog item.
 
 ## Acceptance criteria
+
 - [x] Landing matches design-01 Main (dark dock at the bottom) and Owner (light player on top) compositions (order tests + headed web/native at R2f). 7 of 9 states reachable and bilingual: idle, loading, playing, paused, blocked, signal-error, station sheet. The "9 states" wording predates the R3 descope: empty and ad-countdown moved to their owner modules (no triggers exist) and live in the backlog. Brasa headed verification is still open in the backlog.
 - [x] Workspace gates green: `pnpm test` 7/7 packages (ui 9 files / 80 tests), `pnpm typecheck` 7/7, `biome check` clean (98 files); headed look approved by the user on web + native through R2/R3. The 8/8 in this line was correct when written — `packages/navigation` declared a test script then and no longer does.
 
 ## Applicable checks
+
 - Focused `vitest` runs, `turbo run test -- --run`, typecheck, biome.
 
 ## Progress
+
 - 2026-10-15: R3a idle GREEN (tapToPlay keys ES/EN, card idle branch + dot-null + pass-through, suite green, apps working). Next: R3b station sheet.
 - 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web by agent + headed native by user). Committed ecf00f9 (idle) + 6c50dd4 (overlay). Next: R3b-3 chips removal decision.
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
@@ -69,6 +81,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 - 2026-10-19: gate counts corrected from 8/8 to 7/7. The original count included `packages/navigation`, which declared a test script then (verified with `git grep -l '"test"' 6ded314`) and does not today; `apps/native` is now `apps/mobile`.
 
 ## Verification evidence
+
 - 2026-10-19 (post-merge reconciliation on `main`): `pnpm --filter @aqui-suena/ui test` real run — 9 files / 80 tests green; workspace `pnpm test` 7/7 packages; `pnpm typecheck` 7/7; `pnpm exec biome check .` clean over 98 files.
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
 - R1b: web + native tsc clean, headed emulator font verified by user.
@@ -76,6 +89,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 - R2f: order tests green both schemes; headed noche verified web + emulador (dock bottom, centered, seamless); brasa order unit-covered.
 
 ## Commits
+
 - adda25f feat(tokens): add Noche Brasa theme pairs with tests
 - eed3eb7 docs(tasks): record R1a tokens green adda25f
 - 8e413a2 feat(font): wire Plus Jakarta Sans web and native

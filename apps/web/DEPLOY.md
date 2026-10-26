@@ -11,6 +11,7 @@ network call the page makes is the audio `/stream` request to the API Worker.
    `packages/api/DEPLOY.md`).
 2. `wrangler` is authenticated once. It is a root devDependency, so
    `pnpm install` already provides it — only the login is manual:
+
    ```bash
    pnpm exec wrangler login
    ```

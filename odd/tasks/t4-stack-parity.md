@@ -7,32 +7,32 @@ Bring the stack in line with the T4 Stack (create-t4-app / t4stack.com), keeping
 ## Specs
 
 S1 (Hono backend). Replace the plain Node `http` / fetch-handler backend in
-    `packages/api` with Hono. Same routes (`/health`, `/stream`, `/trpc/*`),
-    same CORS policy, same client-safe `./client` split. Keep pnpm; keep tRPC.
+`packages/api` with Hono. Same routes (`/health`, `/stream`, `/trpc/*`),
+same CORS policy, same client-safe `./client` split. Keep pnpm; keep tRPC.
 
 S2 (Valibot). Replace zod with Valibot for the listener input/output schemas
-    in `packages/api` (tRPC `.input`/`.output` and the client fetcher). Same
-    shapes and validation semantics; no runtime behavior change.
+in `packages/api` (tRPC `.input`/`.output` and the client fetcher). Same
+shapes and validation semantics; no runtime behavior change.
 
 S3 (D1/SQLite). Replace the PostgreSQL Drizzle schema (`pg-core`) with SQLite
-    (`sqlite-core`, D1-compatible). Same tables (`stations`, `listen_sessions`).
-    `drizzle.config.ts` switches to the SQLite dialect. No live DB exists yet,
-    so this is a schema/dialect change, not a data migration.
+(`sqlite-core`, D1-compatible). Same tables (`stations`, `listen_sessions`).
+`drizzle.config.ts` switches to the SQLite dialect. No live DB exists yet,
+so this is a schema/dialect change, not a data migration.
 
 S4 (ts-pattern). Add `ts-pattern` and use it for the data-fetching UI states
-    (loading/error/success) instead of ad-hoc ternaries.
+(loading/error/success) instead of ad-hoc ternaries.
 
 S5 (Jotai). Add `jotai` for client-side global state (selected station / dock
-    position), alongside TanStack Query (server state stays in Query).
+position), alongside TanStack Query (server state stays in Query).
 
 S6 (Million.js). DEFERRED (not implemented): webpack-only compiler, incompatible
-    with Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-
-    compatible compiler emerges.
+with Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-
+compatible compiler emerges.
 S7 (PattyCake). DEFERRED (not implemented): same webpack/Turbopack concern.
-    Revisit alongside Million.js.
+Revisit alongside Million.js.
 
 S8 (Supabase Auth). Add Supabase auth client + cross-platform scaffolding
-    (client + SSR helper), groundwork for the owner-portal module.
+(client + SSR helper), groundwork for the owner-portal module.
 
 ## Tasks
 

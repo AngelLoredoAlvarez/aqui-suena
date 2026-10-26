@@ -69,7 +69,11 @@ Presigned URL generation with validation:
 
 ```ts
 // packages/api/src/r2-client.ts
-export async function presignUpload(key: string, contentType: string, maxSize: number): Promise<string> {
+export async function presignUpload(
+  key: string,
+  contentType: string,
+  maxSize: number,
+): Promise<string> {
   // Validate contentType against allowlist and size against limit before signing
   // Return a time-limited PUT URL (5 min expiry)
 }

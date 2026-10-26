@@ -1,15 +1,19 @@
 # Feature: task-4-player-core — Playback core, pair-programmed (TDD ping-pong)
 
 ## Objective
+
 Implement Task 4 (player core: mirror fallback picker, media-error mapper, `usePlayer` autoplay hook) in `packages/player`, pair-programmed with the user via TDD ping-pong: the agent writes RED tests, the user writes GREEN implementations.
 
 ## Problem
+
 No `packages/player` exists. Task 4 demands 100% coverage on the fallback picker + error mapper — pure logic, ideal for strict RED-GREEN-REFACTOR with the user driving implementations.
 
 ## Why
+
 User ordered: start Task 4 collaboratively instead of agent-only. Agreed model: agent owns RED tests, user owns GREEN code, reviewer-style feedback with technical WHY, work-unit commits each with own authorship.
 
 ## Scope
+
 - Slices: (a) fallback picker `pickFallbackUrl` — user implements first; (b) error mapper `describeMediaError` — TBD owner; (c) `usePlayer` hook — TBD (together or agent).
 - Agent prepares per slice: branch, package scaffold, RED test, handoff with exact commands.
 - User implements slice code, runs gates, commits own work.
@@ -18,22 +22,27 @@ User ordered: start Task 4 collaboratively instead of agent-only. Agreed model: 
 Out of scope: Task 5+ UI, E2E, push/PR/merge.
 
 ## Constraints
+
 - Stack: pnpm 12.4.1, turbo 2.11.7, TS strict 5.9.3 (pin exact in new packages — pnpm latest is TS7, which dropped `baseUrl`), Vitest 5.
 - Branch `feat/task-4-player-core`; local commits only, no push without explicit order.
 - New package follows conventions: `build`/`typecheck` = `tsc --noEmit`, `test` = `vitest run`, tsconfig extending `tsconfig.base.json`.
 - Pure logic first: no audio elements, no DOM, no platform APIs in slices (a) and (b).
 
 ## Authorized scope
+
 User: approved the ping-pong model and requested the exact commands to run (handoff request). Covers scaffold + RED tests by agent, implementation by user. No push, no PR.
 
 ## TDD mode
+
 - Mode: ON (strict). Source: explicit user request + test-driven-development skill. Runner: `vitest run` via turbo; watch mode via `vitest` (no `run`) for the tight loop.
 - Contract under test for slice (a): `pickFallbackUrl(triedUrls, candidates) => first untried candidate or null`.
 
 ## Delivery strategy
+
 - Strategy: `ask-on-risk` (default). Forecast: small (~150 authored lines). Per-slice work-unit commits.
 
 ## Tasks
+
 - [x] T1 Scaffold `packages/player` + RED tests for slice (a) fallback picker (agent)
 - [x] T2 GREEN implementation of slice (a) (user)
 - [x] T3 Slice (b) error mapper: RED (agent) + GREEN (user)
@@ -41,16 +50,19 @@ User: approved the ping-pong model and requested the exact commands to run (hand
 - [x] T5 Full verification + close
 
 ## Acceptance criteria
+
 - `pickFallbackUrl` + `describeMediaError` at 100% coverage of their branches.
 - `turbo run test`, `turbo run typecheck`, `biome check .` green.
 - Each slice committed separately with its author's hands on the implementation.
 
 ## Applicable checks
+
 - `pnpm --filter @aqui-suena/player test` (single run) / `exec vitest` (watch)
 - `pnpm --filter @aqui-suena/player typecheck`
 - `turbo run test -- --run`, `turbo run typecheck`, `pnpm exec biome check .`
 
 ## Progress
+
 - 2026-10-08: branch created from main (ca3cdb2). Model agreed.
 - 2026-10-23: closed as OBSOLETE. The ping-pong model was superseded: the player
   core was completed agent-side and verified in Task 8 e2e (`odd/tasks/task-8-e2e.md`,
@@ -58,12 +70,15 @@ User: approved the ping-pong model and requested the exact commands to run (hand
   90.69% branches, with `turbo run test` / `typecheck` / `biome check .` green.
 
 ## Verification evidence
+
 - `pnpm --filter @aqui-suena/player exec vitest run --coverage` → lines 100% (78/78),
   statements 100% (81/81), functions 100% (15/15), branches 90.69% (39/43).
 
 ## Next step
+
 - Done. Closed 2026-10-23 (superseded by Task 8; see `odd/tasks/task-8-e2e.md`).
 
 ## Commits
+
 - Player core landed on main across the Task 4–8 slices; final coverage locked by
   `d596477` (Task 8 e2e).

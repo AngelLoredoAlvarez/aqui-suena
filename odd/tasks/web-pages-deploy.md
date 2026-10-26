@@ -5,27 +5,27 @@ Branch: `chore/api-deploy-config` · Status: implemented + verified (2026-10-22)
 ## Specs
 
 S1. The web app builds as a static export (`output: "export"`) with
-    `NEXT_PUBLIC_API_BASE_URL` baked from the environment, so the browser calls
-    the deployed Worker directly for audio.
+`NEXT_PUBLIC_API_BASE_URL` baked from the environment, so the browser calls
+the deployed Worker directly for audio.
 S2. The static-export build mode is not desktop-specific; the existing desktop
-    bundle keeps working through the same mode.
+bundle keeps working through the same mode.
 S3. One command builds the static export and deploys it to Cloudflare Pages at a
-    stable production URL.
+stable production URL.
 S4. The Worker's CORS allowlist includes the Pages origin while keeping the
-    built-in dev/platform origins, so `/stream` is not rejected with 403.
+built-in dev/platform origins, so `/stream` is not rejected with 403.
 S5. `wrangler` resolves from every workspace package that needs it (the API
-    Worker and the Pages deploy).
+Worker and the Pages deploy).
 
 ## Tasks
 
 - [x] T1 — Generalize `DESKTOP_BUILD` → `STATIC_EXPORT` (S2). Commit `d46999f`.
 - [x] T2 — Move `wrangler` to the root devDependencies (S5). Commit `d46999f`.
 - [x] T3 — Add `scripts/deploy-web-pages.mjs` and the root `deploy:web` script
-      (S1, S3). Commit `d46999f`.
+  (S1, S3). Commit `d46999f`.
 - [x] T4 — Set `ALLOWED_ORIGINS` to the defaults plus the Pages origin (S4).
-      Commit `d46999f`.
+  Commit `d46999f`.
 - [x] T5 — Add `apps/web/DEPLOY.md` and cross-link it from
-      `packages/api/DEPLOY.md` (S3, S4). Commit `d46999f`.
+  `packages/api/DEPLOY.md` (S3, S4). Commit `d46999f`.
 - [x] T6 — Verify (all). Evidence in L4.
 
 ## Log

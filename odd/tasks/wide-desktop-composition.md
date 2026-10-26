@@ -51,18 +51,18 @@ canvas and the selector stays ≤480px, plus Chrome DevTools measurements at
 
 - [x] T1 — Confirm breakpoints (S1). Documented; no config change.
 - [x] T2 — Responsive helpers (S2/S3): `getResponsiveMaxW` (390 | 1440) and
-      `getResponsiveCardMaxW` (480 | undefined) with unit tests.
+  `getResponsiveCardMaxW` (480 | undefined) with unit tests.
 - [x] T3 — Wide landing composition (S2): header row, flexible content, dock in
-      flow, 1440 canvas cap. `player-landing.tsx`.
+  flow, 1440 canvas cap. `player-landing.tsx`.
 - [x] T4 — Dock bar (S3): one horizontal dock for mobile/tablet/web,
-      matching the mobile design. `player-card.tsx` no longer keeps a separate
-      vertical mobile card.
+  matching the mobile design. `player-card.tsx` no longer keeps a separate
+  vertical mobile card.
 - [x] T5 — Station selector popover (S4): 480px right-aligned, absolutely
-      positioned above the dock (no reflow), transparent click-catcher, no drag
-      handle on wide.
+  positioned above the dock (no reflow), transparent click-catcher, no drag
+  handle on wide.
 - [x] T6 — Verification (S5): 101 unit tests, typecheck clean, 14 Playwright
-      e2e green, measured dock 1392px at 1440, popover 480×220 at the right
-      edge, mobile 390 unchanged.
+  e2e green, measured dock 1392px at 1440, popover 480×220 at the right
+  edge, mobile 390 unchanged.
 
 ## Log
 

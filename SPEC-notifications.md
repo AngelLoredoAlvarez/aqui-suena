@@ -67,7 +67,9 @@ Token registration with platform detection:
 ```ts
 // packages/api/src/routers/notifications.ts
 export const registerToken = publicProcedure
-  .input(v.object({ token: v.string(), platform: v.picklist(["web", "ios", "android", "desktop"]) }))
+  .input(
+    v.object({ token: v.string(), platform: v.picklist(["web", "ios", "android", "desktop"]) }),
+  )
   .mutation(({ input, ctx }) => {
     // Store token + userId + platform in DB (upsert on token)
   });

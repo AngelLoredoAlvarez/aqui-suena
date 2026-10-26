@@ -11,36 +11,36 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Layout
 
-| Path | What lives there |
-|------|------------------|
-| `apps/web` | Next.js 16 App Router + React Native Web |
-| `apps/mobile` | Expo SDK 58 + Expo Router |
-| `apps/desktop` | Tauri shell that wraps the web static export |
-| `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media) |
-| `packages/ui` | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS |
-| `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`) |
-| `packages/api` | tRPC contract (`listener.getStatus`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy |
-| `packages/db` | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`) |
+| Path              | What lives there                                                                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web`        | Next.js 16 App Router + React Native Web                                                                                                                          |
+| `apps/mobile`     | Expo SDK 58 + Expo Router                                                                                                                                         |
+| `apps/desktop`    | Tauri shell that wraps the web static export                                                                                                                      |
+| `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media)                                                                                                         |
+| `packages/ui`     | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS |
+| `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`)                                                                                                        |
+| `packages/api`    | tRPC contract (`listener.getStatus`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy                                                                  |
+| `packages/db`     | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`)                                                                                                         |
 
 ## Scripts
 
-| Command | Effect |
-|---------|--------|
-| `pnpm dev` | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the app on the emulator, `--emulator` only starts it). Reuses any service already listening on its port instead of restarting it. |
-| `pnpm dev:web` | Web dev server |
-| `pnpm dev:api` | API only, needed by web and desktop audio |
-| `pnpm dev:desktop` | Desktop shell via Tauri dev (serves the web app on :3000) |
-| `pnpm dev:mobile` | Mobile via Expo Go |
-| `pnpm dev:mobile:lan` | Mobile via Expo Go with LAN IP injected (use when api/web already running) |
-| `pnpm dev:mobile:android` | Mobile on the Android emulator |
-| `pnpm dev:mobile:build` | Development build on the emulator, with lock-screen controls and background audio |
-| `pnpm build:desktop:web` | Static export of the web app for the Tauri bundle |
-| `pnpm build:mobile:staging` | Release Android APK pointing at the deployed backend (see `apps/mobile/STAGING.md`) |
-| `pnpm deploy:web` | Deploy the web static export to Cloudflare Pages |
-| `pnpm --filter desktop build` | Packaged desktop app (Tauri; builds that export first) |
-| `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces |
-| `pnpm lint` | `biome check --write .` |
-| `pnpm arch` | Dependency-cruiser architecture check |
+| Command                             | Effect                                                                                                                                                                                                                             |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | Everything: API on :3001, web on :3000, Metro on :8081 and the desktop window (`--android` opens the app on the emulator, `--emulator` only starts it). Reuses any service already listening on its port instead of restarting it. |
+| `pnpm dev:web`                      | Web dev server                                                                                                                                                                                                                     |
+| `pnpm dev:api`                      | API only, needed by web and desktop audio                                                                                                                                                                                          |
+| `pnpm dev:desktop`                  | Desktop shell via Tauri dev (serves the web app on :3000)                                                                                                                                                                          |
+| `pnpm dev:mobile`                   | Mobile via Expo Go                                                                                                                                                                                                                 |
+| `pnpm dev:mobile:lan`               | Mobile via Expo Go with LAN IP injected (use when api/web already running)                                                                                                                                                         |
+| `pnpm dev:mobile:android`           | Mobile on the Android emulator                                                                                                                                                                                                     |
+| `pnpm dev:mobile:build`             | Development build on the emulator, with lock-screen controls and background audio                                                                                                                                                  |
+| `pnpm build:desktop:web`            | Static export of the web app for the Tauri bundle                                                                                                                                                                                  |
+| `pnpm build:mobile:staging`         | Release Android APK pointing at the deployed backend (see `apps/mobile/STAGING.md`)                                                                                                                                                |
+| `pnpm deploy:web`                   | Deploy the web static export to Cloudflare Pages                                                                                                                                                                                   |
+| `pnpm --filter desktop build`       | Packaged desktop app (Tauri; builds that export first)                                                                                                                                                                             |
+| `pnpm build` / `test` / `typecheck` | Turbo pipelines across workspaces                                                                                                                                                                                                  |
+| `pnpm lint`                         | `biome check --write .`                                                                                                                                                                                                            |
+| `pnpm arch`                         | Dependency-cruiser architecture check                                                                                                                                                                                              |
 
 ## Mobile playback
 
@@ -65,11 +65,11 @@ Both the dashboard build and the export compile from `apps/web`, and Next takes 
 
 ## Deploys
 
-| Target | Command | Where |
-|--------|---------|-------|
-| Web | `NEXT_PUBLIC_API_BASE_URL=https://<worker> pnpm deploy:web` | Cloudflare Pages (`https://aqui-suena-web.pages.dev`) |
-| API / stream proxy | `pnpm --filter @aqui-suena/api run deploy:worker` | Cloudflare Worker (`https://aqui-suena-api.angel-loredo-alvarez.workers.dev`) |
-| Mobile staging | `pnpm build:mobile:staging` | Local release APK; EAS builds Android + iOS in the cloud |
+| Target             | Command                                                     | Where                                                                         |
+| ------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Web                | `NEXT_PUBLIC_API_BASE_URL=https://<worker> pnpm deploy:web` | Cloudflare Pages (`https://aqui-suena-web.pages.dev`)                         |
+| API / stream proxy | `pnpm --filter @aqui-suena/api run deploy:worker`           | Cloudflare Worker (`https://aqui-suena-api.angel-loredo-alvarez.workers.dev`) |
+| Mobile staging     | `pnpm build:mobile:staging`                                 | Local release APK; EAS builds Android + iOS in the cloud                      |
 
 The web app builds as a static export with `NEXT_PUBLIC_API_BASE_URL` baked, so the browser calls the deployed Worker for audio. See `apps/web/DEPLOY.md`, `packages/api/DEPLOY.md`, and `apps/mobile/STAGING.md`.
 
@@ -79,17 +79,17 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Docs and planning
 
-| Doc | Purpose |
-|-----|---------|
-| `tasks/plan.md` | Implementation plan and task list |
-| `tasks/todo.md` | Task checkboxes and acceptance criteria |
-| `SPEC-media-storage.md` | Media storage: R2 upload + image optimization (free tier) |
-| `SPEC-notifications.md` | Push notifications: web + mobile + desktop (free tier) |
-| `SPEC-offline.md` | Offline/no-connection handling |
+| Doc                      | Purpose                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| `tasks/plan.md`          | Implementation plan and task list                           |
+| `tasks/todo.md`          | Task checkboxes and acceptance criteria                     |
+| `SPEC-media-storage.md`  | Media storage: R2 upload + image optimization (free tier)   |
+| `SPEC-notifications.md`  | Push notifications: web + mobile + desktop (free tier)      |
+| `SPEC-offline.md`        | Offline/no-connection handling                              |
 | `SPEC-radio-playback.md` | MVP spec: autoplay, fallback, status, test-stations harness |
-| `CAPABILITY-MAP.md` | Module map |
-| `odd/tasks/` | Per-task execution trackers |
-| `odd/tasks/backlog.md` | Cross-feature TODO list |
+| `CAPABILITY-MAP.md`      | Module map                                                  |
+| `odd/tasks/`             | Per-task execution trackers                                 |
+| `odd/tasks/backlog.md`   | Cross-feature TODO list                                     |
 
 ## Status
 

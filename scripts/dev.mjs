@@ -16,10 +16,10 @@ import "./with-infisical.mjs";
 // emulator or device once Metro is up.
 import { execFileSync, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import net from "node:net";
 import { networkInterfaces } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import net from "node:net";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // The emulator is opt-in: pass --android (open the app on it) or --emulator
@@ -290,8 +290,7 @@ for (const task of toStart) {
 
   const forward = (stream, out) => {
     let buffer = "";
-    const drop = (line) =>
-      /ERR_PNPM|ELIFECYCLE|failed in/.test(line);
+    const drop = (line) => /ERR_PNPM|ELIFECYCLE|failed in/.test(line);
 
     stream.on("data", (chunk) => {
       buffer += chunk.toString();
@@ -299,13 +298,13 @@ for (const task of toStart) {
       buffer = lines.pop();
       for (const line of lines) {
         if (drop(line)) continue;
-        out.write(line + "\\n");
+        out.write(`${line}\\n`);
       }
     });
     stream.on("end", () => {
       if (!buffer) return;
       for (const line of buffer.split("\\n")) {
-        if (line && !drop(line)) out.write(line + "\\n");
+        if (line && !drop(line)) out.write(`${line}\\n`);
       }
     });
   };
@@ -328,7 +327,9 @@ for (const task of toStart) {
     if (task.port) {
       isPortOpen(task.port).then((open) => {
         if (open) {
-          console.error(`\n[dev] ${task.name} exited (${signal ?? code}) but :${task.port} is still serving; continuing`);
+          console.error(
+            `\n[dev] ${task.name} exited (${signal ?? code}) but :${task.port} is still serving; continuing`,
+          );
           return;
         }
         console.error(`\n[dev] ${task.name} exited (${signal ?? code}); stopping the rest`);

@@ -13,13 +13,13 @@ Cloudflare's own limits page states there is **no hard limit on duration for
 HTTP-triggered Workers**: while the client stays connected, the Worker keeps
 streaming the response body. The relevant constraints:
 
-| Constraint | Free plan | Why it doesn't block us |
-| ---------- | --------- | ----------------------- |
-| HTTP duration | unlimited (client-connected) | audio streams run hours |
-| CPU time | 10 ms / request | piping bytes is ~zero CPU; only compute counts |
-| External subrequests | 50 / request | `/stream` makes exactly 1 (fetch the mirror) |
-| Memory | 128 MB / isolate | streaming never buffers; bytes are piped |
-| Requests | 100,000 / day | ample for staging |
+| Constraint           | Free plan                    | Why it doesn't block us                        |
+| -------------------- | ---------------------------- | ---------------------------------------------- |
+| HTTP duration        | unlimited (client-connected) | audio streams run hours                        |
+| CPU time             | 10 ms / request              | piping bytes is ~zero CPU; only compute counts |
+| External subrequests | 50 / request                 | `/stream` makes exactly 1 (fetch the mirror)   |
+| Memory               | 128 MB / isolate             | streaming never buffers; bytes are piped       |
+| Requests             | 100,000 / day                | ample for staging                              |
 
 Community-verified: a Workers build has held single streaming requests open for
 12+ hours (the 10ms CPU limit is on computation, not wall-clock streaming).

@@ -71,6 +71,7 @@
 **Estimated scope:** Medium: 4-6 files
 
 ## Checkpoint: Foundation
+
 - [x] All tests pass
 - [x] Application builds without errors
 - [x] Landing `/` + status API work end-to-end
@@ -167,6 +168,7 @@
 **Estimated scope:** Small: 1-2 files
 
 ## Checkpoint: Core Features
+
 - [x] All tests pass
 - [x] Application builds without errors
 - [x] Autoplay flow works headed web + native
@@ -195,6 +197,7 @@
 **Estimated scope:** Small: 1-2 files
 
 ## Checkpoint: Complete
+
 - [x] All acceptance criteria met
 - [x] Ready for review
 

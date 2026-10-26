@@ -11,7 +11,7 @@ Objective: turn the tRPC router that already lives in `packages/api` into the de
   - web dev: `http://localhost:3000`
   - desktop (Linux/macOS, Tauri custom protocol): `tauri://localhost`
   - desktop (Windows, Tauri on WebView2): `http://tauri.localhost`
-  Extra origins come from `ALLOWED_ORIGINS` (comma-separated), so production web domains need no code change.
+    Extra origins come from `ALLOWED_ORIGINS` (comma-separated), so production web domains need no code change.
 - **S3 — Mobile has no origin.** A request with **no** `Origin` header is allowed: React Native's fetch sends none, and rejecting it would break Android/iOS. CORS is a browser mechanism, not an authentication boundary.
 - **S4 — Deny explicit strangers.** A request whose `Origin` header is present but not allowlisted gets `403` and no CORS headers.
 - **S5 — Preflight.** `OPTIONS` for an allowed origin returns `204` with `Access-Control-Allow-Origin: <origin>`, `Access-Control-Allow-Methods: GET,POST,OPTIONS`, `Access-Control-Allow-Headers: content-type,authorization` and `Access-Control-Max-Age`. For a foreign origin it returns `403`. Every response carries `Vary: Origin`.

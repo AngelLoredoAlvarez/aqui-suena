@@ -10,6 +10,7 @@ the smoke test that confirms long-lived audio streaming works on the free plan.
 1. A Cloudflare account (free plan is enough).
 2. `wrangler` authenticated once. It is a root devDependency, so `pnpm install`
    already provides it — only the login is manual:
+
    ```bash
    pnpm exec wrangler login
    ```
@@ -33,15 +34,18 @@ first deploy proves it is not needed.
 Replace `<worker>` with the deployed URL.
 
 1. **Health** — proves the Worker boots and routes:
+
    ```bash
    curl https://<worker>/health
    # -> {"status":"ok"}
    ```
 
 2. **tRPC** — proves the shared router runs on the edge (GET query):
+
    ```bash
    curl 'https://<worker>/trpc/listener.getStatus?input=%7B%22stationId%22%3A%22station-1%22%7D'
    ```
+
    The `input` is the URL-encoded JSON of the procedure input — tRPC v11 with the
    default transformer sends it unwrapped (no `"json"` envelope). Expected:
    `{"result":{"data":{"station":{...},"listeners":42}}}`.
@@ -49,6 +53,7 @@ Replace `<worker>` with the deployed URL.
 3. **Stream** — the critical one. Fetch the proxied mirror and let it run for
    several minutes, confirming bytes keep arriving (this is what the Cloudflare
    docs promise but has not yet been verified on the free plan):
+
    ```bash
    curl -sN 'https://<worker>/stream?url=https%3A%2F%2Fice1.somafm.com%2Fgroovesalad-128-mp3' -o /tmp/stream.mp3
    # in another terminal, watch it grow:

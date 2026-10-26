@@ -1,9 +1,11 @@
 # Spec: ads-display — Aquí Suena (by 17Labs)
 
 ## Objective
+
 "Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Premium members get priority placement; free listings appear with normal weight. Users: listeners. Success = discovery without interrupting playback.
 
 ## Tech Stack
+
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed)
 - Navigation: TBD — carousel card → `/business/[businessId]` sheet. `packages/navigation` reserved; no Solito installed.
@@ -15,6 +17,7 @@
 - Lint/format: Biome (replaces ESLint + Prettier)
 
 ## Commands
+
 ```
 Dev web: pnpm --filter web dev
 Dev mobile: pnpm --filter mobile start
@@ -25,6 +28,7 @@ Typecheck: pnpm -r typecheck
 ```
 
 ## Project Structure
+
 ```
 packages/api/src/routers/ads.ts             → ads.carousel (ranked)
 packages/ui/src/ads-carousel/ads-carousel.tsx → carousel (shared, card anatomy below)
@@ -34,6 +38,7 @@ apps/mobile/app/index.tsx              → same on mobile
 ```
 
 ## Code Style
+
 Ranking is deterministic and testable:
 
 ```tsx
@@ -46,17 +51,20 @@ export function rankSponsors(input: { priority: number; updatedAt: number }[]) {
 Conventions: sheet overlays content but never unmounts the player; carousel auto-advances every 5s and pauses on interaction; impressions logged for future billing proof.
 
 ## Testing Strategy
+
 - Framework: Vitest + Testing Library + headed Playwright.
 - Locations: `packages/api/src/ranking.test.ts`, e2e `apps/web/e2e/ads.spec.ts`.
 - Coverage: 100% on ranking + sheet-open audio continuity.
 - Levels: unit (ranking) → integration (carousel query) → e2e (tap card → sheet with full info, audio uninterrupted).
 
 ## Boundaries
+
 - Always: keep audio playing across carousel/scroll/sheet, respect plan priority, log impressions, run `typecheck + lint + test` before commit.
 - Ask first: add autoplay video ads, add interstitials, change ranking weights.
 - Never: pause/stop audio when opening a card, show ineligible (unpaid/expired) sponsors,use raw `div` scrollers bypassing Tamagui.
 
 ## Success Criteria
+
 - Carousel visible on home during playback on web and native from shared code.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
@@ -107,13 +115,13 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 ### Tablet (1024×768) — `TabletLanding`
 
 - **Two-column directory**, not a centered card: left column (300px) has search
-  + category chips + the "Negocios" list; the right detail panel
-  (`border-radius:28`, overflow hidden) holds the **flyer image panel
+  - category chips + the "Negocios" list; the right detail panel
+    (`border-radius:28`, overflow hidden) holds the **flyer image panel
   (330px wide)** with badge + dots overlaid, and an info column: name (`fs:24`),
-  meta (`fs:14`, e.g. `"Comida · Servicio a domicilio"`), contact rows
-  (teléfono / WhatsApp / dirección / horario, each `min-height:52` with a
-  bottom border) and actions **Llamar / WhatsApp / Cómo llegar**
-  (`margin-top:auto`).
+    meta (`fs:14`, e.g. `"Comida · Servicio a domicilio"`), contact rows
+    (teléfono / WhatsApp / dirección / horario, each `min-height:52` with a
+    bottom border) and actions **Llamar / WhatsApp / Cómo llegar**
+    (`margin-top:auto`).
 
 ### Web (1440×900) — `WebLanding`
 
@@ -157,10 +165,10 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 ### Scope boundary
 
 The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
-+ CTA) rendered responsively across all three breakpoints. The directory
-**list** and the tablet/web **contact detail panel** (teléfono/WhatsApp/
-dirección/horario + Llamar/WhatsApp/Cómo llegar) belong to
-`SPEC-business-directory.md` and are implemented there, not here.
+- CTA) rendered responsively across all three breakpoints. The directory
+  **list** and the tablet/web **contact detail panel** (teléfono/WhatsApp/
+  dirección/horario + Llamar/WhatsApp/Cómo llegar) belong to
+  `SPEC-business-directory.md` and are implemented there, not here.
 
 ## Decisions (resolved)
 

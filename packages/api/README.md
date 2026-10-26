@@ -1,6 +1,6 @@
 # api
 
-The backend of the monorepo, in one package: the shared tRPC contract *and* the
+The backend of the monorepo, in one package: the shared tRPC contract _and_ the
 fetch handler that serves it. This mirrors the T4 stack (`packages/api` is the
 worker that deploys itself), so web, desktop and mobile call one backend and no
 secret ever has to live inside a distributed binary. The same portable core
@@ -22,33 +22,33 @@ gate that proves the types, exactly like the other packages.
 
 ## Environment
 
-| Variable          | Default  | Purpose                                                 |
-| ----------------- | -------- | ------------------------------------------------------- |
-| `PORT`            | `3001`   | TCP port. Must be an integer between 1 and 65535.        |
-| `HOST`            | `0.0.0.0`| Bind address. Container platforms need every interface.  |
-| `ALLOWED_ORIGINS` | see below| Comma-separated extra origins for CORS.                  |
+| Variable          | Default   | Purpose                                                 |
+| ----------------- | --------- | ------------------------------------------------------- |
+| `PORT`            | `3001`    | TCP port. Must be an integer between 1 and 65535.       |
+| `HOST`            | `0.0.0.0` | Bind address. Container platforms need every interface. |
+| `ALLOWED_ORIGINS` | see below | Comma-separated extra origins for CORS.                 |
 
 ## Routes
 
-| Route          | Method     | Behavior                                             |
-| -------------- | ---------- | ---------------------------------------------------- |
-| `/health`      | `GET`      | `{"status":"ok"}` for deploy probes.                  |
-| `/trpc/*`      | `GET,POST` | The shared `appRouter` from `./router`.               |
-| `/stream?url=` | `GET`      | Proxies an allowlisted radio mirror, streamed.        |
+| Route          | Method     | Behavior                                       |
+| -------------- | ---------- | ---------------------------------------------- |
+| `/health`      | `GET`      | `{"status":"ok"}` for deploy probes.           |
+| `/trpc/*`      | `GET,POST` | The shared `appRouter` from `./router`.        |
+| `/stream?url=` | `GET`      | Proxies an allowlisted radio mirror, streamed. |
 
 ## Layout, and the one rule that keeps it safe
 
-| Path                | Side   | Reachable from a browser or React Native |
-| ------------------- | ------ | ---------------------------------------- |
-| `src/client.ts`     | shared | yes — the only safe entry for clients     |
-| `src/listener.ts`   | shared | yes — schemas only                        |
-| `src/app.ts`        | server | no — the portable fetch handler           |
-| `src/worker.ts`     | server | no — Cloudflare Workers entry             |
-| `src/router.ts`     | server | no — evaluates `initTRPC.create()`        |
-| `src/server.ts`     | server | no — node:http bridge to `src/app.ts`     |
-| `src/cors.ts`       | server | no                                        |
-| `src/env.ts`        | server | no                                        |
-| `src/main.ts`       | server | no — starts the Node process              |
+| Path              | Side   | Reachable from a browser or React Native |
+| ----------------- | ------ | ---------------------------------------- |
+| `src/client.ts`   | shared | yes — the only safe entry for clients    |
+| `src/listener.ts` | shared | yes — schemas only                       |
+| `src/app.ts`      | server | no — the portable fetch handler          |
+| `src/worker.ts`   | server | no — Cloudflare Workers entry            |
+| `src/router.ts`   | server | no — evaluates `initTRPC.create()`       |
+| `src/server.ts`   | server | no — node:http bridge to `src/app.ts`    |
+| `src/cors.ts`     | server | no                                       |
+| `src/env.ts`      | server | no                                       |
+| `src/main.ts`     | server | no — starts the Node process             |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from
 `index.ts`.** Clients import subpaths (`@aqui-suena/api/client`), so Metro and
@@ -62,13 +62,13 @@ anything other than the client-safe entries.
 CORS is a browser mechanism, not authentication. The policy distinguishes three
 shapes:
 
-| Client                | Origin header            | Result                       |
-| --------------------- | ------------------------ | ---------------------------- |
-| Web (dev)             | `http://localhost:3000`  | allowed                      |
-| Desktop (Linux/macOS) | `tauri://localhost`      | allowed                      |
-| Desktop (Windows)     | `http://tauri.localhost` | allowed                      |
-| Mobile (React Native) | none                     | allowed                      |
-| Anything else         | any other value          | `403`, no CORS headers        |
+| Client                | Origin header            | Result                 |
+| --------------------- | ------------------------ | ---------------------- |
+| Web (dev)             | `http://localhost:3000`  | allowed                |
+| Desktop (Linux/macOS) | `tauri://localhost`      | allowed                |
+| Desktop (Windows)     | `http://tauri.localhost` | allowed                |
+| Mobile (React Native) | none                     | allowed                |
+| Anything else         | any other value          | `403`, no CORS headers |
 
 A missing `Origin` is allowed on purpose: React Native's fetch sends none, and
 rejecting it would break Android and iOS. Do not treat "no origin" as trusted —

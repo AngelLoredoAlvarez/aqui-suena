@@ -54,17 +54,17 @@ Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. F
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Flyer bypass (products smuggled via flyer image instead of DATA) | High | DATA-truth rule enforced + 6-product flyer fixture test; products count only from structured data; FREE flyer renders as image only, zero structured rows |
-| Free-product bypass via flyer (owner treats flyer as a product list to evade the zero-products rule) | High | Image never becomes data: flyer pixels contribute zero structured rows by construction; fixture asserts 6-product flyer on FREE renders zero structured rows |
-| SPEC-memberships drift (prior `free.products: 5` vs authoritative `0`) | High | Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned. Resolver implements 0 |
-| Sheet open/close pauses audio | High | Player-safe sheets; AUDIO INVARIANT asserted in Tasks 5-6 acceptance and e2e |
-| Entitlement drift (limits duplicated across routers/UI) | High | Single resolver; no hardcoded limits elsewhere; matrix coverage 100% |
-| UI imports router internals | Med | Contract module has no router/UI imports; sheet DTOs only |
-| Ranking weight churn | Med | Deterministic priority + recency; weights in one module with full test coverage |
-| Rich-sheet creep (basic slowly gains rich fields) | Med | Additive contract: rich extends basic; basic field list pinned by test |
-| Spot badge without queue discipline | Low | Spot marker tied to ranking output only; no standalone badge flag |
+| Risk                                                                                                 | Impact | Mitigation                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Flyer bypass (products smuggled via flyer image instead of DATA)                                     | High   | DATA-truth rule enforced + 6-product flyer fixture test; products count only from structured data; FREE flyer renders as image only, zero structured rows    |
+| Free-product bypass via flyer (owner treats flyer as a product list to evade the zero-products rule) | High   | Image never becomes data: flyer pixels contribute zero structured rows by construction; fixture asserts 6-product flyer on FREE renders zero structured rows |
+| SPEC-memberships drift (prior `free.products: 5` vs authoritative `0`)                               | High   | Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned. Resolver implements 0                                            |
+| Sheet open/close pauses audio                                                                        | High   | Player-safe sheets; AUDIO INVARIANT asserted in Tasks 5-6 acceptance and e2e                                                                                 |
+| Entitlement drift (limits duplicated across routers/UI)                                              | High   | Single resolver; no hardcoded limits elsewhere; matrix coverage 100%                                                                                         |
+| UI imports router internals                                                                          | Med    | Contract module has no router/UI imports; sheet DTOs only                                                                                                    |
+| Ranking weight churn                                                                                 | Med    | Deterministic priority + recency; weights in one module with full test coverage                                                                              |
+| Rich-sheet creep (basic slowly gains rich fields)                                                    | Med    | Additive contract: rich extends basic; basic field list pinned by test                                                                                       |
+| Spot badge without queue discipline                                                                  | Low    | Spot marker tied to ranking output only; no standalone badge flag                                                                                            |
 
 ## Open Questions
 
