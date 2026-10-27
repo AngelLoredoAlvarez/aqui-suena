@@ -8,6 +8,7 @@ import { test } from "node:test";
 import {
   androidLaunchCommands,
   buildTasks,
+  createLineForwarder,
   isPortOpen,
   lanAddress,
   needsExternalLaunch,
@@ -223,4 +224,53 @@ test("lanAddress falls back to localhost without a LAN interface", () => {
     "10.0.0.5",
   );
   assert.equal(lanAddress({}), "localhost");
+});
+
+test("child output is forwarded line by line as it arrives", () => {
+  const written = [];
+  const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
+
+  forwarder.push("metro: ready\nweb: compiled\n");
+
+  assert.deepEqual(written, ["metro: ready\n", "web: compiled\n"]);
+});
+
+test("a split chunk is buffered until its line is complete", () => {
+  const written = [];
+  const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
+
+  forwarder.push("compil");
+  assert.deepEqual(written, []);
+
+  forwarder.push("ing...\n");
+  assert.deepEqual(written, ["compiling...\n"]);
+});
+
+test("the trailing partial line is flushed when the stream ends", () => {
+  const written = [];
+  const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
+
+  forwarder.push("no trailing newline");
+  forwarder.end();
+
+  assert.deepEqual(written, ["no trailing newline\n"]);
+});
+
+test("pnpm failure banners are dropped without losing their neighbours", () => {
+  const written = [];
+  const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
+
+  forwarder.push("ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed\nweb: compiled\n");
+  forwarder.end();
+
+  assert.deepEqual(written, ["web: compiled\n"]);
+});
+
+test("an empty line from the child is still forwarded as-is", () => {
+  const written = [];
+  const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
+
+  forwarder.push("a\n\nb\n");
+
+  assert.deepEqual(written, ["a\n", "\n", "b\n"]);
 });

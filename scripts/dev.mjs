@@ -190,6 +190,34 @@ export async function isPortOpen(port, host = "127.0.0.1", timeout = 500, retrie
   return false;
 }
 
+// Piped child output arrives in arbitrary chunks, so hold the tail until its
+// newline shows up. Lines matching the noisy pnpm failure banners are dropped;
+// everything else is re-emitted as one complete line.
+export function createLineForwarder(
+  out,
+  drop = (line) => /ERR_PNPM|ELIFECYCLE|failed in/.test(line),
+) {
+  let buffer = "";
+  return {
+    push(chunk) {
+      buffer += chunk.toString();
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (drop(line)) continue;
+        out.write(`${line}\n`);
+      }
+    },
+    end() {
+      if (!buffer) return;
+      for (const line of buffer.split("\n")) {
+        if (line && !drop(line)) out.write(`${line}\n`);
+      }
+      buffer = "";
+    },
+  };
+}
+
 async function main() {
   maybeReexecUnderInfisical();
 
@@ -356,24 +384,9 @@ async function main() {
     });
 
     const forward = (stream, out) => {
-      let buffer = "";
-      const drop = (line) => /ERR_PNPM|ELIFECYCLE|failed in/.test(line);
-
-      stream.on("data", (chunk) => {
-        buffer += chunk.toString();
-        const lines = buffer.split("\\n");
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (drop(line)) continue;
-          out.write(`${line}\\n`);
-        }
-      });
-      stream.on("end", () => {
-        if (!buffer) return;
-        for (const line of buffer.split("\\n")) {
-          if (line && !drop(line)) out.write(`${line}\\n`);
-        }
-      });
+      const forwarder = createLineForwarder(out);
+      stream.on("data", (chunk) => forwarder.push(chunk));
+      stream.on("end", () => forwarder.end());
     };
 
     forward(child.stdout, process.stdout);
