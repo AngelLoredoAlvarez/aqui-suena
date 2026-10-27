@@ -12,6 +12,7 @@ import {
   createLineForwarder,
   isPortOpen,
   lanAddress,
+  listAvds,
   needsExternalLaunch,
   openAppOnEmulator,
   parseAdbDevices,
@@ -276,8 +277,26 @@ test("lanAddress falls back to localhost without a LAN interface", () => {
   assert.equal(lanAddress({}), "localhost");
 });
 
-test("avdName defaults to Pixel_7 and honors ANDROID_AVD", () => {
-  assert.equal(avdName({}), "Pixel_7");
+test("avdName honors ANDROID_AVD and auto-detects a single AVD", () => {
   assert.equal(avdName({ ANDROID_AVD: "Pixel_8" }), "Pixel_8");
-  assert.equal(avdName({ ANDROID_AVD: "" }), "Pixel_7");
+  assert.equal(avdName({ ANDROID_AVD: "Pixel_8" }, ["Pixel_7", "Pixel_Tablet"]), "Pixel_8");
+  assert.equal(avdName({}, ["Pixel_7"]), "Pixel_7");
+  assert.equal(avdName({}, null), null);
+  assert.equal(avdName({}, []), null);
+  assert.equal(avdName({}, ["Pixel_7", "Pixel_Tablet"]), null);
+});
+
+test("listAvds parses the emulator output and tolerates failures", () => {
+  const fakeRun = (_bin, _args) => "Pixel_7\nPixel_Tablet\n";
+  assert.deepEqual(listAvds("/fake/emulator", fakeRun), ["Pixel_7", "Pixel_Tablet"]);
+
+  const emptyRun = () => "";
+  assert.deepEqual(listAvds("/fake/emulator", emptyRun), []);
+
+  const failingRun = () => {
+    throw new Error("boom");
+  };
+  assert.deepEqual(listAvds("/fake/emulator", failingRun), []);
+
+  assert.deepEqual(listAvds("/does/not/exist", failingRun), []);
 });
