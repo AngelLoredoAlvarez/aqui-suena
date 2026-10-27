@@ -7,6 +7,7 @@ import net from "node:net";
 import { test } from "node:test";
 import {
   androidLaunchCommands,
+  avdName,
   buildTasks,
   createLineForwarder,
   isPortOpen,
@@ -214,18 +215,6 @@ test("resolveBin finds a workspace binary and falls back to the bare name", () =
   assert.equal(resolveBin("definitely-not-a-binary", "apps/mobile"), "definitely-not-a-binary");
 });
 
-test("lanAddress falls back to localhost without a LAN interface", () => {
-  assert.equal(
-    lanAddress({ lo: [{ family: "IPv4", internal: true, address: "127.0.0.1" }] }),
-    "localhost",
-  );
-  assert.equal(
-    lanAddress({ wlan0: [{ family: "IPv4", internal: false, address: "10.0.0.5" }] }),
-    "10.0.0.5",
-  );
-  assert.equal(lanAddress({}), "localhost");
-});
-
 test("child output is forwarded line by line as it arrives", () => {
   const written = [];
   const forwarder = createLineForwarder({ write: (chunk) => written.push(chunk) });
@@ -273,4 +262,22 @@ test("an empty line from the child is still forwarded as-is", () => {
   forwarder.push("a\n\nb\n");
 
   assert.deepEqual(written, ["a\n", "\n", "b\n"]);
+});
+
+test("lanAddress falls back to localhost without a LAN interface", () => {
+  assert.equal(
+    lanAddress({ lo: [{ family: "IPv4", internal: true, address: "127.0.0.1" }] }),
+    "localhost",
+  );
+  assert.equal(
+    lanAddress({ wlan0: [{ family: "IPv4", internal: false, address: "10.0.0.5" }] }),
+    "10.0.0.5",
+  );
+  assert.equal(lanAddress({}), "localhost");
+});
+
+test("avdName defaults to Pixel_7 and honors ANDROID_AVD", () => {
+  assert.equal(avdName({}), "Pixel_7");
+  assert.equal(avdName({ ANDROID_AVD: "Pixel_8" }), "Pixel_8");
+  assert.equal(avdName({ ANDROID_AVD: "" }), "Pixel_7");
 });

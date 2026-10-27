@@ -48,6 +48,9 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 app on it, run `pnpm dev -- --android` (or `pnpm dev -- --emulator` to boot
 Pixel_7 and leave the app closed). The emulator is reused if already running.
 
+The AVD name is `Pixel_7` by default; override it with `ANDROID_AVD=<name>` if
+you create an emulator with a different name.
+
 `--android` also opens the app when Metro was already running and gets reused:
 the script tunnels `:8081` with `adb reverse` and deep-links Expo Go at the
 server, since the reused Expo process never received `--android` itself.
