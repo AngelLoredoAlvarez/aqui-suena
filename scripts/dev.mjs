@@ -41,11 +41,38 @@ export function parseFlags(argv) {
   };
 }
 
-// The AVD to boot. Defaults to Pixel_7 for backwards compatibility, but can be
-// overridden with ANDROID_AVD so the same script drives any emulator the user
-// creates (e.g. after deleting Pixel_7).
-export function avdName(env = process.env) {
-  return env.ANDROID_AVD || "Pixel_7";
+// Resolve which AVD to boot. An explicit ANDROID_AVD always wins; otherwise we
+// auto-detect from the emulator's own list so the script works on any machine
+// without hard-coding a developer-specific AVD name. Returns null when there is
+// nothing to boot (no AVDs, or several without a choice), and the caller
+// reports the situation instead of guessing.
+export function avdName(env = process.env, available = null) {
+  if (env.ANDROID_AVD) return env.ANDROID_AVD;
+  if (!Array.isArray(available)) return null;
+  if (available.length === 1) return available[0];
+  return null;
+}
+
+// Ask the emulator binary which AVDs it knows about. A missing binary or a
+// failure to list them yields an empty list, which the caller treats as "none".
+export function listAvds(
+  emulatorBin,
+  run = (bin, args) =>
+    execFileSync(bin, args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }),
+) {
+  if (!emulatorBin) return [];
+  try {
+    const output = run(emulatorBin, ["-list-avds"]);
+    return String(output ?? "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 export function lanAddress(interfaces = networkInterfaces()) {
@@ -252,9 +279,30 @@ async function main() {
     }
   }
 
-  // Start the Android emulator if requested and not already running. The AVD
-  // name defaults to Pixel_7 but is overridable via ANDROID_AVD.
-  const avd = avdName(process.env);
+  // Resolve the AVD before anything else: an explicit ANDROID_AVD wins, otherwise
+  // we auto-detect from the emulator's own list. With several AVDs and no choice
+  // we stop instead of guessing, so the script stays machine-agnostic.
+  const availableAvds = listAvds(emulatorBin);
+  const avd = avdName(process.env, availableAvds);
+
+  if (startEmulator && !avd) {
+    if (availableAvds.length === 0) {
+      console.error(
+        "[dev] no Android emulator (AVD) found. Create one with Android Studio or `avdmanager`, then run again.",
+      );
+    } else if (process.env.ANDROID_AVD) {
+      console.error(
+        `[dev] ANDROID_AVD=${process.env.ANDROID_AVD} is not among the available AVDs: ${availableAvds.join(", ")}`,
+      );
+    } else {
+      console.error(
+        `[dev] several AVDs found (${availableAvds.join(", ")}); set ANDROID_AVD to pick one.`,
+      );
+    }
+    process.exit(1);
+  }
+
+  // Start the Android emulator if requested and not already running.
   if (startEmulator) {
     if (parseAdbDevices(adbDevices())) {
       console.log("[dev] emulator already running");
