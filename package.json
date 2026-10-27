@@ -20,6 +20,7 @@
     "dev:api": "pnpm --filter @aqui-suena/api dev",
     "dev:mobile": "pnpm --filter mobile start",
     "dev:mobile:lan": "node scripts/dev.mjs --mobile-only",
+    "dev:mobile:android": "node scripts/dev.mjs --mobile-only --android",
     "dev:mobile:build": "pnpm --filter mobile android",
     "prepare": "husky",
     "build:mobile:staging": "node scripts/build-mobile-staging.mjs",

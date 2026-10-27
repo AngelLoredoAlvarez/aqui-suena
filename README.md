@@ -32,7 +32,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `pnpm dev:desktop`                  | Desktop shell via Tauri dev (serves the web app on :3000)                                                                                                                                                                          |
 | `pnpm dev:mobile`                   | Mobile via Expo Go                                                                                                                                                                                                                 |
 | `pnpm dev:mobile:lan`               | Mobile via Expo Go with LAN IP injected (use when api/web already running)                                                                                                                                                         |
-| `pnpm dev:mobile:android`           | Mobile on the Android emulator                                                                                                                                                                                                     |
+| `pnpm dev:mobile:android`           | Mobile on the Android emulator (boots Pixel_7 and opens the app; api/web must already be running)                                                                                                                                  |
 | `pnpm dev:mobile:build`             | Development build on the emulator, with lock-screen controls and background audio                                                                                                                                                  |
 | `pnpm build:desktop:web`            | Static export of the web app for the Tauri bundle                                                                                                                                                                                  |
 | `pnpm build:mobile:staging`         | Release Android APK pointing at the deployed backend (see `apps/mobile/STAGING.md`)                                                                                                                                                |
@@ -45,8 +45,12 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 ## Mobile playback
 
 `pnpm dev` does not start the emulator by default. To boot Pixel_7 and open the
-app on it, run `pnpm dev -- --android` (or `pnpm dev -- --emulator` to start
-the emulator only). The emulator is reused if already running.
+app on it, run `pnpm dev -- --android` (or `pnpm dev -- --emulator` to boot
+Pixel_7 and leave the app closed). The emulator is reused if already running.
+
+`--android` also opens the app when Metro was already running and gets reused:
+the script tunnels `:8081` with `adb reverse` and deep-links Expo Go at the
+server, since the reused Expo process never received `--android` itself.
 
 Expo Go runs `expo-audio` for foreground playback, but it ships its own fixed Android manifest and cannot declare the `AudioControlsService` that lock-screen controls and background audio need. The driver detects that case and skips lock-screen activation, so Expo Go never logs a service binding failure.
 

@@ -7,7 +7,8 @@ import "./with-infisical.mjs";
 //   mobile   Metro on :8081         fixtures loaded from the web dev server
 //   desktop  Tauri window           reuses :3000 instead of starting a second one
 //
-// Pass --android to open the app on a running emulator (starts Pixel_7 if needed).
+// Pass --android to open the app on a running emulator (starts Pixel_7 if
+// needed), including when Metro is already up and gets reused.
 // Pass --emulator to only start the emulator without opening the app.
 // Pass --mobile-only to start only Metro (with LAN IP injection) without
 // api/web/desktop — use when those are already running manually.
@@ -26,8 +27,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // (start it only). Launch it manually otherwise.
 const emulatorOnly = process.argv.includes("--emulator");
 const mobileOnly = process.argv.includes("--mobile-only");
-const startEmulator = process.argv.includes("--android") || emulatorOnly;
-const openAndroid = process.argv.includes("--android") || emulatorOnly;
+// --android opens the app; --emulator only starts the device, so the two flags
+// differ in exactly one thing: whether the app is launched after Metro is up.
+const launchApp = process.argv.includes("--android");
+const startEmulator = launchApp || emulatorOnly;
 
 // (services are spawned directly from their package binaries; pnpm is no longer
 // used as a wrapper, which avoids its failure banners on shutdown)
@@ -53,23 +56,25 @@ const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lanAddre
 // Leaving beforeDevCommand in place would try to bind :3000 a second time.
 const tauriConfig = JSON.stringify({ build: { beforeDevCommand: "" } });
 
+// Shared by the emulator bootstrap and by opening the app on an emulator that
+// was already running, which is the case whenever Metro gets reused.
+const sdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+const emulatorBin = sdkRoot ? join(sdkRoot, "emulator", "emulator") : null;
+const adbBin = sdkRoot ? join(sdkRoot, "platform-tools", "adb") : "adb";
+
+function adbDevices() {
+  try {
+    return execFileSync(adbBin, ["devices"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch {
+    return "";
+  }
+}
+
 // Start the Android emulator (Pixel_7) if requested and not already running.
 if (startEmulator) {
-  const sdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
-  const emulatorBin = sdkRoot ? join(sdkRoot, "emulator", "emulator") : null;
-  const adbBin = sdkRoot ? join(sdkRoot, "platform-tools", "adb") : "adb";
-
-  function adbDevices() {
-    try {
-      return execFileSync(adbBin, ["devices"], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-      });
-    } catch {
-      return "";
-    }
-  }
-
   const alreadyRunning = /emulator-\d+\s+device/.test(adbDevices());
 
   if (alreadyRunning) {
@@ -102,6 +107,27 @@ if (startEmulator) {
   }
 }
 
+// `expo start --android` opens the app only while it owns Metro's startup. When
+// Metro is reused, that flag never reaches it, so open the app over adb: reverse
+// the packager port and deep-link Expo Go to the server already listening.
+function openAppOnEmulator() {
+  if (!/emulator-\d+\s+device/.test(adbDevices())) {
+    console.error("[dev] no emulator attached; not opening the app");
+    return;
+  }
+  try {
+    execFileSync(adbBin, ["reverse", "tcp:8081", "tcp:8081"], { stdio: "ignore" });
+    execFileSync(
+      adbBin,
+      ["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+      { stdio: "ignore" },
+    );
+    console.log("[dev] opened the app on the emulator via Expo Go");
+  } catch (error) {
+    console.error(`[dev] could not open the app on the emulator: ${error.message}`);
+  }
+}
+
 const tasks = [
   {
     name: "api",
@@ -125,7 +151,7 @@ const tasks = [
     name: "mobile",
     port: 8081,
     cmd: "expo",
-    args: ["start", ...(openAndroid ? ["--android"] : [])],
+    args: ["start", ...(launchApp ? ["--android"] : [])],
     cwd: "apps/mobile",
     env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase },
   },
@@ -344,6 +370,11 @@ for (const task of toStart) {
 
 if (reused.length > 0) {
   console.log(`[dev] reused: ${reused.map((task) => task.name).join(", ")}\n`);
+}
+
+// Mobile was reused, so expo never received --android: open the app from here.
+if (launchApp && reused.some((task) => task.name === "mobile")) {
+  openAppOnEmulator();
 }
 
 if (children.size === 0 && reused.length > 0) {
