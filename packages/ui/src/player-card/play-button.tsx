@@ -65,7 +65,7 @@ export function PlayButton({
           borderWidth={4}
           borderColor="surface2"
           opacity={pulsing ? 0.45 : 1}
-          animation="medium"
+          transition="medium"
           pointerEvents="none"
         />
       )}
