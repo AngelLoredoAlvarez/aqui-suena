@@ -41,6 +41,13 @@ export function parseFlags(argv) {
   };
 }
 
+// The AVD to boot. Defaults to Pixel_7 for backwards compatibility, but can be
+// overridden with ANDROID_AVD so the same script drives any emulator the user
+// creates (e.g. after deleting Pixel_7).
+export function avdName(env = process.env) {
+  return env.ANDROID_AVD || "Pixel_7";
+}
+
 export function lanAddress(interfaces = networkInterfaces()) {
   for (const entries of Object.values(interfaces)) {
     for (const entry of entries ?? []) {
@@ -245,13 +252,15 @@ async function main() {
     }
   }
 
-  // Start the Android emulator (Pixel_7) if requested and not already running.
+  // Start the Android emulator if requested and not already running. The AVD
+  // name defaults to Pixel_7 but is overridable via ANDROID_AVD.
+  const avd = avdName(process.env);
   if (startEmulator) {
     if (parseAdbDevices(adbDevices())) {
       console.log("[dev] emulator already running");
     } else if (emulatorBin && existsSync(emulatorBin)) {
-      console.log("[dev] starting emulator Pixel_7 (this can take ~30s)...");
-      const emulatorChild = spawn(emulatorBin, ["-avd", "Pixel_7"], {
+      console.log(`[dev] starting emulator ${avd} (this can take ~30s)...`);
+      const emulatorChild = spawn(emulatorBin, ["-avd", avd], {
         stdio: "ignore",
         detached: true,
       });
@@ -268,7 +277,7 @@ async function main() {
         }
       }
       if (ready) {
-        console.log("[dev] emulator Pixel_7 ready");
+        console.log(`[dev] emulator ${avd} ready`);
       } else {
         console.error("[dev] emulator did not become ready within 120s; continuing anyway");
       }
