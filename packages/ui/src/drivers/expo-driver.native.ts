@@ -1,14 +1,13 @@
-import type {
-  AudioDriver,
-  AudioDriverEvent,
-  MediaFailure,
-  NowPlayingMetadata,
-} from "@aqui-suena/player";
-import { isRunningInExpoGo, Platform } from "expo";
+import type { AudioDriver, AudioDriverEvent, NowPlayingMetadata } from "@aqui-suena/player";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-type NativePlayer = ReturnType<typeof useAudioPlayer>;
+import type { NativePlayer } from "./lock-screen";
+import { activateLockScreen, lockScreenControlsAvailable, metadataKey } from "./lock-screen";
+import { toMediaFailure } from "./media-failure";
+
+export type { NativePlayer } from "./lock-screen";
+export { toMediaFailure } from "./media-failure";
 
 type PendingPlay = {
   resolve: () => void;
@@ -17,50 +16,6 @@ type PendingPlay = {
   target: NativePlayer;
   previous: NativePlayer | null;
 };
-
-const LOCK_SCREEN_OPTIONS = {
-  isLiveStream: true,
-  showSeekForward: false,
-  showSeekBackward: false,
-  showNextTrack: false,
-  showPreviousTrack: false,
-} as const;
-
-// Map expo-audio status errors onto the player failure contract. Blocked
-// autoplay must surface as NotAllowedError so usePlayer shows resume;
-// anything else stays generic so mirror rotation engages.
-export function toMediaFailure(audioError: string | null): MediaFailure {
-  if (!audioError) {
-    return {};
-  }
-  if (/not.?allowed|play.?interrupted|user.?gesture/i.test(audioError)) {
-    return { name: "NotAllowedError" };
-  }
-  if (/not.?supported|format|mime|decode|src/i.test(audioError)) {
-    return { code: 4 };
-  }
-  return {};
-}
-
-function metadataKey(metadata: NowPlayingMetadata): string {
-  return `${metadata.title}\u0000${metadata.artist ?? ""}`;
-}
-
-function activateLockScreen(player: NativePlayer, metadata: NowPlayingMetadata): void {
-  player.setActiveForLockScreen(
-    true,
-    { title: metadata.title, artist: metadata.artist },
-    LOCK_SCREEN_OPTIONS,
-  );
-}
-
-// Expo Go ships a fixed Android manifest, so the expo-audio playback service it
-// would bind here is not declared and every activation only logs a binding
-// failure. Development and release builds get the service from the expo-audio
-// config plugin, which keeps this check out of their way.
-function lockScreenControlsAvailable(): boolean {
-  return Platform.OS !== "android" || !isRunningInExpoGo();
-}
 
 // Shared expo-audio driver for web and native: expo-audio play() is sync
 // and failures arrive later as status events, so this bridges one status
