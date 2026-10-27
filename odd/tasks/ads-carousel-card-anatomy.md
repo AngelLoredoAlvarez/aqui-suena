@@ -26,8 +26,7 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
 - S5 (Meta composition): one shared pure function composes
   `category · delivery · opensLabel`; `delivery` only when true; `opensLabel`
   only on mobile (wide shows horario in its own row, deferred).
-- S6 (Empty state): centered "Aún no hay negocios patrocinados" + "Vuelve
-  pronto: aquí verás los negocios cerca de ti." via i18n.
+- S6 (Empty state): centered "no sponsored businesses yet" + "come back soon: you will see nearby businesses here" via i18n.
 - S7 (Breakpoints): card max width 390 (base) / 768 (md) / 1024 (lg) / 1440
   (xl); flyer panel width 330 (md/lg) / 480 (xl).
 - S8 (i18n): add `open`, `closed`, `delivery`, `viewBusiness`,
@@ -48,19 +47,16 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
 
 ## Log
 
-L1 (2026-10-26, user): "agregalo a un spec, y despues iniciarmos con la
-anatomia de la tarjeta, pero ojo debemos hacerlo para todas las plataformas, no
-solo para mobil"
+L1 (2026-10-26, user): "User requested adding it to a spec first, then starting the card anatomy, for all platforms not only mobile."
 
-L2 (2026-10-26, user): "en todas las plataformas se debe de compartir la mayor
-cantidad de codigo posible" — choose structured meta over a flat `meta` string.
+L2 (2026-10-26, user): "Requirement: share as much code as possible across platforms." — choose structured meta over a flat `meta` string.
 
 L3 (2026-10-26, user): delivery label is canonical "Servicio a domicilio" on
 all platforms.
 
-L4 (2026-10-26, user): "dejalo limpio, sin disclosure" — no sponsorship badge.
+L4 (2026-10-26, user): "User requested it clean, with no disclosure." — no sponsorship badge.
 
-L5 (2026-10-26, user): "Vamos por A" — scope is the card anatomy only; the
+L5 (2026-10-26, user): "User chose option A: card anatomy only; the
 directory list and contact detail panel belong to SPEC-business-directory.md.
 
 L6 (2026-10-26, verification): `pnpm -r typecheck` green across all packages +
