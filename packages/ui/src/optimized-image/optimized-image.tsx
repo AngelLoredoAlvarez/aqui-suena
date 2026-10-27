@@ -101,7 +101,7 @@ export function OptimizedImage({
           onLoad={() => setStatus("loaded")}
           onError={() => setStatus("error")}
           opacity={status === "loaded" ? 1 : 0}
-          animation="quick"
+          transition="quick"
           style={{ position: "absolute", inset: 0, objectPosition }}
         />
       )}
