@@ -8,7 +8,7 @@
     "build:desktop:web": "node scripts/build-desktop-web.mjs",
     "deploy:web": "node scripts/deploy-web-pages.mjs",
     "dev": "node scripts/dev.mjs",
-    "test": "node --test scripts/check-singletons.test.mjs && turbo run test -- --run",
+    "test": "node --test \"scripts/*.test.mjs\" && turbo run test -- --run",
     "lint": "biome check --write .",
     "gitleaks:scan": "gitleaks git --config .gitleaks.toml",
     "gitleaks:dir": "gitleaks dir . --config .gitleaks.toml",
