@@ -41,16 +41,33 @@ export function parseFlags(argv) {
   };
 }
 
-// Resolve which AVD to boot. An explicit ANDROID_AVD always wins; otherwise we
-// auto-detect from the emulator's own list so the script works on any machine
-// without hard-coding a developer-specific AVD name. Returns null when there is
-// nothing to boot (no AVDs, or several without a choice), and the caller
-// reports the situation instead of guessing.
+// Resolve the list of AVDs to boot/open. An explicit ANDROID_AVD always wins:
+//   "*"            -> every AVD the emulator knows about (N emulators at once)
+//   "A,B"          -> that explicit (comma-separated) subset
+//   "A"            -> just that one
+// otherwise auto-detect: a single AVD is used directly; with several and no
+// choice we return [] so the caller reports the ambiguity instead of guessing.
+export function resolveAvds(env = process.env, available = null) {
+  const raw = env.ANDROID_AVD;
+  if (raw) {
+    if (raw === "*") {
+      return Array.isArray(available) ? [...available] : [];
+    }
+    return raw
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean);
+  }
+  if (!Array.isArray(available)) return [];
+  if (available.length === 1) return [available[0]];
+  return [];
+}
+
+// Backwards-compatible single-AVD resolver kept for callers/tests that expect
+// one name or null.
 export function avdName(env = process.env, available = null) {
-  if (env.ANDROID_AVD) return env.ANDROID_AVD;
-  if (!Array.isArray(available)) return null;
-  if (available.length === 1) return available[0];
-  return null;
+  const avds = resolveAvds(env, available);
+  return avds.length === 1 ? avds[0] : (avds.length === 0 ? null : avds[0] ?? null);
 }
 
 // Ask the emulator binary which AVDs it knows about. A missing binary or a
@@ -92,29 +109,51 @@ export function parseAdbDevices(output) {
   return /emulator-\d+\s+device/.test(output ?? "");
 }
 
+// List the serials of every attached, ready device so the app can be opened on
+// N emulators instead of just the first one.
+export function listAdbDevices(output) {
+  return String(output ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /\sdevice$/.test(line))
+    .map((line) => line.split(/\s+/)[0])
+    .filter(Boolean);
+}
+
 // `expo start --android` opens the app only while it owns Metro's startup. When
 // Metro is reused, that flag never reaches it, so open the app over adb: reverse
 // the packager port and deep-link Expo Go to the server already listening.
-export function androidLaunchCommands() {
+// When a device serial is given, target that specific emulator (-s <serial>)
+// so N emulators can be opened independently.
+export function androidLaunchCommands(deviceSerial = null) {
+  const prefix = deviceSerial ? ["-s", deviceSerial] : [];
   return [
-    ["reverse", "tcp:8081", "tcp:8081"],
-    ["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+    [...prefix, "reverse", "tcp:8081", "tcp:8081"],
+    [...prefix, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
   ];
 }
 
-export function openAppOnEmulator({ deviceAttached, run, log = console }) {
+export function openAppOnEmulator({ deviceAttached, run, log = console, deviceSerial = null }) {
   if (!deviceAttached) {
     log.error("[dev] no emulator attached; not opening the app");
     return false;
   }
   try {
-    for (const args of androidLaunchCommands()) {
+    for (const args of androidLaunchCommands(deviceSerial)) {
       run(args);
     }
-    log.log("[dev] opened the app on the emulator via Expo Go");
+    log.log(
+      deviceSerial
+        ? `[dev] opened the app on emulator ${deviceSerial} via Expo Go`
+        : "[dev] opened the app on the emulator via Expo Go",
+    );
     return true;
   } catch (error) {
-    log.error(`[dev] could not open the app on the emulator: ${error.message}`);
+    log.error(
+      deviceSerial
+        ? `[dev] could not open the app on emulator ${deviceSerial}: ${error.message}`
+        : `[dev] could not open the app on the emulator: ${error.message}`,
+    );
     return false;
   }
 }
@@ -279,58 +318,74 @@ async function main() {
     }
   }
 
-  // Resolve the AVD before anything else: an explicit ANDROID_AVD wins, otherwise
-  // we auto-detect from the emulator's own list. With several AVDs and no choice
-  // we stop instead of guessing, so the script stays machine-agnostic.
+  // Resolve the AVD(s) before anything else. ANDROID_AVD="*" means "all of them",
+  // so N emulators can be booted/opened in one invocation. With several AVDs
+  // and no choice we stop instead of guessing, so the script stays
+  // machine-agnostic.
   const availableAvds = listAvds(emulatorBin);
-  const avd = avdName(process.env, availableAvds);
+  const avds = resolveAvds(process.env, availableAvds);
 
-  if (startEmulator && !avd) {
+  if (startEmulator && avds.length === 0) {
     if (availableAvds.length === 0) {
       console.error(
         "[dev] no Android emulator (AVD) found. Create one with Android Studio or `avdmanager`, then run again.",
       );
-    } else if (process.env.ANDROID_AVD) {
+    } else if (process.env.ANDROID_AVD && process.env.ANDROID_AVD !== "*") {
       console.error(
         `[dev] ANDROID_AVD=${process.env.ANDROID_AVD} is not among the available AVDs: ${availableAvds.join(", ")}`,
       );
+    } else if (process.env.ANDROID_AVD === "*") {
+      console.error("[dev] ANDROID_AVD=* but no AVDs are available.");
     } else {
       console.error(
-        `[dev] several AVDs found (${availableAvds.join(", ")}); set ANDROID_AVD to pick one.`,
+        `[dev] several AVDs found (${availableAvds.join(", ")}); set ANDROID_AVD to pick one (or "*" for all).`,
       );
     }
     process.exit(1);
   }
 
-  // Start the Android emulator if requested and not already running.
+  // Start the Android emulator(s) if requested. Each requested AVD is booted
+  // in turn. We cannot map a running emulator back to its AVD via adb, so we
+  // always attempt to boot and treat an early process exit as "already running"
+  // (non-fatal): this is what lets a second terminal target a different
+  // emulator while the first keeps running. Errors are logged per AVD and never
+  // abort the whole run.
   if (startEmulator) {
-    if (parseAdbDevices(adbDevices())) {
-      console.log("[dev] emulator already running");
-    } else if (emulatorBin && existsSync(emulatorBin)) {
-      console.log(`[dev] starting emulator ${avd} (this can take ~30s)...`);
-      const emulatorChild = spawn(emulatorBin, ["-avd", avd], {
-        stdio: "ignore",
-        detached: true,
-      });
-      emulatorChild.unref();
-      children.add(emulatorChild);
+    for (const avd of avds) {
+      const beforeCount = listAdbDevices(adbDevices()).length;
+      if (emulatorBin && existsSync(emulatorBin)) {
+        console.log(`[dev] starting emulator ${avd} (this can take ~30s)...`);
+        const emulatorChild = spawn(emulatorBin, ["-avd", avd], {
+          stdio: "ignore",
+          detached: true,
+        });
+        emulatorChild.unref();
+        children.add(emulatorChild);
 
-      const deadline = Date.now() + 120000;
-      let ready = false;
-      while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        if (parseAdbDevices(adbDevices())) {
-          ready = true;
-          break;
+        let exited = false;
+        emulatorChild.on("exit", () => {
+          exited = true;
+        });
+
+        const deadline = Date.now() + 120000;
+        let ready = false;
+        while (Date.now() < deadline && !ready && !exited) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const now = listAdbDevices(adbDevices());
+          if (now.length > beforeCount) {
+            ready = true;
+          }
         }
-      }
-      if (ready) {
-        console.log(`[dev] emulator ${avd} ready`);
+        if (ready) {
+          console.log(`[dev] emulator ${avd} ready`);
+        } else if (exited) {
+          console.log(`[dev] emulator ${avd} already running or exited; continuing`);
+        } else {
+          console.error("[dev] emulator did not become ready within 120s; continuing anyway");
+        }
       } else {
-        console.error("[dev] emulator did not become ready within 120s; continuing anyway");
+        console.error("[dev] emulator binary not found (ANDROID_HOME/ANDROID_SDK_ROOT); skipping");
       }
-    } else {
-      console.error("[dev] emulator binary not found (ANDROID_HOME/ANDROID_SDK_ROOT); skipping");
     }
   }
 
@@ -483,11 +538,28 @@ async function main() {
     console.log(`[dev] reused: ${reused.map((task) => task.name).join(", ")}\n`);
   }
 
-  if (needsExternalLaunch({ launchApp, reused })) {
-    openAppOnEmulator({
-      deviceAttached: parseAdbDevices(adbDevices()),
-      run: (args) => execFileSync(adbBin, args, { stdio: "ignore" }),
-    });
+  // Open the app on every attached emulator. When Metro was reused (second
+  // terminal) this is the only way the app gets opened; when Metro is fresh,
+  // expo --android already opens on one device and the calls below are
+  // idempotent, so they also cover the remaining emulators for ANDROID_AVD=*.
+  if (launchApp) {
+    const devices = listAdbDevices(adbDevices());
+    if (devices.length === 0) {
+      openAppOnEmulator({
+        deviceAttached: false,
+        run: (args) => execFileSync(adbBin, args, { stdio: "ignore" }),
+        log: console,
+      });
+    } else {
+      for (const serial of devices) {
+        openAppOnEmulator({
+          deviceAttached: true,
+          run: (args) => execFileSync(adbBin, args, { stdio: "ignore" }),
+          log: console,
+          deviceSerial: serial,
+        });
+      }
+    }
   }
 
   if (children.size === 0 && reused.length > 0) {
