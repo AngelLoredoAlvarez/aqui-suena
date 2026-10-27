@@ -9,6 +9,8 @@ import {
   androidLaunchCommands,
   avdName,
   buildTasks,
+  listAdbDevices,
+  resolveAvds,
   createLineForwarder,
   isPortOpen,
   lanAddress,
@@ -299,4 +301,61 @@ test("listAvds parses the emulator output and tolerates failures", () => {
   assert.deepEqual(listAvds("/fake/emulator", failingRun), []);
 
   assert.deepEqual(listAvds("/does/not/exist", failingRun), []);
+});
+
+test("resolveAvds honors * as all available AVDs", () => {
+  assert.deepEqual(resolveAvds({ ANDROID_AVD: "*" }, ["Pixel_7", "Pixel_Tablet"]), [
+    "Pixel_7",
+    "Pixel_Tablet",
+  ]);
+  assert.deepEqual(resolveAvds({ ANDROID_AVD: "*" }, []), []);
+  assert.deepEqual(resolveAvds({ ANDROID_AVD: "*" }, null), []);
+});
+
+test("resolveAvds supports comma-separated lists and single values", () => {
+  assert.deepEqual(resolveAvds({ ANDROID_AVD: "Pixel_7, Pixel_Tablet" }, []), [
+    "Pixel_7",
+    "Pixel_Tablet",
+  ]);
+  assert.deepEqual(resolveAvds({ ANDROID_AVD: "Pixel_8" }, ["Pixel_7"]), ["Pixel_8"]);
+});
+
+test("resolveAvds auto-detects a single AVD and is ambiguous with several", () => {
+  assert.deepEqual(resolveAvds({}, ["Pixel_7"]), ["Pixel_7"]);
+  assert.deepEqual(resolveAvds({}, ["Pixel_7", "Pixel_Tablet"]), []);
+  assert.deepEqual(resolveAvds({}, []), []);
+  assert.deepEqual(resolveAvds({}, null), []);
+});
+
+test("listAdbDevices returns serials of ready devices only", () => {
+  const output = "List of devices attached\nemulator-5554\tdevice\nemulator-5556\toffline\nemulator-5558\tdevice\n";
+  assert.deepEqual(listAdbDevices(output), ["emulator-5554", "emulator-5558"]);
+  assert.deepEqual(listAdbDevices(""), []);
+  assert.deepEqual(listAdbDevices(undefined), []);
+});
+
+test("androidLaunchCommands targets a specific serial when given", () => {
+  assert.deepEqual(androidLaunchCommands("emulator-5554"), [
+    ["-s", "emulator-5554", "reverse", "tcp:8081", "tcp:8081"],
+    ["-s", "emulator-5554", "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+  ]);
+  assert.deepEqual(androidLaunchCommands(), [
+    ["reverse", "tcp:8081", "tcp:8081"],
+    ["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+  ]);
+});
+
+test("openAppOnEmulator targets a specific serial when given", () => {
+  const calls = [];
+  const log = silentLog();
+  const opened = openAppOnEmulator({
+    deviceAttached: true,
+    run: (args) => calls.push(args),
+    log,
+    deviceSerial: "emulator-5554",
+  });
+
+  assert.equal(opened, true);
+  assert.deepEqual(calls, androidLaunchCommands("emulator-5554"));
+  assert.match(log.lines.join("\n"), /emulator-5554/);
 });
