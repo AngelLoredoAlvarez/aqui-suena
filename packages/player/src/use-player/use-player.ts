@@ -39,6 +39,23 @@ export type UsePlayerReturn = {
   resume: () => void;
 };
 
+// Result of attempting to play a single URL. Kept as a discriminated union so
+// the caller (attempt) can decide between "done", "blocked -> stop", or
+// "failed -> try next mirror" without re-parsing the error.
+type PlayAttemptResult = { kind: "playing" } | { kind: "blocked" } | { kind: "failed" };
+
+// Try to play one URL through the driver. All rejections are classified into
+// the player failure contract so attempt() never has to deal with raw errors.
+async function tryPlayOne(driver: AudioDriver, url: string): Promise<PlayAttemptResult> {
+  try {
+    await driver.play(url);
+    return { kind: "playing" };
+  } catch (error: unknown) {
+    const detail = describeMediaError(narrowFailure(error));
+    return detail.status === "blocked" ? { kind: "blocked" } : { kind: "failed" };
+  }
+}
+
 export function usePlayer({
   urls,
   autoplay = true,
@@ -50,10 +67,12 @@ export function usePlayer({
     activeUrl: null,
   });
 
+  // Refs hold the latest values so async callbacks (attempt, effects) never
+  // close over stale props. They are refreshed on every render below.
   const urlsRef = useRef<string[]>(urls);
   const driverRef = useRef<AudioDriver>(driver);
   const lastUrlRef = useRef<string | null>(null);
-  const runRef = useRef<number>(0);
+  const attemptIdRef = useRef<number>(0);
   const statusRef = useRef<PlayerStatus>("idle");
   const nowPlayingRef = useRef<NowPlayingMetadata | undefined>(nowPlaying);
 
@@ -73,8 +92,8 @@ export function usePlayer({
 
   const attempt = useCallback(
     async (startUrl: string | undefined): Promise<void> => {
-      const runId = ++runRef.current;
-      const isCurrent = () => runRef.current === runId;
+      const attemptId = ++attemptIdRef.current;
+      const isCurrent = () => attemptIdRef.current === attemptId;
 
       if (!startUrl) {
         if (isCurrent()) {
@@ -89,35 +108,32 @@ export function usePlayer({
       let url: string | null = startUrl;
 
       while (url !== null && isCurrent()) {
+        // Surface the URL being tried before awaiting, so the UI can show
+        // which mirror is connecting.
         setPlayerState((prevState) => ({ ...prevState, activeUrl: url }));
 
-        try {
-          await driverRef.current.play(url);
-        } catch (error: unknown) {
-          const detail = describeMediaError(narrowFailure(error));
-
-          if (detail.status === "blocked") {
-            if (isCurrent()) {
-              updatePlayerState("blocked", url);
-            }
-
-            lastUrlRef.current = url;
-            return;
-          }
-
-          tried.push(url);
-          url = pickFallbackUrl(tried, urlsRef.current);
-          continue;
-        }
+        const result = await tryPlayOne(driverRef.current, url);
 
         if (!isCurrent()) {
           return;
         }
 
+        if (result.kind === "blocked") {
+          updatePlayerState("blocked", url);
+          lastUrlRef.current = url;
+          return;
+        }
+
+        if (result.kind === "failed") {
+          tried.push(url);
+          url = pickFallbackUrl(tried, urlsRef.current);
+          continue;
+        }
+
+        // result.kind === "playing"
         updatePlayerState("playing", url);
         lastUrlRef.current = url;
         driverRef.current.setNowPlaying?.(nowPlayingRef.current ?? null);
-
         return;
       }
 
@@ -126,10 +142,10 @@ export function usePlayer({
         lastUrlRef.current = null;
         driverRef.current.setNowPlaying?.(null);
       }
-      // NOTE: attempt() never rejects: every await lives inside the
-      // try/catch above and the mapper is total, so `void attempt(...)`
-      // callers need no .catch. If an await is ever added outside the
-      // try block, this guarantee must be revisited.
+      // NOTE: attempt() never rejects: every await lives inside tryPlayOne
+      // (which is total), so `void attempt(...)` callers need no .catch.
+      // If an await is ever added outside tryPlayOne, this guarantee must
+      // be revisited.
     },
     [updatePlayerState],
   );
@@ -144,7 +160,7 @@ export function usePlayer({
     void attempt(firstUrl);
 
     return () => {
-      runRef.current++;
+      attemptIdRef.current++;
     };
   }, [attempt, autoplay, firstUrl]);
 
@@ -184,7 +200,7 @@ export function usePlayer({
       return;
     }
 
-    runRef.current++;
+    attemptIdRef.current++;
 
     try {
       driverRef.current.pause();

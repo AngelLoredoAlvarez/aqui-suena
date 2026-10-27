@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
 
 import type { SupportedLocale } from "@aqui-suena/ui/i18n";
-import { LocaleProvider } from "@aqui-suena/ui/i18n";
-import { UiProvider } from "@aqui-suena/ui/shared";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { renderWithProviders } from "@aqui-suena/ui/test-utils";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getPlaybackIcon, PlayButton, PlayerCard, type PlayerCardStatus } from "./player-card";
 
@@ -15,14 +13,7 @@ function renderCard(props: {
   onPause?: () => void;
   onOpenSheet?: () => void;
 }) {
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <UiProvider>
-      <LocaleProvider locale={props.locale ?? "en"} onChange={() => {}}>
-        {children}
-      </LocaleProvider>
-    </UiProvider>
-  );
-  return render(
+  return renderWithProviders(
     <PlayerCard
       stationName="Aquí Suena"
       listeners={42}
@@ -31,7 +22,7 @@ function renderCard(props: {
       onOpenSheet={props.onOpenSheet}
       status={props.status}
     />,
-    { wrapper },
+    { locale: props.locale ?? "en" },
   );
 }
 
@@ -43,21 +34,13 @@ function renderPlayButton(
     onPause?: () => void;
   },
 ) {
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <UiProvider>
-      <LocaleProvider locale={options?.locale ?? "en"} onChange={() => {}}>
-        {children}
-      </LocaleProvider>
-    </UiProvider>
-  );
-
-  return render(
+  return renderWithProviders(
     <PlayButton
       status={status}
       onResume={options?.onResume ?? (() => {})}
       onPause={options?.onPause ?? (() => {})}
     />,
-    { wrapper },
+    { locale: options?.locale ?? "en" },
   );
 }
 

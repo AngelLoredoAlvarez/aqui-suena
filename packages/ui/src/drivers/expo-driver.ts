@@ -1,19 +1,7 @@
 import type { AudioDriver } from "@aqui-suena/player";
 import { useMemo, useRef } from "react";
+import { toWebFailure } from "./media-failure";
 import { apiBaseUrl } from "./stream-base-url";
-
-function toWebFailure(error: unknown): { name?: string; code?: number } {
-  if (typeof error === "object" && error !== null) {
-    const { name, code } = error as { name?: unknown; code?: unknown };
-    if (name === "NotAllowedError") {
-      return { name: "NotAllowedError" };
-    }
-    if (name === "NotSupportedError" || code === 4) {
-      return { code: 4 };
-    }
-  }
-  return {};
-}
 
 // Remote mirror hosts answer 403 to browser Referer headers, so remote
 // URLs play through the API server's /stream proxy (which strips them
