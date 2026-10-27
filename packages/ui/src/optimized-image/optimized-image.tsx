@@ -11,6 +11,7 @@ export type OptimizedImageProps = {
   readonly objectFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
   readonly objectPosition?: "center" | "center top" | "center bottom" | "top" | "bottom";
   readonly rounded?: number;
+  readonly fill?: boolean;
 };
 
 type ImageStatus = "idle" | "loading" | "loaded" | "error";
@@ -25,6 +26,7 @@ export function OptimizedImage({
   objectFit,
   objectPosition = "center",
   rounded = 8,
+  fill = false,
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
@@ -56,8 +58,8 @@ export function OptimizedImage({
     return (
       <YStack
         testID="optimized-image-error"
-        width={width}
-        height={height}
+        width={fill ? "100%" : width}
+        height={fill ? "100%" : height}
         items="center"
         justify="center"
         bg="surface2"
@@ -74,8 +76,8 @@ export function OptimizedImage({
       testID="optimized-image"
       position="relative"
       overflow="hidden"
-      width={width}
-      height={height}
+      width={fill ? "100%" : width}
+      height={fill ? "100%" : height}
       bg="surface2"
       rounded={rounded}
     >
@@ -84,8 +86,8 @@ export function OptimizedImage({
           src={blurDataURL}
           alt=""
           aria-hidden
-          width={width}
-          height={height}
+          width={fill ? "100%" : width}
+          height={fill ? "100%" : height}
           style={{ filter: "blur(8px)", transform: "scale(1.05)" }}
         />
       )}
@@ -93,8 +95,8 @@ export function OptimizedImage({
         <Image
           src={src}
           alt={alt}
-          width={width}
-          height={height}
+          width={fill ? "100%" : width}
+          height={fill ? "100%" : height}
           objectFit={objectFit}
           onLoad={() => setStatus("loaded")}
           onError={() => setStatus("error")}

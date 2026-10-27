@@ -16,8 +16,6 @@ export type AdsCarouselProps = {
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
 
-const FLYER_ASPECT = 4 / 3;
-
 export function AdsCarousel({
   items = [],
   autoAdvanceMs = DEFAULT_AUTO_ADVANCE_MS,
@@ -75,7 +73,6 @@ export function AdsCarousel({
     return null;
   }
   const flyerW = flyerWidth ?? maxW;
-  const flyerH = Math.round(flyerW * FLYER_ASPECT);
   const groupLabel = dictionary.adGroupLabel(safeIndex + 1, items.length);
   const meta = composeMeta(current, {
     isWide,
@@ -90,6 +87,7 @@ export function AdsCarousel({
       testID="ads-carousel"
       width="100%"
       maxW={maxW}
+      flex={1}
       flexDirection={isWide ? "row" : "column"}
       bg="surface"
       borderWidth={1}
@@ -102,12 +100,17 @@ export function AdsCarousel({
       onBlur={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
     >
-      <YStack position="relative" overflow="hidden" shrink={isWide ? 0 : undefined}>
+      <YStack
+        position="relative"
+        overflow="hidden"
+        width={isWide ? flyerW : undefined}
+        shrink={isWide ? 0 : undefined}
+        flex={isWide ? undefined : 1}
+      >
         <OptimizedImage
           src={current.imageUrl}
           alt={current.alt}
-          width={flyerW}
-          height={flyerH}
+          fill
           objectFit="cover"
           objectPosition="center top"
           rounded={0}
@@ -130,7 +133,7 @@ export function AdsCarousel({
         </YStack>
         <PaginationDots count={items.length} activeIndex={safeIndex} label={groupLabel} />
       </YStack>
-      <YStack flex={isWide ? 1 : undefined} p={16} gap={6}>
+      <YStack flex={isWide ? 1 : undefined} self={isWide ? "flex-start" : undefined} p={16} gap={6}>
         <Paragraph fontWeight="700" fontSize={nameFontSize}>
           {current.name}
         </Paragraph>

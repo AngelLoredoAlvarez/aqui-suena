@@ -33,7 +33,7 @@ export function PlayerDock({
   }
 
   return (
-    <YStack position="absolute" b="5" l={0} r={0} z={2}>
+    <YStack width="100%" mt="auto" position="relative" z={2}>
       {sheet ? (
         <YStack position="absolute" b={118} l={0} r={0} z={4} pointerEvents="box-none">
           {sheet}

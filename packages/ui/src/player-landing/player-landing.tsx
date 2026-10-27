@@ -78,10 +78,11 @@ export function PlayerLanding({
         position="relative"
         mx="auto"
         items={isWide ? "stretch" : "center"}
-        justify={isWide ? "flex-start" : "center"}
+        justify="flex-start"
         gap={isWide ? 16 : 20}
         px={isWide ? 24 : 20}
-        py={20}
+        pt={isWide ? 24 : 20}
+        pb={isWide ? 24 : 8}
         bg="bg"
       >
         {isWide ? (
@@ -101,7 +102,7 @@ export function PlayerLanding({
           width="100%"
           items="center"
           justify={isWide ? "center" : undefined}
-          flex={isWide ? 1 : undefined}
+          flex={1}
         >
           <AdsCarousel items={adsQuery.data ?? []} />
         </YStack>
