@@ -91,7 +91,7 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - **Dots**: active dot is a **24×8** pill in `accent`; inactive dots are
   **8×8** circles in `muted`; the group sits in a pill container
   (`border-radius: 999`, `background: surface`, gap 6, padding 7/10). The group
-  carries `role="group"` and `aria-label="Anuncio N de M"` (per-slide index).
+  carries `role="group"` and `aria-label="Ad N of M"` (per-slide index).
 - **Card wrapper**: `border-radius: 28`, `border 1px --bd`, `overflow: hidden`,
   `background: surface`.
 - **Badge**: `.bd` pill top-right (`right:12; top:12`), exactly one of
@@ -119,8 +119,8 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
     (`border-radius:28`, overflow hidden) holds the **flyer image panel
   (330px wide)** with badge + dots overlaid, and an info column: name (`fs:24`),
     meta (`fs:14`, e.g. `"Comida · Servicio a domicilio"`), contact rows
-    (teléfono / WhatsApp / dirección / horario, each `min-height:52` with a
-    bottom border) and actions **Llamar / WhatsApp / Cómo llegar**
+    (phone / WhatsApp / address / hours, each `min-height:52` with a
+    bottom border) and actions **Call / WhatsApp / Get directions**
     (`margin-top:auto`).
 
 ### Web (1440×900) — `WebLanding`
@@ -132,8 +132,8 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 
 ### Empty state — `LandingVacio`
 
-- Centered in the card: title **"Aún no hay negocios patrocinados"** (`fs:22`)
-  and hint **"Vuelve pronto: aquí verás los negocios cerca de ti."** (`fs:14`,
+- Centered in the card: title **"No sponsored businesses yet"** (`fs:22`)
+  and hint **"Check back soon: you will see businesses near you."** (`fs:14`,
   muted), both via i18n.
 
 ### Data model
@@ -154,10 +154,9 @@ verifiable against the design.
 
 `open` ("Abierto"/"Open"), `closed` ("Cerrado"/"Closed"), `delivery`
 ("Servicio a domicilio"/"Home delivery"), `viewBusiness` ("Ver negocio"/"View
-business"), `noSponsoredBusinesses` ("Aún no hay negocios patrocinados"/"No
-sponsored businesses yet"), `noSponsoredBusinessesHint` ("Vuelve pronto: aquí
-verás los negocios cerca de ti."/"Check back soon — you'll see businesses near
-you here."), `adGroupLabel(index, count)` ("Anuncio N de M"/"Ad N of M").
+business"), `noSponsoredBusinesses` ("No sponsored businesses yet"/"No
+sponsored businesses yet"), `noSponsoredBusinessesHint` ("Check back soon: you will see businesses near you."/"Check back soon — you'll see businesses near
+you here."), `adGroupLabel(index, count)` ("Ad N of M"/"Ad N of M").
 
 `delivery` is canonical across all platforms: the mobile design's "Entrega a
 domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
@@ -166,8 +165,8 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 
 The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
 - CTA) rendered responsively across all three breakpoints. The directory
-  **list** and the tablet/web **contact detail panel** (teléfono/WhatsApp/
-  dirección/horario + Llamar/WhatsApp/Cómo llegar) belong to
+  **list** and the tablet/web **contact detail panel** (phone/WhatsApp/
+  address/hours + Call/WhatsApp/Get directions) belong to
   `SPEC-business-directory.md` and are implemented there, not here.
 
 ## Decisions (resolved)

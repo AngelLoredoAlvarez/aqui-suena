@@ -36,7 +36,7 @@ apps/web/app/layout.tsx                → register service worker
 
 ## Offline Behavior
 
-- **Stream fails (no connection)**: player shows `error` status with message "Sin conexión. Reintentando…"; auto-retry every 10s; resume automatically on reconnect.
+- **Stream fails (no connection)**: player shows `error` status with message "No connection. Retrying…"; auto-retry every 10s; resume automatically on reconnect.
 - **tRPC queries**: TanStack Query with `networkMode: 'offlineFirst'` returns cached data; shows stale-while-revalidate indicator.
 - **Station list**: cached in TanStack Query persisted cache; available offline.
 - **Images**: cached by Service Worker (Cache API) on web; expo-image cache on native.
@@ -55,7 +55,7 @@ export function useConnectivity(): { isOnline: boolean } {
 }
 ```
 
-Conventions: offline state is derived from the connectivity hook + query error; no separate "offline mode" flag; auto-retry with exponential backoff (10s, 30s, 60s max); clear error messages via i18n dictionary (ES "Sin conexión" / EN "No connection").
+Conventions: offline state is derived from the connectivity hook + query error; no separate "offline mode" flag; auto-retry with exponential backoff (10s, 30s, 60s max); clear error messages via i18n dictionary (localized per locale, e.g. EN "No connection").
 
 ## Testing Strategy
 
@@ -72,7 +72,7 @@ Conventions: offline state is derived from the connectivity hook + query error; 
 
 ## Success Criteria
 
-- Disconnect network → player shows "Sin conexión, reintentando…" (ES) / "No connection, retrying…" (EN); no crash.
+- Disconnect network → player shows "No connection, retrying…" (EN locale) and the corresponding localized message for other locales; no crash.
 - Cached station list and status remain visible offline.
 - Reconnect → player auto-retries and resumes playback.
 - TanStack Query returns cached data offline with stale indicator.

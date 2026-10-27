@@ -6,7 +6,7 @@ Eliminate the player landing hydration mismatch (`http://localhost:3000`), leavi
 
 ## Problem
 
-React reports `A tree hydrated but some attributes of the server rendered HTML didn't match`: the server paints "Cargando estado de la estación…" while the client paints "Reproduciendo" plus the card, with an additional diff of Tamagui atomic `className`s. There is also a double `favicon.ico` 404.
+React reports `A tree hydrated but some attributes of the server rendered HTML didn't match`: the server paints the loading message while the client paints the playing state plus the card, with an additional diff of Tamagui atomic `className`s. There is also a double `favicon.ico` 404.
 
 ## Why
 

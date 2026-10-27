@@ -24,7 +24,7 @@ Objective: publish the playing station to the system media session so the notifi
 
 - **L1 — 2026-10-19, user request (verbatim):**
   > User approved starting Native Now Playing.
-  Answering: "¿Arrancamos con Native Now Playing?" The backlog entry (2026-10-15) defines the outcome: "while a station plays, show track/station metadata with controls in the system UI (notification shade + lock screen), like YouTube Music / browsers do".
+  Answering: "Shall we start Native Now Playing?" The backlog entry (2026-10-15) defines the outcome: "while a station plays, show track/station metadata with controls in the system UI (notification shade + lock screen), like YouTube Music / browsers do".
 - **L2 — 2026-10-19, exploration (read-only).**
   - `expo-audio@58.0.9` exposes `player.setActiveForLockScreen(active, metadata?, options?)`, `updateLockScreenMetadata(metadata)`, `clearLockScreenControls()` and `AudioMetadata = { title?, artist?, albumTitle?, artworkUrl? }`. `AudioLockScreenOptions` includes `isLiveStream`, which hides duration and the scrub bar.
   - The same package ships a config plugin (`app.plugin.js` → `withAudio`) that declares `AudioControlsService`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, iOS `UIBackgroundModes: ["audio"]`, and requests `RECORD_AUDIO` unless `recordAudioAndroid: false`. It is **not** registered in `app.json`, and the generated manifest has no service or foreground permissions, so lock-screen controls cannot work today.
