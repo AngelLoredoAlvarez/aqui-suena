@@ -1,21 +1,9 @@
 // @vitest-environment jsdom
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
-import { LocaleProvider } from "@aqui-suena/ui/i18n";
-import { UiProvider } from "@aqui-suena/ui/shared";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { renderWithProviders } from "@aqui-suena/ui/test-utils";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AdsCarousel } from "./ads-carousel";
-
-function wrapper({ children }: { children: ReactNode }) {
-  return (
-    <UiProvider>
-      <LocaleProvider locale="es" onChange={() => {}}>
-        {children}
-      </LocaleProvider>
-    </UiProvider>
-  );
-}
 
 const ITEMS: readonly AdsCarouselItem[] = [
   {
@@ -47,37 +35,37 @@ describe("AdsCarousel", () => {
   });
 
   it("shows the designed empty state when there are no items", () => {
-    render(<AdsCarousel />, { wrapper });
+    renderWithProviders(<AdsCarousel />, { locale: "es" });
     expect(screen.getByTestId("ads-carousel-placeholder")).toBeTruthy();
     expect(screen.getByText("Aún no hay negocios patrocinados")).toBeTruthy();
     expect(screen.getByText("Vuelve pronto: aquí verás los negocios cerca de ti.")).toBeTruthy();
   });
 
   it("renders the first item image and name", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
     expect(screen.getByTestId("ads-carousel")).toBeTruthy();
     expect(screen.getByAltText("Ad A")).toBeTruthy();
     expect(screen.getByText("Desayunos Casa Rosa")).toBeTruthy();
   });
 
   it("composes the meta line (category · delivery · opensLabel)", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
     expect(screen.getByText("Comida · Servicio a domicilio · Abre 8:00")).toBeTruthy();
   });
 
   it("renders the open-status badge from isOpen", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
     expect(screen.getByText("Abierto")).toBeTruthy();
   });
 
   it("renders the view-business CTA", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
     expect(screen.getByText("Ver negocio")).toBeTruthy();
   });
 
   it("auto-advances to the next item and flips the badge", () => {
     vi.useFakeTimers();
-    render(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { locale: "es" });
     expect(screen.getByAltText("Ad A")).toBeTruthy();
 
     act(() => vi.advanceTimersByTime(100));
@@ -87,7 +75,7 @@ describe("AdsCarousel", () => {
 
   it("pauses auto-advance on mouse enter", () => {
     vi.useFakeTimers();
-    render(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { locale: "es" });
     const carousel = screen.getByTestId("ads-carousel");
 
     fireEvent.mouseEnter(carousel);
@@ -100,7 +88,7 @@ describe("AdsCarousel", () => {
   });
 
   it("renders one dot per item, marking the active one, with a group label", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
 
     const dots = screen.getAllByTestId("ads-carousel-dot");
     expect(dots).toHaveLength(ITEMS.length);
@@ -112,7 +100,7 @@ describe("AdsCarousel", () => {
   });
 
   it("renders the image with cover fit", () => {
-    render(<AdsCarousel items={ITEMS} />, { wrapper });
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
 
     const img = screen.getByAltText("Ad A") as HTMLImageElement;
     expect(window.getComputedStyle(img).objectFit).toBe("cover");

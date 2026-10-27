@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
-import { LocaleProvider } from "@aqui-suena/ui/i18n";
-import { UiProvider } from "@aqui-suena/ui/shared";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { renderWithProviders } from "@aqui-suena/ui/test-utils";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SheetStation } from "./station-sheet";
 import { StationSheet } from "./station-sheet";
@@ -22,14 +20,7 @@ function renderSheet(props: {
   onSelectStation?: (stationId: string) => void;
   onClose?: () => void;
 }) {
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <UiProvider>
-      <LocaleProvider locale="en" onChange={() => {}}>
-        {children}
-      </LocaleProvider>
-    </UiProvider>
-  );
-  return render(
+  return renderWithProviders(
     <StationSheet
       open={props.open ?? true}
       stations={props.stations ?? manyStations(3)}
@@ -37,7 +28,6 @@ function renderSheet(props: {
       onSelectStation={props.onSelectStation ?? (() => {})}
       onClose={props.onClose ?? (() => {})}
     />,
-    { wrapper },
   );
 }
 
@@ -61,21 +51,14 @@ describe("StationSheet", () => {
   });
 
   it("renders Spanish title and live badge", () => {
-    const wrapper = ({ children }: { children: ReactNode }) => (
-      <UiProvider>
-        <LocaleProvider locale="es" onChange={() => {}}>
-          {children}
-        </LocaleProvider>
-      </UiProvider>
-    );
-    render(
+    renderWithProviders(
       <StationSheet
         open
         stations={manyStations(3)}
         onSelectStation={() => {}}
         onClose={() => {}}
       />,
-      { wrapper },
+      { locale: "es" },
     );
 
     expect(screen.getByText("Estaciones")).toBeTruthy();

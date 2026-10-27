@@ -2,7 +2,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { toMediaFailure, useExpoAudioDriver } from "./expo-driver.native";
+import { useExpoAudioDriver } from "./expo-driver.native";
+import { toMediaFailure } from "./media-failure";
 
 type FakeNativePlayer = {
   replace: (url: string) => void;
