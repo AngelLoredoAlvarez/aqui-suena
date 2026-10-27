@@ -23,7 +23,7 @@ Objective: publish the playing station to the system media session so the notifi
 ## Log
 
 - **L1 — 2026-10-19, user request (verbatim):**
-  > si
+  > User approved starting Native Now Playing.
   Answering: "¿Arrancamos con Native Now Playing?" The backlog entry (2026-10-15) defines the outcome: "while a station plays, show track/station metadata with controls in the system UI (notification shade + lock screen), like YouTube Music / browsers do".
 - **L2 — 2026-10-19, exploration (read-only).**
   - `expo-audio@58.0.9` exposes `player.setActiveForLockScreen(active, metadata?, options?)`, `updateLockScreenMetadata(metadata)`, `clearLockScreenControls()` and `AudioMetadata = { title?, artist?, albumTitle?, artworkUrl? }`. `AudioLockScreenOptions` includes `isLiveStream`, which hides duration and the scrub bar.
@@ -40,7 +40,7 @@ Objective: publish the playing station to the system media session so the notifi
   - **T5 device evidence, `emulator-5554`, debug build + Metro.** Media session `ExpoAudioLockScreenSession_*` for `com.seventeenlabs.aquisuena`, metadata `description=Test Pop, Aqui Suena, null`, foreground service started (`Background started FGS: Allowed ... AudioControlsService`). Notification shade shows the media card with title/artist and pause. `adb shell cmd media_session dispatch pause` turned the session to `PAUSED` and the app showed **Resume** without any in-app interaction; `dispatch play` returned the session to `PLAYING` and the app showed **Pause**. Station switch moved the metadata to the new station.
   - **Observation (not a blocker).** On Android the notification still renders a previous-track glyph and a progress line while the finite dev asset plays, even with `showPreviousTrack: false` and `isLiveStream: true`; the glyph is inert (no playlist) and the progress line tracks the file duration, which a real live stream does not report. Worth revisiting with a real stream, out of scope for this slice.
 - **L5 — 2026-10-19, user correction (verbatim):**
-  > si limpialos, y tambien remueve los comentarios que hayas colocado en el codigo
+  > User asked to clean up and remove comments added to the code.
 
   Cleanup applied:
   - `publish`/`release` are now `useCallback` with empty deps, so the effect and the memoized driver share one stable function instead of the first render's closure.

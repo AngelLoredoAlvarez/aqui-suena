@@ -10,7 +10,7 @@ Set up a minimal TDD base (Vitest) + RED-GREEN example in `packages/ui` + Husky 
 
 ## Why
 
-User explicitly requested ("si hazlo") to set up what was proposed: Vitest + example + Husky + dependency-cruiser.
+User explicitly requested ("yes, do it") to set up what was proposed: Vitest + example + Husky + dependency-cruiser.
 
 ## Scope
 

@@ -30,8 +30,7 @@ Worker and the Pages deploy).
 
 ## Log
 
-L1 (2026-10-22, user): "a ok, si confirmado, el deploy del backend y stream
-funcionan, prepara el deploy para la web"
+L1 (2026-10-22, user): "User confirmed the backend and stream deploy work and requested preparing the web deploy."
 
 - L2: `getListenerStatus` is mock-first (`packages/api/src/client.ts`), so the
   only browser network call is the audio `/stream` request. The deploy therefore

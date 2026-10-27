@@ -23,7 +23,7 @@ React reports `A tree hydrated but some attributes of the server rendered HTML d
 
 ## Constraints
 
-- Authorship rule #68 in force: the user writes everything by default; this run is an explicit handoff ("hazlo todo tu", 2026-10-09). Authorship returns to the user when this run closes.
+- Authorship rule #68 in force: the user writes everything by default; this run is an explicit handoff ("do it all yourself", 2026-10-09). Authorship returns to the user when this run closes.
 - No `suppressHydrationWarning` as a band-aid. No `window`/`localStorage`/`Audio` reads during render.
 - Identical visuals (night-plum card, amber button, copy). No behavior change except clean hydration.
 - No push without explicit order. Commits without "Co-Authored-By" or AI attribution (Conventional Commits).

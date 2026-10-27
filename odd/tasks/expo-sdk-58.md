@@ -28,7 +28,7 @@ Objective: move the mobile workspace from Expo SDK 57 (RN 0.86.3) to SDK 58 (RN 
 ## Log
 
 - **L1 — 2026-10-19, user request (verbatim):**
-  > si, vamos con lo de expo sdk 58 pa ver si se va a poder implementar eso
+  > User approved exploring the Expo SDK 58 upgrade to check feasibility.
 - **L2 — 2026-10-19, feasibility evidence (read-only):**
   - `expo` `latest` is `58.0.16`: SDK 58 is stable, not a prerelease.
   - `expo@58.0.16` declares `node: ^22.13.0 || ^24.3.0 || ^26.0.0 || >=27.0.0`; host runs Node 24.14.0 → supported.
