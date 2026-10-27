@@ -38,20 +38,9 @@ export function StationPlayer({
     nowPlaying: { title: channel.name, artist: dictionary.appTitle },
   });
 
-  // Backdrop lives at column level for full coverage while the card stays
-  // in the bottom-anchored wrapper above the dock; one backdrop+card pair
-  // shared by every loaded branch so a tap during switching opens
-  // immediately instead of popping up later.
   const closeSheet = (): void => {
     setSheetOpen(false);
   };
-
-  const handleSelectStation = useCallback(
-    (stationId: string): void => {
-      onSelectStation(stationId);
-    },
-    [onSelectStation],
-  );
 
   const handleTogglePlayback = useCallback((): void => {
     if (status === "playing") {
@@ -80,7 +69,7 @@ export function StationPlayer({
     stations: STATIONS,
     activeStationId: committedChannel.id,
     onTogglePlayback: handleTogglePlayback,
-    onSelectStation: handleSelectStation,
+    onSelectStation,
   });
 
   useEscapeToClose(sheetOpen, closeSheet);
@@ -98,7 +87,7 @@ export function StationPlayer({
     <StationSheetCard
       stations={STATIONS}
       activeStationId={channel.id}
-      onSelectStation={handleSelectStation}
+      onSelectStation={onSelectStation}
       onClose={closeSheet}
     />
   );
@@ -116,60 +105,32 @@ export function StationPlayer({
     }
   }, [status, channel, activeUrl]);
 
-  const switching =
+  // While a station switch is in flight, keep showing the committed channel
+  // card with a "playing" status so the UI never flickers to the loading
+  // state for the new channel.
+  const isSwitching =
     activeUrl !== null &&
     channel.id !== committedChannel.id &&
     (status === "playing" || status === "loading" || status === "idle");
 
-  if (status === "loading" || switching) {
-    if (switching) {
-      return (
-        <>
-          {backdrop}
-          <PlayerDock isWide={isWide} sheet={sheet}>
-            <PlayerCard
-              stationName={committedChannel.name}
-              listeners={listeners}
-              status="playing"
-              onResume={resume}
-              onPause={pause}
-              onOpenSheet={() => setSheetOpen(true)}
-              sheetOpen={sheetOpen}
-            />
-          </PlayerDock>
-        </>
-      );
-    }
+  const isLoading = status === "loading" && !isSwitching;
 
-    return (
-      <>
-        <YStack gap="2" items="center">
-          <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
-        </YStack>
-        {backdrop}
-        <PlayerDock isWide={isWide} sheet={sheet}>
-          <PlayerCard
-            stationName={committedChannel.name}
-            listeners={listeners}
-            status="loading"
-            onResume={resume}
-            onPause={pause}
-            onOpenSheet={() => setSheetOpen(true)}
-            sheetOpen={sheetOpen}
-          />
-        </PlayerDock>
-      </>
-    );
-  }
+  const displayName = isSwitching || isLoading ? committedChannel.name : stationName;
+  const displayStatus = isSwitching ? "playing" : status;
 
   return (
     <>
+      {isLoading && (
+        <YStack gap="2" items="center">
+          <Paragraph color="brandCreamMuted">{dictionary.loadingStation}</Paragraph>
+        </YStack>
+      )}
       {backdrop}
       <PlayerDock isWide={isWide} sheet={sheet}>
         <PlayerCard
-          stationName={stationName}
+          stationName={displayName}
           listeners={listeners}
-          status={status}
+          status={displayStatus}
           onResume={resume}
           onPause={pause}
           onOpenSheet={() => setSheetOpen(true)}
