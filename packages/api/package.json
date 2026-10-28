@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./ads": "./src/ads.ts",
     "./client": "./src/client.ts",
+    "./entitlements": "./src/entitlements.ts",
     "./listener": "./src/listener.ts",
     "./package.json": "./package.json",
     "./router": "./src/router.ts",

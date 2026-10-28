@@ -2,19 +2,25 @@
 
 > Separate track from the radio-playback MVP. Do not mix with `tasks/plan.md` / `tasks/todo.md`.
 
-## Task 1: Entitlements matrix + resolver
+## Task 1: Entitlements matrix + resolver — DONE 2026-10-28
 
-**Description:** Implement the single entitlements resolver that maps plan to limits for listings, products, photos, and feature flags. FREE allows zero structured products (product listing disabled); photo quota retained for flyer/logo.
+**Description:** Implement the single entitlements resolver that maps plan to limits for listings, products, photos, and feature flags. FREE allows zero structured products (product listing disabled); photo quota retained for flyer/logo. Landed on branch `feature/ads-tiers-entitlements` (commit pending).
 
 **Acceptance criteria:**
-- [ ] Exact matrix: FREE `{products: 0, photos: 3 (exact number open — see Open Questions), product listing disabled}` vs Monthly `{products: 100, photos: 30}` resolved by one function (Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned.)
-- [ ] FREE `entitlements.get` denies product create with typed `UPGRADE_REQUIRED` + upgrade hint
-- [ ] 100% matrix coverage by unit tests
-- [ ] No hardcoded tier limits anywhere outside the resolver
+- [x] Exact matrix: FREE `{products: 0, photos: 3, product listing disabled}` vs Premium `{products: 100, photos: 30}` resolved by one function. SPEC uses `free`/`premium` PlanIds (todo calls Monthly → `premium`).
+- [x] `canCreateProduct("free")` returns `{ allowed: false, code: "UPGRADE_REQUIRED", hint }`; premium returns `{ allowed: true }`. `assertCanCreateProduct` throws typed `UpgradeRequired`.
+- [x] 100% matrix coverage by unit tests (12 new tests in `entitlements.test.ts`).
+- [x] No hardcoded tier limits outside `ENTITLEMENTS` (matrix is the single source).
 
 **Verification:**
-- [ ] Tests pass: `pnpm --filter @aqui-suena/api test`
-- [ ] Build succeeds: `pnpm -r build`
+- [x] Tests pass: `pnpm --filter @aqui-suena/api test` (67 passed)
+- [x] Build succeeds: `pnpm -r build` (typecheck clean)
+- [x] Biome clean on touched files
+
+**Files touched:**
+- `packages/api/src/entitlements.ts` (new)
+- `packages/api/src/entitlements.test.ts` (new)
+- `packages/api/package.json` (added `./entitlements` subpath export)
 
 **Dependencies:** None
 
