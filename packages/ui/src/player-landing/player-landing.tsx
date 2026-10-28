@@ -2,7 +2,8 @@ import { defaultStationId } from "@aqui-suena/config";
 import { noopTrayBridge, type TrayBridge } from "@aqui-suena/player";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
-import { selectedStationIdAtom } from "@aqui-suena/ui/state";
+import type { PlayerCardPosition } from "@aqui-suena/ui/state";
+import { playerCardPositionAtom, selectedStationIdAtom } from "@aqui-suena/ui/state";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
@@ -16,12 +17,15 @@ import { StationPlayer } from "./station-player";
 export function PlayerLanding({
   scheme = "noche",
   trayBridge = noopTrayBridge,
+  onPositionChange,
 }: {
   scheme?: "noche" | "brasa";
   trayBridge?: TrayBridge;
+  onPositionChange?: (position: PlayerCardPosition) => void;
 }) {
   const [mounted, setMounted] = useState(false);
   const [selectedStationId, setSelectedStationId] = useAtom(selectedStationIdAtom);
+  const [position] = useAtom(playerCardPositionAtom);
 
   const listenerQuery = useListenerStatus(defaultStationId);
   const adsQuery = useAdsCarousel();
@@ -44,6 +48,7 @@ export function PlayerLanding({
       listeners={listenerState.status === "success" ? listenerState.data.listeners : 0}
       onSelectStation={setSelectedStationId}
       trayBridge={trayBridge}
+      onPositionChange={onPositionChange}
     />
   );
 
@@ -75,6 +80,7 @@ export function PlayerLanding({
         width="100%"
         maxW={responsiveMaxW}
         minH={isWeb ? "100vh" : undefined}
+        overflow="hidden"
         position="relative"
         mx="auto"
         items={isWide ? "stretch" : "center"}
@@ -96,17 +102,29 @@ export function PlayerLanding({
             <LocaleSwitcher />
           </>
         )}
-        {scheme === "brasa" ? player : null}
-        <YStack
-          testID="landing-content"
-          width="100%"
-          items="center"
-          justify={isWide ? "center" : undefined}
-          flex={1}
-        >
-          <AdsCarousel items={adsQuery.data ?? []} />
-        </YStack>
-        {scheme === "brasa" ? null : player}
+        {position === "bottom" ? (
+          <YStack
+            testID="landing-content"
+            width="100%"
+            items="center"
+            justify={isWide ? "center" : undefined}
+            flex={1}
+          >
+            <AdsCarousel items={adsQuery.data ?? []} />
+          </YStack>
+        ) : null}
+        {player}
+        {position === "top" ? (
+          <YStack
+            testID="landing-content"
+            width="100%"
+            items="center"
+            justify={isWide ? "center" : undefined}
+            flex={1}
+          >
+            <AdsCarousel items={adsQuery.data ?? []} />
+          </YStack>
+        ) : null}
       </YStack>
     </Theme>
   );
