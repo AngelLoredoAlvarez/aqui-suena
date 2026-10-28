@@ -3,15 +3,14 @@ import type { PlayerCardPosition } from "@aqui-suena/ui/state";
 import {
   loadPersistedPlayerCardPositionAsync,
   savePersistedPlayerCardPositionAsync,
-  useSetPlayerCardPosition,
 } from "@aqui-suena/ui/state";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const deviceStore = AsyncStorage;
 
 export default function Index() {
-  const setPosition = useSetPlayerCardPosition();
+  const [initialPosition, setInitialPosition] = useState<PlayerCardPosition | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
@@ -19,7 +18,7 @@ export default function Index() {
       try {
         const persisted = await loadPersistedPlayerCardPositionAsync(deviceStore);
         if (active && persisted) {
-          setPosition(persisted);
+          setInitialPosition(persisted);
         }
       } catch {
         // Keep the default: storage errors must never break boot.
@@ -29,11 +28,13 @@ export default function Index() {
     return () => {
       active = false;
     };
-  }, [setPosition]);
+  }, []);
 
   const handlePositionChange = useCallback((next: PlayerCardPosition) => {
     void savePersistedPlayerCardPositionAsync(deviceStore, next);
   }, []);
 
-  return <PlayerLanding onPositionChange={handlePositionChange} />;
+  return (
+    <PlayerLanding onPositionChange={handlePositionChange} initialPosition={initialPosition} />
+  );
 }
