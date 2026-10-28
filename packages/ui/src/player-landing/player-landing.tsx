@@ -18,14 +18,22 @@ export function PlayerLanding({
   scheme = "noche",
   trayBridge = noopTrayBridge,
   onPositionChange,
+  initialPosition,
 }: {
   scheme?: "noche" | "brasa";
   trayBridge?: TrayBridge;
   onPositionChange?: (position: PlayerCardPosition) => void;
+  initialPosition?: PlayerCardPosition;
 }) {
   const [mounted, setMounted] = useState(false);
   const [selectedStationId, setSelectedStationId] = useAtom(selectedStationIdAtom);
-  const [position] = useAtom(playerCardPositionAtom);
+  const [position, setPosition] = useAtom(playerCardPositionAtom);
+
+  useEffect(() => {
+    if (initialPosition) {
+      setPosition(initialPosition);
+    }
+  }, [initialPosition, setPosition]);
 
   const listenerQuery = useListenerStatus(defaultStationId);
   const adsQuery = useAdsCarousel();
