@@ -67,7 +67,7 @@
 
 **Acceptance criteria:**
 - [ ] Basic sheet: logo, phone, WhatsApp, address, open/closed, delivery flag — plus flyer image only; BasicSheetDto has NO product list
-- [ ] Rich sheet adds: full product list + prices, product images, extended hours, priority badge, spot marker
+- [ ] Rich sheet adds: full product list + prices, product images, extended hours, spot marker (no plan-tier badge; priority is applied silently in carousel ranking)
 - [ ] FREE resolves to basic, Monthly resolves to rich
 - [ ] Contract module has no router/UI imports
 
@@ -142,7 +142,7 @@
 **Description:** Build player-safe basic and rich business sheets with accessible dialog behavior, keeping audio uninterrupted.
 
 **Acceptance criteria:**
-- [ ] FREE → basic sheet with exact pinned fields + flyer image, never a product list; Monthly → rich sheet with full catalog + priority badge
+- [ ] FREE → basic sheet with exact pinned fields + flyer image, never a product list; Monthly → rich sheet with full catalog + spot marker (no plan-tier badge; priority is applied silently in carousel ranking)
 - [ ] AUDIO INVARIANT: opening/closing sheets never pauses audio for FREE or PREMIUM; audio pauses only via the explicit player pause button
 - [ ] Accessible dialog: focus trap/restore, Esc to close, aria roles/labels
 

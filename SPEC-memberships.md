@@ -79,12 +79,12 @@ Conventions: single `entitlements.get(accountId)` resolver per account (`maxBusi
 - Always: gate plan changes (including downgrade picker) behind explicit user confirmation listing affected limits/items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
 - Always: extend the append-only activity audit log (actor, action, entity, timestamp) to plan changes and recurring-charge authorizations and surface them in the visible activity section; log is immutable and never user-editable.
 - Ask first: change prices/limits, switch payment provider, grant manual exceptions.
-- Never: enforce limits only in UI, allow free listings to claim spot eligibility or carousel priority, allow free listings to create structured products.
+- Never: enforce limits only in UI, allow free listings to claim spot eligibility or carousel priority, allow free listings to create structured products, render a plan-tier badge in the public directory card or sheet (carousel priority is applied silently in ranking).
 
 ## Success Criteria
 
 - Free (1 business per account): basic listing (name, category, phone, address, hours, delivery flag) plus flyer + logo only, zero structured products, no spot, normal carousel weight.
-- Premium (open business count, multiple businesses per account): full catalog (up to 100 products, 1-3 photos each, 2MB max per photo in JPG/PNG/WebP with client-side compression), extended hours, carousel priority, spot eligible (delivery flag included as in Free).
+- Premium (open business count, multiple businesses per account): full catalog (up to 100 products, 1-3 photos each, 2MB max per photo in JPG/PNG/WebP with client-side compression), extended hours, carousel priority (applied silently in ranking, never shown as a badge in the public directory card/sheet), spot eligible (delivery flag included as in Free).
 - Delivery flag (both plans): owner-declared operational data, informational contact handoff only; no fees, zones, dispatch, or tracking in V1.
 - Downgrade (manual, or automatic after the 7-day failed-renewal grace with email warning) applies limits within 1 minute without data loss (owner picks the visible business, excess hidden, not deleted).
 - Every paywalled action returns a typed `UPGRADE_REQUIRED` error the UI maps to billing.
