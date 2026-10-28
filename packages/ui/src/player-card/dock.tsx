@@ -2,11 +2,21 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { useMedia, XStack, YStack } from "tamagui";
 import { PlaybackAction } from "./playback-action";
 import type { PlayerCardProps } from "./player-card.types";
+import { PositionToggle } from "./position-toggle";
 import { StationButton } from "./station-button";
 import { StatusRow } from "./status-indicator";
 
 export function Dock(props: PlayerCardProps) {
-  const { stationName, listeners, status, onResume, onPause, onOpenSheet, sheetOpen } = props;
+  const {
+    stationName,
+    listeners,
+    status,
+    onResume,
+    onPause,
+    onOpenSheet,
+    sheetOpen,
+    onTogglePosition,
+  } = props;
   const { dictionary } = useLocale();
   const media = useMedia();
   const stationAriaLabel = dictionary.changeStation(stationName);
@@ -35,6 +45,9 @@ export function Dock(props: PlayerCardProps) {
           onOpenSheet={onOpenSheet}
         />
       </YStack>
+      {onTogglePosition ? (
+        <PositionToggle label={dictionary.movePlayer} onToggle={onTogglePosition} />
+      ) : null}
     </XStack>
   );
 }

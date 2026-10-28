@@ -13,4 +13,5 @@ export type PlayerCardProps = {
   onPause: () => void;
   onOpenSheet?: () => void;
   sheetOpen?: boolean;
+  onTogglePosition?: () => void;
 };
