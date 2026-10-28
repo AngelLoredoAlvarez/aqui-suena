@@ -2,11 +2,14 @@ import { type TrayBridge, type TrayLabels, usePlayer, useTraySync } from "@aqui-
 import { useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
+import type { PlayerCardPosition } from "@aqui-suena/ui/state";
+import { playerCardPositionAtom } from "@aqui-suena/ui/state";
 import {
   StationSheetBackdrop,
   StationSheetCard,
   useEscapeToClose,
 } from "@aqui-suena/ui/station-sheet";
+import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Paragraph, useMedia, YStack } from "tamagui";
 import { STATIONS, type TestChannel } from "./channels";
@@ -18,15 +21,18 @@ export function StationPlayer({
   listeners,
   onSelectStation,
   trayBridge,
+  onPositionChange,
 }: {
   channel: TestChannel;
   stationName: string;
   listeners: number;
   onSelectStation: (stationId: string) => void;
   trayBridge: TrayBridge;
+  onPositionChange?: (position: PlayerCardPosition) => void;
 }) {
   const [committedChannel, setCommittedChannel] = useState(channel);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [position, setPosition] = useAtom(playerCardPositionAtom);
 
   const driver = useExpoAudioDriver();
   const { dictionary } = useLocale();
@@ -49,6 +55,12 @@ export function StationPlayer({
       resume();
     }
   }, [status, pause, resume]);
+
+  const handleTogglePosition = useCallback((): void => {
+    const next: PlayerCardPosition = position === "top" ? "bottom" : "top";
+    setPosition(next);
+    onPositionChange?.(next);
+  }, [position, setPosition, onPositionChange]);
 
   const trayLabels = useMemo<TrayLabels>(
     () => ({
@@ -135,6 +147,7 @@ export function StationPlayer({
           onPause={pause}
           onOpenSheet={() => setSheetOpen(true)}
           sheetOpen={sheetOpen}
+          onTogglePosition={handleTogglePosition}
         />
       </PlayerDock>
     </>

@@ -1,4 +1,4 @@
-import { Text, XStack, YStack } from "tamagui";
+import { XStack, YStack } from "tamagui";
 import type { PlayerCardStatus } from "./player-card.types";
 
 export type PlaybackIconKind = "play" | "pause" | "loading";
@@ -54,14 +54,15 @@ export function PlaybackIcon({ icon }: { icon: PlaybackIconKind }) {
   }
 
   return (
-    <Text
-      fontSize={20}
-      lineHeight={20}
-      color="onAccent"
-      aria-hidden={true}
+    <YStack
       data-testid="playback-icon"
-    >
-      ⟳
-    </Text>
+      width={20}
+      height={20}
+      rounded={10}
+      borderWidth={3}
+      borderColor="transparent"
+      borderTopColor="onAccent"
+      borderRightColor="onAccent"
+    />
   );
 }

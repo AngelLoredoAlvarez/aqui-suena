@@ -188,17 +188,6 @@ describe("PlayerLanding composition", () => {
 
     expect(content.compareDocumentPosition(dock)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
-
-  it("renders the dock before the content in brasa scheme", async () => {
-    renderLanding("es", "brasa");
-
-    await screen.findByText(/escuchando/);
-
-    const dock = screen.getByTestId("player-dock");
-    const content = screen.getByTestId("landing-content");
-
-    expect(dock.compareDocumentPosition(content)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  });
 });
 
 describe("PlayerLanding station sheet", () => {

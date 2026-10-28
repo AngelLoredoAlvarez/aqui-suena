@@ -12,6 +12,7 @@ function renderCard(props: {
   onResume?: () => void;
   onPause?: () => void;
   onOpenSheet?: () => void;
+  onTogglePosition?: () => void;
 }) {
   return renderWithProviders(
     <PlayerCard
@@ -21,6 +22,7 @@ function renderCard(props: {
       onPause={props.onPause ?? (() => {})}
       onOpenSheet={props.onOpenSheet}
       status={props.status}
+      onTogglePosition={props.onTogglePosition}
     />,
     { locale: props.locale ?? "en" },
   );
@@ -191,6 +193,17 @@ describe("PlayerCard", () => {
     fireEvent.click(screen.getByTestId("station-name"));
 
     expect(onOpenSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the position toggle when onTogglePosition is provided", () => {
+    const onTogglePosition = vi.fn();
+    renderCard({ status: "playing", onTogglePosition, locale: "es" });
+
+    const toggle = screen.getByRole("button", { name: "Mover reproductor arriba o abajo" });
+    expect(toggle).toBeTruthy();
+
+    fireEvent.click(toggle);
+    expect(onTogglePosition).toHaveBeenCalledTimes(1);
   });
 });
 
