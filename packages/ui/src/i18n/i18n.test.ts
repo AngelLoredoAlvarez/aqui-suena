@@ -46,6 +46,8 @@ describe("i18n contract", () => {
     expect(en.playing).toBe("Playing");
     expect(es.tapToEnableSound).toBe("Toca para activar el sonido");
     expect(en.tapToEnableSound).toBe("Tap to enable sound");
+    expect(es.movePlayer).toBe("Mover reproductor arriba o abajo");
+    expect(en.movePlayer).toBe("Move player up or down");
     expect(en.signalUnavailable).toBe("Signal unavailable, trying mirror…");
     expect(en.loadingStation).toBe("Loading station status…");
     expect(es.sheetTitle).toBe("Estaciones");
