@@ -1,0 +1,206 @@
+import { parse } from "valibot";
+import { describe, expect, it } from "vitest";
+
+import {
+  addPhotoInputSchema,
+  businessCategorySchema,
+  capProducts,
+  createProductInputSchema,
+  deriveListingOpen,
+  listingInputSchema,
+} from "./listing";
+
+describe("businessCategorySchema", () => {
+  it("accepts a known category", () => {
+    expect(parse(businessCategorySchema, "food")).toBe("food");
+  });
+
+  it("rejects an unknown category", () => {
+    expect(() => parse(businessCategorySchema, "random")).toThrow();
+  });
+});
+
+describe("listingInputSchema", () => {
+  const valid = {
+    name: "Desayunos Casa Rosa",
+    category: "food",
+    timezone: "America/Mexico_City",
+    delivery: true,
+    hours: [{ day: 1, openMinute: 480, closeMinute: 900 }],
+  };
+
+  it("accepts a valid listing", () => {
+    expect(parse(listingInputSchema, valid)).toEqual(valid);
+  });
+
+  it("rejects empty name", () => {
+    expect(() => parse(listingInputSchema, { ...valid, name: "" })).toThrow();
+  });
+
+  it("rejects invalid timezone (empty)", () => {
+    expect(() => parse(listingInputSchema, { ...valid, timezone: "" })).toThrow();
+  });
+
+  it("rejects an invalid IANA timezone", () => {
+    expect(() => parse(listingInputSchema, { ...valid, timezone: "Foo/Bar" })).toThrow();
+  });
+
+  it("rejects day out of range", () => {
+    expect(() =>
+      parse(listingInputSchema, { ...valid, hours: [{ day: 7, openMinute: 0, closeMinute: 60 }] }),
+    ).toThrow();
+  });
+
+  it("rejects minute out of range", () => {
+    expect(() =>
+      parse(listingInputSchema, {
+        ...valid,
+        hours: [{ day: 1, openMinute: 0, closeMinute: 1500 }],
+      }),
+    ).toThrow();
+  });
+});
+
+describe("createProductInputSchema", () => {
+  it("accepts a valid product", () => {
+    expect(parse(createProductInputSchema, { name: "Taco", price: 2500 })).toEqual({
+      name: "Taco",
+      price: 2500,
+    });
+  });
+
+  it("rejects non-positive price", () => {
+    expect(() => parse(createProductInputSchema, { name: "Taco", price: 0 })).toThrow();
+    expect(() => parse(createProductInputSchema, { name: "Taco", price: -1 })).toThrow();
+  });
+
+  it("rejects non-integer price", () => {
+    expect(() => parse(createProductInputSchema, { name: "Taco", price: 25.5 })).toThrow();
+  });
+});
+
+describe("addPhotoInputSchema", () => {
+  it("accepts a valid photo", () => {
+    expect(parse(addPhotoInputSchema, { kind: "flyer", url: "https://example.com/f.png" })).toEqual(
+      {
+        kind: "flyer",
+        url: "https://example.com/f.png",
+      },
+    );
+  });
+
+  it("rejects an unknown kind", () => {
+    expect(() =>
+      parse(addPhotoInputSchema, { kind: "banner", url: "https://example.com/f.png" }),
+    ).toThrow();
+  });
+
+  it("rejects an invalid url", () => {
+    expect(() => parse(addPhotoInputSchema, { kind: "flyer", url: "not-a-url" })).toThrow();
+  });
+});
+
+describe("listingInputSchema — additional guards", () => {
+  const valid = {
+    name: "Desayunos Casa Rosa",
+    category: "food" as const,
+    timezone: "America/Mexico_City",
+    delivery: true,
+    hours: [{ day: 1, openMinute: 480, closeMinute: 900 }],
+  };
+
+  it("rejects an empty hours range (open === close)", () => {
+    expect(() =>
+      parse(listingInputSchema, {
+        ...valid,
+        hours: [{ day: 1, openMinute: 480, closeMinute: 480 }],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects an invalid email", () => {
+    expect(() => parse(listingInputSchema, { ...valid, email: "not-an-email" })).toThrow();
+  });
+
+  it("accepts a valid email", () => {
+    expect(parse(listingInputSchema, { ...valid, email: "a@b.com" })).toMatchObject({
+      email: "a@b.com",
+    });
+  });
+});
+
+describe("listingInputSchema — categoryOther", () => {
+  const valid = {
+    name: "Desayunos Casa Rosa",
+    category: "food" as const,
+    timezone: "America/Mexico_City",
+    delivery: true,
+    hours: [{ day: 1, openMinute: 480, closeMinute: 900 }],
+  };
+
+  it("keeps categoryOther when provided", () => {
+    const result = parse(listingInputSchema, {
+      ...valid,
+      category: "other",
+      categoryOther: "Miscelánea",
+    });
+
+    expect(result).toMatchObject({ category: "other", categoryOther: "Miscelánea" });
+  });
+
+  it("allows omitting categoryOther", () => {
+    const result = parse(listingInputSchema, { ...valid, category: "food" });
+
+    expect(result.categoryOther).toBeUndefined();
+  });
+
+  it("rejects an empty categoryOther", () => {
+    expect(() =>
+      parse(listingInputSchema, { ...valid, category: "other", categoryOther: "" }),
+    ).toThrow();
+  });
+});
+
+describe("deriveListingOpen", () => {
+  const listing = {
+    name: "Desayunos Casa Rosa",
+    category: "food" as const,
+    timezone: "America/Mexico_City",
+    delivery: true,
+    hours: [{ day: 1, openMinute: 8 * 60, closeMinute: 20 * 60 }],
+  };
+
+  it("returns true when now is within open hours", () => {
+    expect(deriveListingOpen(listing, new Date("2026-10-26T10:00:00-06:00"))).toBe(true);
+  });
+
+  it("returns false when now is outside open hours", () => {
+    expect(deriveListingOpen(listing, new Date("2026-10-26T23:00:00-06:00"))).toBe(false);
+  });
+});
+
+describe("capProducts", () => {
+  const products = Array.from({ length: 150 }, (_, i) => ({ name: `p${i}`, price: 100 }));
+
+  it("caps at plan limit (premium = 100)", () => {
+    expect(capProducts(products, "premium")).toHaveLength(100);
+  });
+
+  it("returns empty for free (cap = 0)", () => {
+    expect(capProducts(products, "free")).toHaveLength(0);
+  });
+
+  it("does not mutate the input (hidden, not deleted)", () => {
+    const input = [...products];
+
+    capProducts(input, "premium");
+
+    expect(input).toHaveLength(150);
+  });
+
+  it("returns a new array (no aliasing)", () => {
+    const result = capProducts(products, "premium");
+
+    expect(result).not.toBe(products);
+  });
+});
