@@ -67,7 +67,7 @@ export function resolveAvds(env = process.env, available = null) {
 // one name or null.
 export function avdName(env = process.env, available = null) {
   const avds = resolveAvds(env, available);
-  return avds.length === 1 ? avds[0] : (avds.length === 0 ? null : avds[0] ?? null);
+  return avds.length === 1 ? avds[0] : avds.length === 0 ? null : (avds[0] ?? null);
 }
 
 // Ask the emulator binary which AVDs it knows about. A missing binary or a
@@ -129,7 +129,16 @@ export function androidLaunchCommands(deviceSerial = null) {
   const prefix = deviceSerial ? ["-s", deviceSerial] : [];
   return [
     [...prefix, "reverse", "tcp:8081", "tcp:8081"],
-    [...prefix, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+    [
+      ...prefix,
+      "shell",
+      "am",
+      "start",
+      "-a",
+      "android.intent.action.VIEW",
+      "-d",
+      "exp://127.0.0.1:8081",
+    ],
   ];
 }
 

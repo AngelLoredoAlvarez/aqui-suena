@@ -4,6 +4,7 @@
     "PAGES_PROJECT",
     "ANDROID_HOME",
     "ANDROID_SDK_ROOT",
+    "ANDROID_AVD",
     "INFISICAL_RUN",
     "DATABASE_URL"
   ],

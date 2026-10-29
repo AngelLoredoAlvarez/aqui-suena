@@ -9,16 +9,16 @@ import {
   androidLaunchCommands,
   avdName,
   buildTasks,
-  listAdbDevices,
-  resolveAvds,
   createLineForwarder,
   isPortOpen,
   lanAddress,
+  listAdbDevices,
   listAvds,
   needsExternalLaunch,
   openAppOnEmulator,
   parseAdbDevices,
   parseFlags,
+  resolveAvds,
   resolveBin,
   selectReusable,
 } from "./dev.mjs";
@@ -328,7 +328,8 @@ test("resolveAvds auto-detects a single AVD and is ambiguous with several", () =
 });
 
 test("listAdbDevices returns serials of ready devices only", () => {
-  const output = "List of devices attached\nemulator-5554\tdevice\nemulator-5556\toffline\nemulator-5558\tdevice\n";
+  const output =
+    "List of devices attached\nemulator-5554\tdevice\nemulator-5556\toffline\nemulator-5558\tdevice\n";
   assert.deepEqual(listAdbDevices(output), ["emulator-5554", "emulator-5558"]);
   assert.deepEqual(listAdbDevices(""), []);
   assert.deepEqual(listAdbDevices(undefined), []);
@@ -337,7 +338,17 @@ test("listAdbDevices returns serials of ready devices only", () => {
 test("androidLaunchCommands targets a specific serial when given", () => {
   assert.deepEqual(androidLaunchCommands("emulator-5554"), [
     ["-s", "emulator-5554", "reverse", "tcp:8081", "tcp:8081"],
-    ["-s", "emulator-5554", "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "exp://127.0.0.1:8081"],
+    [
+      "-s",
+      "emulator-5554",
+      "shell",
+      "am",
+      "start",
+      "-a",
+      "android.intent.action.VIEW",
+      "-d",
+      "exp://127.0.0.1:8081",
+    ],
   ]);
   assert.deepEqual(androidLaunchCommands(), [
     ["reverse", "tcp:8081", "tcp:8081"],
