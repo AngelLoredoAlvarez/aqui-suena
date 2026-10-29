@@ -76,6 +76,28 @@ describe("business router — caps", () => {
     ).rejects.toMatchObject({ message: expect.stringContaining("UPGRADE_REQUIRED") });
   });
 
+  it("enforces three product photos per product on premium", async () => {
+    const thirdPhoto = await caller.business.addPhoto({
+      plan: "premium",
+      businessId: "biz-1",
+      kind: "product",
+      url: "https://example.com/product-3.png",
+      currentProductPhotoCount: 2,
+    });
+
+    expect(thirdPhoto).toMatchObject({ kind: "product" });
+
+    await expect(
+      caller.business.addPhoto({
+        plan: "premium",
+        businessId: "biz-1",
+        kind: "product",
+        url: "https://example.com/product-4.png",
+        currentProductPhotoCount: 3,
+      }),
+    ).rejects.toMatchObject({ message: expect.stringContaining("PRODUCT_PHOTO_QUOTA_EXCEEDED") });
+  });
+
   it("derives open in get", async () => {
     const listing = {
       name: "Desayunos Casa Rosa",

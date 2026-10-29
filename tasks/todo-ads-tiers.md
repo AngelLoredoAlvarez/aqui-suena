@@ -37,13 +37,14 @@
 **Acceptance criteria:**
 - [x] Server enforces caps; FREE product mutations rejected server-side with typed `UPGRADE_REQUIRED` + upgrade hint; excess Monthly listings/products hidden, not deleted (list caps products via capProducts, input not mutated)
 - [x] Flyer upload allowed on FREE and counts 1 against the photo quota (addPhoto flyer/logo within isWithinPhotoQuota)
-- [x] Cap violations return `UPGRADE_REQUIRED` with upgrade hints (createProduct, addPhoto)
+- [x] Plan-gated violations return `UPGRADE_REQUIRED` with upgrade hints (createProduct, addPhoto); Premium quota exhaustion returns a domain-specific error instead
 - [x] Open/closed status derived server-side (isOpenNow + deriveListingOpen, IANA timezone validated)
-- [ ] (G) Product photos quota enforced in premium (photosPerProduct: 3) — pending
+- [x] (G) Product photos quota enforced in premium (photosPerProduct: 3); the fourth photo returns PRODUCT_PHOTO_QUOTA_EXCEEDED without an upgrade prompt
 - [ ] (H) Phone format validation — pending
 
 **Verification:**
 - [x] Tests pass: API business-router tests (110 api + 6 db green)
+- [x] G verification: focused business-router tests (18), full API suite, API typecheck and Biome check green; Biome reports only the existing informational schema-version notice
 - [ ] Manual check (headed): FREE owner adding a product → rejected with upgrade hint; flyer upload → accepted
 - [ ] Review with human before proceeding (Checkpoint A)
 

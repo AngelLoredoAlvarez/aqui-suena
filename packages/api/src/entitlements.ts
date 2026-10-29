@@ -77,3 +77,7 @@ export function isWithinProductQuota(plan: PlanId, used: number): boolean {
 export function isWithinPhotoQuota(plan: PlanId, used: number): boolean {
   return used < ENTITLEMENTS[plan].photos;
 }
+
+export function isWithinProductPhotoQuota(plan: PlanId, used: number): boolean {
+  return used < ENTITLEMENTS[plan].photosPerProduct;
+}

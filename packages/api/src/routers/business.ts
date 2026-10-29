@@ -2,6 +2,7 @@ import type { PlanId } from "@aqui-suena/api/entitlements";
 import {
   canCreateProduct,
   isWithinPhotoQuota,
+  isWithinProductPhotoQuota,
   isWithinProductQuota,
 } from "@aqui-suena/api/entitlements";
 import {
@@ -29,6 +30,7 @@ const addPhotoInput = v.object({
   kind: v.picklist(["flyer", "logo", "product"]),
   url: v.pipe(v.string(), v.url()),
   currentPhotoCount: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
+  currentProductPhotoCount: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
 });
 
 const getListingInput = v.object({
@@ -81,6 +83,17 @@ export const businessRouter = router({
         code: "FORBIDDEN",
         message: "UPGRADE_REQUIRED: product photos require premium",
       });
+    }
+
+    if (input.kind === "product") {
+      const used = input.currentProductPhotoCount ?? 0;
+
+      if (!isWithinProductPhotoQuota(plan, used)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "PRODUCT_PHOTO_QUOTA_EXCEEDED",
+        });
+      }
     }
 
     if (isMarketing) {
