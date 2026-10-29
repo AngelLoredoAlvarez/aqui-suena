@@ -6,7 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./ads": "./src/ads.ts",
+    "./ads": "./src/domain/ads.ts",
     "./client": "./src/client.ts",
     "./entitlements": "./src/domain/entitlements.ts",
     "./listener": "./src/domain/listener.ts",

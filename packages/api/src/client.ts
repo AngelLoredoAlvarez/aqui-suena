@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import type { AdsCarouselItem } from "./ads";
-import { adsCarouselOutput, getAdsCarousel as getAdsCarouselCore } from "./ads";
+import type { AdsCarouselItem } from "./domain/ads";
+import { adsCarouselOutput, getAdsCarousel as getAdsCarouselCore } from "./domain/ads";
 import type { ListenerStatus } from "./domain/listener";
 import { getMockListenerStatus, listenerStatusInput } from "./domain/listener";
 
@@ -26,4 +26,4 @@ export async function getAdsCarousel(): Promise<AdsCarouselItem[]> {
   return v.parse(adsCarouselOutput, items);
 }
 
-export type { AdsCarouselItem } from "./ads";
+export type { AdsCarouselItem } from "./domain/ads";
