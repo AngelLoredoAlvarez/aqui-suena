@@ -11,6 +11,9 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata = {
   title: "Aquí Suena",
   description: "Aquí Suena web placeholder",
+};
+
+export const viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
     { media: "(prefers-color-scheme: dark)", color: "#0F1720" },
