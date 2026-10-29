@@ -1,5 +1,5 @@
-import { createApp } from "./app";
-import { parseAllowedOrigins } from "./env";
+import { createApp } from "./server/app";
+import { parseAllowedOrigins } from "./server/env";
 
 export interface WorkerEnv {
   ALLOWED_ORIGINS?: string;

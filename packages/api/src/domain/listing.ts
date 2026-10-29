@@ -1,6 +1,6 @@
-import type { PlanId } from "@aqui-suena/api/entitlements";
-import { getEntitlements } from "@aqui-suena/api/entitlements";
 import * as v from "valibot";
+import type { PlanId } from "./entitlements";
+import { getEntitlements } from "./entitlements";
 
 // Fixed giro enum shared between API and forms. "other" is the only free-text
 // escape hatch (display name via i18n). Extend this list in one place only.

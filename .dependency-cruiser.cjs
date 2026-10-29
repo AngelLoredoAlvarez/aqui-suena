@@ -24,7 +24,7 @@ module.exports = {
       from: { path: "(apps/[^/]+/(app|src)|packages/ui/src)" },
       to: {
         path: "packages/api/src",
-        pathNot: "packages/api/src/(client|listener)\\.ts$",
+        pathNot: "packages/api/src/(client|domain/listener)\\.ts$",
       },
     },
   ],
