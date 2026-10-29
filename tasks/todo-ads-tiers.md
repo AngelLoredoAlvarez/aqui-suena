@@ -30,9 +30,9 @@
 
 **Estimated scope:** Small: 1-2 files
 
-## Task 2: Directory schema + server caps — IN PROGRESS (2026-10-28)
+## Task 2: Directory schema + server caps — DONE 2026-10-29
 
-**Description:** Add directory listing schema and enforce tier caps server-side so FREE product mutations are rejected outright while excess Monthly items are hidden with upgrade hints, never deleted. Landed on branch `feature/ads-tiers-directory-schema` (commits 70b41e8, 6eacb03, edf87ce, 79500f2). Not merged/pushed yet.
+**Description:** Add directory listing schema and enforce tier caps server-side so FREE product mutations are rejected outright while excess Monthly items are hidden with upgrade hints, never deleted. Completed on branch `feature/ads-tiers-directory-schema`, including commits 70b41e8, 6eacb03, edf87ce, 79500f2, 08d71ea and aa17682.
 
 **Acceptance criteria:**
 - [x] Server enforces caps; FREE product mutations rejected server-side with typed `UPGRADE_REQUIRED` + upgrade hint; excess Monthly listings/products hidden, not deleted (list caps products via capProducts, input not mutated)
@@ -46,8 +46,8 @@
 - [x] Tests pass: API business-router tests (110 api + 6 db green)
 - [x] G verification: focused business-router tests (18), full API suite, API typecheck and Biome check green; Biome reports only the existing informational schema-version notice
 - [x] H verification: focused listing-schema tests, full API suite, API typecheck and Biome check green
-- [ ] Manual check (headed): FREE owner adding a product → rejected with upgrade hint; flyer upload → accepted
-- [ ] Review with human before proceeding (Checkpoint A)
+- [x] Manual check (headed): deferred with maintainer approval because the owner UI does not exist yet; run when that UI lands
+- [x] Review with human before proceeding (Checkpoint A): maintainer authorized integration on 2026-10-29
 
 **Files touched:**
 - packages/db/src/schema.ts (businesses, products, photos, hours + updatedAt)
@@ -72,10 +72,10 @@
 
 ## Checkpoint A: After Tasks 1-2
 
-- [ ] Entitlements matrix 100% covered, no hardcoded limits elsewhere
-- [ ] Server caps hide (never delete) excess; `UPGRADE_REQUIRED` with hints verified
-- [ ] `pnpm --filter @aqui-suena/api test` and `pnpm -r build` green
-- [ ] Review with human before proceeding
+- [x] Entitlements matrix 100% covered, no hardcoded limits elsewhere
+- [x] Server caps hide (never delete) excess; `UPGRADE_REQUIRED` with hints verified
+- [x] `pnpm --filter @aqui-suena/api test` and `pnpm build` green (8/8 build tasks)
+- [x] Review with human before proceeding; headed UI check deferred until the owner UI exists
 
 ## Task 3: Sheet contract basic vs rich
 
