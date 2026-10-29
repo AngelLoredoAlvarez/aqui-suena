@@ -138,7 +138,7 @@ export function StationPlayer({
         </YStack>
       )}
       {backdrop}
-      <PlayerDock isWide={isWide} sheet={sheet}>
+      <PlayerDock isWide={isWide} position={position} sheet={sheet}>
         <PlayerCard
           stationName={displayName}
           listeners={listeners}
