@@ -164,7 +164,7 @@ export function buildTasks({ launchApp, mobileOnly, streamBase, tauriConfig }) {
       name: "api",
       port: 3001,
       cmd: "tsx",
-      args: ["watch", "src/main.ts"],
+      args: ["watch", "src/server/main.ts"],
       cwd: "packages/api",
       env: {},
     },
