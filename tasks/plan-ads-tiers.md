@@ -21,7 +21,7 @@ Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. F
 ### Phase 1: Entitlements + Directory Caps
 
 - [x] Task 1: Entitlements matrix + resolver (S) — DONE 2026-10-28, branch feature/ads-tiers-entitlements
-- [ ] Task 2: Directory schema + server caps (M)
+- [~] Task 2: Directory schema + server caps (M) — IN PROGRESS (commits on feature/ads-tiers-directory-schema; G/H pending)
 
 ### Checkpoint A: Foundation
 

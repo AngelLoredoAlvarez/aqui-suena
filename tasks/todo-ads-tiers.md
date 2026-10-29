@@ -30,19 +30,33 @@
 
 **Estimated scope:** Small: 1-2 files
 
-## Task 2: Directory schema + server caps
+## Task 2: Directory schema + server caps — IN PROGRESS (2026-10-28)
 
-**Description:** Add directory listing schema and enforce tier caps server-side so FREE product mutations are rejected outright while excess Monthly items are hidden with upgrade hints, never deleted.
+**Description:** Add directory listing schema and enforce tier caps server-side so FREE product mutations are rejected outright while excess Monthly items are hidden with upgrade hints, never deleted. Landed on branch `feature/ads-tiers-directory-schema` (commits 70b41e8, 6eacb03, edf87ce, 79500f2). Not merged/pushed yet.
 
 **Acceptance criteria:**
-- [ ] Server enforces caps; FREE product mutations rejected server-side with typed `UPGRADE_REQUIRED` + upgrade hint; excess Monthly listings/products hidden, not deleted
-- [ ] Flyer upload allowed on FREE and counts 1 against the photo quota
-- [ ] Cap violations return `UPGRADE_REQUIRED` with upgrade hints
-- [ ] Open/closed status derived server-side
+- [x] Server enforces caps; FREE product mutations rejected server-side with typed `UPGRADE_REQUIRED` + upgrade hint; excess Monthly listings/products hidden, not deleted (list caps products via capProducts, input not mutated)
+- [x] Flyer upload allowed on FREE and counts 1 against the photo quota (addPhoto flyer/logo within isWithinPhotoQuota)
+- [x] Cap violations return `UPGRADE_REQUIRED` with upgrade hints (createProduct, addPhoto)
+- [x] Open/closed status derived server-side (isOpenNow + deriveListingOpen, IANA timezone validated)
+- [ ] (G) Product photos quota enforced in premium (photosPerProduct: 3) — pending
+- [ ] (H) Phone format validation — pending
 
 **Verification:**
-- [ ] Tests pass: API business-router tests
+- [x] Tests pass: API business-router tests (110 api + 6 db green)
 - [ ] Manual check (headed): FREE owner adding a product → rejected with upgrade hint; flyer upload → accepted
+- [ ] Review with human before proceeding (Checkpoint A)
+
+**Files touched:**
+- packages/db/src/schema.ts (businesses, products, photos, hours + updatedAt)
+- packages/db/src/schema.test.ts
+- packages/db/src/index.ts
+- packages/api/src/listing.ts (schema, isOpenNow, deriveListingOpen, capProducts)
+- packages/api/src/listing.test.ts
+- packages/api/src/routers/business.ts (createProduct, addPhoto, get, list, create)
+- packages/api/src/routers/business.test.ts
+- packages/api/src/router.ts
+- packages/api/package.json (subpath exports)
 
 **Dependencies:** Task 1
 
