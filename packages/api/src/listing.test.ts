@@ -127,6 +127,23 @@ describe("listingInputSchema — additional guards", () => {
       email: "a@b.com",
     });
   });
+
+  it("accepts an E.164 phone", () => {
+    expect(parse(listingInputSchema, { ...valid, phone: "+5215512345678" })).toMatchObject({
+      phone: "+5215512345678",
+    });
+  });
+
+  it.each([
+    "",
+    "5512345678",
+    "+52 55 1234 5678",
+    "+05215512345678",
+    "+1234567890123456",
+    "not-a-phone",
+  ])("rejects non-E.164 phone %s", (phone) => {
+    expect(() => parse(listingInputSchema, { ...valid, phone })).toThrow();
+  });
 });
 
 describe("listingInputSchema — categoryOther", () => {

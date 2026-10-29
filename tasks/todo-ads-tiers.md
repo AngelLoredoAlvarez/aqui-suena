@@ -40,11 +40,12 @@
 - [x] Plan-gated violations return `UPGRADE_REQUIRED` with upgrade hints (createProduct, addPhoto); Premium quota exhaustion returns a domain-specific error instead
 - [x] Open/closed status derived server-side (isOpenNow + deriveListingOpen, IANA timezone validated)
 - [x] (G) Product photos quota enforced in premium (photosPerProduct: 3); the fourth photo returns PRODUCT_PHOTO_QUOTA_EXCEEDED without an upgrade prompt
-- [ ] (H) Phone format validation — pending
+- [x] (H) Phone format validation uses E.164 (`+` followed by 2-15 digits, first digit 1-9); malformed values are rejected by listingInputSchema
 
 **Verification:**
 - [x] Tests pass: API business-router tests (110 api + 6 db green)
 - [x] G verification: focused business-router tests (18), full API suite, API typecheck and Biome check green; Biome reports only the existing informational schema-version notice
+- [x] H verification: focused listing-schema tests, full API suite, API typecheck and Biome check green
 - [ ] Manual check (headed): FREE owner adding a product → rejected with upgrade hint; flyer upload → accepted
 - [ ] Review with human before proceeding (Checkpoint A)
 

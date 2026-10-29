@@ -58,6 +58,7 @@ export type ListingInput = v.InferOutput<typeof ListingSchema>;
 
 Conventions: image upload via signed URLs; preview before publish; every mutation revalidates entitlements.
 Contract note: ListingSchema `delivery` boolean stays; help text states true means the owner offers own transport; fulfillment is coordinated off-app via listed phone/WhatsApp + address; no logistics in V1.
+Contract note: phone values use E.164 (`+` followed by 2-15 digits, first digit 1-9); malformed values are rejected by the shared listing schema.
 Contract note: the `delivery` toggle maps to a conditional listener-side flag (rendered only when true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
 
 ## Testing Strategy

@@ -98,6 +98,7 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 - Free listings render with enforced limits (see SPEC-memberships).
 - Premium products allow at most three photos each; adding a fourth is rejected with PRODUCT_PHOTO_QUOTA_EXCEEDED, without asking an already-Premium owner to upgrade.
 - Sheet rows are tappable: phone dials, WhatsApp opens chat, address opens directions via system links.
+- Phone values use E.164 (`+` followed by 2-15 digits, first digit 1-9); `tel:` links retain the `+`, while `wa.me` links omit it.
 - One location per business in V1 (single address + hours + timezone); a second branch registers as another business on the same account.
 - Category is a fixed giro enum shared between API and forms (display names via i18n dictionary, free text only for Otro); no free-text categories.
 - Stats count a carousel view after 2s visible and a detail visit on sheet open, with detail visits as the primary stat.

@@ -19,7 +19,9 @@ export const listingInputSchema = v.object({
   name: v.pipe(v.string(), v.minLength(1)),
   category: businessCategorySchema,
   categoryOther: v.optional(v.pipe(v.string(), v.minLength(1))),
-  phone: v.optional(v.string()),
+  phone: v.optional(
+    v.pipe(v.string(), v.regex(/^\+[1-9]\d{1,14}$/, "phone must use E.164 format")),
+  ),
   email: v.optional(v.pipe(v.string(), v.email())),
   address: v.optional(v.string()),
   timezone: v.pipe(
