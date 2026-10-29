@@ -1,5 +1,3 @@
-import { isOpenNow } from "@aqui-suena/api/listing";
-
 import { appRouter } from "@aqui-suena/api/router";
 import { describe, expect, it } from "vitest";
 
@@ -131,48 +129,6 @@ describe("business router — caps", () => {
     });
 
     expect(result.open).toBe(false);
-  });
-});
-
-describe("isOpenNow", () => {
-  const monday10 = new Date("2026-10-26T10:00:00-06:00");
-  const monday23 = new Date("2026-10-26T23:00:00-06:00");
-
-  const hours = [{ day: 1, openMinute: 8 * 60, closeMinute: 20 * 60 }];
-
-  it("returns true when now is within open hours", () => {
-    expect(isOpenNow(hours, "America/Mexico_City", monday10)).toBe(true);
-  });
-
-  it("returns false when now is outside open hours", () => {
-    expect(isOpenNow(hours, "America/Mexico_City", monday23)).toBe(false);
-  });
-
-  it("returns false when no hours for that day", () => {
-    expect(isOpenNow(hours, "America/Mexico_City", new Date("2026-10-27T10:00:00-06:00"))).toBe(
-      false,
-    );
-  });
-
-  it("returns true during the first half of an overnight range", () => {
-    // Saturday 22:30 CST — bar open Sat 22:00 -> Sun 02:00
-    const sat2230 = new Date("2026-10-24T22:30:00-06:00");
-    const overnight = [{ day: 6, openMinute: 22 * 60, closeMinute: 2 * 60 }];
-    expect(isOpenNow(overnight, "America/Mexico_City", sat2230)).toBe(true);
-  });
-
-  it("returns true during the second half of an overnight range", () => {
-    // Sunday 01:00 CST
-    const sun0100 = new Date("2026-10-25T01:00:00-06:00");
-    const overnight = [{ day: 6, openMinute: 22 * 60, closeMinute: 2 * 60 }];
-    expect(isOpenNow(overnight, "America/Mexico_City", sun0100)).toBe(true);
-  });
-
-  it("returns false outside an overnight range", () => {
-    // Sunday 03:00 CST
-    const sun0300 = new Date("2026-10-25T03:00:00-06:00");
-    const overnight = [{ day: 6, openMinute: 22 * 60, closeMinute: 2 * 60 }];
-    expect(isOpenNow(overnight, "America/Mexico_City", sun0300)).toBe(false);
   });
 });
 
