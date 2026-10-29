@@ -10,6 +10,7 @@
     "./client": "./src/client.ts",
     "./entitlements": "./src/entitlements.ts",
     "./listener": "./src/listener.ts",
+    "./listing": "./src/listing.ts",
     "./package.json": "./package.json",
     "./router": "./src/router.ts",
     "./supabase": "./src/supabase.ts",
