@@ -18,9 +18,9 @@ catalog:
   react-native: 0.88.1
   react-native-gesture-handler: 3.4.0
   react-native-reanimated: 4.7.1
-  react-native-safe-area-context: 5.10.1
-  react-native-screens: 4.30.0
-  tamagui: 3.1.6
+  react-native-safe-area-context: 5.11.0
+  react-native-screens: 4.30.1
+  tamagui: 3.1.7
 
 # Hard enforcement even if a transitive dependency asks for something else.
 overrides:
