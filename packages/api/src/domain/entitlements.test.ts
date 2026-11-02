@@ -11,11 +11,11 @@ import {
 } from "./entitlements";
 
 describe("ENTITLEMENTS matrix", () => {
-  it("defines the free plan with zero products and 3 marketing photos", () => {
-    expect(ENTITLEMENTS.free).toEqual({
+  it("defines community with zero products and one marketing photo", () => {
+    expect(ENTITLEMENTS.community).toEqual({
       maxBusinesses: 1,
       products: 0,
-      photos: 3,
+      photos: 1,
       media: "flyer+logo",
       photosPerProduct: 0,
       photoMaxMB: 2,
@@ -23,38 +23,72 @@ describe("ENTITLEMENTS matrix", () => {
       spotEligible: false,
       delivery: true,
       productListingEnabled: false,
+      services: 0,
+      workEntries: 0,
+      workPhotosPerEntry: 0,
+      carouselAppearances: 1,
+      flyerCooldownDays: 15,
     });
   });
 
-  it("defines the premium plan with 100 products and 30 marketing photos", () => {
-    expect(ENTITLEMENTS.premium).toEqual({
-      maxBusinesses: null,
-      products: 100,
+  it("defines trades with 30 services and 10 work entries", () => {
+    expect(ENTITLEMENTS.trades).toEqual({
+      maxBusinesses: 3,
+      products: 0,
+      photos: 3,
+      media: "full",
+      photosPerProduct: 0,
+      photoMaxMB: 2,
+      priority: 10,
+      spotEligible: false,
+      delivery: true,
+      productListingEnabled: false,
+      services: 30,
+      workEntries: 10,
+      workPhotosPerEntry: 3,
+      carouselAppearances: 2,
+      flyerCooldownDays: 0,
+    });
+  });
+
+  it("defines commerce with 50 products and full catalog", () => {
+    expect(ENTITLEMENTS.commerce).toEqual({
+      maxBusinesses: 10,
+      products: 50,
       photos: 30,
       media: "full",
       photosPerProduct: 3,
       photoMaxMB: 2,
-      priority: 10,
-      spotEligible: true,
+      priority: 20,
+      spotEligible: false,
       delivery: true,
       productListingEnabled: true,
+      services: 30,
+      workEntries: 10,
+      workPhotosPerEntry: 3,
+      carouselAppearances: 3,
+      flyerCooldownDays: 0,
     });
   });
 });
 
 describe("getEntitlements", () => {
-  it("returns the free row unchanged", () => {
-    expect(getEntitlements("free")).toBe(ENTITLEMENTS.free);
+  it("returns the community row unchanged", () => {
+    expect(getEntitlements("community")).toBe(ENTITLEMENTS.community);
   });
 
-  it("returns the premium row unchanged", () => {
-    expect(getEntitlements("premium")).toBe(ENTITLEMENTS.premium);
+  it("returns the trades row unchanged", () => {
+    expect(getEntitlements("trades")).toBe(ENTITLEMENTS.trades);
+  });
+
+  it("returns the commerce row unchanged", () => {
+    expect(getEntitlements("commerce")).toBe(ENTITLEMENTS.commerce);
   });
 });
 
 describe("canCreateProduct", () => {
-  it("denies product creation on free with a typed UPGRADE_REQUIRED", () => {
-    const result = canCreateProduct("free");
+  it("denies product creation on community", () => {
+    const result = canCreateProduct("community");
     expect(result).toEqual({
       allowed: false,
       code: "UPGRADE_REQUIRED",
@@ -62,16 +96,25 @@ describe("canCreateProduct", () => {
     });
   });
 
-  it("allows product creation on premium", () => {
-    expect(canCreateProduct("premium")).toEqual({ allowed: true });
+  it("denies product creation on trades", () => {
+    const result = canCreateProduct("trades");
+    expect(result).toEqual({
+      allowed: false,
+      code: "UPGRADE_REQUIRED",
+      hint: "billing.upgradeRequired.productCreate",
+    });
+  });
+
+  it("allows product creation on commerce", () => {
+    expect(canCreateProduct("commerce")).toEqual({ allowed: true });
   });
 });
 
 describe("assertCanCreateProduct", () => {
-  it("throws an UpgradeRequired on free", () => {
+  it("throws an UpgradeRequired on community", () => {
     let thrown: unknown;
     try {
-      assertCanCreateProduct("free");
+      assertCanCreateProduct("community");
     } catch (error) {
       thrown = error;
     }
@@ -79,32 +122,51 @@ describe("assertCanCreateProduct", () => {
     expect((thrown as UpgradeRequired).code).toBe("UPGRADE_REQUIRED");
   });
 
-  it("does not throw on premium", () => {
-    expect(() => assertCanCreateProduct("premium")).not.toThrow();
+  it("throws an UpgradeRequired on trades", () => {
+    let thrown: unknown;
+    try {
+      assertCanCreateProduct("trades");
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(UpgradeRequired);
+    expect((thrown as UpgradeRequired).code).toBe("UPGRADE_REQUIRED");
+  });
+
+  it("does not throw on commerce", () => {
+    expect(() => assertCanCreateProduct("commerce")).not.toThrow();
   });
 });
 
 describe("isWithinProductQuota", () => {
-  it("free never allows a product (0 limit)", () => {
-    expect(isWithinProductQuota("free", 0)).toBe(false);
+  it("community never allows a product", () => {
+    expect(isWithinProductQuota("community", 0)).toBe(false);
   });
 
-  it("premium allows up to 100 products", () => {
-    expect(isWithinProductQuota("premium", 0)).toBe(true);
-    expect(isWithinProductQuota("premium", 99)).toBe(true);
-    expect(isWithinProductQuota("premium", 100)).toBe(false);
+  it("trades never allows a product", () => {
+    expect(isWithinProductQuota("trades", 0)).toBe(false);
+  });
+
+  it("commerce allows up to 50 products", () => {
+    expect(isWithinProductQuota("commerce", 0)).toBe(true);
+    expect(isWithinProductQuota("commerce", 49)).toBe(true);
+    expect(isWithinProductQuota("commerce", 50)).toBe(false);
   });
 });
 
 describe("isWithinPhotoQuota", () => {
-  it("free allows up to 3 marketing photos", () => {
-    expect(isWithinPhotoQuota("free", 0)).toBe(true);
-    expect(isWithinPhotoQuota("free", 2)).toBe(true);
-    expect(isWithinPhotoQuota("free", 3)).toBe(false);
+  it("community allows up to 1 marketing photo", () => {
+    expect(isWithinPhotoQuota("community", 0)).toBe(true);
+    expect(isWithinPhotoQuota("community", 1)).toBe(false);
   });
 
-  it("premium allows up to 30 marketing photos", () => {
-    expect(isWithinPhotoQuota("premium", 29)).toBe(true);
-    expect(isWithinPhotoQuota("premium", 30)).toBe(false);
+  it("trades allows up to 3 marketing photos", () => {
+    expect(isWithinPhotoQuota("trades", 2)).toBe(true);
+    expect(isWithinPhotoQuota("trades", 3)).toBe(false);
+  });
+
+  it("commerce allows up to 30 marketing photos", () => {
+    expect(isWithinPhotoQuota("commerce", 29)).toBe(true);
+    expect(isWithinPhotoQuota("commerce", 30)).toBe(false);
   });
 });

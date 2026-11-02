@@ -1,6 +1,7 @@
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import {
   canCreateProduct,
+  ENTITLEMENTS,
   isWithinPhotoQuota,
   isWithinProductPhotoQuota,
   isWithinProductQuota,
@@ -17,7 +18,7 @@ import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
 const createProductInput = v.object({
-  plan: v.picklist(["free", "premium"]),
+  plan: v.picklist(["community", "trades", "commerce"]),
   businessId: v.pipe(v.string(), v.minLength(1)),
   name: v.pipe(v.string(), v.minLength(1)),
   price: v.pipe(v.number(), v.integer(), v.minValue(1)),
@@ -25,9 +26,9 @@ const createProductInput = v.object({
 });
 
 const addPhotoInput = v.object({
-  plan: v.picklist(["free", "premium"]),
+  plan: v.picklist(["community", "trades", "commerce"]),
   businessId: v.pipe(v.string(), v.minLength(1)),
-  kind: v.picklist(["flyer", "logo", "product"]),
+  kind: v.picklist(["logo", "product"]),
   url: v.pipe(v.string(), v.url()),
   currentPhotoCount: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
   currentProductPhotoCount: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
@@ -39,7 +40,7 @@ const getListingInput = v.object({
 });
 
 const listListingsInput = v.object({
-  plan: v.picklist(["free", "premium"]),
+  plan: v.picklist(["community", "trades", "commerce"]),
   items: v.array(
     v.object({
       listing: listingInputSchema,
@@ -76,12 +77,12 @@ export const businessRouter = router({
 
   addPhoto: publicProcedure.input(addPhotoInput).mutation(({ input }) => {
     const plan = input.plan as PlanId;
-    const isMarketing = input.kind === "flyer" || input.kind === "logo";
+    const isMarketing = input.kind === "logo";
 
-    if (input.kind === "product" && plan === "free") {
+    if (input.kind === "product" && !ENTITLEMENTS[plan].productListingEnabled) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "UPGRADE_REQUIRED: product photos require premium",
+        message: "UPGRADE_REQUIRED: product photos require commerce",
       });
     }
 

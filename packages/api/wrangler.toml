@@ -11,3 +11,8 @@ compatibility_flags = ["nodejs_compat"]
 # project name used by `pnpm deploy:web` (default aqui-suena-web). Redeploy the
 # Worker after changing it.
 ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhost,https://aqui-suena-web.pages.dev"
+
+[[d1_databases]]
+binding = "aqui_suena_db"
+database_name = "aqui-suena-db"
+database_id = "45bd7ed5-4ac4-433d-a1d8-ed933fb8fd3b"

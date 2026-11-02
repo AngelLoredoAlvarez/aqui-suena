@@ -1,6 +1,19 @@
 import { getTableConfig } from "drizzle-orm/sqlite-core";
 import { describe, expect, it } from "vitest";
-import { businesses, hours, listenSessions, photos, products, stations } from "./schema";
+import {
+  accounts,
+  businesses,
+  flyers,
+  hours,
+  listenSessions,
+  photos,
+  plans,
+  products,
+  services,
+  stations,
+  subscriptions,
+  workEntries,
+} from "./schema";
 
 function columnNames(table: Parameters<typeof getTableConfig>[0]): string[] {
   return getTableConfig(table).columns.map((column) => column.name);
@@ -21,10 +34,11 @@ describe("listenSessions", () => {
 });
 
 describe("businesses", () => {
-  it("exposes id, name, category, phone, email, address, timezone, delivery and timestamps", () => {
+  it("exposes id, account reference, name, category, phone, email, address, timezone, delivery and timestamps", () => {
     expect(columnNames(businesses)).toEqual(
       expect.arrayContaining([
         "id",
+        "account_id",
         "name",
         "category",
         "phone",
@@ -40,17 +54,17 @@ describe("businesses", () => {
 });
 
 describe("products", () => {
-  it("exposes id, business reference, name and price", () => {
+  it("exposes id, business reference, name, description and price", () => {
     expect(columnNames(products)).toEqual(
-      expect.arrayContaining(["id", "business_id", "name", "price"]),
+      expect.arrayContaining(["id", "business_id", "name", "description", "price"]),
     );
   });
 });
 
 describe("photos", () => {
-  it("exposes id, business reference, kind and url", () => {
+  it("exposes id, business reference, optional work entry reference, optional product reference, kind and url", () => {
     expect(columnNames(photos)).toEqual(
-      expect.arrayContaining(["id", "business_id", "kind", "url"]),
+      expect.arrayContaining(["id", "business_id", "work_entry_id", "product_id", "kind", "url"]),
     );
   });
 });
@@ -59,6 +73,97 @@ describe("hours", () => {
   it("exposes id, business reference, day and open/close minutes", () => {
     expect(columnNames(hours)).toEqual(
       expect.arrayContaining(["id", "business_id", "day", "open_minute", "close_minute"]),
+    );
+  });
+});
+
+describe("accounts", () => {
+  it("exposes id, email, plan and timestamps", () => {
+    expect(columnNames(accounts)).toEqual(
+      expect.arrayContaining(["id", "email", "plan_id", "created_at", "updated_at"]),
+    );
+  });
+});
+
+describe("plans", () => {
+  it("exposes id, name, audience, description, benefits, prices, currency, active flag and timestamps", () => {
+    expect(columnNames(plans)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "name",
+        "audience",
+        "description",
+        "benefits",
+        "price_monthly",
+        "price_annual",
+        "currency",
+        "active",
+        "created_at",
+        "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("subscriptions", () => {
+  it("exposes id, account reference, plan reference, status and period timestamps", () => {
+    expect(columnNames(subscriptions)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "account_id",
+        "plan_id",
+        "status",
+        "started_at",
+        "ends_at",
+        "created_at",
+        "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("services", () => {
+  it("exposes id, business reference, name, description, base price and timestamps", () => {
+    expect(columnNames(services)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "business_id",
+        "name",
+        "description",
+        "base_price",
+        "created_at",
+        "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("workEntries", () => {
+  it("exposes id, business reference, title, description and timestamps", () => {
+    expect(columnNames(workEntries)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "business_id",
+        "title",
+        "description",
+        "created_at",
+        "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("flyers", () => {
+  it("exposes id, business reference, url, replaced at and timestamps", () => {
+    expect(columnNames(flyers)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "business_id",
+        "url",
+        "replaced_at",
+        "created_at",
+        "updated_at",
+      ]),
     );
   });
 });

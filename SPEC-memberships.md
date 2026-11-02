@@ -8,7 +8,7 @@ Three business plans for Aquí Suena owners, billed by 17Labs: **Comunidad** (fr
 
 ### Comunidad — free
 
-For micro-entrepreneurs, cenadurías, and local stalls.
+For any person or business that wants basic presence and direct contact.
 
 **Business limit:** 1 business per account.
 **Allowed business types:** contacto only.
@@ -27,7 +27,7 @@ Carousel behavior: standard/low community rotation: 1 appearance per cycle.
 
 **Price:** $49 MXN/month or $490 MXN/year.
 
-For electricians, plumbers, technicians, and home-service providers.
+For service providers of any profession: electricians, plumbers, dentists, lawyers, educators and more.
 
 **Business limit:** 3 businesses per account.
 **Allowed business types:** contacto and servicios.
@@ -47,7 +47,7 @@ Carousel behavior: 2 appearances per cycle, focused on reminders and trust by sp
 
 **Price:** $99 MXN/month or $990 MXN/year.
 
-For hardware stores, restaurants, boutiques, and established businesses.
+For established businesses that sell products or catalogs: hardware stores, restaurants, boutiques and more.
 
 **Business limit:** 10 businesses per account.
 **Allowed business types:** contacto, servicios and catálogo.
@@ -145,7 +145,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - Always: gate plan changes (including downgrade picker) behind explicit user confirmation listing affected limits/items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
 - Always: extend the append-only activity audit log (actor, action, entity, timestamp) to plan changes and recurring-charge authorizations and surface them in the visible activity section; log is immutable and never user-editable.
 - Ask first: change prices/limits, switch payment provider, grant manual exceptions, change ranking weights.
-- Never: enforce limits only in UI, allow Comunidad listings to claim paid carousel priority, render a plan-tier badge in the public directory card or sheet (carousel priority is applied silently in ranking). The Oficios "Urgencias / 24 Horas" badge is a service attribute, not a plan-tier badge.
+- Never: enforce limits only in UI, allow Comunidad listings to claim paid carousel priority, render a plan-tier badge in the public directory card or sheet (carousel priority is applied silently in ranking), or allow more than one active subscription per account. The Oficios "Urgencias / 24 Horas" badge is a service attribute, not a plan-tier badge.
 
 ## Success Criteria
 
@@ -156,8 +156,10 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - Downgrade (manual, or automatic after the 7-day failed-renewal grace with email warning) applies limits within 1 minute without data loss (excess content hidden, not deleted); hidden content is retained for 90 days before permanent deletion. Plan changes are immediate on upgrade and scheduled for the end of the paid period on downgrade; V1 does not prorate charges. Cancellation stops renewal but keeps the paid plan active until the end of the billing period; V1 does not issue partial refunds for unused time. Failed renewals use the 7-day grace period with email warning before downgrade.
 - Every paywalled action returns a typed `UPGRADE_REQUIRED` error the UI maps to billing.
 - Paid plans are billed in MXN via Conekta with no trial period (Comunidad is the free entry point): Oficios & Servicios costs $49 MXN/month or $490 MXN/year; Comercios & Catálogo costs $99 MXN/month or $990 MXN/year. Annual billing is promoted as 10 months paid for 12 months of service.
+- Each account has at most one active subscription at any time; upgrades and downgrades replace the previous active subscription rather than creating a second active one.
 - The previous Premium plan at $159 MXN/month is discontinued; its price is not grandfathered into the new three-plan model. No account migration is required because no accounts are registered yet.
 - Plan screens show all three cards with i18n copy. Onboarding asks for `businessProfile` and preselects the corresponding recommendation: local community business → Comunidad, home services/trades → Oficios & Servicios, catalog-based commerce → Comercios & Catálogo. The user can change plans before confirming; an unanswered profile defaults to Comunidad.
+- Plan metadata, pricing and entitlements are stored in D1 and exposed through `plans.list()` / `plans.getById()`; `ENTITLEMENTS` remains the technical source of plan limits.
 - Audio radio spots are not included in any current plan. The feature remains in the codebase/specs for future use but is disabled behind a feature flag; no current entitlement enables it.
 - Support is plan-tiered: Comunidad uses self-service help plus standard email support; Oficios & Servicios gets prioritized email support; Comercios & Catálogo gets a dedicated support channel for catalog, payment, and operational issues.
 - Stats availability by tier: Comunidad sees ad impressions, business visits, and basic contact clicks; Oficios & Servicios adds action clicks, gallery views, and service conversions; Comercios & Catálogo adds product views, product clicks, top product, category views, and date-range exports.

@@ -200,24 +200,24 @@ describe("deriveListingOpen", () => {
 describe("capProducts", () => {
   const products = Array.from({ length: 150 }, (_, i) => ({ name: `p${i}`, price: 100 }));
 
-  it("caps at plan limit (premium = 100)", () => {
-    expect(capProducts(products, "premium")).toHaveLength(100);
+  it("caps at plan limit (premium = 50)", () => {
+    expect(capProducts(products, "commerce")).toHaveLength(50);
   });
 
   it("returns empty for free (cap = 0)", () => {
-    expect(capProducts(products, "free")).toHaveLength(0);
+    expect(capProducts(products, "community")).toHaveLength(0);
   });
 
   it("does not mutate the input (hidden, not deleted)", () => {
     const input = [...products];
 
-    capProducts(input, "premium");
+    capProducts(input, "commerce");
 
     expect(input).toHaveLength(150);
   });
 
   it("returns a new array (no aliasing)", () => {
-    const result = capProducts(products, "premium");
+    const result = capProducts(products, "commerce");
 
     expect(result).not.toBe(products);
   });

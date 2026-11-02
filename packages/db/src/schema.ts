@@ -24,15 +24,97 @@ export const listenSessions = sqliteTable("listen_sessions", {
   listeners: integer("listeners").default(0).notNull(),
 });
 
-export const businesses = sqliteTable("businesses", {
+export const accounts = sqliteTable("accounts", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  planId: text("plan_id").notNull().default("community"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const plans = sqliteTable("plans", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  category: text("category").notNull(), // giro enum: food, computing, ...
+  audience: text("audience").notNull(),
+  description: text("description").notNull(),
+  benefits: text("benefits").notNull(), // JSON array as text
+  priceMonthly: integer("price_monthly").notNull(),
+  priceAnnual: integer("price_annual").notNull(),
+  currency: text("currency").notNull().default("MXN"),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const subscriptions = sqliteTable("subscriptions", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id")
+    .notNull()
+    .references(() => accounts.id),
+  planId: text("plan_id")
+    .notNull()
+    .references(() => plans.id),
+  status: text("status").notNull().default("active"),
+  startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
+  endsAt: integer("ends_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+export const businesses = sqliteTable("businesses", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id")
+    .notNull()
+    .references(() => accounts.id),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),
-  timezone: text("timezone").notNull(), // IANA, e.g. "America/Mexico_City"
+  timezone: text("timezone").notNull(),
   delivery: integer("delivery", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const services = sqliteTable("services", {
+  id: text("id").primaryKey(),
+  businessId: text("business_id")
+    .notNull()
+    .references(() => businesses.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  basePrice: integer("base_price"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const workEntries = sqliteTable("work_entries", {
+  id: text("id").primaryKey(),
+  businessId: text("business_id")
+    .notNull()
+    .references(() => businesses.id),
+  title: text("title").notNull(),
+  description: text("description"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -47,7 +129,8 @@ export const products = sqliteTable("products", {
     .notNull()
     .references(() => businesses.id),
   name: text("name").notNull(),
-  price: integer("price").notNull(), // minor units (centavos) to avoid floats
+  description: text("description"),
+  price: integer("price").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -58,9 +141,29 @@ export const photos = sqliteTable("photos", {
   businessId: text("business_id")
     .notNull()
     .references(() => businesses.id),
-  kind: text("kind").notNull(), // "flyer" | "logo" | "product"
+  workEntryId: text("work_entry_id").references(() => workEntries.id),
+  productId: text("product_id").references(() => products.id),
+  kind: text("kind").notNull(), // "logo" | "product" | "work"
   url: text("url").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const flyers = sqliteTable("flyers", {
+  id: text("id").primaryKey(),
+  businessId: text("business_id")
+    .notNull()
+    .unique()
+    .references(() => businesses.id),
+  url: text("url").notNull(),
+  replacedAt: integer("replaced_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
 });

@@ -1,9 +1,9 @@
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 
-const apiSrc = fileURLToPath(new URL("./src", import.meta.url));
-const src = (relativePath: string) =>
-  fileURLToPath(new URL(`./src/${relativePath}`, import.meta.url));
+const apiSrc = path.join(fileURLToPath(import.meta.url), "..", "src");
+const src = (relativePath: string) => path.join(apiSrc, relativePath);
 
 export default defineConfig({
   resolve: {

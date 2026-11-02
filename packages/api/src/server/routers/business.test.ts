@@ -7,7 +7,7 @@ describe("business router — caps", () => {
   it("rejects createProduct on free with UPGRADE_REQUIRED", async () => {
     await expect(
       caller.business.createProduct({
-        plan: "free",
+        plan: "community",
         businessId: "biz-1",
         name: "Taco",
         price: 2500,
@@ -17,7 +17,7 @@ describe("business router — caps", () => {
 
   it("allows createProduct on premium within quota", async () => {
     const result = await caller.business.createProduct({
-      plan: "premium",
+      plan: "commerce",
       businessId: "biz-1",
       name: "Taco",
       price: 2500,
@@ -29,7 +29,7 @@ describe("business router — caps", () => {
   it("rejects createProduct on premium at cap (100)", async () => {
     await expect(
       caller.business.createProduct({
-        plan: "premium",
+        plan: "commerce",
         businessId: "biz-1",
         name: "Taco",
         price: 2500,
@@ -38,34 +38,34 @@ describe("business router — caps", () => {
     ).rejects.toMatchObject({ message: expect.stringContaining("UPGRADE_REQUIRED") });
   });
 
-  it("allows flyer photo on free within quota (3)", async () => {
+  it("allows logo photo on community within quota (1)", async () => {
     const result = await caller.business.addPhoto({
-      plan: "free",
+      plan: "community",
       businessId: "biz-1",
-      kind: "flyer",
-      url: "https://example.com/flyer.png",
-      currentPhotoCount: 2,
+      kind: "logo",
+      url: "https://example.com/logo.png",
+      currentPhotoCount: 0,
     });
 
-    expect(result).toMatchObject({ kind: "flyer" });
+    expect(result).toMatchObject({ kind: "logo" });
   });
 
-  it("rejects 4th marketing photo on free", async () => {
+  it("rejects 2nd marketing photo on community", async () => {
     await expect(
       caller.business.addPhoto({
-        plan: "free",
+        plan: "community",
         businessId: "biz-1",
-        kind: "flyer",
-        url: "https://example.com/flyer2.png",
-        currentPhotoCount: 3,
+        kind: "logo",
+        url: "https://example.com/logo2.png",
+        currentPhotoCount: 1,
       }),
     ).rejects.toMatchObject({ message: expect.stringContaining("UPGRADE_REQUIRED") });
   });
 
-  it("rejects product photo on free", async () => {
+  it("rejects product photo on community", async () => {
     await expect(
       caller.business.addPhoto({
-        plan: "free",
+        plan: "community",
         businessId: "biz-1",
         kind: "product",
         url: "https://example.com/p.png",
@@ -74,9 +74,9 @@ describe("business router — caps", () => {
     ).rejects.toMatchObject({ message: expect.stringContaining("UPGRADE_REQUIRED") });
   });
 
-  it("enforces three product photos per product on premium", async () => {
+  it("enforces three product photos per product on commerce", async () => {
     const thirdPhoto = await caller.business.addPhoto({
-      plan: "premium",
+      plan: "commerce",
       businessId: "biz-1",
       kind: "product",
       url: "https://example.com/product-3.png",
@@ -87,7 +87,7 @@ describe("business router — caps", () => {
 
     await expect(
       caller.business.addPhoto({
-        plan: "premium",
+        plan: "commerce",
         businessId: "biz-1",
         kind: "product",
         url: "https://example.com/product-4.png",
@@ -135,7 +135,7 @@ describe("business router — caps", () => {
 describe("business router — list and create", () => {
   const caller = appRouter.createCaller({});
 
-  it("caps products per plan in list (premium)", async () => {
+  it("caps products per plan in list (commerce)", async () => {
     const listing = {
       name: "X",
       category: "food" as const,
@@ -144,20 +144,20 @@ describe("business router — list and create", () => {
       hours: [] as { day: number; openMinute: number; closeMinute: number }[],
     };
 
-    const products = Array.from({ length: 150 }, (_, i) => ({ name: `p${i}`, price: 100 }));
+    const products = Array.from({ length: 60 }, (_, i) => ({ name: `p${i}`, price: 100 }));
 
     const result = await caller.business.list({
-      plan: "premium",
+      plan: "commerce",
       items: [{ listing, products }],
       now: new Date("2026-10-26T10:00:00-06:00"),
     });
 
-    const firstPremium = result[0];
+    const firstCommerce = result[0];
 
-    if (!firstPremium) throw new Error("expected at least one result");
+    if (!firstCommerce) throw new Error("expected at least one result");
 
-    expect(firstPremium.products).toHaveLength(100);
-    expect(typeof firstPremium.open).toBe("boolean");
+    expect(firstCommerce.products).toHaveLength(50);
+    expect(typeof firstCommerce.open).toBe("boolean");
   });
 
   it("hides all products on free in list", async () => {
@@ -172,7 +172,7 @@ describe("business router — list and create", () => {
     const products = Array.from({ length: 5 }, (_, i) => ({ name: `p${i}`, price: 100 }));
 
     const result = await caller.business.list({
-      plan: "free",
+      plan: "community",
       items: [{ listing, products }],
       now: new Date("2026-10-26T10:00:00-06:00"),
     });

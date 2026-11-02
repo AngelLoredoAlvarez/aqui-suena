@@ -102,6 +102,7 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 - Phone values use E.164 (`+` followed by 2-15 digits, first digit 1-9); `tel:` links retain the `+`, while `wa.me` links omit it.
 - One location per business in V1 (single address + hours + timezone); a second branch registers as another business on the same account.
 - Category is a fixed giro enum shared between API and forms (display names via i18n dictionary, free text only for Otro); no free-text categories.
+- Inventory and stock management are owner-side responsibilities and out of scope for Aquí Suena V1; the app displays reference prices and catalog data only.
 - Stats count a carousel view after 2s visible and a detail visit on sheet open, with detail visits as the primary stat.
 
 ## Open Questions

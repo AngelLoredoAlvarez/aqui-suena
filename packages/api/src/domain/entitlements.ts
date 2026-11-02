@@ -7,10 +7,10 @@ export const UPGRADE_HINTS = {
 } as const;
 
 export const ENTITLEMENTS = {
-  free: {
+  community: {
     maxBusinesses: 1,
     products: 0,
-    photos: 3,
+    photos: 1,
     media: "flyer+logo",
     photosPerProduct: 0,
     photoMaxMB: 2,
@@ -18,18 +18,45 @@ export const ENTITLEMENTS = {
     spotEligible: false,
     delivery: true,
     productListingEnabled: false,
+    services: 0,
+    workEntries: 0,
+    workPhotosPerEntry: 0,
+    carouselAppearances: 1,
+    flyerCooldownDays: 15,
   },
-  premium: {
-    maxBusinesses: null,
-    products: 100,
+  trades: {
+    maxBusinesses: 3,
+    products: 0,
+    photos: 3,
+    media: "full",
+    photosPerProduct: 0,
+    photoMaxMB: 2,
+    priority: 10,
+    spotEligible: false,
+    delivery: true,
+    productListingEnabled: false,
+    services: 30,
+    workEntries: 10,
+    workPhotosPerEntry: 3,
+    carouselAppearances: 2,
+    flyerCooldownDays: 0,
+  },
+  commerce: {
+    maxBusinesses: 10,
+    products: 50,
     photos: 30,
     media: "full",
     photosPerProduct: 3,
     photoMaxMB: 2,
-    priority: 10,
-    spotEligible: true,
+    priority: 20,
+    spotEligible: false,
     delivery: true,
     productListingEnabled: true,
+    services: 30,
+    workEntries: 10,
+    workPhotosPerEntry: 3,
+    carouselAppearances: 3,
+    flyerCooldownDays: 0,
   },
 } as const;
 
