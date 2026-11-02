@@ -107,7 +107,7 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   `flex:1` with badge + dots overlaid, then an info block (`padding:16`,
   `gap:6`): business **name** (`fs:22`, weight 700), **meta** line (`fs:14`,
   muted — e.g. `"Comida · Entrega a domicilio · Abre 8:00"`), and CTA
-  **"Ver negocio"** (primary pill, `margin-top:8`); the label is plan-specific: Comunidad uses "Ver contacto"/"View contact", Oficios & Servicios uses "Ver servicios"/"View services", and Comercios & Catálogo uses "Ver catálogo"/"View catalog".
+  **"Ver negocio"** (primary pill, `margin-top:8`); the label follows the business's primary public content, not only its account plan: use "Ver catálogo"/"View catalog" when the business has catalog products, "Ver servicios"/"View services" when it has offered services, and "Ver contacto"/"View contact" when it has neither. Comunidad businesses always use "Ver contacto".
 - Header row (48px): search field (`role=search`, placeholder `"Buscar"`) +
   assistant icon + language `ES` + menu icon. Player dock sits below (dark
   theme) or above (light theme).

@@ -30,8 +30,8 @@
 - [ ] Support optional temporary featured placements as an upsell with clear labeling, start/end dates, category or period capacity limits, and no override of paid-plan baseline priority.
 - [ ] Implement plan-tiered support routing: self-service + standard email for Comunidad, prioritized email for Oficios, dedicated support channel for Comercios.
 - [ ] Issue a receipt for every charge in MXN and keep plan, amount, and billing period visible in account history; fiscal invoices (CFDI) available on request.
-- [ ] Oficios & Servicios: specialties, coverage area, up to 30 offered services with optional base diagnostic rates, work gallery (up to 10 jobs with 3 photos each), urgency badge.
-- [ ] Comercios & Catálogo: categorized catalog with up to 50 products, reference prices, up to 3 photos per product, featured product/dish, social links, and accepted-payment icons.
+- [ ] Oficios & Servicios: specialties, coverage area, up to 30 offered services per business with optional base diagnostic rates, work gallery (up to 10 jobs per business with 3 photos each), urgency badge.
+- [ ] Comercios & Catálogo: categorized catalog with up to 50 products per business, reference prices, up to 3 photos per product, featured product/dish, social links, and accepted-payment icons.
 - [ ] Validate all new fields server-side and in shared form schemas.
 
 ## Task 4: Sheet and carousel contracts

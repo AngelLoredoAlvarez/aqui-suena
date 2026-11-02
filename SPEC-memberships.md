@@ -11,6 +11,7 @@ Three business plans for Aquí Suena owners, billed by 17Labs: **Comunidad** (fr
 For micro-entrepreneurs, cenadurías, and local stalls.
 
 **Business limit:** 1 business per account.
+**Allowed business types:** contacto only.
 
 Card description: advertise a business at no cost and join the regional directory.
 
@@ -29,14 +30,15 @@ Carousel behavior: standard/low community rotation: 1 appearance per cycle.
 For electricians, plumbers, technicians, and home-service providers.
 
 **Business limit:** 3 businesses per account.
+**Allowed business types:** contacto and servicios.
 
 Card description: show professional experience and reach more clients with a profile designed for home-service work.
 
 Includes:
 - Universal contact details.
 - Higher carousel frequency and visual priority than Comunidad.
-- Profile specialties, coverage area, and up to 30 offered services with optional base diagnostic rates.
-- Gallery of up to 10 previous jobs, with up to 3 photos per job.
+- Profile specialties, coverage area, and up to 30 offered services per business with optional base diagnostic rates.
+- Gallery of up to 10 previous jobs per business, with up to 3 photos per job.
 - "Urgencias / 24 Horas" badge.
 
 Carousel behavior: 2 appearances per cycle, focused on reminders and trust by specialty.
@@ -48,13 +50,14 @@ Carousel behavior: 2 appearances per cycle, focused on reminders and trust by sp
 For hardware stores, restaurants, boutiques, and established businesses.
 
 **Business limit:** 10 businesses per account.
+**Allowed business types:** contacto, servicios and catálogo.
 
 Card description: stand out with a complete digital storefront where listeners can explore everything the business sells.
 
 Includes:
 - Universal contact details.
 - Maximum carousel priority and featured rotation.
-- Digital catalog ordered by categories with up to 50 products, reference prices, and up to 3 photos per product.
+- Digital catalog ordered by categories with up to 50 products per business, reference prices, and up to 3 photos per product.
 - Featured product/dish.
 - Social-media links.
 - Icons for accepted payment methods.
