@@ -8,10 +8,10 @@ packages:
 # into two module registries, so a provider and its consumer stop sharing a
 # context. Keep this catalog aligned with scripts/check-singletons.mjs.
 catalog:
-  "@tanstack/react-query": 5.105.0
+  "@tanstack/react-query": 5.105.1
   "@types/react": 19.3.0
   "@types/react-dom": 19.3.0
-  expo-audio: 58.0.10
+  expo-audio: 58.0.11
   jotai: 3.0.1
   react: 19.3.1
   react-dom: 19.3.1
@@ -20,7 +20,7 @@ catalog:
   react-native-reanimated: 4.7.1
   react-native-safe-area-context: 5.11.0
   react-native-screens: 4.30.1
-  tamagui: 3.1.7
+  tamagui: 3.1.10
 
 # Hard enforcement even if a transitive dependency asks for something else.
 overrides:
@@ -202,3 +202,4 @@ minimumReleaseAgeExclude:
   - miniflare@5.20261023.1-beta
   - react-native@0.88.1
   - wrangler@4.154.0
+  - '@infisical/cli@0.44.12'
