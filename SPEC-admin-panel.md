@@ -72,6 +72,6 @@ The audit log is immutable and never user-editable. Revert is supported when tec
 
 ## Open questions
 
-- Whether admin panel lives inside `apps/web` under `/admin` or as a separate app.
+- Admin panel lives as a separate app: `apps/admin`.
 - Whether Superadmin changes to limits require a second approval.
 - Whether billing exceptions can override automated downgrade.
