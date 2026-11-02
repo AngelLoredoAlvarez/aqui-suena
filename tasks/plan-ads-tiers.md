@@ -1,5 +1,7 @@
 # Implementation Plan: Ads Tiers (FREE vs PREMIUM Sheets)
 
+> **Superseded by the 2026-11-02 three-plan update.** The current model is Comunidad / Oficios & Servicios / Comercios & Catálogo (SPEC-memberships.md). This document remains as implementation history for the previous FREE/PREMIUM track; do not use it as the current requirements source. New implementation work is tracked in `tasks/todo-plan-tiers.md`.
+
 ## Overview
 
 Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. FREE registers basic business info only (logo, phone, WhatsApp, address, open/closed, delivery flag) plus one flyer upload; FREE allows zero structured products — the product list with prices and product images is PREMIUM-only. Structured listing DATA is the source of truth; the flyer IMAGE is decoration only and counts against the photo quota — the flyer never parses into products. Reference fixture: a flyer with 6 products, so FREE renders the basic sheet + flyer image with zero structured rows while PREMIUM shows all six as structured data. Directory caps, sheet contracts, ranked carousel, shared UI, and flyer policy are delivered as vertical slices with player-safe audio throughout.

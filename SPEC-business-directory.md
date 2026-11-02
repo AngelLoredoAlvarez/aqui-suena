@@ -95,8 +95,9 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 - Open-status badge is always visible on card + sheet as exactly one of Abierto/Cerrado via i18n dictionary (ES "Abierto" / "Cerrado" + EN "Open" / "Closed"), server-derived from hours + now in the business timezone, same visibility tier as the delivery flag, no hardcoded UI copy.
 - Opening a listing from web or native never pauses audio.
 - No plan-tier badge is rendered in the public card or sheet; carousel priority is resolved server-side in ranking (see SPEC-memberships). The only plan badge is "Recomendado"/"Recommended" on the billing screen.
-- Free listings render with enforced limits (see SPEC-memberships).
-- Premium products allow at most three photos each; adding a fourth is rejected with PRODUCT_PHOTO_QUOTA_EXCEEDED, without asking an already-Premium owner to upgrade.
+- Comunidad listings render direct contact details, one basic flyer, open/closed status, and map location with enforced limits (see SPEC-memberships).
+- Oficios & Servicios listings can render specialties, coverage area, previous-work gallery, urgency badge, and base diagnostic rates.
+- Comercios & Catálogo products allow at most three photos each under the current media cap; adding a fourth is rejected with PRODUCT_PHOTO_QUOTA_EXCEEDED, without asking an already-top-tier owner to upgrade.
 - Sheet rows are tappable: phone dials, WhatsApp opens chat, address opens directions via system links.
 - Phone values use E.164 (`+` followed by 2-15 digits, first digit 1-9); `tel:` links retain the `+`, while `wa.me` links omit it.
 - One location per business in V1 (single address + hours + timezone); a second branch registers as another business on the same account.

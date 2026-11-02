@@ -60,6 +60,7 @@ Conventions: image upload via signed URLs; preview before publish; every mutatio
 Contract note: ListingSchema `delivery` boolean stays; help text states true means the owner offers own transport; fulfillment is coordinated off-app via listed phone/WhatsApp + address; no logistics in V1.
 Contract note: phone values use E.164 (`+` followed by 2-15 digits, first digit 1-9); malformed values are rejected by the shared listing schema.
 Contract note: the `delivery` toggle maps to a conditional listener-side flag (rendered only when true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
+Contract note: Comercios & Catálogo catalog categories are a controlled shared enum with i18n display names; owners cannot create arbitrary categories.
 
 ## Testing Strategy
 
@@ -72,7 +73,7 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 
 - Always: require Supabase Auth + business ownership checks (short-lived JWT in Authorization Bearer for tRPC with server-side verification), validate with valibot, compress photos client-side before R2 upload, run `typecheck + lint + test` before commit.
 - Always: require an unchecked-by-default T&C + privacy-notice acceptance checkbox with links on signup (`/owner/access` Crear cuenta); `create-account` rejects without acceptance and plan/billing screens link the same terms; copy via i18n dictionary, no hardcoded strings.
-- Always: restrict owner accounts to adults 18+ with contractual capacity (V1, no tutor/guardian path, no ID upload); `/owner/access` collects birthdate plus an unchecked-by-default 18+ attestation checkbox; `create-account` validates age server-side (18+) with valibot and rejects underage or missing attestation with a typed error without creating the account; birthdate is immutable after signup (support-only change with audit log); PREMIUM additionally requires the Conekta payment method holder to match the account holder; copy via i18n dictionary, no hardcoded strings.
+- Always: restrict owner accounts to adults 18+ with contractual capacity (V1, no tutor/guardian path, no ID upload); `/owner/access` collects birthdate plus an unchecked-by-default 18+ attestation checkbox; `create-account` validates age server-side (18+) with valibot and rejects underage or missing attestation with a typed error without creating the account; birthdate is immutable after signup (support-only change with audit log); paid plans additionally require the Conekta payment method holder to match the account holder; copy via i18n dictionary, no hardcoded strings.
 - Always: gate every important-data change (giro switch clearing product fields, hours/address edits, deletions of products/photos/spots/businesses) behind explicit user confirmation listing affected items with destructive defaults off; copy via i18n dictionary, no hardcoded strings.
 - Always: record an append-only activity audit log (actor, action, entity, timestamp) in DB covering edits, publishes, uploads, deletes, T&C acceptance, and 18+ age attestation (including support-only birthdate changes), plus a visible owner activity section in the portal UI; log is immutable and never user-editable; copy via i18n dictionary, no hardcoded strings.
 - Ask first: add a listing field, allow multiple branches per owner, enable native editing.
@@ -81,17 +82,19 @@ Contract note: the `delivery` toggle maps to a conditional listener-side flag (r
 ## Success Criteria
 
 - Owner completes signup → listing → publish in <10 minutes unaided (headed e2e).
+- Owner onboarding collects `businessProfile` (community business, home services/trades, or catalog-based commerce) and uses it to preselect the recommended plan without blocking a manual plan change; missing answers default to Comunidad.
+- Owner forms expose plan-specific fields: Comunidad contact/flyer/location; Oficios & Servicios specialties, coverage area, work gallery, urgency badge, and diagnostic rates; Comercios & Catálogo categorized catalog, featured product/dish, social links, and accepted-payment icons.
 - Photos render on listener sheet in <2s on 4G.
 - Hours saved here drive correct open/closed in directory immediately.
-- Free-plan caps show inline upgrade hints, never silent failures.
-- Premium owners get an in-app suggestions/feedback channel to 17 Labs (design pending with Claude Design).
+- Comunidad-plan caps show inline upgrade hints, never silent failures.
+- Oficios & Servicios and Comercios & Catálogo owners get an in-app suggestions/feedback channel to 17 Labs (design pending with Claude Design).
 - Auth provider is Supabase Auth (supersedes prior email-only OTP text where it contradicts). Enabled methods: Google, Facebook, email/password, OTP. Free-tier note: 50k MAU included.
 - Web (Next.js App Router): session via `@supabase/ssr` cookie helpers with httpOnly, secure, sameSite cookies; secrets via env only; redirect/callback allowlists per provider.
 - Native (Expo): session via SecureStore adapter; OAuth callback via custom-scheme deep link with dev build (auth.expo.io proxy deprecated); secrets via env only; redirect/callback allowlists per provider.
 - tRPC: client sends short-lived JWT in Authorization Bearer; server verifies with Supabase before ownership checks.
 - Provider-console prerequisites (pending): Google and Meta developer apps with allowlisted redirects.
 - Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions. Owner verification requires no manual business review before publishing.
-- Plan-change screens include a downgrade business-picker step (owner chooses the visible business) and a grace-period banner during the 7-day failed-renewal window.
+- Plan-change screens present Comunidad, Oficios & Servicios, and Comercios & Catálogo; downgrade flows list every affected field/content item (gallery, specialties, coverage area, urgency badge, diagnostic rates, categorized catalog, featured product, social links, and payment icons) and include a grace-period banner during the 7-day failed-renewal window.
 
 ## Future: owner support chatbot (deferred, decided 2026-10-15, updated 2026-10-23)
 

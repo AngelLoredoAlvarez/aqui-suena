@@ -91,6 +91,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 | ------------------------ | ----------------------------------------------------------- |
 | `tasks/plan.md`          | Implementation plan and task list                           |
 | `tasks/todo.md`          | Task checkboxes and acceptance criteria                     |
+| `SPEC-memberships.md`  | Three business plans, entitlements, and carousel priority   |
 | `SPEC-media-storage.md`  | Media storage: R2 upload + image optimization (free tier)   |
 | `SPEC-notifications.md`  | Push notifications: web + mobile + desktop (free tier)      |
 | `SPEC-offline.md`        | Offline/no-connection handling                              |
@@ -101,7 +102,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Status
 
-The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now also matches the T4 Stack on `feature/t4-stack-parity` (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge): branch has 8 commits, not yet merged. Ads Tiers T2 enforces three photos per Premium product, returns PRODUCT_PHOTO_QUOTA_EXCEEDED at the cap, and validates phone values as E.164 for calling and WhatsApp links; its headed UI verification is deferred until the owner UI exists. New features planned (specs created, implementation pending):
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now also matches the T4 Stack on `feature/t4-stack-parity` (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge): branch has 8 commits, not yet merged. Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features planned (specs created, implementation pending):
 
 - Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, free tier.
 - Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker.

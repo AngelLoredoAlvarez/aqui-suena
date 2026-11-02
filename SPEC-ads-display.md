@@ -2,7 +2,7 @@
 
 ## Objective
 
-"Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Premium members get priority placement; free listings appear with normal weight. Users: listeners. Success = discovery without interrupting playback.
+"Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Comercios & Catálogo receives maximum priority, Oficios & Servicios receives elevated priority, and Comunidad uses standard community rotation. Users: listeners. Success = discovery without interrupting playback.
 
 ## Tech Stack
 
@@ -70,7 +70,7 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
 - Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
 - Open-status badge is always visible on carousel card + sheet as exactly one of Abierto/Cerrado via i18n dictionary (ES "Abierto" / "Cerrado" + EN "Open" / "Closed"), server-derived from hours + now in the business timezone, same visibility tier as the delivery flag, no hardcoded UI copy.
-- Premium sponsors rank above Free ones deterministically (Premium-first, then Free-by-recency); no cap on Free entries and no per-session cap (full ranked rotation).
+- Sponsors rank deterministically by plan: Comercios & Catálogo first, then Oficios & Servicios, then Comunidad, with recency as tie-breaker; no cap on Comunidad entries and no per-session cap (full ranked rotation). Exact weights are defined in SPEC-memberships once approved.
 - Player dock (top/bottom) never overlaps carousel controls (verified headed).
 - On tablets the detail sheet uses two columns (info fixed left, products scrolling right) instead of stretching the phone layout.
 
@@ -107,7 +107,7 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   `flex:1` with badge + dots overlaid, then an info block (`padding:16`,
   `gap:6`): business **name** (`fs:22`, weight 700), **meta** line (`fs:14`,
   muted — e.g. `"Comida · Entrega a domicilio · Abre 8:00"`), and CTA
-  **"Ver negocio"** (primary pill, `margin-top:8`).
+  **"Ver negocio"** (primary pill, `margin-top:8`); the label is plan-specific: Comunidad uses "Ver contacto"/"View contact", Oficios & Servicios uses "Ver servicios"/"View services", and Comercios & Catálogo uses "Ver catálogo"/"View catalog".
 - Header row (48px): search field (`role=search`, placeholder `"Buscar"`) +
   assistant icon + language `ES` + menu icon. Player dock sits below (dark
   theme) or above (light theme).
@@ -154,7 +154,9 @@ verifiable against the design.
 
 `open` ("Abierto"/"Open"), `closed` ("Cerrado"/"Closed"), `delivery`
 ("Servicio a domicilio"/"Home delivery"), `viewBusiness` ("Ver negocio"/"View
-business"), `noSponsoredBusinesses` ("No sponsored businesses yet"/"No
+business") by plan: Comunidad `viewContact` ("Ver contacto"/"View contact"),
+Oficios `viewServices` ("Ver servicios"/"View services"), Comercios `viewCatalog`
+("Ver catálogo"/"View catalog"), `noSponsoredBusinesses` ("No sponsored businesses yet"/"No
 sponsored businesses yet"), `noSponsoredBusinessesHint` ("Check back soon: you will see businesses near you."/"Check back soon — you'll see businesses near
 you here."), `adGroupLabel(index, count)` ("Ad N of M"/"Ad N of M").
 

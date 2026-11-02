@@ -1,5 +1,7 @@
 # Ads Tiers Track — Task Checklist (FREE vs PREMIUM)
 
+> **Superseded by the 2026-11-02 three-plan update.** Tasks 1-2 below record completed historical FREE/PREMIUM backend work. The current target is Comunidad / Oficios & Servicios / Comercios & Catálogo; pending migration and feature work lives in `tasks/todo-plan-tiers.md`.
+
 > Separate track from the radio-playback MVP. Do not mix with `tasks/plan.md` / `tasks/todo.md`.
 
 ## Task 1: Entitlements matrix + resolver — DONE 2026-10-28
