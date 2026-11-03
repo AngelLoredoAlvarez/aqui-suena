@@ -96,7 +96,9 @@ Contract note: Comercios & Catálogo catalog categories are a controlled shared 
 - Email OTP (short expiry, attempt limits, single use) covers both account verification and password recovery; a password change closes other sessions. Owner verification requires no manual business review before publishing.
 - Plan-change screens present Comunidad, Oficios & Servicios, and Comercios & Catálogo; downgrade flows list every affected field/content item (gallery, specialties, coverage area, urgency badge, diagnostic rates, categorized catalog, featured product, social links, and payment icons) and include a grace-period banner during the 7-day failed-renewal window.
 
-## Future: owner support chatbot (deferred, decided 2026-10-15, updated 2026-10-23)
+## Future: owner support chatbot (deferred, decided 2026-10-15, updated 2026-10-23, prototyped 2026-11-03)
+
+**Prototype (2026-11-03):** spike implemented in `packages/api` (`support.chat` router) using Cloudflare Workers AI (Llama 3.1 8B). Validated end-to-end: D1 plan catalog as RAG context, bilingual (es/en), prompt injection protection, fallback to Level 0 on error. V1 blockers remain: Supabase Auth, per-account/global daily caps, prompt sanitization (no personal/payment data).
 
 Owner-facing support assistant for payment and account help (card, OXXO, SPEI, receipts, failed payments, plan changes, downgrade). Strategy is two levels, decided to stay 100% free for now:
 
