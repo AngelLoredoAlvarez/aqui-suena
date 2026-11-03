@@ -16,3 +16,6 @@ ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhos
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db"
 database_id = "45bd7ed5-4ac4-433d-a1d8-ed933fb8fd3b"
+
+[ai]
+binding = "AI"

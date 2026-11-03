@@ -4,14 +4,16 @@ import { adsRouter } from "@aqui-suena/api/server/routers/ads";
 import { businessRouter } from "@aqui-suena/api/server/routers/business";
 import { listenerRouter } from "@aqui-suena/api/server/routers/listener";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/plans";
+import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { router } from "@aqui-suena/api/trpc";
 
-export function createAppRouter(planRepository: PlanRepository) {
+export function createAppRouter(planRepository: PlanRepository, ai?: AiBinding) {
   return router({
     ads: adsRouter,
     business: businessRouter,
     listener: listenerRouter,
     plans: createPlansRouter(planRepository),
+    support: createSupportRouter(planRepository, ai),
   });
 }
 

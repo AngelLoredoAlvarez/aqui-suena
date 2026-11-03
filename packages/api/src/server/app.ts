@@ -1,4 +1,5 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/plans";
+import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
@@ -10,12 +11,13 @@ export interface AppOptions {
   // Injected for tests: the stream route must never reach the network there.
   upstreamFetch?: typeof fetch;
   planRepository?: PlanRepository;
+  ai?: AiBinding;
 }
 
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
-  const appRouter = createAppRouter(planRepository);
+  const appRouter = createAppRouter(planRepository, options.ai);
   const app = new Hono();
 
   // Origin policy: refuse unknown origins before anything runs, answer
