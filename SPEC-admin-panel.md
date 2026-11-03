@@ -53,6 +53,15 @@ The audit log is immutable and never user-editable. Revert is supported when tec
 - Sensitive admin operations require server-side validation.
 - Plan limits remain protected by server-side enforcement even when edited from the panel.
 
+## Platform and delivery (V1)
+
+- Admin panel is a separate web app: `apps/admin` (Next.js), not embedded in `apps/web` or `apps/mobile`.
+- Web-first and responsive: usable from any browser, including mobile browsers, so staff can operate from anywhere without a native mobile app.
+- Desktop: staff use the browser; no dedicated Tauri admin build in V1.
+- Native mobile admin: out of scope for V1. If a concrete operational need arises (e.g. push-driven quick approvals), add a thin read-only or low-risk companion later.
+- Sensitive mutations (plan limits, billing, destructive actions) are web/desktop only, with explicit confirmation + reason + audit.
+- Future hardening (not V1 blockers): MFA for Superadmin, IP allowlist, dedicated admin domain (`admin.aqui-suena`) with its own CSP.
+
 ## Safety rules
 
 - Never delete user data from the admin panel without explicit confirmation.
@@ -72,6 +81,6 @@ The audit log is immutable and never user-editable. Revert is supported when tec
 
 ## Open questions
 
-- Admin panel lives as a separate app: `apps/admin`.
 - Whether Superadmin changes to limits require a second approval.
 - Whether billing exceptions can override automated downgrade.
+- Whether to enable MFA and IP allowlist for admin access in V1 or defer to hardening phase.
