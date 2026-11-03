@@ -91,7 +91,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 | ------------------------ | ----------------------------------------------------------- |
 | `tasks/plan.md`          | Implementation plan and task list                           |
 | `tasks/todo.md`          | Task checkboxes and acceptance criteria                     |
-| `SPEC-memberships.md`  | Three business plans, entitlements, and carousel priority   |
+| `SPEC-memberships.md`    | Three business plans, entitlements, and carousel priority   |
 | `SPEC-media-storage.md`  | Media storage: R2 upload + image optimization (free tier)   |
 | `SPEC-notifications.md`  | Push notifications: web + mobile + desktop (free tier)      |
 | `SPEC-offline.md`        | Offline/no-connection handling                              |
