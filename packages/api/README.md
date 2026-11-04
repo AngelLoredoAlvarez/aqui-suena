@@ -124,7 +124,7 @@ implementations:
 ### Enabling AI Gateway (optional)
 
 1. Dashboard → AI → AI Gateway → create a gateway (e.g. `aqui-suena`).
-2. Copy the log id into the `[ai_gateway]` block in `wrangler.toml`.
+2. Put its id in `AI_GATEWAY_ID` (a `[vars]` entry in `wrangler.toml`).
 3. Redeploy. AI calls then flow through the gateway (free analytics,
    caching, and rate limiting; the 5% fee only applies to Unified Billing
    credits, which we do not use).

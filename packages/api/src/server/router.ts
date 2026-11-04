@@ -12,13 +12,14 @@ export function createAppRouter(
   planRepository: PlanRepository,
   ai?: AiBinding,
   planCatalogRetriever?: PlanCatalogRetriever,
+  aiGatewayId?: string,
 ) {
   return router({
     ads: adsRouter,
     business: businessRouter,
     listener: listenerRouter,
     plans: createPlansRouter(planRepository),
-    support: createSupportRouter(planRepository, ai, planCatalogRetriever),
+    support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
   });
 }
 

@@ -23,6 +23,8 @@ export interface WorkerEnv {
   AI: Ai;
   /** Set when the [[vectorize]] binding is enabled in wrangler.toml. */
   PLAN_VECTORS?: VectorizeIndex;
+  /** Optional AI Gateway id; when set, Workers AI calls route through it. */
+  AI_GATEWAY_ID?: string;
   /** Required to call POST /admin/seed-vectors. */
   ADMIN_TOKEN?: string;
 }
@@ -31,9 +33,10 @@ export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
     const ai = env.AI as unknown as AiBinding;
+    const gatewayId = env.AI_GATEWAY_ID;
     const embeddingModel =
       env.AI && env.PLAN_VECTORS
-        ? new WorkersAiEmbeddingModel(env.AI as never, EMBEDDING_MODEL)
+        ? new WorkersAiEmbeddingModel(env.AI as never, EMBEDDING_MODEL, gatewayId)
         : undefined;
     const vectorIndex = env.PLAN_VECTORS
       ? new VectorizePlanVectorIndex(env.PLAN_VECTORS)
@@ -71,6 +74,7 @@ export default {
       planRepository,
       ai,
       planCatalogRetriever: retriever,
+      aiGatewayId: gatewayId,
     });
 
     return app.fetch(request, env);

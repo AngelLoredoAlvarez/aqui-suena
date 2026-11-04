@@ -2,7 +2,11 @@ import type { EmbeddingModel } from "@aqui-suena/api/domain/support/plan-catalog
 
 /** Minimal shape of the Workers AI binding used for embeddings. */
 export interface AiEmbeddingBinding {
-  run(model: string, inputs: { text: string[] }): Promise<{ shape: number[]; data: number[][] }>;
+  run(
+    model: string,
+    inputs: { text: string[] },
+    options?: { gateway?: { id: string } },
+  ): Promise<{ shape: number[]; data: number[][] }>;
 }
 
 /**
@@ -13,10 +17,15 @@ export class WorkersAiEmbeddingModel implements EmbeddingModel {
   constructor(
     private readonly ai: AiEmbeddingBinding,
     readonly model: string,
+    private readonly gatewayId?: string,
   ) {}
 
   async embed(texts: string[]): Promise<number[][]> {
-    const result = await this.ai.run(this.model, { text: texts });
+    const result = await this.ai.run(
+      this.model,
+      { text: texts },
+      this.gatewayId ? { gateway: { id: this.gatewayId } } : undefined,
+    );
     return result.data;
   }
 }

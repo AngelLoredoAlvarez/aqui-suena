@@ -12,6 +12,11 @@ compatibility_flags = ["nodejs_compat"]
 # Worker after changing it.
 ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhost,https://aqui-suena-web.pages.dev"
 
+# Optional AI Gateway id. When set, Workers AI calls route through that gateway
+# for free analytics, caching and rate limiting. Create it in the dashboard
+# (AI -> AI Gateway) and put its id here. Leave empty to call Workers AI directly.
+AI_GATEWAY_ID = "aqui-suena"
+
 [[d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db"
@@ -20,17 +25,6 @@ database_id = "45bd7ed5-4ac4-433d-a1d8-ed933fb8fd3b"
 [ai]
 binding = "AI"
 
-# AI Gateway (free on all plans: analytics, caching, rate limiting).
-# 1. Dashboard -> AI -> AI Gateway -> Create gateway (name: aqui-suena)
-# 2. Copy the gateway log id and paste it below.
-# 3. Uncomment and redeploy. AI calls then flow through the gateway.
-# [ai_gateway]
-# log_id = "<your-gateway-log-id>"
-
-# Vectorize index for the support chatbot plan catalog (RAG).
-# 1. Run: npx wrangler vectorize create aqui-suena-plan-catalog --dimensions 1024 --metric cosine
-#    (1024 = @cf/baai/bge-m3 embedding dimensions)
-# 2. Uncomment and redeploy, then seed: pnpm seed:vectors
-# [[vectorize]]
-# binding = "PLAN_VECTORS"
-# index_name = "aqui-suena-plan-catalog"
+[[vectorize]]
+binding = "PLAN_VECTORS"
+index_name = "aqui-suena-plan-catalog"

@@ -14,12 +14,18 @@ export interface AppOptions {
   planRepository?: PlanRepository;
   ai?: AiBinding;
   planCatalogRetriever?: PlanCatalogRetriever;
+  aiGatewayId?: string;
 }
 
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
-  const appRouter = createAppRouter(planRepository, options.ai, options.planCatalogRetriever);
+  const appRouter = createAppRouter(
+    planRepository,
+    options.ai,
+    options.planCatalogRetriever,
+    options.aiGatewayId,
+  );
   const app = new Hono();
 
   // Origin policy: refuse unknown origins before anything runs, answer

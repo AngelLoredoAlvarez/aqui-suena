@@ -10,6 +10,7 @@ export interface AiBinding {
   run(
     model: string,
     inputs: { messages: { role: string; content: string }[] },
+    options?: { gateway?: { id: string } },
   ): Promise<{ response: string }>;
 }
 
@@ -114,6 +115,7 @@ export function createSupportRouter(
   repository: PlanRepository,
   ai: AiBinding | undefined,
   retriever: PlanCatalogRetriever = new FullCatalogRetriever(repository),
+  gatewayId?: string,
 ) {
   return router({
     chat: publicProcedure.input(parseSupportInput).mutation(async ({ input }) => {
@@ -130,12 +132,16 @@ export function createSupportRouter(
       const systemPrompt = buildSystemPrompt(locale, catalog);
 
       try {
-        const result = await ai.run("@cf/meta/llama-3.1-8b-fast", {
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `<user_message>${input.message}</user_message>` },
-          ],
-        });
+        const result = await ai.run(
+          "@cf/meta/llama-3.1-8b-fast",
+          {
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: `<user_message>${input.message}</user_message>` },
+            ],
+          },
+          gatewayId ? { gateway: { id: gatewayId } } : undefined,
+        );
         return { reply: result.response, fallback: false };
       } catch (error) {
         console.error("support.chat: AI call failed", error);
