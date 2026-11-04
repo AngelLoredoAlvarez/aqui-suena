@@ -199,7 +199,7 @@ minimumReleaseAgeExclude:
   - '@react-native/gradle-plugin@0.88.1'
   - '@react-native/normalize-colors@0.88.1'
   - '@react-native/virtualized-lists@0.88.1'
-  - miniflare@5.20261023.1-beta
+  - miniflare@5.20261103.0-beta
   - react-native@0.88.1
-  - wrangler@4.154.0
+  - wrangler@4.157.0
   - '@infisical/cli@0.44.12'
