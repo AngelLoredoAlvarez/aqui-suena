@@ -71,7 +71,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
-- DB: Drizzle + PostgreSQL (`plans`, `subscriptions`, `entitlements`)
+- DB: Drizzle + D1/SQLite (`plans`, `subscriptions`, `payments`, `invoices`); entitlements are domain data, not a table
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
@@ -89,10 +89,12 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 ## Project Structure
 
 ```
-packages/db/src/schema.ts                 → plans, subscriptions
-packages/api/src/routers/billing.ts       → plans.list / subscriptions.create / entitlements.get (per account)
-packages/ui/src/plan-card.tsx             → three-plan comparison + current-plan badge
-apps/web/app/owner/billing/page.tsx       → billing route (web-first)
+packages/db/src/schema.ts                 → plans, subscriptions, payments, invoices tables
+packages/api/src/server/routers/plans.ts  → plans.list (tRPC)
+packages/api/src/domain/billing/          → entitlements, plans, subscriptions, payments domain logic
+packages/api/src/infrastructure/billing/  → D1 repositories (plan, subscription, payment, invoice)
+packages/ui/src/plan-card.tsx             → three-plan comparison + current-plan badge (planned)
+apps/web/app/owner/billing/page.tsx       → billing route (web-first, planned)
 ```
 
 ## Code Style
@@ -133,7 +135,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 ## Testing Strategy
 
 - Framework: Vitest; integration via tRPC caller.
-- Locations: `packages/api/src/entitlements.test.ts`, `packages/api/src/routers/billing.test.ts`.
+- Locations: `packages/api/src/domain/billing/*.test.ts`, `packages/api/src/infrastructure/billing/*.test.ts`, `packages/api/src/server/routers/plans.test.ts`.
 - Coverage: 100% on entitlement matrix and downgrade/upgrade transitions across all three plans.
 - Levels: unit (limits per plan) → integration (subscription change propagates to listing and carousel within 1 min).
 
