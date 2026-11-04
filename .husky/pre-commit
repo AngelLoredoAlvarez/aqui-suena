@@ -1,5 +1,10 @@
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks git --pre-commit --staged --config .gitleaks.toml
+  # gitleaks >= 8.19 uses the `git` subcommand; older versions use `protect`.
+  if gitleaks --help 2>&1 | grep -qE '^  git '; then
+    gitleaks git --pre-commit --staged --config .gitleaks.toml
+  else
+    gitleaks protect --staged --config .gitleaks.toml
+  fi
 else
   echo "gitleaks not installed; skipping local secret scan (CI still enforces it)."
   echo "Install: brew install gitleaks (macOS) or see README."
