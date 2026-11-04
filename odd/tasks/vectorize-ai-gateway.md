@@ -43,6 +43,11 @@ Test runner: `pnpm --filter @aqui-suena/api test` (vitest)
 
 Commit: `feat(api): add PlanCatalogRetriever port with Vectorize and AI Gateway support`
 Verification: typecheck clean, 196/196 tests, Biome clean. Native assess: medium, review_due false (under_budget).
+Follow-up commits: b71266e (AI Gateway call-time option fix), model-name fix
+(instruct-fast). End-to-end validated 2026-11-04: seed {"seeded":3}; both
+chat queries returned fallback:false with the correct plan (Comercios &
+Catálogo for the es catalog query; Oficios & Servicios for the en
+urgent-plumbing query). Cross-language retrieval confirmed.
 
 ## Log
 
