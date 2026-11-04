@@ -1,5 +1,6 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { describe, expect, it, vi } from "vitest";
 
@@ -73,6 +74,27 @@ describe("support.chat", () => {
     await expect(caller.chat({ message: "a".repeat(501), locale: "en" })).rejects.toThrow(
       "message is too long",
     );
+  });
+
+  it("uses the injected retriever to build the catalog context", async () => {
+    const retriever: PlanCatalogRetriever = {
+      async retrieve() {
+        const plan = plans[0];
+        return plan ? [plan, plan] : []; // only the relevant plan, duplicated on purpose
+      },
+    };
+    const fakeAi = {
+      run: async (_model: string, inputs: { messages: { role: string; content: string }[] }) => {
+        const contents = inputs.messages.map((m) => m.content).join("\n");
+        expect(contents).toContain("Comunidad");
+        expect((contents.match(/Comunidad/g) ?? []).length).toBe(2);
+        return { response: "ok" };
+      },
+    };
+    const router = createSupportRouter(new InMemoryPlanRepository([]), fakeAi, retriever);
+    const caller = router.createCaller({});
+    const result = await caller.chat({ message: "quiero el plan gratis", locale: "es" });
+    expect(result.fallback).toBe(false);
   });
 
   it("responds in English when locale is en", async () => {

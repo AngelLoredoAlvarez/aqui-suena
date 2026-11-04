@@ -96,3 +96,35 @@ The desktop bundle is a client. Anything that needs a secret — database access
 chatbot API keys — runs in this process. A key embedded in a distributable
 binary is extractable, so "the backend runs inside the app" is never an option
 for a public build, no matter how convenient it looks.
+
+## Support chatbot retrieval (Vectorize) and AI Gateway
+
+The `support.chat` router builds its plan-catalog context through the
+`PlanCatalogRetriever` port (`src/domain/support/plan-catalog.ts`). Two
+implementations:
+
+- `FullCatalogRetriever` (default): injects every plan into the prompt. Used
+  in tests, local dev, and whenever the Vectorize binding is absent.
+- `VectorPlanCatalogRetriever`: embeds the question (Workers AI
+  `@cf/baai/bge-m3`), queries the Vectorize index, and injects the top-K
+  plans by similarity score. Any embedding or index failure falls back to the
+  full catalog — the chatbot never breaks because of the RAG layer.
+
+### Enabling Vectorize (optional)
+
+1. Create the index:
+   `npx wrangler vectorize create aqui-suena-plan-catalog --dimensions 1024 --metric cosine`
+   (1024 = `@cf/baai/bge-m3` output dimensions; free tier: 30M queried
+   dims/month, 5M stored dims, 100 indexes — ample for the plan catalog).
+2. Uncomment the `[[vectorize]]` block in `wrangler.toml`.
+3. Deploy, then seed once: `curl -X POST <worker-url>/admin/seed-vectors -H "Authorization: Bearer $ADMIN_TOKEN"`.
+   The route requires the `ADMIN_TOKEN` var/secret and returns 404 without
+   it. It embeds every active plan from D1 and upserts the vectors.
+
+### Enabling AI Gateway (optional)
+
+1. Dashboard → AI → AI Gateway → create a gateway (e.g. `aqui-suena`).
+2. Copy the log id into the `[ai_gateway]` block in `wrangler.toml`.
+3. Redeploy. AI calls then flow through the gateway (free analytics,
+   caching, and rate limiting; the 5% fee only applies to Unified Billing
+   credits, which we do not use).

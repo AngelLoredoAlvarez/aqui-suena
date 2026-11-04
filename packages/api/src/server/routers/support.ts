@@ -1,4 +1,8 @@
 import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import {
+  FullCatalogRetriever,
+  type PlanCatalogRetriever,
+} from "@aqui-suena/api/domain/support/plan-catalog";
 import { publicProcedure, router } from "@aqui-suena/api/trpc";
 import { TRPCError } from "@trpc/server";
 
@@ -106,7 +110,11 @@ function parseSupportInput(value: unknown): SupportInput {
 // Router
 // ---------------------------------------------------------------------------
 
-export function createSupportRouter(repository: PlanRepository, ai: AiBinding | undefined) {
+export function createSupportRouter(
+  repository: PlanRepository,
+  ai: AiBinding | undefined,
+  retriever: PlanCatalogRetriever = new FullCatalogRetriever(repository),
+) {
   return router({
     chat: publicProcedure.input(parseSupportInput).mutation(async ({ input }) => {
       const locale = normalizeLocale(input.locale);
@@ -115,7 +123,7 @@ export function createSupportRouter(repository: PlanRepository, ai: AiBinding | 
         return { reply: FALLBACK_NO_AI[locale], fallback: true };
       }
 
-      const plans = await repository.list();
+      const plans = await retriever.retrieve(input.message);
 
       const catalog = buildCatalog(plans, locale);
 

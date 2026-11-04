@@ -1,4 +1,5 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
@@ -12,12 +13,13 @@ export interface AppOptions {
   upstreamFetch?: typeof fetch;
   planRepository?: PlanRepository;
   ai?: AiBinding;
+  planCatalogRetriever?: PlanCatalogRetriever;
 }
 
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
-  const appRouter = createAppRouter(planRepository, options.ai);
+  const appRouter = createAppRouter(planRepository, options.ai, options.planCatalogRetriever);
   const app = new Hono();
 
   // Origin policy: refuse unknown origins before anything runs, answer

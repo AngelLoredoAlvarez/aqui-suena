@@ -19,7 +19,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media)                                                                                                         |
 | `packages/ui`     | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS |
 | `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`)                                                                                                        |
-| `packages/api`    | tRPC contract (`listener.getStatus`, `plans.list`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + AI support chatbot spike                        |
+| `packages/api`    | tRPC contract (`listener.getStatus`, `plans.list`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + AI support chatbot (Vectorize RAG + AI Gateway, both optional)                        |
 | `packages/db`     | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`, `plans`, `subscriptions`, `payments`, `invoices`)                                                       |
 
 ## Scripts
