@@ -1,5 +1,8 @@
-import type { PlanRepository } from "@aqui-suena/api/domain/plans";
-import type { Subscription, SubscriptionRepository } from "@aqui-suena/api/domain/subscriptions";
+import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type {
+  Subscription,
+  SubscriptionRepository,
+} from "@aqui-suena/api/domain/billing/subscriptions";
 import type { PlanId } from "@aqui-suena/api/entitlements";
 
 const PERIOD_MONTHS = 1;

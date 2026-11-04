@@ -1,11 +1,11 @@
 import * as v from "valibot";
-import type { AdsCarouselItem } from "./domain/ads";
-import { adsCarouselOutput, getAdsCarousel as getAdsCarouselCore } from "./domain/ads";
-import type { ListenerStatus } from "./domain/listener";
-import { getMockListenerStatus, listenerStatusInput } from "./domain/listener";
+import type { AdsCarouselItem } from "./domain/radio/ads";
+import { adsCarouselOutput, getAdsCarousel as getAdsCarouselCore } from "./domain/radio/ads";
+import type { ListenerStatus } from "./domain/radio/listener";
+import { getMockListenerStatus, listenerStatusInput } from "./domain/radio/listener";
 
-export type { ListenerStatus } from "./domain/listener";
-export { listenerStatusInput, listenerStatusOutput } from "./domain/listener";
+export type { ListenerStatus } from "./domain/radio/listener";
+export { listenerStatusInput, listenerStatusOutput } from "./domain/radio/listener";
 
 // Re-exported here so Next.js route handlers can use the proxy core through
 // the client-safe entry: stream-proxy has zero imports (no @trpc/server in
@@ -26,4 +26,4 @@ export async function getAdsCarousel(): Promise<AdsCarouselItem[]> {
   return v.parse(adsCarouselOutput, items);
 }
 
-export type { AdsCarouselItem } from "./domain/ads";
+export type { AdsCarouselItem } from "./domain/radio/ads";

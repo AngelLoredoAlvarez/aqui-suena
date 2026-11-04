@@ -1,5 +1,5 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import { createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { describe, expect, it, vi } from "vitest";
 

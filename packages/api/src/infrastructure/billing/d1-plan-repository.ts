@@ -1,6 +1,6 @@
-import type { PlanId } from "@aqui-suena/api/domain/entitlements";
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/entitlements";
-import type { Plan, PlanRepository } from "@aqui-suena/api/domain/plans";
+import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
+import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 
 type PlanRow = {
   id: string;

@@ -1,5 +1,5 @@
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
-import { D1PlanRepository } from "./infrastructure/d1-plan-repository";
+import { D1PlanRepository } from "./infrastructure/billing/d1-plan-repository";
 import { createApp } from "./server/app";
 import { parseAllowedOrigins } from "./server/env";
 
