@@ -1,5 +1,5 @@
-import type { PlanId } from "@aqui-suena/api/domain/entitlements";
-import type { Invoice, InvoiceRepository } from "@aqui-suena/api/domain/payments";
+import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import type { Invoice, InvoiceRepository } from "@aqui-suena/api/domain/billing/payments";
 import { toEpoch } from "./d1-epoch";
 
 type InvoiceRow = {

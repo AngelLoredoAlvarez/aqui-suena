@@ -1,5 +1,5 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/entitlements";
-import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/plans";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
+import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import { adsRouter } from "@aqui-suena/api/server/routers/ads";
 import { businessRouter } from "@aqui-suena/api/server/routers/business";
 import { listenerRouter } from "@aqui-suena/api/server/routers/listener";

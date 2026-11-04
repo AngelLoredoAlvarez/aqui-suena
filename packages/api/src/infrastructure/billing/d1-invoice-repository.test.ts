@@ -1,4 +1,4 @@
-import { D1InvoiceRepository } from "@aqui-suena/api/infrastructure/d1-invoice-repository";
+import { D1InvoiceRepository } from "@aqui-suena/api/infrastructure/billing/d1-invoice-repository";
 import { describe, expect, it } from "vitest";
 
 describe("D1InvoiceRepository", () => {

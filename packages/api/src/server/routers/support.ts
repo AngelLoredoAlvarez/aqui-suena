@@ -1,4 +1,4 @@
-import type { Plan, PlanRepository } from "@aqui-suena/api/domain/plans";
+import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import { publicProcedure, router } from "@aqui-suena/api/trpc";
 import { TRPCError } from "@trpc/server";
 

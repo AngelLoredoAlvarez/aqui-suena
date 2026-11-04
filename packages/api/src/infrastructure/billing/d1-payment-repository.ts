@@ -1,4 +1,8 @@
-import type { Payment, PaymentRepository, PaymentStatus } from "@aqui-suena/api/domain/payments";
+import type {
+  Payment,
+  PaymentRepository,
+  PaymentStatus,
+} from "@aqui-suena/api/domain/billing/payments";
 import { fromEpoch, toEpoch } from "./d1-epoch";
 
 type PaymentRow = {

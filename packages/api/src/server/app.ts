@@ -1,4 +1,4 @@
-import type { PlanRepository } from "@aqui-suena/api/domain/plans";
+import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
