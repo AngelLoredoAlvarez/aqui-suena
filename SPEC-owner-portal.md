@@ -98,6 +98,11 @@ Contract note: Comercios & Catálogo catalog categories are a controlled shared 
 
 ## Future: owner support chatbot (deferred, decided 2026-10-15, updated 2026-10-23, prototyped 2026-11-03)
 
+Scope is now defined in `SPEC-support-chatbot.md` (2026-11-04): read-only,
+session-aware assistant covering plans (A), business directory (B), and the
+owner's own business/invoices (D). No mutations; vector search for public
+data, direct DB reads for owner-private data.
+
 **Prototype (2026-11-03):** spike implemented in `packages/api` (`support.chat` router) using Cloudflare Workers AI (Llama 3.1 8B). Validated end-to-end: D1 plan catalog as RAG context, bilingual (es/en), prompt injection protection, fallback to Level 0 on error. V1 blockers remain: Supabase Auth, per-account/global daily caps, prompt sanitization (no personal/payment data).
 
 **Retrieval upgrade (2026-11-04):** the full-catalog prompt injection was replaced by a `PlanCatalogRetriever` port. Default remains the full catalog; when the optional Vectorize binding is enabled (`aqui-suena-plan-catalog` index, `@cf/baai/bge-m3` embeddings, seeded via a token-guarded `POST /admin/seed-vectors`), the router injects only the top-K most similar plans and falls back to the full catalog on any failure. AI Gateway observability is likewise optional and free, routed by passing `{ gateway: { id } }` to `env.AI.run()` (the `[ai_gateway]` top-level wrangler field is not supported). Deployed model: `@cf/meta/llama-3.1-8b-instruct-fast` (the base `@cf/meta/llama-3.1-8b-instruct` was deprecated 2026-05-30). Scope: learning exercise on real data; the business directory remains the future high-value use for vector search.
