@@ -34,12 +34,15 @@ Test runner: `pnpm --filter @aqui-suena/api test` (vitest)
 
 ## Tasks
 
-- T1 (S1): add `[ai_gateway]` config + setup docs — inline
-- T2 (S2): add Vectorize binding + index creation docs — inline
-- T3 (S3, S4): TDD retrieval port, both retrievers, fallback logic, tests — inline
-- T4 (S4): seed script for plan embeddings — inline
-- T5 (S5): wiring in worker/router with dependency injection — inline
-- T6 (S6): docs update (README, SPEC) — inline
+- T1 (S1): add `[ai_gateway]` config + setup docs — done (8fc3607)
+- T2 (S2): add Vectorize binding + index creation docs — done (8fc3607)
+- T3 (S3, S4): TDD retrieval port, both retrievers, fallback logic, tests — done (8fc3607)
+- T4 (S4): seed script for plan embeddings — done as token-guarded route (8fc3607)
+- T5 (S5): wiring in worker/router with dependency injection — done (8fc3607)
+- T6 (S6): docs update (README, SPEC) — done (8fc3607)
+
+Commit: `feat(api): add PlanCatalogRetriever port with Vectorize and AI Gateway support`
+Verification: typecheck clean, 196/196 tests, Biome clean. Native assess: medium, review_due false (under_budget).
 
 ## Log
 
