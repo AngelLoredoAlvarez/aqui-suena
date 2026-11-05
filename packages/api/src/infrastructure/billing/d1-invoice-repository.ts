@@ -1,6 +1,6 @@
 import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
 import type { Invoice, InvoiceRepository } from "@aqui-suena/api/domain/billing/payments";
-import { toEpoch } from "./d1-epoch";
+import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type InvoiceRow = {
   id: string;

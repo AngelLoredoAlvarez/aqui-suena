@@ -28,14 +28,13 @@ export class D1PlanRepository implements PlanRepository {
   }
 
   async getById(id: PlanId): Promise<Plan | null> {
-    const result = await this.db
+    const row = await this.db
       .prepare(
         "SELECT id, name, audience, description, benefits, price_monthly, price_annual, currency, active FROM plans WHERE id = ? AND active = 1",
       )
       .bind(id)
-      .all();
+      .first();
 
-    const row = result.results[0];
     return row ? this.mapRow(row as PlanRow) : null;
   }
 

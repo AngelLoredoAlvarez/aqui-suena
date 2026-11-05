@@ -3,7 +3,7 @@ import type {
   PaymentRepository,
   PaymentStatus,
 } from "@aqui-suena/api/domain/billing/payments";
-import { fromEpoch, toEpoch } from "./d1-epoch";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type PaymentRow = {
   id: string;

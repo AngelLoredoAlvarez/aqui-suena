@@ -4,7 +4,7 @@ import type {
   SubscriptionRepository,
   SubscriptionStatus,
 } from "@aqui-suena/api/domain/billing/subscriptions";
-import { fromEpoch, toEpoch } from "./d1-epoch";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type SubscriptionRow = {
   id: string;
