@@ -63,11 +63,11 @@ is a separate UI/directory feature if pursued later.
 
 ## Access by user type
 
-| User type        | Sees                                                         |
-| ---------------- | ------------------------------------------------------------ |
-| Anonymous        | A + B (public only)                                          |
-| Authenticated owner | A + B (public) + D (only their own data)                  |
-| Never            | Other owners' data, other users' invoices/payments, PII/secrets |
+| User type           | Sees                                                            |
+| ------------------- | --------------------------------------------------------------- |
+| Anonymous           | A + B (public only)                                             |
+| Authenticated owner | A + B (public) + D (only their own data)                        |
+| Never               | Other owners' data, other users' invoices/payments, PII/secrets |
 
 Authorization is enforced server-side by `accountId` / `businessId` derived from
 the authenticated session, never from chat input.
