@@ -4,9 +4,15 @@ import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-c
 import { adsRouter } from "@aqui-suena/api/server/routers/ads";
 import { businessRouter } from "@aqui-suena/api/server/routers/business";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/businesses";
+import { createFlyersRouter } from "@aqui-suena/api/server/routers/flyers";
+import { createHoursRouter } from "@aqui-suena/api/server/routers/hours";
 import { listenerRouter } from "@aqui-suena/api/server/routers/listener";
+import { createPhotosRouter } from "@aqui-suena/api/server/routers/photos";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/plans";
+import { createProductsRouter } from "@aqui-suena/api/server/routers/products";
+import { createServicesRouter } from "@aqui-suena/api/server/routers/services";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
+import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/work-entries";
 import { router } from "@aqui-suena/api/trpc";
 import {
   createDefaultDirectoryRepositories,
@@ -24,7 +30,13 @@ export function createAppRouter(
     ads: adsRouter,
     business: businessRouter,
     businesses: createBusinessesRouter(directoryRepositories.business),
+    flyers: createFlyersRouter(directoryRepositories.flyer),
+    hours: createHoursRouter(directoryRepositories.hour),
     listener: listenerRouter,
+    photos: createPhotosRouter(directoryRepositories.photo),
+    products: createProductsRouter(directoryRepositories.product),
+    services: createServicesRouter(directoryRepositories.service),
+    workEntries: createWorkEntriesRouter(directoryRepositories.workEntry),
     plans: createPlansRouter(planRepository),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
   });
