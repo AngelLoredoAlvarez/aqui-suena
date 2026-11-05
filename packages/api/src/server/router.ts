@@ -1,8 +1,13 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import {
+  type BusinessRepository,
+  InMemoryBusinessRepository,
+} from "@aqui-suena/api/domain/directory/business";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { adsRouter } from "@aqui-suena/api/server/routers/ads";
 import { businessRouter } from "@aqui-suena/api/server/routers/business";
+import { createBusinessesRouter } from "@aqui-suena/api/server/routers/businesses";
 import { listenerRouter } from "@aqui-suena/api/server/routers/listener";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/plans";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
@@ -10,6 +15,7 @@ import { router } from "@aqui-suena/api/trpc";
 
 export function createAppRouter(
   planRepository: PlanRepository,
+  businessRepository: BusinessRepository,
   ai?: AiBinding,
   planCatalogRetriever?: PlanCatalogRetriever,
   aiGatewayId?: string,
@@ -17,6 +23,7 @@ export function createAppRouter(
   return router({
     ads: adsRouter,
     business: businessRouter,
+    businesses: createBusinessesRouter(businessRepository),
     listener: listenerRouter,
     plans: createPlansRouter(planRepository),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
@@ -66,6 +73,8 @@ export const defaultPlanRepository = new InMemoryPlanRepository([
   },
 ]);
 
-export const appRouter = createAppRouter(defaultPlanRepository);
+export const defaultBusinessRepository = new InMemoryBusinessRepository([]);
+
+export const appRouter = createAppRouter(defaultPlanRepository, defaultBusinessRepository);
 
 export type AppRouter = typeof appRouter;

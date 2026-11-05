@@ -1,4 +1,5 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import {
   FullCatalogRetriever,
   seedPlanVectors,
@@ -6,6 +7,7 @@ import {
 } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { D1PlanRepository } from "./infrastructure/billing/d1-plan-repository";
+import { D1BusinessRepository } from "./infrastructure/directory/d1-business-repository";
 import { VectorizePlanVectorIndex } from "./infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "./infrastructure/support/workers-ai-embedding-model";
 import { createApp } from "./server/app";
@@ -32,6 +34,7 @@ export interface WorkerEnv {
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
+    const businessRepository: BusinessRepository = new D1BusinessRepository(env.aqui_suena_db);
     const ai = env.AI as unknown as AiBinding;
     const gatewayId = env.AI_GATEWAY_ID;
     const embeddingModel =
@@ -72,6 +75,7 @@ export default {
     const app = createApp({
       allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
       planRepository,
+      businessRepository,
       ai,
       planCatalogRetriever: retriever,
       aiGatewayId: gatewayId,
