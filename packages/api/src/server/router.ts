@@ -1,9 +1,5 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
-import {
-  type BusinessRepository,
-  InMemoryBusinessRepository,
-} from "@aqui-suena/api/domain/directory/business";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { adsRouter } from "@aqui-suena/api/server/routers/ads";
 import { businessRouter } from "@aqui-suena/api/server/routers/business";
@@ -12,10 +8,14 @@ import { listenerRouter } from "@aqui-suena/api/server/routers/listener";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/plans";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { router } from "@aqui-suena/api/trpc";
+import {
+  createDefaultDirectoryRepositories,
+  type DirectoryRepositories,
+} from "./directory-repositories";
 
 export function createAppRouter(
   planRepository: PlanRepository,
-  businessRepository: BusinessRepository,
+  directoryRepositories: DirectoryRepositories,
   ai?: AiBinding,
   planCatalogRetriever?: PlanCatalogRetriever,
   aiGatewayId?: string,
@@ -23,7 +23,7 @@ export function createAppRouter(
   return router({
     ads: adsRouter,
     business: businessRouter,
-    businesses: createBusinessesRouter(businessRepository),
+    businesses: createBusinessesRouter(directoryRepositories.business),
     listener: listenerRouter,
     plans: createPlansRouter(planRepository),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
@@ -73,8 +73,8 @@ export const defaultPlanRepository = new InMemoryPlanRepository([
   },
 ]);
 
-export const defaultBusinessRepository = new InMemoryBusinessRepository([]);
+export const defaultDirectoryRepositories = createDefaultDirectoryRepositories();
 
-export const appRouter = createAppRouter(defaultPlanRepository, defaultBusinessRepository);
+export const appRouter = createAppRouter(defaultPlanRepository, defaultDirectoryRepositories);
 
 export type AppRouter = typeof appRouter;

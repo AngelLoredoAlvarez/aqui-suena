@@ -1,5 +1,4 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import {
   FullCatalogRetriever,
   seedPlanVectors,
@@ -8,9 +7,16 @@ import {
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { D1PlanRepository } from "./infrastructure/billing/d1-plan-repository";
 import { D1BusinessRepository } from "./infrastructure/directory/d1-business-repository";
+import { D1FlyerRepository } from "./infrastructure/directory/d1-flyer-repository";
+import { D1HourRepository } from "./infrastructure/directory/d1-hour-repository";
+import { D1PhotoRepository } from "./infrastructure/directory/d1-photo-repository";
+import { D1ProductRepository } from "./infrastructure/directory/d1-product-repository";
+import { D1ServiceRepository } from "./infrastructure/directory/d1-service-repository";
+import { D1WorkEntryRepository } from "./infrastructure/directory/d1-work-entry-repository";
 import { VectorizePlanVectorIndex } from "./infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "./infrastructure/support/workers-ai-embedding-model";
 import { createApp } from "./server/app";
+import type { DirectoryRepositories } from "./server/directory-repositories";
 import { parseAllowedOrigins } from "./server/env";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
@@ -33,8 +39,6 @@ export interface WorkerEnv {
 
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
-    const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
-    const businessRepository: BusinessRepository = new D1BusinessRepository(env.aqui_suena_db);
     const ai = env.AI as unknown as AiBinding;
     const gatewayId = env.AI_GATEWAY_ID;
     const embeddingModel =
@@ -44,6 +48,17 @@ export default {
     const vectorIndex = env.PLAN_VECTORS
       ? new VectorizePlanVectorIndex(env.PLAN_VECTORS)
       : undefined;
+
+    const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
+    const directoryRepositories: DirectoryRepositories = {
+      business: new D1BusinessRepository(env.aqui_suena_db),
+      service: new D1ServiceRepository(env.aqui_suena_db),
+      product: new D1ProductRepository(env.aqui_suena_db),
+      photo: new D1PhotoRepository(env.aqui_suena_db),
+      workEntry: new D1WorkEntryRepository(env.aqui_suena_db),
+      flyer: new D1FlyerRepository(env.aqui_suena_db),
+      hour: new D1HourRepository(env.aqui_suena_db),
+    };
 
     // One-off seeding endpoint for the Vectorize plan index. Returns 404
     // unless ADMIN_TOKEN is configured; requires it to match.
@@ -75,7 +90,7 @@ export default {
     const app = createApp({
       allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
       planRepository,
-      businessRepository,
+      directoryRepositories,
       ai,
       planCatalogRetriever: retriever,
       aiGatewayId: gatewayId,

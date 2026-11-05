@@ -1,11 +1,11 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
-import { createAppRouter, defaultBusinessRepository, defaultPlanRepository } from "./router";
+import type { DirectoryRepositories } from "./directory-repositories";
+import { createAppRouter, defaultDirectoryRepositories, defaultPlanRepository } from "./router";
 import { fetchProxiedStream } from "./stream-proxy";
 
 export interface AppOptions {
@@ -13,7 +13,7 @@ export interface AppOptions {
   // Injected for tests: the stream route must never reach the network there.
   upstreamFetch?: typeof fetch;
   planRepository?: PlanRepository;
-  businessRepository?: BusinessRepository;
+  directoryRepositories?: DirectoryRepositories;
   ai?: AiBinding;
   planCatalogRetriever?: PlanCatalogRetriever;
   aiGatewayId?: string;
@@ -22,10 +22,10 @@ export interface AppOptions {
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
-  const businessRepository = options.businessRepository ?? defaultBusinessRepository;
+  const directoryRepositories = options.directoryRepositories ?? defaultDirectoryRepositories;
   const appRouter = createAppRouter(
     planRepository,
-    businessRepository,
+    directoryRepositories,
     options.ai,
     options.planCatalogRetriever,
     options.aiGatewayId,
