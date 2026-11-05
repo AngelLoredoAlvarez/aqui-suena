@@ -11,7 +11,7 @@ Single source of truth for Aquí Suena small-business listings (restaurants, clo
 - Navigation: TBD — routes `/business/[businessId]`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (universal cards, sheets, image lists)
 - Data: tRPC + TanStack Query (list/get with cache), valibot validation
-- DB: Drizzle + SQLite/D1 (`businesses`, `products`, `photos`, `hours`)
+- DB: Drizzle + SQLite/D1 (`businesses`, `services`, `products`, `photos`, `work_entries`, `flyers`, `hours`)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
@@ -32,8 +32,10 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
 apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
-packages/db/src/schema.ts                   → businesses, products, photos, hours
+packages/db/src/schema.ts                   → businesses, services, products, photos, work_entries, flyers, hours
 packages/api/src/routers/business.ts         → business.list / business.get
+packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos
+packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD)
 packages/ui/src/business-card.tsx            → shared card + sheet
 ```
 
