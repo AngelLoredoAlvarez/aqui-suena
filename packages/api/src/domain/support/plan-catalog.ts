@@ -46,6 +46,11 @@ export interface PlanVectorIndex {
   upsert(vectors: { id: string; values: number[] }[]): Promise<void>;
 }
 
+/** Interface for logging errors. */
+export interface Logger {
+  error(message: string, ...args: unknown[]): void;
+}
+
 /** Current behavior: inject the whole catalog into the prompt. */
 export class FullCatalogRetriever implements PlanCatalogRetriever {
   constructor(private readonly planRepository: PlanRepository) {}
@@ -61,6 +66,7 @@ export interface VectorPlanCatalogRetrieverOptions {
   embeddingModel: EmbeddingModel;
   vectorIndex: PlanVectorIndex;
   topK: number;
+  logger?: Logger;
 }
 
 /**
@@ -71,9 +77,11 @@ export interface VectorPlanCatalogRetrieverOptions {
  */
 export class VectorPlanCatalogRetriever implements PlanCatalogRetriever {
   private readonly fallback: FullCatalogRetriever;
+  private readonly logger: Logger;
 
   constructor(private readonly options: VectorPlanCatalogRetrieverOptions) {
     this.fallback = new FullCatalogRetriever(options.planRepository);
+    this.logger = options.logger ?? { error: console.error.bind(console) };
   }
 
   async retrieve(query: string): Promise<Plan[]> {
@@ -95,7 +103,7 @@ export class VectorPlanCatalogRetriever implements PlanCatalogRetriever {
 
       return ranked.length > 0 ? ranked : this.fallback.retrieve(query);
     } catch (error) {
-      console.error("plan-catalog: vector retrieval failed, falling back", error);
+      this.logger.error("plan-catalog: vector retrieval failed, falling back", error);
       return this.fallback.retrieve(query);
     }
   }

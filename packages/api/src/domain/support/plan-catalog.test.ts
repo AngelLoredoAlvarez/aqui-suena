@@ -142,6 +142,7 @@ describe("VectorPlanCatalogRetriever", () => {
       },
       vectorIndex: makeVectorIndex([{ id: "trades", score: 1 }], []),
       topK: 3,
+      logger: { error: () => {} },
     });
 
     const result = await retriever.retrieve("hola");
@@ -159,6 +160,7 @@ describe("VectorPlanCatalogRetriever", () => {
         async upsert() {},
       },
       topK: 3,
+      logger: { error: () => {} },
     });
 
     const result = await retriever.retrieve("hola");
