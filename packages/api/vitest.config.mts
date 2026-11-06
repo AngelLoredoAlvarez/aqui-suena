@@ -8,7 +8,7 @@ const src = (relativePath: string) => path.join(apiSrc, relativePath);
 export default defineConfig({
   resolve: {
     alias: {
-      "@aqui-suena/api/ads": src("domain/radio/ads.ts"),
+      "@aqui-suena/api/ads": src("domain/ads/ads-carousel.ts"),
       "@aqui-suena/api/client": src("client.ts"),
       "@aqui-suena/api/entitlements": src("domain/billing/entitlements.ts"),
       "@aqui-suena/api/listener": src("domain/radio/listener.ts"),

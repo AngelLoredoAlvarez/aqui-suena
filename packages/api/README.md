@@ -4,7 +4,7 @@ The backend of the monorepo, in one package: the shared tRPC contract _and_ the
 fetch handler that serves it. This mirrors the T4 stack (`packages/api` is the
 worker that deploys itself), so web, desktop and mobile call one backend and no
 secret ever has to live inside a distributed binary. The same portable core
-(`src/app.ts`) runs as a Node process (`src/main.ts`) and as a Cloudflare
+(`src/server/http/app.ts`) runs as a Node process (`src/server/main.ts`) and as a Cloudflare
 Worker (`src/worker.ts`).
 
 ## Run
@@ -38,17 +38,17 @@ gate that proves the types, exactly like the other packages.
 
 ## Layout, and the one rule that keeps it safe
 
-| Path              | Side   | Reachable from a browser or React Native |
-| ----------------- | ------ | ---------------------------------------- |
-| `src/client.ts`   | shared | yes — the only safe entry for clients    |
-| `src/listener.ts` | shared | yes — schemas only                       |
-| `src/app.ts`      | server | no — the portable fetch handler          |
-| `src/worker.ts`   | server | no — Cloudflare Workers entry            |
-| `src/router.ts`   | server | no — evaluates `initTRPC.create()`       |
-| `src/server.ts`   | server | no — node:http bridge to `src/app.ts`    |
-| `src/cors.ts`     | server | no                                       |
-| `src/env.ts`      | server | no                                       |
-| `src/main.ts`     | server | no — starts the Node process             |
+| Path                           | Side   | Reachable from a browser or React Native  |
+| ------------------------------ | ------ | ----------------------------------------- |
+| `src/client.ts`                | shared | yes — the only safe entry for clients     |
+| `src/domain/radio/listener.ts` | shared | yes — schemas only (subpath `./listener`) |
+| `src/server/http/app.ts`       | server | no — the portable fetch handler           |
+| `src/worker.ts`                | server | no — Cloudflare Workers entry             |
+| `src/server/trpc/router.ts`    | server | no — evaluates `initTRPC.create()`        |
+| `src/server/server.ts`         | server | no — node:http bridge to `app.ts`         |
+| `src/server/http/cors.ts`      | server | no                                        |
+| `src/server/env.ts`            | server | no                                        |
+| `src/server/main.ts`           | server | no — starts the Node process              |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from
 `index.ts`.** Clients import subpaths (`@aqui-suena/api/client`), so Metro and

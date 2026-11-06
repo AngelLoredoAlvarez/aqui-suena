@@ -1,7 +1,7 @@
 import type { Plan } from "@aqui-suena/api/domain/billing/plans";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscription-service";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions-service";
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/entitlements";
 import { describe, expect, it } from "vitest";
