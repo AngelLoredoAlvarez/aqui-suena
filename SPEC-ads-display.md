@@ -30,7 +30,7 @@ Typecheck: pnpm -r typecheck
 ## Project Structure
 
 ```
-packages/api/src/routers/ads.ts             → ads.carousel (ranked)
+packages/api/src/server/routers/ads.ts       → ads.carousel (ranked by plan priority + recency, backed by getBusinessCarousel use-case)
 packages/ui/src/ads-carousel/ads-carousel.tsx → carousel (shared, card anatomy below)
 packages/ui/src/business-sheet.tsx          → listing sheet (shared, player-safe; TBD)
 apps/web/app/page.tsx                  → home with carousel under/over player
@@ -146,9 +146,10 @@ badge; `href` links to the business sheet (navigation still TBD). `delivery` is
 a boolean rendered via the i18n `delivery` label ("Servicio a domicilio" /
 "Home delivery"), never hardcoded. These fields mirror what `businesses`
 exposes (category, delivery flag, hours), so the carousel card, the directory,
-and the sheet reuse the same contract without refactoring later. The seed data
-uses the design's example business "Desayunos Casa Rosa" so the card is
-verifiable against the design.
+and the sheet reuse the same contract without refactoring later. The carousel
+now serves real inventory from `ads.carousel` (getBusinessCarousel use-case);
+there is no static seed. When no sponsors are eligible, the carousel renders
+the empty state ("No sponsored businesses yet").
 
 ### i18n additions (es / en)
 
