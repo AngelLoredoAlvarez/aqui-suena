@@ -3,20 +3,23 @@ import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-c
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
+import { createContext, createSupabaseFromEnv } from "./context";
 import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
 import type { DirectoryRepositories } from "./directory-repositories";
 import { createAppRouter, defaultDirectoryRepositories, defaultPlanRepository } from "./router";
 import { fetchProxiedStream } from "./stream-proxy";
 
 export interface AppOptions {
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
   allowedOrigins: readonly string[];
   // Injected for tests: the stream route must never reach the network there.
   upstreamFetch?: typeof fetch;
-  planRepository?: PlanRepository;
-  directoryRepositories?: DirectoryRepositories;
   ai?: AiBinding;
   planCatalogRetriever?: PlanCatalogRetriever;
   aiGatewayId?: string;
+  planRepository?: PlanRepository;
+  directoryRepositories?: DirectoryRepositories;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -30,6 +33,8 @@ export function createApp(options: AppOptions): Hono {
     options.planCatalogRetriever,
     options.aiGatewayId,
   );
+  const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);
+
   const app = new Hono();
 
   // Origin policy: refuse unknown origins before anything runs, answer
@@ -65,7 +70,13 @@ export function createApp(options: AppOptions): Hono {
     return new Response(proxied.body, { status: proxied.status, headers: proxied.headers });
   });
 
-  app.use("/trpc/*", trpcServer({ router: appRouter, createContext: () => ({}) }));
+  app.use(
+    "/trpc/*",
+    trpcServer({
+      router: appRouter,
+      createContext: ({ req }) => createContext(req, supabase),
+    }),
+  );
 
   app.notFound((c) => c.text("not found", 404));
 

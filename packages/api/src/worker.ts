@@ -27,6 +27,8 @@ const RETRIEVAL_TOP_K = 2;
 
 export interface WorkerEnv {
   ALLOWED_ORIGINS?: string;
+  SUPABASE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
   aqui_suena_db: D1Database;
   AI: Ai;
   /** Set when the [[vectorize]] binding is enabled in wrangler.toml. */
@@ -89,6 +91,8 @@ export default {
 
     const app = createApp({
       allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
+      supabaseUrl: env.SUPABASE_URL,
+      supabaseAnonKey: env.SUPABASE_ANON_KEY,
       planRepository,
       directoryRepositories,
       ai,
