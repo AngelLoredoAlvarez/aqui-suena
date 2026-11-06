@@ -15,14 +15,14 @@
     "@aqui-suena/ui": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@tauri-apps/api": "2.12.4",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-native-web": "0.21.4",
     "tamagui": "catalog:"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
+    "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

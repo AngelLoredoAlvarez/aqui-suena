@@ -32,17 +32,17 @@
   "dependencies": {
     "@hono/node-server": "^2.1.6",
     "@hono/trpc-server": "^0.4.2",
-    "@supabase/supabase-js": "^2.118.0",
-    "@trpc/server": "11.22.1",
+    "@supabase/supabase-js": "^2.119.0",
+    "@trpc/server": "11.24.0",
     "hono": "^4.13.16",
     "tsx": "4.23.15",
     "valibot": "^1.5.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261103.1",
-    "@trpc/client": "11.22.1",
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@trpc/client": "11.24.0",
     "@types/node": "26.6.6",
     "typescript": "7.0.2",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   }
 }
