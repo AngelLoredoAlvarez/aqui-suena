@@ -1,23 +1,23 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
-import { adsRouter } from "@aqui-suena/api/server/routers/ads";
-import { businessRouter } from "@aqui-suena/api/server/routers/business";
-import { createBusinessesRouter } from "@aqui-suena/api/server/routers/businesses";
-import { createFlyersRouter } from "@aqui-suena/api/server/routers/flyers";
-import { createHoursRouter } from "@aqui-suena/api/server/routers/hours";
-import { listenerRouter } from "@aqui-suena/api/server/routers/listener";
-import { createPhotosRouter } from "@aqui-suena/api/server/routers/photos";
-import { createPlansRouter } from "@aqui-suena/api/server/routers/plans";
-import { createProductsRouter } from "@aqui-suena/api/server/routers/products";
-import { createServicesRouter } from "@aqui-suena/api/server/routers/services";
+import { createPlansRouter } from "@aqui-suena/api/server/routers/billing/plans";
+import { businessRouter } from "@aqui-suena/api/server/routers/directory/business";
+import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
+import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
+import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
+import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
+import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
+import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
+import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/directory/work-entries";
+import { adsRouter } from "@aqui-suena/api/server/routers/radio/ads";
+import { listenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
-import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/work-entries";
-import { router } from "@aqui-suena/api/trpc";
 import {
   createDefaultDirectoryRepositories,
   type DirectoryRepositories,
-} from "./directory-repositories";
+} from "@aqui-suena/api/server/trpc/directory-repositories";
+import { router } from "@aqui-suena/api/trpc";
 
 export function createAppRouter(
   planRepository: PlanRepository,

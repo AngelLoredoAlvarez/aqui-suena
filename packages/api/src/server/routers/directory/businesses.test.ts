@@ -1,6 +1,6 @@
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { describe, expect, it } from "vitest";
-import { createBusinessesRouter } from "./businesses";
 
 const sampleBusiness = {
   id: "biz-1",

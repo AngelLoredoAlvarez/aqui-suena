@@ -131,7 +131,7 @@ when the authenticated owner requests it, and only their own.
 - `packages/api/src/domain/support/plan-catalog.ts` — `PlanCatalogRetriever`
   port, `FullCatalogRetriever`, `VectorPlanCatalogRetriever`, `planDocument`,
   `seedPlanVectors`.
-- `packages/api/src/server/routers/support.ts` — `support.chat` router,
+- `packages/api/src/server/routers/support/index.ts` — `support.chat` router,
   `buildCatalog`, system prompts.
 - `packages/api/src/worker.ts` — wiring, `PLAN_VECTORS`, `AI_GATEWAY_ID`.
 - `packages/api/README.md` — retrieval and Vectorize/AI Gateway setup.

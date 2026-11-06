@@ -1,6 +1,6 @@
 import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
 import { describe, expect, it } from "vitest";
-import { createHoursRouter } from "./hours";
 
 const sample = {
   id: "hr-1",

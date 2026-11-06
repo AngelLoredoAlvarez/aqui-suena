@@ -1,5 +1,5 @@
+import { createContext } from "@aqui-suena/api/server/trpc/context";
 import { describe, expect, it, vi } from "vitest";
-import { createContext } from "./context";
 
 describe("createContext", () => {
   it("returns null user when no Authorization header", async () => {

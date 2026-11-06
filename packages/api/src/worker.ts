@@ -4,20 +4,20 @@ import {
   seedPlanVectors,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
+import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/d1-plan-repository";
+import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
+import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
+import { D1HourRepository } from "@aqui-suena/api/infrastructure/directory/d1-hour-repository";
+import { D1PhotoRepository } from "@aqui-suena/api/infrastructure/directory/d1-photo-repository";
+import { D1ProductRepository } from "@aqui-suena/api/infrastructure/directory/d1-product-repository";
+import { D1ServiceRepository } from "@aqui-suena/api/infrastructure/directory/d1-service-repository";
+import { D1WorkEntryRepository } from "@aqui-suena/api/infrastructure/directory/d1-work-entry-repository";
+import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
+import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
+import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
+import { createApp } from "@aqui-suena/api/server/http/app";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
-import { D1PlanRepository } from "./infrastructure/billing/d1-plan-repository";
-import { D1BusinessRepository } from "./infrastructure/directory/d1-business-repository";
-import { D1FlyerRepository } from "./infrastructure/directory/d1-flyer-repository";
-import { D1HourRepository } from "./infrastructure/directory/d1-hour-repository";
-import { D1PhotoRepository } from "./infrastructure/directory/d1-photo-repository";
-import { D1ProductRepository } from "./infrastructure/directory/d1-product-repository";
-import { D1ServiceRepository } from "./infrastructure/directory/d1-service-repository";
-import { D1WorkEntryRepository } from "./infrastructure/directory/d1-work-entry-repository";
-import { VectorizePlanVectorIndex } from "./infrastructure/support/vectorize-plan-index";
-import { WorkersAiEmbeddingModel } from "./infrastructure/support/workers-ai-embedding-model";
-import { createApp } from "./server/app";
-import type { DirectoryRepositories } from "./server/directory-repositories";
-import { parseAllowedOrigins } from "./server/env";
+import type { DirectoryRepositories } from "@aqui-suena/api/server/trpc/directory-repositories";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
 const EMBEDDING_MODEL = "@cf/baai/bge-m3";

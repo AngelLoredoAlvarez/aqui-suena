@@ -1,6 +1,6 @@
 import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/service";
+import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { describe, expect, it } from "vitest";
-import { createServicesRouter } from "./services";
 
 const sample = {
   id: "svc-1",

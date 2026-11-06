@@ -1,6 +1,6 @@
 import { InMemoryProductRepository } from "@aqui-suena/api/domain/directory/product";
+import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { describe, expect, it } from "vitest";
-import { createProductsRouter } from "./products";
 
 const sample = {
   id: "pdct-1",

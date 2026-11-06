@@ -15,9 +15,9 @@
     "./subscriptions": "./src/domain/billing/subscriptions.ts",
     "./subscriptions-service": "./src/domain/billing/subscriptions-service.ts",
     "./package.json": "./package.json",
-    "./router": "./src/server/router.ts",
+    "./router": "./src/server/trpc/router.ts",
     "./supabase": "./src/supabase.ts",
-    "./trpc": "./src/server/trpc.ts"
+    "./trpc": "./src/server/trpc/trpc.ts"
   },
   "scripts": {
     "dev": "tsx watch src/server/main.ts",
