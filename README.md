@@ -114,6 +114,7 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
 - Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `SPEC-radio-playback.md` (Responsive composition).
+- Ads carousel now serves real ranked inventory by plan (Comercios > Oficios > Comunidad, recency tie-break) via `ads.carousel` (F1+F2 complete); no static seed, empty state shown when no sponsors.
 - Ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 
