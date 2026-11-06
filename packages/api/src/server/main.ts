@@ -2,7 +2,11 @@ import { readConfig } from "./env";
 import { createApiServer } from "./server";
 
 const config = readConfig(process.env);
-const server = createApiServer({ allowedOrigins: config.allowedOrigins });
+const server = createApiServer({
+  allowedOrigins: config.allowedOrigins,
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+});
 
 server.listen(config.port, config.host, () => {
   console.log(`api: listening on http://${config.host}:${config.port}`);
