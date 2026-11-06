@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assertCanCreateBusiness,
   assertCanCreateProduct,
+  canCreateBusiness,
   canCreateProduct,
   ENTITLEMENTS,
   getEntitlements,
@@ -168,5 +170,54 @@ describe("isWithinPhotoQuota", () => {
   it("commerce allows up to 30 marketing photos", () => {
     expect(isWithinPhotoQuota("commerce", 29)).toBe(true);
     expect(isWithinPhotoQuota("commerce", 30)).toBe(false);
+  });
+});
+
+describe("canCreateBusiness", () => {
+  it("allows creating the first business on community", () => {
+    expect(canCreateBusiness("community", 0)).toEqual({ allowed: true });
+  });
+
+  it("denies a second business on community", () => {
+    expect(canCreateBusiness("community", 1)).toEqual({
+      allowed: false,
+      code: "UPGRADE_REQUIRED",
+      hint: "billing.upgradeRequired.businessCreate",
+    });
+  });
+
+  it("allows up to 3 businesses on trades", () => {
+    expect(canCreateBusiness("trades", 0)).toEqual({ allowed: true });
+    expect(canCreateBusiness("trades", 2)).toEqual({ allowed: true });
+  });
+
+  it("denies a 4th business on trades", () => {
+    expect(canCreateBusiness("trades", 3)).toEqual({
+      allowed: false,
+      code: "UPGRADE_REQUIRED",
+      hint: "billing.upgradeRequired.businessCreate",
+    });
+  });
+
+  it("allows up to 10 businesses on commerce", () => {
+    expect(canCreateBusiness("commerce", 9)).toEqual({ allowed: true });
+  });
+
+  it("denies an 11th business on commerce", () => {
+    expect(canCreateBusiness("commerce", 10)).toEqual({
+      allowed: false,
+      code: "UPGRADE_REQUIRED",
+      hint: "billing.upgradeRequired.businessCreate",
+    });
+  });
+});
+
+describe("assertCanCreateBusiness", () => {
+  it("throws UpgradeRequired when the cap is reached", () => {
+    expect(() => assertCanCreateBusiness("community", 1)).toThrow(UpgradeRequired);
+  });
+
+  it("does not throw below the cap", () => {
+    expect(() => assertCanCreateBusiness("community", 0)).not.toThrow();
   });
 });

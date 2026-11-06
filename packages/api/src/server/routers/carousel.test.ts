@@ -92,7 +92,9 @@ describe("ads.carousel", () => {
 
     const result = await caller.carousel();
 
-    expect(result.map((i) => i.name)).toEqual(["Comercio Biz", "Comunidad Biz"]);
+    const names = result.map((i) => i.name);
+    expect(names.filter((n) => n === "Comercio Biz")).toHaveLength(3);
+    expect(names.filter((n) => n === "Comunidad Biz")).toHaveLength(1);
   });
 
   it("excludes businesses without a flyer", async () => {

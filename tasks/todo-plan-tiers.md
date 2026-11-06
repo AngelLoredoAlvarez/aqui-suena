@@ -10,7 +10,12 @@
 - [ ] Implement immediate upgrades and end-of-period downgrades without proration in V1.
 - [ ] Implement cancellation without partial refunds: plan remains active until the end of the paid period, with 7-day failed-renewal grace and email warning.
 - [ ] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10.
-- [ ] Preserve deterministic ranking (Comunidad 0, Oficios 10, Comercios 20; recency tie-breaker) and 1/2/3 appearances per cycle with consecutive-repeat avoidance.
+- [x] Preserve deterministic ranking (Comunidad 0, Oficios 10, Comercios 20; recency tie-breaker) and 1/2/3 appearances per cycle with consecutive-repeat avoidance. *(Done 2026-11-06 on `feature/plan-tiers-task1-caps`: `selectCarouselSlots` + integration in `getBusinessCarousel`.)*
+- [x] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10. *(Done 2026-11-06: `canCreateBusiness`/`assertCanCreateBusiness` + enforcer in `businesses` router.)*
+- [~] Downgrade without data loss: pure helpers done (`hiddenBusinessIds`, `canChooseVisibleCount`, `retentionDeadline`, `isRetentionExpired`); DB schema (hiddenAt/retainedUntil) and enforcer pending.
+- [~] Cancellation without partial refunds: pure helpers done (`graceDeadline`, `isInGracePeriod`); grace status in subscription + email warning pending.
+
+> Progress note (2026-11-06): Task 1 logic (pure helpers + entitlements + carousel + business cap enforcer) implemented and merged-ready on `feature/plan-tiers-task1-caps`. DB schema and email infra remain as TODOs.
 
 ## Task 2: Plan selection and billing views
 
