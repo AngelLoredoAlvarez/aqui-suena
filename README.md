@@ -102,7 +102,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Status
 
-The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now also matches the T4 Stack on `feature/t4-stack-parity` (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge): branch has 8 commits, not yet merged. Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features planned (specs created, implementation pending):
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features planned (specs created, implementation pending):
 
 - Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, free tier.
 - Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker.
