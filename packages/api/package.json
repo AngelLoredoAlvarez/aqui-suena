@@ -6,7 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./ads": "./src/domain/radio/ads.ts",
+    "./ads": "./src/domain/ads/ads-carousel.ts",
     "./client": "./src/client.ts",
     "./entitlements": "./src/domain/billing/entitlements.ts",
     "./listener": "./src/domain/radio/listener.ts",
@@ -15,7 +15,7 @@
     "./sheets": "./src/domain/directory/sheets.ts",
     "./payments": "./src/domain/billing/payments.ts",
     "./subscriptions": "./src/domain/billing/subscriptions.ts",
-    "./subscriptions-service": "./src/domain/billing/subscriptions-service.ts",
+    "./subscriptions-service": "./src/domain/billing/subscription-service.ts",
     "./package.json": "./package.json",
     "./router": "./src/server/trpc/router.ts",
     "./supabase": "./src/supabase.ts",

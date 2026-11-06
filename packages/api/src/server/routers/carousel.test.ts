@@ -8,7 +8,7 @@ import type { Hour } from "@aqui-suena/api/domain/directory/hour";
 import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
 import { describe, expect, it } from "vitest";
 
-import { createAdsRouter } from "./ads";
+import { createCarouselRouter } from "./carousel";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {
   return {
@@ -63,7 +63,7 @@ function makeSubscription(accountId: string): Subscription {
 
 describe("ads.carousel", () => {
   it("returns an empty array when there are no businesses", async () => {
-    const router = createAdsRouter({
+    const router = createCarouselRouter({
       businessRepository: new InMemoryBusinessRepository([]),
       flyerRepository: new InMemoryFlyerRepository([]),
       hourRepository: new InMemoryHourRepository([]),
@@ -81,7 +81,7 @@ describe("ads.carousel", () => {
     const community = makeBusiness({ id: "c-1", accountId: "acc-c", name: "Comunidad Biz" });
     const commerce = makeBusiness({ id: "m-1", accountId: "acc-m", name: "Comercio Biz" });
 
-    const router = createAdsRouter({
+    const router = createCarouselRouter({
       businessRepository: new InMemoryBusinessRepository([community, commerce]),
       flyerRepository: new InMemoryFlyerRepository([makeFlyer("c-1"), makeFlyer("m-1")]),
       hourRepository: new InMemoryHourRepository([makeHour("c-1"), makeHour("m-1")]),
@@ -98,7 +98,7 @@ describe("ads.carousel", () => {
   it("excludes businesses without a flyer", async () => {
     const b = makeBusiness({ id: "b-1" });
 
-    const router = createAdsRouter({
+    const router = createCarouselRouter({
       businessRepository: new InMemoryBusinessRepository([b]),
       flyerRepository: new InMemoryFlyerRepository([]),
       hourRepository: new InMemoryHourRepository([makeHour("b-1")]),

@@ -1,12 +1,12 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
-import { createAdsRouter } from "@aqui-suena/api/server/routers/ads";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/billing/plans";
-import { businessRouter } from "@aqui-suena/api/server/routers/directory/business";
+import { createCarouselRouter } from "@aqui-suena/api/server/routers/carousel";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
+import { businessRouter } from "@aqui-suena/api/server/routers/directory/listings";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
@@ -27,7 +27,7 @@ export function createAppRouter(
   aiGatewayId?: string,
 ) {
   return router({
-    ads: createAdsRouter({
+    ads: createCarouselRouter({
       businessRepository: directoryRepositories.business,
       flyerRepository: directoryRepositories.flyer,
       hourRepository: directoryRepositories.hour,

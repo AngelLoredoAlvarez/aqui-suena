@@ -1,18 +1,17 @@
 import { defaultStationId } from "@aqui-suena/config";
 import { noopTrayBridge, type TrayBridge } from "@aqui-suena/player";
-import { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
+import { AdsCarousel, useAdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
 import type { PlayerCardPosition } from "@aqui-suena/ui/state";
 import { playerCardPositionAtom, selectedStationIdAtom } from "@aqui-suena/ui/state";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { H1, isWeb, Paragraph, Theme, useMedia, XStack, YStack } from "tamagui";
-import { useAdsCarousel } from "./ads-status";
-import { channelById } from "./channels";
-import { useListenerStatus } from "./listener-status";
 import { getResponsiveMaxW } from "./responsive";
 import { selectListenerStatus } from "./select-listener-status";
 import { StationPlayer } from "./station-player";
+import { channelById } from "./test-channels";
+import { useListenerStatus } from "./use-listener-status";
 
 export function PlayerLanding({
   scheme = "noche",

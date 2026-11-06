@@ -6,7 +6,7 @@ import { PositionToggle } from "./position-toggle";
 import { StationButton } from "./station-button";
 import { StatusRow } from "./status-indicator";
 
-export function Dock(props: PlayerCardProps) {
+export function CardDock(props: PlayerCardProps) {
   const {
     stationName,
     listeners,

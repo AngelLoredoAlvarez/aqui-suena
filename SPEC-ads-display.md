@@ -30,7 +30,7 @@ Typecheck: pnpm -r typecheck
 ## Project Structure
 
 ```
-packages/api/src/server/routers/ads.ts       → ads.carousel (ranked by plan priority + recency, backed by getBusinessCarousel use-case)
+packages/api/src/server/routers/carousel.ts  → ads.carousel (ranked by plan priority + recency, backed by getBusinessCarousel use-case)
 packages/ui/src/ads-carousel/ads-carousel.tsx → carousel (shared, card anatomy below)
 packages/ui/src/business-sheet.tsx          → listing sheet (shared, player-safe; TBD)
 apps/web/app/page.tsx                  → home with carousel under/over player

@@ -4,8 +4,8 @@ import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subs
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { resolvePlan } from "./ad-plan";
 import { toCarouselItem } from "./carousel";
-import { resolvePlan } from "./plan";
 import { rankSponsors, type SponsorInput } from "./ranking";
 
 export type BusinessCarouselDeps = {

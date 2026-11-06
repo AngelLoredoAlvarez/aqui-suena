@@ -1,6 +1,6 @@
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions";
 import { describe, expect, it } from "vitest";
-import { resolvePlan } from "./plan";
+import { resolvePlan } from "./ad-plan";
 
 function makeSubscription(overrides: Partial<Subscription> = {}): Subscription {
   return {
