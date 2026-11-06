@@ -1,6 +1,6 @@
+import { parseAllowedOrigins, readConfig } from "@aqui-suena/api/server/env";
+import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ALLOWED_ORIGINS } from "./cors";
-import { parseAllowedOrigins, readConfig } from "./env";
 
 describe("parseAllowedOrigins", () => {
   it("falls back to the three platform origins when the variable is absent", () => {

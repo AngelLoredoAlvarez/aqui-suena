@@ -1,6 +1,5 @@
+import { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
 import { describe, expect, it, vi } from "vitest";
-
-import { fetchProxiedStream } from "./stream-proxy";
 
 function upstreamOk(body = "audio-bytes", contentType = "audio/mpeg"): Response {
   return new Response(body, {

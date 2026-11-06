@@ -1,13 +1,17 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
+import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
+import { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
+import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
+import type { DirectoryRepositories } from "@aqui-suena/api/server/trpc/directory-repositories";
+import {
+  createAppRouter,
+  defaultDirectoryRepositories,
+  defaultPlanRepository,
+} from "@aqui-suena/api/server/trpc/router";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
-import { createContext, createSupabaseFromEnv } from "./context";
-import { corsHeaders, preflightHeaders, resolveCors } from "./cors";
-import type { DirectoryRepositories } from "./directory-repositories";
-import { createAppRouter, defaultDirectoryRepositories, defaultPlanRepository } from "./router";
-import { fetchProxiedStream } from "./stream-proxy";
 
 export interface AppOptions {
   supabaseUrl?: string;

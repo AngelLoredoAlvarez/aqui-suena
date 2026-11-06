@@ -1,6 +1,6 @@
 import { InMemoryPhotoRepository } from "@aqui-suena/api/domain/directory/photo";
+import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { describe, expect, it } from "vitest";
-import { createPhotosRouter } from "./photos";
 
 const sample = {
   id: "ph-1",

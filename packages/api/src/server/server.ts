@@ -1,5 +1,5 @@
+import { type AppOptions, createApp } from "@aqui-suena/api/server/http/app";
 import { createAdaptorServer, type ServerType } from "@hono/node-server";
-import { type AppOptions, createApp } from "./app";
 
 export type ApiServerOptions = AppOptions;
 

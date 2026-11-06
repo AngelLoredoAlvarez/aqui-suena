@@ -1,5 +1,10 @@
+import {
+  corsHeaders,
+  DEFAULT_ALLOWED_ORIGINS,
+  preflightHeaders,
+  resolveCors,
+} from "@aqui-suena/api/server/http/cors";
 import { describe, expect, it } from "vitest";
-import { corsHeaders, DEFAULT_ALLOWED_ORIGINS, preflightHeaders, resolveCors } from "./cors";
 
 describe("resolveCors", () => {
   it("allows a request without an Origin header, because React Native sends none", () => {

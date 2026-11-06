@@ -1,5 +1,5 @@
-import { readConfig } from "./env";
-import { createApiServer } from "./server";
+import { readConfig } from "@aqui-suena/api/server/env";
+import { createApiServer } from "@aqui-suena/api/server/server";
 
 const config = readConfig(process.env);
 const server = createApiServer({

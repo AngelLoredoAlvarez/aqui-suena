@@ -1,6 +1,6 @@
 import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
+import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/directory/work-entries";
 import { describe, expect, it } from "vitest";
-import { createWorkEntriesRouter } from "./work-entries";
 
 const sample = {
   id: "we-1",

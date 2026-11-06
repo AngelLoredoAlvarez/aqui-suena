@@ -1,6 +1,6 @@
 import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
+import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { describe, expect, it } from "vitest";
-import { createFlyersRouter } from "./flyers";
 
 const sample = {
   id: "fly-1",
