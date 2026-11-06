@@ -15,7 +15,7 @@ describe("products router", () => {
   it("lists products from the repository", async () => {
     const repository = new InMemoryProductRepository([{ ...sample }]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const products = await caller.list();
 
     expect(products).toHaveLength(1);
@@ -25,7 +25,7 @@ describe("products router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryProductRepository([]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -33,7 +33,7 @@ describe("products router", () => {
   it("creates a product with generated id", async () => {
     const repository = new InMemoryProductRepository([]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       name: "SSD",
@@ -48,7 +48,7 @@ describe("products router", () => {
   it("updates a product and preserves unprovided fields", async () => {
     const repository = new InMemoryProductRepository([{ ...sample }]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "pdct-1", price: 9000 });
 
     expect(updated?.price).toBe(9000);
@@ -58,7 +58,7 @@ describe("products router", () => {
   it("returns null when updating a non-existent product", async () => {
     const repository = new InMemoryProductRepository([]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", name: "X" })).toBeNull();
   });
@@ -66,7 +66,7 @@ describe("products router", () => {
   it("deletes a product and reports success", async () => {
     const repository = new InMemoryProductRepository([{ ...sample }]);
     const router = createProductsRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("pdct-1")).toBe(true);
   });

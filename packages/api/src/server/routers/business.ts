@@ -12,8 +12,7 @@ import {
   deriveListingOpen,
   listingInputSchema,
 } from "@aqui-suena/api/listing";
-
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -51,7 +50,25 @@ const listListingsInput = v.object({
 });
 
 export const businessRouter = router({
-  createProduct: publicProcedure.input(createProductInput).mutation(({ input }) => {
+  list: publicProcedure.input(listListingsInput).query(({ input }) => {
+    const now = input.now ?? new Date();
+    // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.
+
+    return input.items.map((item) => ({
+      listing: item.listing,
+      open: deriveListingOpen(item.listing, now),
+      products: capProducts(item.products, input.plan),
+    }));
+  }),
+
+  get: publicProcedure.input(getListingInput).query(({ input }) => {
+    const now = input.now ?? new Date();
+    // TODO(memberships): look up by id from DB and return 404 when missing.
+
+    return { ...input.listing, open: deriveListingOpen(input.listing, now) };
+  }),
+
+  createProduct: protectedProcedure.input(createProductInput).mutation(({ input }) => {
     const plan = input.plan as PlanId;
 
     // TODO(memberships): derive plan from ctx.account instead of input (untrusted).
@@ -75,7 +92,7 @@ export const businessRouter = router({
     return { id: crypto.randomUUID(), name: input.name, price: input.price };
   }),
 
-  addPhoto: publicProcedure.input(addPhotoInput).mutation(({ input }) => {
+  addPhoto: protectedProcedure.input(addPhotoInput).mutation(({ input }) => {
     const plan = input.plan as PlanId;
     const isMarketing = input.kind === "logo";
 
@@ -111,25 +128,7 @@ export const businessRouter = router({
     return { id: crypto.randomUUID(), kind: input.kind };
   }),
 
-  get: publicProcedure.input(getListingInput).query(({ input }) => {
-    const now = input.now ?? new Date();
-    // TODO(memberships): look up by id from DB and return 404 when missing.
-
-    return { ...input.listing, open: deriveListingOpen(input.listing, now) };
-  }),
-
-  list: publicProcedure.input(listListingsInput).query(({ input }) => {
-    const now = input.now ?? new Date();
-    // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.
-
-    return input.items.map((item) => ({
-      listing: item.listing,
-      open: deriveListingOpen(item.listing, now),
-      products: capProducts(item.products, input.plan),
-    }));
-  }),
-
-  create: publicProcedure.input(listingInputSchema).mutation(({ input }) => {
+  create: protectedProcedure.input(listingInputSchema).mutation(({ input }) => {
     // Mock-first (T2): no persistence yet. Memberships will add DB writes.
     return { id: crypto.randomUUID(), ...input };
   }),

@@ -1,5 +1,5 @@
 import type { PhotoRepository } from "@aqui-suena/api/domain/directory/photo";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
 import * as v from "valibot";
 
 const photoKind = v.picklist(["logo", "product", "work"]);
@@ -32,16 +32,16 @@ export function createPhotosRouter(repository: PhotoRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: publicProcedure
+    create: protectedProcedure
       .input(createPhotoInput)
       .mutation(async ({ input }) => repository.create(input)),
 
-    update: publicProcedure.input(updatePhotoInput).mutation(async ({ input }) => {
+    update: protectedProcedure.input(updatePhotoInput).mutation(async ({ input }) => {
       const { id, ...rest } = input;
       return repository.update(id, rest);
     }),
 
-    delete: publicProcedure
+    delete: protectedProcedure
       .input((value: unknown) => {
         if (typeof value !== "string" || value.length === 0)
           throw new Error("Photo id is required");

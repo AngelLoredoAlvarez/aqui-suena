@@ -1,5 +1,5 @@
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
 import * as v from "valibot";
 
 const createFlyerInput = v.object({
@@ -24,16 +24,16 @@ export function createFlyersRouter(repository: FlyerRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: publicProcedure
+    create: protectedProcedure
       .input(createFlyerInput)
       .mutation(async ({ input }) => repository.create(input)),
 
-    update: publicProcedure.input(updateFlyerInput).mutation(async ({ input }) => {
+    update: protectedProcedure.input(updateFlyerInput).mutation(async ({ input }) => {
       const { id, ...rest } = input;
       return repository.update(id, rest);
     }),
 
-    delete: publicProcedure
+    delete: protectedProcedure
       .input((value: unknown) => {
         if (typeof value !== "string" || value.length === 0)
           throw new Error("Flyer id is required");

@@ -1,7 +1,7 @@
 import { appRouter } from "@aqui-suena/api/router";
 import { describe, expect, it } from "vitest";
 
-const caller = appRouter.createCaller({});
+const caller = appRouter.createCaller({ user: null });
 
 describe("listener.getStatus", () => {
   it("returns the mocked status shape for a station", async () => {

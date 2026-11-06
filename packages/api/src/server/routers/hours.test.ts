@@ -14,7 +14,7 @@ describe("hours router", () => {
   it("lists hours from the repository", async () => {
     const repository = new InMemoryHourRepository([{ ...sample }]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const hours = await caller.list();
 
     expect(hours).toHaveLength(1);
@@ -24,7 +24,7 @@ describe("hours router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryHourRepository([]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -32,7 +32,7 @@ describe("hours router", () => {
   it("creates an hour with generated id", async () => {
     const repository = new InMemoryHourRepository([]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       day: 1,
@@ -47,7 +47,7 @@ describe("hours router", () => {
   it("updates an hour and preserves unprovided fields", async () => {
     const repository = new InMemoryHourRepository([{ ...sample }]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "hr-1", openMinute: 600 });
 
     expect(updated?.openMinute).toBe(600);
@@ -57,7 +57,7 @@ describe("hours router", () => {
   it("returns null when updating a non-existent hour", async () => {
     const repository = new InMemoryHourRepository([]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", day: 2 })).toBeNull();
   });
@@ -65,7 +65,7 @@ describe("hours router", () => {
   it("deletes an hour and reports success", async () => {
     const repository = new InMemoryHourRepository([{ ...sample }]);
     const router = createHoursRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("hr-1")).toBe(true);
   });

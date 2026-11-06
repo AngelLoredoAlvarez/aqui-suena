@@ -1,5 +1,5 @@
 import type { ServiceRepository } from "@aqui-suena/api/domain/directory/service";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
 import * as v from "valibot";
 
 const createServiceInput = v.object({
@@ -28,16 +28,16 @@ export function createServicesRouter(repository: ServiceRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: publicProcedure
+    create: protectedProcedure
       .input(createServiceInput)
       .mutation(async ({ input }) => repository.create(input)),
 
-    update: publicProcedure.input(updateServiceInput).mutation(async ({ input }) => {
+    update: protectedProcedure.input(updateServiceInput).mutation(async ({ input }) => {
       const { id, ...rest } = input;
       return repository.update(id, rest);
     }),
 
-    delete: publicProcedure
+    delete: protectedProcedure
       .input((value: unknown) => {
         if (typeof value !== "string" || value.length === 0)
           throw new Error("Service id is required");

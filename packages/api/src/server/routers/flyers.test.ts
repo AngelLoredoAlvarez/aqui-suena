@@ -15,7 +15,7 @@ describe("flyers router", () => {
   it("lists flyers from the repository", async () => {
     const repository = new InMemoryFlyerRepository([{ ...sample }]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const flyers = await caller.list();
 
     expect(flyers).toHaveLength(1);
@@ -25,7 +25,7 @@ describe("flyers router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryFlyerRepository([]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -33,7 +33,7 @@ describe("flyers router", () => {
   it("creates a flyer with generated id", async () => {
     const repository = new InMemoryFlyerRepository([]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       url: "https://example.com/new.jpg",
@@ -46,7 +46,7 @@ describe("flyers router", () => {
   it("updates a flyer url and bumps replacedAt", async () => {
     const repository = new InMemoryFlyerRepository([{ ...sample }]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "fly-1", url: "https://example.com/new.jpg" });
 
     expect(updated?.url).toBe("https://example.com/new.jpg");
@@ -56,7 +56,7 @@ describe("flyers router", () => {
   it("returns null when updating a non-existent flyer", async () => {
     const repository = new InMemoryFlyerRepository([]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", url: "https://example.com/x.jpg" })).toBeNull();
   });
@@ -64,7 +64,7 @@ describe("flyers router", () => {
   it("deletes a flyer and reports success", async () => {
     const repository = new InMemoryFlyerRepository([{ ...sample }]);
     const router = createFlyersRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("fly-1")).toBe(true);
   });

@@ -15,7 +15,7 @@ describe("work entries router", () => {
   it("lists work entries from the repository", async () => {
     const repository = new InMemoryWorkEntryRepository([{ ...sample }]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const entries = await caller.list();
 
     expect(entries).toHaveLength(1);
@@ -25,7 +25,7 @@ describe("work entries router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryWorkEntryRepository([]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -33,7 +33,7 @@ describe("work entries router", () => {
   it("creates a work entry with generated id", async () => {
     const repository = new InMemoryWorkEntryRepository([]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       title: "Reparacion",
@@ -47,7 +47,7 @@ describe("work entries router", () => {
   it("updates a work entry and preserves unprovided fields", async () => {
     const repository = new InMemoryWorkEntryRepository([{ ...sample }]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "we-1", title: "Reparacion de PC" });
 
     expect(updated?.title).toBe("Reparacion de PC");
@@ -57,7 +57,7 @@ describe("work entries router", () => {
   it("returns null when updating a non-existent work entry", async () => {
     const repository = new InMemoryWorkEntryRepository([]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", title: "X" })).toBeNull();
   });
@@ -65,7 +65,7 @@ describe("work entries router", () => {
   it("deletes a work entry and reports success", async () => {
     const repository = new InMemoryWorkEntryRepository([{ ...sample }]);
     const router = createWorkEntriesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("we-1")).toBe(true);
   });

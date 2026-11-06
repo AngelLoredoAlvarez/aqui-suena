@@ -20,7 +20,7 @@ describe("businesses router", () => {
   it("lists businesses from the repository", async () => {
     const repository = new InMemoryBusinessRepository([sampleBusiness]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const businesses = await caller.list();
 
     expect(businesses).toHaveLength(1);
@@ -31,7 +31,7 @@ describe("businesses router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryBusinessRepository([]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const business = await caller.getById("nonexistent");
 
     expect(business).toBeNull();
@@ -40,7 +40,7 @@ describe("businesses router", () => {
   it("creates a business and returns it with a generated id", async () => {
     const repository = new InMemoryBusinessRepository([]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       accountId: "acc-1",
       name: "Tacos El Güero",
@@ -60,7 +60,7 @@ describe("businesses router", () => {
   it("updates a business and preserves unprovided fields", async () => {
     const repository = new InMemoryBusinessRepository([{ ...sampleBusiness }]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({
       id: "biz-1",
       name: "Tacos El Güero V2",
@@ -76,7 +76,7 @@ describe("businesses router", () => {
   it("returns null when updating a non-existent business", async () => {
     const repository = new InMemoryBusinessRepository([]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const result = await caller.update({ id: "nonexistent", name: "X" });
 
     expect(result).toBeNull();
@@ -85,7 +85,7 @@ describe("businesses router", () => {
   it("deletes a business and reports success", async () => {
     const repository = new InMemoryBusinessRepository([{ ...sampleBusiness }]);
     const router = createBusinessesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const deleted = await caller.delete("biz-1");
 
     expect(deleted).toBe(true);

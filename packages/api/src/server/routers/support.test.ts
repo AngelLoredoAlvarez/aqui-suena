@@ -22,8 +22,9 @@ const plans = [
 describe("support.chat", () => {
   it("returns fallback when no AI binding", async () => {
     const router = createSupportRouter(new InMemoryPlanRepository(plans), undefined);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "hola", locale: "es" });
+
     expect(result.fallback).toBe(true);
   });
 
@@ -35,8 +36,9 @@ describe("support.chat", () => {
       },
     };
     const router = createSupportRouter(new InMemoryPlanRepository(plans), fakeAi);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "¿qué planes hay?", locale: "es" });
+
     expect(result.fallback).toBe(false);
     expect(result.reply).toBe("El plan Comunidad es gratis.");
   });
@@ -49,8 +51,9 @@ describe("support.chat", () => {
       },
     };
     const router = createSupportRouter(new InMemoryPlanRepository(plans), fakeAi);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "hola", locale: "es" });
+
     expect(result.fallback).toBe(true);
     consoleSpy.mockRestore();
   });
@@ -63,14 +66,15 @@ describe("support.chat", () => {
       },
     };
     const router = createSupportRouter(new InMemoryPlanRepository(plans), fakeAi);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "hola", locale: "fr" });
+
     expect(result.fallback).toBe(false);
   });
 
   it("rejects message longer than 500 chars", async () => {
     const router = createSupportRouter(new InMemoryPlanRepository(plans), undefined);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     await expect(caller.chat({ message: "a".repeat(501), locale: "en" })).rejects.toThrow(
       "message is too long",
     );
@@ -92,8 +96,9 @@ describe("support.chat", () => {
       },
     };
     const router = createSupportRouter(new InMemoryPlanRepository([]), fakeAi, retriever);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "quiero el plan gratis", locale: "es" });
+
     expect(result.fallback).toBe(false);
   });
 
@@ -105,8 +110,9 @@ describe("support.chat", () => {
       },
     };
     const router = createSupportRouter(new InMemoryPlanRepository(plans), fakeAi);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
     const result = await caller.chat({ message: "What plans are available?", locale: "en" });
+
     expect(result.fallback).toBe(false);
     expect(result.reply).toBe("The Community plan is free.");
   });

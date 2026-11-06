@@ -2,7 +2,7 @@ import { appRouter } from "@aqui-suena/api/router";
 import { describe, expect, it } from "vitest";
 
 describe("business router — caps", () => {
-  const caller = appRouter.createCaller({});
+  const caller = appRouter.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
   it("rejects createProduct on free with UPGRADE_REQUIRED", async () => {
     await expect(
@@ -133,7 +133,7 @@ describe("business router — caps", () => {
 });
 
 describe("business router — list and create", () => {
-  const caller = appRouter.createCaller({});
+  const caller = appRouter.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
   it("caps products per plan in list (commerce)", async () => {
     const listing = {

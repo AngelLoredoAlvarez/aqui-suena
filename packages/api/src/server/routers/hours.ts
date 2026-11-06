@@ -1,5 +1,5 @@
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
 import * as v from "valibot";
 
 const createHourInput = v.object({
@@ -27,16 +27,16 @@ export function createHoursRouter(repository: HourRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: publicProcedure
+    create: protectedProcedure
       .input(createHourInput)
       .mutation(async ({ input }) => repository.create(input)),
 
-    update: publicProcedure.input(updateHourInput).mutation(async ({ input }) => {
+    update: protectedProcedure.input(updateHourInput).mutation(async ({ input }) => {
       const { id, ...rest } = input;
       return repository.update(id, rest);
     }),
 
-    delete: publicProcedure
+    delete: protectedProcedure
       .input((value: unknown) => {
         if (typeof value !== "string" || value.length === 0) throw new Error("Hour id is required");
         return value;

@@ -16,7 +16,7 @@ describe("photos router", () => {
   it("lists photos from the repository", async () => {
     const repository = new InMemoryPhotoRepository([{ ...sample }]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const photos = await caller.list();
 
     expect(photos).toHaveLength(1);
@@ -26,7 +26,7 @@ describe("photos router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryPhotoRepository([]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -34,7 +34,7 @@ describe("photos router", () => {
   it("creates a photo with generated id", async () => {
     const repository = new InMemoryPhotoRepository([]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       workEntryId: null,
@@ -50,7 +50,7 @@ describe("photos router", () => {
   it("updates a photo and preserves unprovided fields", async () => {
     const repository = new InMemoryPhotoRepository([{ ...sample }]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({
       id: "ph-1",
       url: "https://example.com/new.jpg",
@@ -65,7 +65,7 @@ describe("photos router", () => {
   it("allows setting nullable FKs to null explicitly", async () => {
     const repository = new InMemoryPhotoRepository([{ ...sample }]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "ph-1", workEntryId: null, productId: null });
 
     expect(updated?.workEntryId).toBeNull();
@@ -75,7 +75,7 @@ describe("photos router", () => {
   it("returns null when updating a non-existent photo", async () => {
     const repository = new InMemoryPhotoRepository([]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", url: "https://example.com/x.jpg" })).toBeNull();
   });
@@ -83,7 +83,7 @@ describe("photos router", () => {
   it("deletes a photo and reports success", async () => {
     const repository = new InMemoryPhotoRepository([{ ...sample }]);
     const router = createPhotosRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("ph-1")).toBe(true);
   });

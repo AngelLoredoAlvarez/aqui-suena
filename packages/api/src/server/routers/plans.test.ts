@@ -21,7 +21,7 @@ describe("plans router", () => {
     ]);
 
     const router = createPlansRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: null });
 
     const plans = await caller.list();
 

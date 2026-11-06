@@ -16,7 +16,7 @@ describe("services router", () => {
   it("lists services from the repository", async () => {
     const repository = new InMemoryServiceRepository([{ ...sample }]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const services = await caller.list();
 
     expect(services).toHaveLength(1);
@@ -26,7 +26,7 @@ describe("services router", () => {
   it("returns null when getById finds nothing", async () => {
     const repository = new InMemoryServiceRepository([]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
@@ -34,7 +34,7 @@ describe("services router", () => {
   it("creates a service with generated id", async () => {
     const repository = new InMemoryServiceRepository([]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const created = await caller.create({
       businessId: "biz-1",
       name: "Corte",
@@ -50,7 +50,7 @@ describe("services router", () => {
   it("updates a service and preserves unprovided fields", async () => {
     const repository = new InMemoryServiceRepository([{ ...sample }]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
     const updated = await caller.update({ id: "svc-1", name: "Corte premium", basePrice: 20000 });
 
     expect(updated?.name).toBe("Corte premium");
@@ -61,7 +61,7 @@ describe("services router", () => {
   it("returns null when updating a non-existent service", async () => {
     const repository = new InMemoryServiceRepository([]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.update({ id: "nonexistent", name: "X" })).toBeNull();
   });
@@ -69,7 +69,7 @@ describe("services router", () => {
   it("deletes a service and reports success", async () => {
     const repository = new InMemoryServiceRepository([{ ...sample }]);
     const router = createServicesRouter(repository);
-    const caller = router.createCaller({});
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.delete("svc-1")).toBe(true);
   });
