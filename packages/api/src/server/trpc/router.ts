@@ -34,7 +34,10 @@ export function createAppRouter(
       subscriptionRepository: directoryRepositories.subscription,
     }),
     business: businessRouter,
-    businesses: createBusinessesRouter(directoryRepositories.business),
+    businesses: createBusinessesRouter({
+      business: directoryRepositories.business,
+      subscription: directoryRepositories.subscription,
+    }),
     flyers: createFlyersRouter(directoryRepositories.flyer),
     hours: createHoursRouter(directoryRepositories.hour),
     listener: listenerRouter,

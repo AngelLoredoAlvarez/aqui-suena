@@ -6,7 +6,7 @@ import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
 import { resolvePlan } from "./ad-plan";
 import { toCarouselItem } from "./carousel";
-import { rankSponsors, type SponsorInput } from "./ranking";
+import { type CarouselSlotInput, selectCarouselSlots } from "./ranking";
 
 export type BusinessCarouselDeps = {
   readonly businessRepository: BusinessRepository;
@@ -21,7 +21,7 @@ export async function getBusinessCarousel(
 ): Promise<AdsCarouselItem[]> {
   const businesses = await deps.businessRepository.list();
 
-  const sponsors: SponsorInput[] = [];
+  const sponsors: CarouselSlotInput[] = [];
   const itemsById = new Map<string, AdsCarouselItem>();
 
   for (const business of businesses) {
@@ -34,6 +34,7 @@ export async function getBusinessCarousel(
     const flyer = flyers[0] ?? null;
     const plan = resolvePlan(subscription);
     const priority = getEntitlements(plan).priority;
+    const appearances = getEntitlements(plan).carouselAppearances;
     const eligible = flyer !== null;
 
     if (eligible && flyer) {
@@ -58,13 +59,14 @@ export async function getBusinessCarousel(
       id: business.id,
       priority,
       updatedAt: business.updatedAt.getTime(),
+      appearances,
       eligible,
     });
   }
 
-  const ranked = rankSponsors(sponsors);
+  const slots = selectCarouselSlots(sponsors);
 
-  return ranked
-    .map((sponsor) => itemsById.get(sponsor.id))
+  return slots
+    .map((id) => itemsById.get(id))
     .filter((item): item is AdsCarouselItem => item !== undefined);
 }

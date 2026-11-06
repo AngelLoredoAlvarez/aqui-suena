@@ -4,6 +4,8 @@
 
 export const UPGRADE_HINTS = {
   productCreate: "billing.upgradeRequired.productCreate",
+  businessCreate: "billing.upgradeRequired.businessCreate",
+  visibleSelection: "billing.upgradeRequired.visibleSelection",
 } as const;
 
 export const ENTITLEMENTS = {
@@ -99,6 +101,30 @@ export function assertCanCreateProduct(plan: PlanId): void {
 
 export function isWithinProductQuota(plan: PlanId, used: number): boolean {
   return used < ENTITLEMENTS[plan].products;
+}
+
+export type BusinessCreateResult =
+  | { allowed: true }
+  | { allowed: false; code: "UPGRADE_REQUIRED"; hint: string };
+
+export function canCreateBusiness(plan: PlanId, currentCount: number): BusinessCreateResult {
+  if (currentCount < ENTITLEMENTS[plan].maxBusinesses) {
+    return { allowed: true };
+  }
+
+  return {
+    allowed: false,
+    code: "UPGRADE_REQUIRED",
+    hint: UPGRADE_HINTS.businessCreate,
+  };
+}
+
+export function assertCanCreateBusiness(plan: PlanId, currentCount: number): void {
+  const result = canCreateBusiness(plan, currentCount);
+
+  if (!result.allowed) {
+    throw new UpgradeRequired(result.hint);
+  }
 }
 
 export function isWithinPhotoQuota(plan: PlanId, used: number): boolean {

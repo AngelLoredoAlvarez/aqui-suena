@@ -1,7 +1,16 @@
+import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/listing";
+import { assertCanCreateBusiness } from "@aqui-suena/api/entitlements";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
+
+export type BusinessesRouterDeps = {
+  readonly business: BusinessRepository;
+  readonly subscription: SubscriptionRepository;
+};
 
 const createBusinessInput = v.object({
   accountId: v.pipe(v.string(), v.minLength(1)),
@@ -25,7 +34,9 @@ const updateBusinessInput = v.object({
   delivery: v.optional(v.boolean()),
 });
 
-export function createBusinessesRouter(repository: BusinessRepository) {
+export function createBusinessesRouter(deps: BusinessesRouterDeps) {
+  const { business: repository, subscription: subscriptionRepository } = deps;
+
   return router({
     list: publicProcedure.query(async () => {
       return repository.list();
@@ -43,6 +54,20 @@ export function createBusinessesRouter(repository: BusinessRepository) {
       }),
 
     create: protectedProcedure.input(createBusinessInput).mutation(async ({ input }) => {
+      const subscription = await subscriptionRepository.getActive(input.accountId);
+      const plan = resolvePlan(subscription);
+
+      const existing = await repository.listByAccount(input.accountId);
+
+      try {
+        assertCanCreateBusiness(plan, existing.length);
+      } catch (error) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `UPGRADE_REQUIRED: ${(error as Error).message}`,
+        });
+      }
+
       return repository.create(input);
     }),
 

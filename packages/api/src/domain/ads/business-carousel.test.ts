@@ -93,7 +93,7 @@ describe("getBusinessCarousel", () => {
     expect(result).toEqual([]);
   });
 
-  it("ranks commerce above community", async () => {
+  it("gives commerce 3 appearances and community 1, interleaved", async () => {
     const community = makeBusiness({ id: "c-1", accountId: "acc-c", name: "Comunidad Biz" });
     const commerce = makeBusiness({ id: "m-1", accountId: "acc-m", name: "Comercio Biz" });
     const deps = makeDeps(
@@ -104,8 +104,16 @@ describe("getBusinessCarousel", () => {
     );
 
     const result = await getBusinessCarousel(deps, now);
+    const names = result.map((i) => i.name);
 
-    expect(result.map((i) => i.name)).toEqual(["Comercio Biz", "Comunidad Biz"]);
+    expect(names.filter((n) => n === "Comercio Biz")).toHaveLength(3);
+    expect(names.filter((n) => n === "Comunidad Biz")).toHaveLength(1);
+
+    let consecutivePairs = 0;
+    for (let i = 1; i < names.length; i++) {
+      if (names[i] === names[i - 1]) consecutivePairs++;
+    }
+    expect(consecutivePairs).toBeLessThanOrEqual(1);
   });
 
   it("uses recency as tie-breaker within the same plan", async () => {
