@@ -1,5 +1,5 @@
-import type { PlanId } from "@aqui-suena/api/entitlements";
-import type { Subscription } from "@aqui-suena/api/subscriptions";
+import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions";
 
 export function resolvePlan(subscription: Subscription | null): PlanId {
   if (!subscription) return "community";
