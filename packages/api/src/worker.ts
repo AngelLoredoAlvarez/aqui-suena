@@ -5,6 +5,7 @@ import {
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/d1-plan-repository";
+import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/d1-subscription-repository";
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
 import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
 import { D1HourRepository } from "@aqui-suena/api/infrastructure/directory/d1-hour-repository";
@@ -60,6 +61,7 @@ export default {
       workEntry: new D1WorkEntryRepository(env.aqui_suena_db),
       flyer: new D1FlyerRepository(env.aqui_suena_db),
       hour: new D1HourRepository(env.aqui_suena_db),
+      subscription: new D1SubscriptionRepository(env.aqui_suena_db),
     };
 
     // One-off seeding endpoint for the Vectorize plan index. Returns 404

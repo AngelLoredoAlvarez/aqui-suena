@@ -1,3 +1,5 @@
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
@@ -21,6 +23,7 @@ export interface DirectoryRepositories {
   workEntry: WorkEntryRepository;
   flyer: FlyerRepository;
   hour: HourRepository;
+  subscription: SubscriptionRepository;
 }
 
 export function createDefaultDirectoryRepositories(): DirectoryRepositories {
@@ -32,5 +35,6 @@ export function createDefaultDirectoryRepositories(): DirectoryRepositories {
     workEntry: new InMemoryWorkEntryRepository([]),
     flyer: new InMemoryFlyerRepository([]),
     hour: new InMemoryHourRepository([]),
+    subscription: new InMemorySubscriptionRepository([]),
   };
 }
