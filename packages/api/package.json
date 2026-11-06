@@ -11,6 +11,8 @@
     "./entitlements": "./src/domain/billing/entitlements.ts",
     "./listener": "./src/domain/radio/listener.ts",
     "./listing": "./src/domain/directory/listing.ts",
+    "./ranking": "./src/domain/ads/ranking.ts",
+    "./sheets": "./src/domain/directory/sheets.ts",
     "./payments": "./src/domain/billing/payments.ts",
     "./subscriptions": "./src/domain/billing/subscriptions.ts",
     "./subscriptions-service": "./src/domain/billing/subscriptions-service.ts",
