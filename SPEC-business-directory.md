@@ -84,7 +84,7 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 
 ## Boundaries
 
-- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, run `typecheck + lint + test` before commit.
+- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth on mutations (short-lived JWT in Authorization Bearer, verified server-side), run `typecheck + lint + test` before commit.
 - Ask first: add a listing field, change hours model, add image hosting provider (now R2 — see SPEC-media-storage).
 - Never: expose owner emails/phones to scrapers without rate limits, hardcode categories in UI (use shared enum), stop audio when opening a listing.
 
