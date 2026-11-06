@@ -4,6 +4,8 @@ compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
+# Supabase Auth: configured as secrets via `wrangler secret put SUPABASE_URL`
+# and `wrangler secret put SUPABASE_ANON_KEY` (not stored in this file).
 # Browser origins allowed by CORS. Setting this variable REPLACES the built-in
 # defaults, so it must list every origin that has to keep working:
 # http://localhost:3000 (web dev), tauri://localhost and http://tauri.localhost
