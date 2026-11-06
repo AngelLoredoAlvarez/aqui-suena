@@ -1,16 +1,8 @@
-import { appName } from "@aqui-suena/config";
-
-export const placeholderMessage = "UI placeholder";
-
-export function greeting(): string {
-  return `Hello from ${appName} UI placeholder`;
-}
-
-export type { AdsCarouselItem, AdsCarouselProps } from "./ads-carousel/ads-carousel";
-export { AdsCarousel } from "./ads-carousel/ads-carousel";
+export type { AdsCarouselItem, AdsCarouselProps } from "./ads-carousel";
+export { AdsCarousel } from "./ads-carousel";
 export type { LocaleContextValue, LocaleProviderProps } from "./i18n/locale-context";
 export { LocaleProvider, useLocale } from "./i18n/locale-context";
-export type { AsyncLocaleStore, LocaleStore } from "./i18n/locale-env";
+export type { AsyncLocaleStore, LocaleStore } from "./i18n/locale-storage";
 export {
   detectNativeLocale,
   detectWebLocale,
@@ -19,19 +11,17 @@ export {
   loadPersistedLocaleAsync,
   savePersistedLocale,
   savePersistedLocaleAsync,
-} from "./i18n/locale-env";
+} from "./i18n/locale-storage";
 export { LocaleSwitcher } from "./i18n/locale-switcher";
 export type { Dictionary, SupportedLocale } from "./i18n/locales";
 export { defaultLocale, en, es, getDictionary, resolveLocale } from "./i18n/locales";
 export type { OptimizedImageProps } from "./optimized-image";
 export { OptimizedImage } from "./optimized-image";
-export { PlayerCard } from "./player-card/player-card";
 export type {
   PlayerCardProps,
   PlayerCardStatus,
   StationRef,
-} from "./player-card/player-card.types";
-export { useListenerStatus } from "./player-landing/listener-status";
-export { PlayerLanding } from "./player-landing/player-landing";
-export { UiProvider } from "./shared/provider";
-export { SharedButton } from "./shared/shared-button";
+} from "./player-card";
+export { PlayerCard } from "./player-card";
+export { PlayerLanding, useListenerStatus } from "./player-landing";
+export { SharedButton, UiProvider } from "./shared";

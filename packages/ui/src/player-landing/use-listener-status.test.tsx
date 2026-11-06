@@ -8,8 +8,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useListenerStatus } from "./listener-status";
 import { PlayerLanding } from "./player-landing";
+import { useListenerStatus } from "./use-listener-status";
 
 // jsdom ships an Audio element whose play() is not implemented. Stub it so
 // the shared web driver resolves deterministically in these suites.

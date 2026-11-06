@@ -12,8 +12,8 @@ import {
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Paragraph, useMedia, YStack } from "tamagui";
-import { STATIONS, type TestChannel } from "./channels";
 import { PlayerDock } from "./player-dock";
+import { STATIONS, type TestChannel } from "./test-channels";
 
 export function StationPlayer({
   channel,

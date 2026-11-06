@@ -1,4 +1,4 @@
-import { Dock } from "./dock";
+import { CardDock } from "./card-dock";
 import type { PlayerCardProps } from "./player-card.types";
 
 export { PlayButton } from "./play-button";
@@ -9,5 +9,5 @@ export { StationButton } from "./station-button";
 export { StatusRow, statusDotColor, statusLabel } from "./status-indicator";
 
 export function PlayerCard(props: PlayerCardProps) {
-  return <Dock {...props} />;
+  return <CardDock {...props} />;
 }

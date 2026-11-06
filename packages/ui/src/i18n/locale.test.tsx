@@ -14,7 +14,7 @@ import {
   loadPersistedLocaleAsync,
   savePersistedLocale,
   savePersistedLocaleAsync,
-} from "./locale-env";
+} from "./locale-storage";
 import { LocaleSwitcher } from "./locale-switcher";
 
 function memoryStore(): LocaleStore & { backing: Map<string, string> } {

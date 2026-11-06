@@ -10,6 +10,9 @@ const uiSrc = fileURLToPath(new URL("./src", import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
+      "@aqui-suena/api/ads": fileURLToPath(
+        new URL("../api/src/domain/ads/ads-carousel.ts", import.meta.url),
+      ),
       "@aqui-suena/api/client": apiClient,
       "@aqui-suena/api": apiSrc,
       "@aqui-suena/config": configSrc,
