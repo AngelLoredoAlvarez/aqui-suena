@@ -76,7 +76,7 @@ const DAY_MAP: Readonly<Record<string, number>> = {
 };
 
 export function isOpenNow(
-  hours: { day: number; openMinute: number; closeMinute: number }[],
+  hours: readonly { day: number; openMinute: number; closeMinute: number }[],
   timezone: string,
   now: Date,
 ): boolean {
