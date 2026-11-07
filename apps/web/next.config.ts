@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
     ? { output: "export" as const }
     : {
         async rewrites() {
-          return [{ source: "/api/stream", destination: `${apiOrigin}/stream` }];
+          return [
+            { source: "/api/stream", destination: `${apiOrigin}/stream` },
+            { source: "/trpc/:path*", destination: `${apiOrigin}/trpc/:path*` },
+          ];
         },
       }),
 };
