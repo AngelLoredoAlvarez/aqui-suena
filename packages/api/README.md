@@ -27,6 +27,7 @@ gate that proves the types, exactly like the other packages.
 | `PORT`            | `3001`    | TCP port. Must be an integer between 1 and 65535.       |
 | `HOST`            | `0.0.0.0` | Bind address. Container platforms need every interface. |
 | `ALLOWED_ORIGINS` | see below | Comma-separated extra origins for CORS.                 |
+| `RESEND_API_KEY`  | (optional) | Resend API key for transactional emails (grace/renewal warnings). When unset, email sending is a no-op. |
 
 ## Routes
 

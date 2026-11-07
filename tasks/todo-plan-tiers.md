@@ -13,7 +13,7 @@
 - [x] Preserve deterministic ranking (Comunidad 0, Oficios 10, Comercios 20; recency tie-breaker) and 1/2/3 appearances per cycle with consecutive-repeat avoidance. *(Done 2026-11-06 on `feature/plan-tiers-task1-caps`: `selectCarouselSlots` + integration in `getBusinessCarousel`.)*
 - [x] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10. *(Done 2026-11-06: `canCreateBusiness`/`assertCanCreateBusiness` + enforcer in `businesses` router.)*
 - [x] Downgrade without data loss: pure helpers + DB schema (hiddenAt/retainedUntil on businesses, grace status + graceEnd on subscriptions) + enforcer in `SubscriptionService.changePlan`/`downgradeExpiredGrace` (hiddenBusinessIds, canChooseVisibleCount, retentionDeadline) + 90-day cleanup (`BusinessRepository.deleteExpired` + `/admin/purge-expired-businesses`). *(Done 2026-11-06 on `feature/plan-tiers-task1-db`.)*
-- [~] Cancellation without partial refunds: grace status + failRenewal + downgradeExpiredGrace done; email warning remains TODO (no email infra).
+- [~] Cancellation without partial refunds: grace status + failRenewal + downgradeExpiredGrace done; email warning pending (provider chosen: Resend, free tier; port/adapter not implemented yet).
 
 > Progress note (2026-11-06): Task 1 logic (pure helpers + entitlements + carousel + business cap enforcer) implemented and merged-ready on `feature/plan-tiers-task1-caps`. DB schema and email infra remain as TODOs.
 
