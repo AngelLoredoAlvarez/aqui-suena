@@ -35,6 +35,7 @@ gate that proves the types, exactly like the other packages.
 | `/health`      | `GET`      | `{"status":"ok"}` for deploy probes.           |
 | `/trpc/*`      | `GET,POST` | The shared `appRouter` from `./router`.        |
 | `/stream?url=` | `GET`      | Proxies an allowlisted radio mirror, streamed. |
+| `/admin/purge-expired-businesses` | `POST` (Bearer `ADMIN_TOKEN`) | Permanently deletes businesses past their 90-day retention. |
 
 ## Layout, and the one rule that keeps it safe
 

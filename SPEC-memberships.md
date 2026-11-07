@@ -71,7 +71,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
-- DB: Drizzle + D1/SQLite (`plans`, `subscriptions`, `payments`, `invoices`); entitlements are domain data, not a table
+- DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
