@@ -21,10 +21,12 @@ function makeBusiness(overrides: Partial<Business> = {}): Business {
     address: null,
     timezone: "America/Mexico_City",
     delivery: true,
+    hiddenAt: null,
+    retainedUntil: null,
     createdAt: new Date(),
     updatedAt: new Date("2026-11-06T10:00:00-06:00"),
     ...overrides,
-  };
+  } as Business;
 }
 
 function makeFlyer(businessId: string): Flyer {
@@ -56,6 +58,7 @@ function makeSubscription(accountId: string): Subscription {
     status: "active",
     startedAt: new Date(Date.now() - 1000),
     endsAt: new Date(Date.now() + 1000 * 60 * 60),
+    graceEnd: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

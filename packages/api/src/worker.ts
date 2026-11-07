@@ -81,6 +81,19 @@ export default {
       return Response.json(result);
     }
 
+    // One-off cleanup endpoint for businesses past their 90-day retention.
+    // Returns 404 unless ADMIN_TOKEN is configured; requires it to match.
+    if (new URL(request.url).pathname === "/admin/purge-expired-businesses") {
+      if (
+        !env.ADMIN_TOKEN ||
+        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
+      ) {
+        return new Response("Not found", { status: 404 });
+      }
+      const deleted = await directoryRepositories.business.deleteExpired(new Date());
+      return Response.json({ deleted });
+    }
+
     const retriever =
       embeddingModel && vectorIndex
         ? new VectorPlanCatalogRetriever({

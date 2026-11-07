@@ -1,3 +1,4 @@
+import { isRetentionExpired } from "@aqui-suena/api/domain/billing/downgrade";
 import type * as v from "valibot";
 import type { businessCategorySchema } from "./listing";
 
@@ -11,6 +12,8 @@ export type Business = {
   address: string | null;
   timezone: string;
   delivery: boolean;
+  hiddenAt: Date | null;
+  retainedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -34,6 +37,8 @@ export type UpdateBusinessInput = {
   address?: string | null;
   timezone?: string;
   delivery?: boolean;
+  hiddenAt?: Date | null;
+  retainedUntil?: Date | null;
 };
 
 export interface BusinessRepository {
@@ -43,6 +48,7 @@ export interface BusinessRepository {
   create(input: CreateBusinessInput): Promise<Business>;
   update(id: string, input: UpdateBusinessInput): Promise<Business | null>;
   delete(id: string): Promise<boolean | null>;
+  deleteExpired(now: Date): Promise<number>;
 }
 
 export class InMemoryBusinessRepository implements BusinessRepository {
@@ -71,6 +77,8 @@ export class InMemoryBusinessRepository implements BusinessRepository {
       address: input.address,
       timezone: input.timezone,
       delivery: input.delivery,
+      hiddenAt: null,
+      retainedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -95,6 +103,8 @@ export class InMemoryBusinessRepository implements BusinessRepository {
       address: input.address !== undefined ? input.address : current.address,
       timezone: input.timezone ?? current.timezone,
       delivery: input.delivery ?? current.delivery,
+      hiddenAt: input.hiddenAt ?? current.hiddenAt,
+      retainedUntil: input.retainedUntil ?? current.retainedUntil,
       updatedAt: new Date(),
     };
 
@@ -111,5 +121,19 @@ export class InMemoryBusinessRepository implements BusinessRepository {
     this.businesses.splice(index, 1);
 
     return true;
+  }
+
+  async deleteExpired(now: Date): Promise<number> {
+    let deleted = 0;
+
+    for (let i = this.businesses.length - 1; i >= 0; i--) {
+      const business = this.businesses[i] as Business;
+      if (business.retainedUntil !== null && isRetentionExpired(business.retainedUntil, now)) {
+        this.businesses.splice(i, 1);
+        deleted++;
+      }
+    }
+
+    return deleted;
   }
 }

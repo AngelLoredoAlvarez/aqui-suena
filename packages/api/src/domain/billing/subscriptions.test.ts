@@ -100,4 +100,44 @@ describe("InMemorySubscriptionRepository", () => {
 
     expect(active).toBeNull();
   });
+
+  it("treats a grace subscription as active while within its grace window", async () => {
+    const repo = new InMemorySubscriptionRepository();
+
+    const sub = await repo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await repo.updateStatus(sub.id, "grace");
+
+    await repo.updateGraceEnd(sub.id, new Date("2026-02-08"));
+
+    const active = await repo.getActive("acc-1", new Date("2026-02-05"));
+
+    expect(active?.id).toBe(sub.id);
+    expect(active?.status).toBe("grace");
+    expect(active?.graceEnd?.toISOString()).toBe("2026-02-08T00:00:00.000Z");
+  });
+
+  it("does not return a grace subscription once the grace window has passed", async () => {
+    const repo = new InMemorySubscriptionRepository();
+
+    const sub = await repo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await repo.updateStatus(sub.id, "grace");
+
+    await repo.updateGraceEnd(sub.id, new Date("2026-02-08"));
+
+    const active = await repo.getActive("acc-1", new Date("2026-02-09"));
+
+    expect(active).toBeNull();
+  });
 });

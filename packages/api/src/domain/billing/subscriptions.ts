@@ -1,6 +1,6 @@
+import { isInGracePeriod } from "@aqui-suena/api/domain/billing/downgrade";
 import type { PlanId } from "@aqui-suena/api/entitlements";
-
-export type SubscriptionStatus = "active" | "cancelled" | "expired";
+export type SubscriptionStatus = "active" | "cancelled" | "expired" | "grace";
 
 export type Subscription = {
   id: string;
@@ -9,6 +9,7 @@ export type Subscription = {
   status: SubscriptionStatus;
   startedAt: Date;
   endsAt: Date | null;
+  graceEnd: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -19,11 +20,16 @@ export interface SubscriptionRepository {
   create(accountId: string, planId: PlanId, startedAt: Date, endsAt: Date): Promise<Subscription>;
   updateStatus(id: string, status: SubscriptionStatus): Promise<void>;
   updateEndsAt(id: string, endsAt: Date): Promise<void>;
+  updateGraceEnd(id: string, graceEnd: Date): Promise<void>;
   listByAccount(accountId: string): Promise<Subscription[]>;
 }
 
 export class InMemorySubscriptionRepository implements SubscriptionRepository {
   constructor(private readonly store: Subscription[] = []) {}
+
+  async listByAccount(accountId: string): Promise<Subscription[]> {
+    return this.store.filter((s) => s.accountId === accountId);
+  }
 
   async getActive(accountId: string, now: Date = new Date()): Promise<Subscription | null> {
     const subs = this.store.filter((s) => s.accountId === accountId);
@@ -33,6 +39,12 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     );
 
     if (active) return active;
+
+    const grace = subs.find(
+      (s) => s.status === "grace" && s.graceEnd !== null && isInGracePeriod(s.graceEnd, now),
+    );
+
+    if (grace) return grace;
 
     const cancelled = subs.find(
       (s) => s.status === "cancelled" && s.endsAt !== null && s.endsAt > now,
@@ -58,6 +70,7 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
       status: "active",
       startedAt,
       endsAt,
+      graceEnd: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -84,7 +97,12 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     }
   }
 
-  async listByAccount(accountId: string): Promise<Subscription[]> {
-    return this.store.filter((s) => s.accountId === accountId);
+  async updateGraceEnd(id: string, graceEnd: Date): Promise<void> {
+    const sub = this.store.find((s) => s.id === id);
+
+    if (sub) {
+      sub.graceEnd = graceEnd;
+      sub.updatedAt = new Date();
+    }
   }
 }

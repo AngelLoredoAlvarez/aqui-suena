@@ -10,10 +10,11 @@ function makeSubscription(overrides: Partial<Subscription> = {}): Subscription {
     status: "active",
     startedAt: new Date(Date.now() - 1000),
     endsAt: new Date(Date.now() + 1000 * 60 * 60),
+    graceEnd: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  };
+  } as Subscription;
 }
 
 describe("resolvePlan", () => {

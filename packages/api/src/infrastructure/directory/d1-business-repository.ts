@@ -4,7 +4,7 @@ import type {
   CreateBusinessInput,
   UpdateBusinessInput,
 } from "@aqui-suena/api/domain/directory/business";
-import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type BusinessRow = {
   id: string;
@@ -16,6 +16,8 @@ type BusinessRow = {
   address: string | null;
   timezone: string;
   delivery: number;
+  hidden_at: number | null;
+  retained_until: number | null;
   created_at: number;
   updated_at: number;
 };
@@ -26,7 +28,7 @@ export class D1BusinessRepository implements BusinessRepository {
   async list(): Promise<Business[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, created_at, updated_at FROM businesses",
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses",
       )
       .all();
 
@@ -36,7 +38,7 @@ export class D1BusinessRepository implements BusinessRepository {
   async getById(id: string): Promise<Business | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, created_at, updated_at FROM businesses WHERE id = ?",
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE id = ?",
       )
       .bind(id)
       .first();
@@ -47,7 +49,7 @@ export class D1BusinessRepository implements BusinessRepository {
   async listByAccount(accountId: string): Promise<Business[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, created_at, updated_at FROM businesses WHERE account_id = ?",
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ?",
       )
       .bind(accountId)
       .all();
@@ -71,9 +73,11 @@ export class D1BusinessRepository implements BusinessRepository {
         address,
         timezone,
         delivery,
+        hidden_at,
+        retained_until,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
       )
       .bind(
@@ -86,6 +90,8 @@ export class D1BusinessRepository implements BusinessRepository {
         input.address ?? null,
         input.timezone,
         input.delivery ? 1 : 0,
+        null,
+        null,
         now,
         now,
       )
@@ -105,6 +111,8 @@ export class D1BusinessRepository implements BusinessRepository {
       address: input.address,
       timezone: input.timezone,
       delivery: input.delivery ? 1 : 0,
+      hidden_at: null,
+      retained_until: null,
       created_at: now,
       updated_at: now,
     });
@@ -125,6 +133,8 @@ export class D1BusinessRepository implements BusinessRepository {
       address: input.address !== undefined ? input.address : current.address,
       timezone: input.timezone ?? current.timezone,
       delivery: input.delivery ?? current.delivery,
+      hiddenAt: input.hiddenAt ?? current.hiddenAt,
+      retainedUntil: input.retainedUntil ?? current.retainedUntil,
       updatedAt: now,
     };
 
@@ -161,6 +171,15 @@ export class D1BusinessRepository implements BusinessRepository {
     return result.success && (result.meta?.changes ?? 0) > 0;
   }
 
+  async deleteExpired(now: Date): Promise<number> {
+    const result = await this.db
+      .prepare("DELETE FROM businesses WHERE retained_until IS NOT NULL AND retained_until <= ?")
+      .bind(toEpoch(now))
+      .run();
+
+    return result.success ? (result.meta?.changes ?? 0) : 0;
+  }
+
   private mapRow(row: BusinessRow): Business {
     return {
       id: row.id,
@@ -172,6 +191,8 @@ export class D1BusinessRepository implements BusinessRepository {
       address: row.address,
       timezone: row.timezone,
       delivery: row.delivery === 1,
+      hiddenAt: fromEpoch(row.hidden_at),
+      retainedUntil: fromEpoch(row.retained_until),
       createdAt: new Date(row.created_at * 1000),
       updatedAt: new Date(row.updated_at * 1000),
     };

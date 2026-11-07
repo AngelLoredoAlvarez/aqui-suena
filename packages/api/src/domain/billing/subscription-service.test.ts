@@ -2,6 +2,7 @@ import type { Plan } from "@aqui-suena/api/domain/billing/plans";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscription-service";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/entitlements";
 import { describe, expect, it } from "vitest";
@@ -160,14 +161,127 @@ describe("SubscriptionService.changePlan", () => {
 
     await service.changePlan(current.id, "trades");
 
-    // Durante el período pago, sigue vigente el plan viejo.
+    // During the paid period, the old plan remains in effect.
     const during = await subRepo.getActive("acc-1", new Date("2026-01-15"));
     expect(during?.planId).toBe("commerce");
 
-    // Cuando vence el período, toma efecto el plan nuevo.
+    // When the period ends, the new plan takes effect.
     const after = await subRepo.getActive("acc-1", new Date("2026-02-15"));
     expect(after?.planId).toBe("trades");
     expect(after?.status).toBe("active");
+  });
+
+  it("hides excess businesses on downgrade and retains them for 90 days", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const businessRepo = new InMemoryBusinessRepository([]);
+    const service = new SubscriptionService(subRepo, planRepo, businessRepo);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    const keep = await businessRepo.create({
+      accountId: "acc-1",
+      name: "Keep",
+      category: "food",
+      phone: null,
+      email: null,
+      address: null,
+      timezone: "UTC",
+      delivery: false,
+    });
+
+    const hide1 = await businessRepo.create({
+      accountId: "acc-1",
+      name: "Hide1",
+      category: "food",
+      phone: null,
+      email: null,
+      address: null,
+      timezone: "UTC",
+      delivery: false,
+    });
+
+    const hide2 = await businessRepo.create({
+      accountId: "acc-1",
+      name: "Hide2",
+      category: "food",
+      phone: null,
+      email: null,
+      address: null,
+      timezone: "UTC",
+      delivery: false,
+    });
+
+    const now = new Date("2026-01-15T00:00:00Z");
+
+    await service.changePlan(current.id, "trades", [keep.id], now);
+
+    const kept = await businessRepo.getById(keep.id);
+    const h1 = await businessRepo.getById(hide1.id);
+    const h2 = await businessRepo.getById(hide2.id);
+
+    expect(kept?.hiddenAt).toBeNull();
+    expect(kept?.retainedUntil).toBeNull();
+    expect(h1?.hiddenAt?.toISOString()).toBe(now.toISOString());
+    expect(h2?.hiddenAt?.toISOString()).toBe(now.toISOString());
+
+    const expectedRetention = new Date(now);
+    expectedRetention.setDate(expectedRetention.getDate() + 90);
+
+    expect(h1?.retainedUntil?.toISOString()).toBe(expectedRetention.toISOString());
+    expect(h2?.retainedUntil?.toISOString()).toBe(expectedRetention.toISOString());
+  });
+
+  it("rejects selecting more visible businesses than the new plan allows", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const businessRepo = new InMemoryBusinessRepository([]);
+    const service = new SubscriptionService(subRepo, planRepo, businessRepo);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    const b1 = await businessRepo.create({
+      accountId: "acc-1",
+      name: "B1",
+      category: "food",
+      phone: null,
+      email: null,
+      address: null,
+      timezone: "UTC",
+      delivery: false,
+    });
+
+    const b2 = await businessRepo.create({
+      accountId: "acc-1",
+      name: "B2",
+      category: "food",
+      phone: null,
+      email: null,
+      address: null,
+      timezone: "UTC",
+      delivery: false,
+    });
+
+    // trades cap = 3, so 2 visibles is fine; community cap = 1, so 2 visibles must fail.
+    const now = new Date("2026-01-15T00:00:00Z");
+
+    await expect(service.changePlan(current.id, "community", [b1.id, b2.id], now)).rejects.toThrow(
+      /UPGRADE_REQUIRED/,
+    );
+
+    // Nothing should have been hidden because validation fails before mutation.
+    expect((await businessRepo.getById(b1.id))?.hiddenAt).toBeNull();
+    expect((await businessRepo.getById(b2.id))?.hiddenAt).toBeNull();
   });
 });
 
@@ -245,5 +359,111 @@ describe("SubscriptionService.subscribe", () => {
 
     expect(sub.planId).toBe("community");
     expect(sub.status).toBe("active");
+  });
+});
+
+describe("SubscriptionService.failRenewal", () => {
+  it("marks the subscription as grace with a 7-day deadline", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    const failedAt = new Date("2026-02-01T00:00:00Z");
+
+    await service.failRenewal(sub.id, failedAt);
+
+    const updated = await subRepo.getById(sub.id);
+    expect(updated?.status).toBe("grace");
+    expect(updated?.graceEnd?.toISOString()).toBe("2026-02-08T00:00:00.000Z");
+  });
+
+  it("throws when the subscription does not exist", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    await expect(service.failRenewal("non-existent", new Date())).rejects.toThrow(
+      "Subscription not found",
+    );
+  });
+});
+
+describe("SubscriptionService.downgradeExpiredGrace", () => {
+  it("does not downgrade while still in the grace window", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+
+    const result = await service.downgradeExpiredGrace(
+      sub.id,
+      "community",
+      new Date("2026-02-05T00:00:00Z"),
+    );
+
+    expect(result).toBeNull();
+    expect((await subRepo.getById(sub.id))?.status).toBe("grace");
+  });
+
+  it("downgrades once the grace window has expired", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+
+    const result = await service.downgradeExpiredGrace(
+      sub.id,
+      "community",
+      new Date("2026-02-10T00:00:00Z"),
+    );
+
+    expect(result).not.toBeNull();
+    expect(result?.planId).toBe("community");
+    expect(result?.status).toBe("active");
+    expect((await subRepo.getById(sub.id))?.status).toBe("cancelled");
+  });
+
+  it("returns null for a non-grace subscription", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    const result = await service.downgradeExpiredGrace(
+      sub.id,
+      "community",
+      new Date("2026-02-10T00:00:00Z"),
+    );
+
+    expect(result).toBeNull();
   });
 });
