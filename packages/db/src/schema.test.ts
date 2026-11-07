@@ -34,7 +34,7 @@ describe("listenSessions", () => {
 });
 
 describe("businesses", () => {
-  it("exposes id, account reference, name, category, phone, email, address, timezone, delivery and timestamps", () => {
+  it("exposes id, account reference, name, category, phone, email, address, timezone, delivery, visibility/retention and timestamps", () => {
     expect(columnNames(businesses)).toEqual(
       expect.arrayContaining([
         "id",
@@ -46,6 +46,8 @@ describe("businesses", () => {
         "address",
         "timezone",
         "delivery",
+        "hidden_at",
+        "retained_until",
         "created_at",
         "updated_at",
       ]),
@@ -106,7 +108,7 @@ describe("plans", () => {
 });
 
 describe("subscriptions", () => {
-  it("exposes id, account reference, plan reference, status and period timestamps", () => {
+  it("exposes id, account reference, plan reference, status, period timestamps and grace end", () => {
     expect(columnNames(subscriptions)).toEqual(
       expect.arrayContaining([
         "id",
@@ -115,6 +117,7 @@ describe("subscriptions", () => {
         "status",
         "started_at",
         "ends_at",
+        "grace_end",
         "created_at",
         "updated_at",
       ]),

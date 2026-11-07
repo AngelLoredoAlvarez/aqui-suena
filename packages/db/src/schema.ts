@@ -65,6 +65,7 @@ export const subscriptions = sqliteTable("subscriptions", {
   status: text("status").notNull().default("active"),
   startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
   endsAt: integer("ends_at", { mode: "timestamp" }),
+  graceEnd: integer("grace_end", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -123,6 +124,8 @@ export const businesses = sqliteTable("businesses", {
   address: text("address"),
   timezone: text("timezone").notNull(),
   delivery: integer("delivery", { mode: "boolean" }).notNull().default(false),
+  hiddenAt: integer("hidden_at", { mode: "timestamp" }),
+  retainedUntil: integer("retained_until", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
