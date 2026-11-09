@@ -59,6 +59,7 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 ## Status
 
 CLOSED 2026-10-23. All FS1-FS4 items verified done:
+
 - FS1: SPEC cleaned of local-only references.
 - FS2: Catalog schema (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes) + seed rule + explicit forbids + 3-channel table already in SPEC-radio-playback.md "Catalog (safe test-stations harness)".
 - FS3: Proof-file process and generation approach (ffmpeg, `-c:a aac`, zero downloads) documented in SPEC + feature doc; `.gitignore` rule active for `public/test-streams/*.m4a`.

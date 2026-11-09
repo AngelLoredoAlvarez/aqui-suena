@@ -167,6 +167,7 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 ### Scope boundary
 
 The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
+
 - CTA) rendered responsively across all three breakpoints. The directory
   **list** and the tablet/web **contact detail panel** (phone/WhatsApp/
   address/hours + Call/WhatsApp/Get directions) belong to

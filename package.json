@@ -29,8 +29,8 @@
     "varlock:codegen": "varlock codegen"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.5",
-    "@infisical/cli": "^0.45.0",
+    "@biomejs/biome": "2.6.6",
+    "@infisical/cli": "^0.45.4",
     "@swc/core": "1.16.22",
     "@varlock/infisical-plugin": "^2.1.3",
     "dependency-cruiser": "18.7.2",

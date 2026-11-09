@@ -43,6 +43,7 @@ packages/
 ```
 
 Routes:
+
 ```
 / (landing) → player + ads carousel on web and native, from shared code.
 /player/*   → does not exist by product decision: the player switches

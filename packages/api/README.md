@@ -22,20 +22,20 @@ gate that proves the types, exactly like the other packages.
 
 ## Environment
 
-| Variable          | Default   | Purpose                                                 |
-| ----------------- | --------- | ------------------------------------------------------- |
-| `PORT`            | `3001`    | TCP port. Must be an integer between 1 and 65535.       |
-| `HOST`            | `0.0.0.0` | Bind address. Container platforms need every interface. |
-| `ALLOWED_ORIGINS` | see below | Comma-separated extra origins for CORS.                 |
+| Variable          | Default    | Purpose                                                                                                 |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                       |
+| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                 |
+| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                 |
 | `RESEND_API_KEY`  | (optional) | Resend API key for transactional emails (grace/renewal warnings). When unset, email sending is a no-op. |
 
 ## Routes
 
-| Route          | Method     | Behavior                                       |
-| -------------- | ---------- | ---------------------------------------------- |
-| `/health`      | `GET`      | `{"status":"ok"}` for deploy probes.           |
-| `/trpc/*`      | `GET,POST` | The shared `appRouter` from `./router`.        |
-| `/stream?url=` | `GET`      | Proxies an allowlisted radio mirror, streamed. |
+| Route                             | Method                        | Behavior                                                    |
+| --------------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| `/health`                         | `GET`                         | `{"status":"ok"}` for deploy probes.                        |
+| `/trpc/*`                         | `GET,POST`                    | The shared `appRouter` from `./router`.                     |
+| `/stream?url=`                    | `GET`                         | Proxies an allowlisted radio mirror, streamed.              |
 | `/admin/purge-expired-businesses` | `POST` (Bearer `ADMIN_TOKEN`) | Permanently deletes businesses past their 90-day retention. |
 
 ## Layout, and the one rule that keeps it safe

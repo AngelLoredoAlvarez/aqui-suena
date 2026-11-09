@@ -7,6 +7,7 @@ Web-first admin panel for Aquí Suena, used by 17Labs staff to manage business p
 ## Scope (V1)
 
 The admin panel manages:
+
 - Business plans: name, description, audience, price, billing period, benefits, limits, status.
 - Accounts and businesses: view, suspend, reactivate, inspect plan and usage.
 - Flyers and media: review, approve, reject, remove.
@@ -34,6 +35,7 @@ Each role has explicit permissions. No shared admin password.
 ## Audit
 
 Every admin action is recorded in an append-only audit log:
+
 - actor
 - role
 - action

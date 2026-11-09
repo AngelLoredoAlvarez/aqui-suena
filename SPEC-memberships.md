@@ -16,6 +16,7 @@ For any person or business that wants basic presence and direct contact.
 Card description: advertise a business at no cost and join the regional directory.
 
 Includes:
+
 - Direct contact details: WhatsApp, phone, and address.
 - One basic flyer in the visual carousel rotation, replaceable only every 15 days.
 - Quick open/closed status indicator.
@@ -35,6 +36,7 @@ For service providers of any profession: electricians, plumbers, dentists, lawye
 Card description: show professional experience and reach more clients with a profile designed for home-service work.
 
 Includes:
+
 - Universal contact details.
 - Higher carousel frequency and visual priority than Comunidad.
 - Profile specialties, coverage area, and up to 30 offered services per business with optional base diagnostic rates.
@@ -55,6 +57,7 @@ For established businesses that sell products or catalogs: hardware stores, rest
 Card description: stand out with a complete digital storefront where listeners can explore everything the business sells.
 
 Includes:
+
 - Universal contact details.
 - Maximum carousel priority and featured rotation.
 - Digital catalog ordered by categories with up to 50 products per business, reference prices, and up to 3 photos per product.
