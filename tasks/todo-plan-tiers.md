@@ -29,7 +29,7 @@
 - [ ] Enforce Comunidad flyer replacement cooldown server-side: 15 days, typed `FLYER_REPLACEMENT_COOLDOWN`, next allowed date in the error.
 - [ ] Add an informational owner onboarding checklist with automatic completion and plan-specific steps.
 - [ ] Add free-plan abuse prevention: email verification, phone verification before publishing, duplicate-account detection, and manual review for suspicious signups.
-- [ ] Send renewal and expiration reminders: 7 days before charge, 1 day before charge, on failed payment, and on downgrade; allow disabling non-critical reminders.
+- [~] Send renewal and expiration reminders: 7-day and 1-day renewal reminders implemented (RenewalReminderService + dueReminders + InMemoryReminderLogRepository + reminderContent). On failed payment covered by failRenewal grace warning. On downgrade notification pending. Allow disabling non-critical reminders via ReminderPreferences. _(Done 2026-11-09 on `feature/renewal-reminders`.)_
 - [ ] Default the billing page to annual billing with a monthly/annual toggle, annual savings messaging, and pre-payment period changes.
 - [ ] Show contextual upgrade prompts only when an action hits a plan limit, with the specific next-tier benefit, a clear "Ver planes"/"View plans" action, and no repeated prompt in the same session.
 - [ ] Support optional temporary featured placements as an upsell with clear labeling, start/end dates, category or period capacity limits, and no override of paid-plan baseline priority.
