@@ -1,5 +1,7 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
 import { InMemoryPlanRepository, type PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/billing/plans";
 import { createCarouselRouter } from "@aqui-suena/api/server/routers/carousel";
@@ -11,6 +13,7 @@ import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/pho
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/directory/work-entries";
+import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { listenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import {
@@ -25,6 +28,7 @@ export function createAppRouter(
   ai?: AiBinding,
   planCatalogRetriever?: PlanCatalogRetriever,
   aiGatewayId?: string,
+  mediaStorage?: ObjectStorage,
 ) {
   return router({
     ads: createCarouselRouter({
@@ -41,6 +45,7 @@ export function createAppRouter(
     flyers: createFlyersRouter(directoryRepositories.flyer),
     hours: createHoursRouter(directoryRepositories.hour),
     listener: listenerRouter,
+    media: createMediaRouter(directoryRepositories.media, mediaStorage ?? new FakeObjectStorage()),
     photos: createPhotosRouter(directoryRepositories.photo),
     products: createProductsRouter(directoryRepositories.product),
     services: createServicesRouter(directoryRepositories.service),

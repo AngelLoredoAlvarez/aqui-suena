@@ -13,6 +13,8 @@ import { D1PhotoRepository } from "@aqui-suena/api/infrastructure/directory/d1-p
 import { D1ProductRepository } from "@aqui-suena/api/infrastructure/directory/d1-product-repository";
 import { D1ServiceRepository } from "@aqui-suena/api/infrastructure/directory/d1-service-repository";
 import { D1WorkEntryRepository } from "@aqui-suena/api/infrastructure/directory/d1-work-entry-repository";
+import { D1MediaRepository } from "@aqui-suena/api/infrastructure/media/d1-media-repository";
+import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
@@ -38,6 +40,12 @@ export interface WorkerEnv {
   AI_GATEWAY_ID?: string;
   /** Required to call POST /admin/seed-vectors. */
   ADMIN_TOKEN?: string;
+  /** R2 (S3-compatible) credentials for media storage. Optional: when absent, media uses an in-memory fake. */
+  R2_ACCOUNT_ID?: string;
+  R2_ACCESS_KEY_ID?: string;
+  R2_SECRET_ACCESS_KEY?: string;
+  R2_BUCKET_NAME?: string;
+  R2_ENDPOINT?: string;
 }
 
 export default {
@@ -62,7 +70,19 @@ export default {
       flyer: new D1FlyerRepository(env.aqui_suena_db),
       hour: new D1HourRepository(env.aqui_suena_db),
       subscription: new D1SubscriptionRepository(env.aqui_suena_db),
+      media: new D1MediaRepository(env.aqui_suena_db),
     };
+
+    const mediaStorage =
+      env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY
+        ? new R2ObjectStorage({
+            accountId: env.R2_ACCOUNT_ID,
+            accessKeyId: env.R2_ACCESS_KEY_ID,
+            secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+            bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
+            endpoint: env.R2_ENDPOINT,
+          })
+        : undefined;
 
     // One-off seeding endpoint for the Vectorize plan index. Returns 404
     // unless ADMIN_TOKEN is configured; requires it to match.
@@ -113,6 +133,7 @@ export default {
       ai,
       planCatalogRetriever: retriever,
       aiGatewayId: gatewayId,
+      mediaStorage,
     });
 
     return app.fetch(request, env);

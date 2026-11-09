@@ -1,4 +1,5 @@
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
 import { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
@@ -24,6 +25,7 @@ export interface AppOptions {
   aiGatewayId?: string;
   planRepository?: PlanRepository;
   directoryRepositories?: DirectoryRepositories;
+  mediaStorage?: ObjectStorage;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -36,6 +38,7 @@ export function createApp(options: AppOptions): Hono {
     options.ai,
     options.planCatalogRetriever,
     options.aiGatewayId,
+    options.mediaStorage,
   );
   const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);
 
