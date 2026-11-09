@@ -6,6 +6,7 @@ import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/bus
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/entitlements";
 import { describe, expect, it } from "vitest";
+import { FakeEmailSender } from "./email";
 
 const communityPlan: Plan = {
   id: "community",
@@ -465,5 +466,62 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
     );
 
     expect(result).toBeNull();
+  });
+});
+
+describe("SubscriptionService.failRenewal with email", () => {
+  it("sends a grace-period warning email when sender and email are provided", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+
+    expect(fakeEmail.sent).toHaveLength(1);
+    expect(fakeEmail.sent[0]?.to).toBe("owner@example.com");
+    expect(fakeEmail.sent[0]?.subject).toContain("gracia");
+  });
+
+  it("does not send email when no recipient email is provided", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+
+    expect(fakeEmail.sent).toHaveLength(0);
+  });
+
+  it("does not send email when no email sender is injected", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await expect(
+      service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com"),
+    ).resolves.toBeUndefined();
   });
 });

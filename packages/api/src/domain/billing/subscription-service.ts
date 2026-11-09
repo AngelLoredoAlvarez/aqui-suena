@@ -5,6 +5,7 @@ import {
   isInGracePeriod,
   retentionDeadline,
 } from "@aqui-suena/api/domain/billing/downgrade";
+import type { EmailSender } from "@aqui-suena/api/domain/billing/email";
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
 import type {
   Subscription,
@@ -26,6 +27,7 @@ export class SubscriptionService {
     private readonly subscriptionRepo: SubscriptionRepository,
     private readonly planRepo: PlanRepository,
     private readonly businessRepo?: BusinessRepository,
+    private readonly emailSender?: EmailSender,
   ) {}
 
   /**
@@ -135,9 +137,12 @@ export class SubscriptionService {
   /**
    * Marks a subscription as being in its grace period after a failed renewal.
    * The subscription stays usable until graceEnd; downgrade happens only after.
-   * TODO: send email warning (no email infrastructure yet).
    */
-  async failRenewal(subscriptionId: string, failedAt: Date): Promise<void> {
+  async failRenewal(
+    subscriptionId: string,
+    failedAt: Date,
+    recipientEmail?: string,
+  ): Promise<void> {
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
@@ -146,6 +151,24 @@ export class SubscriptionService {
 
     await this.subscriptionRepo.updateStatus(subscriptionId, "grace");
     await this.subscriptionRepo.updateGraceEnd(subscriptionId, graceDeadline(failedAt));
+
+    // Send grace-period warning email (best-effort: email is a side effect,
+    // not the source of truth). Only sends when both sender and email exist.
+    if (this.emailSender && recipientEmail) {
+      const graceEnd = graceDeadline(failedAt);
+
+      await this.emailSender.send({
+        to: recipientEmail,
+        subject: "Tu pago falló — periodo de gracia de 7 días",
+        html: [
+          "<p>Tu pago recurrente no se pudo procesar.</p>",
+          `<p>Tenés hasta el <strong>${graceEnd.toISOString().slice(0, 10)}</strong> `,
+          "para regularizar tu pago. Después de esa fecha, tu plan se degradará ",
+          "automáticamente al plan Comunidad.</p>",
+          "<p>Si creés que es un error, contactá a soporte.</p>",
+        ].join(""),
+      });
+    }
   }
 
   async downgradeExpiredGrace(

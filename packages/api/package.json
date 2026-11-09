@@ -16,6 +16,7 @@
     "./payments": "./src/domain/billing/payments.ts",
     "./subscriptions": "./src/domain/billing/subscriptions.ts",
     "./subscriptions-service": "./src/domain/billing/subscription-service.ts",
+    "./email": "./src/domain/billing/email.ts",
     "./package.json": "./package.json",
     "./router": "./src/server/trpc/router.ts",
     "./supabase": "./src/supabase.ts",
