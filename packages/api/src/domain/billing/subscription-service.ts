@@ -30,14 +30,6 @@ export class SubscriptionService {
     private readonly emailSender?: EmailSender,
   ) {}
 
-  /**
-   * Creates a new subscription for an account, cancelling any subscription
-   * that is currently active (or in its grace period) first.
-   *
-   * Enforces the invariant "at most one active subscription per account"
-   * at the service boundary. A database-level partial unique index is the
-   * only protection against direct repository calls and race conditions.
-   */
   async subscribe(
     accountId: string,
     planId: PlanId,
@@ -60,17 +52,22 @@ export class SubscriptionService {
     newPlanId: PlanId,
     visibleBusinessIds?: string[],
     now: Date = new Date(),
+    recipientEmail?: string,
   ): Promise<Subscription> {
     const current = await this.subscriptionRepo.getById(subscriptionId);
+
     if (!current) {
       throw new Error("Subscription not found");
     }
+
     if (current.status !== "active") {
       throw new Error("Subscription is not active");
     }
 
     const currentPlan = await this.planRepo.getById(current.planId);
+
     const newPlan = await this.planRepo.getById(newPlanId);
+
     if (!currentPlan || !newPlan) {
       throw new Error("Plan not found");
     }
@@ -86,6 +83,7 @@ export class SubscriptionService {
 
       const now = new Date();
       const endsAt = addMonths(now, PERIOD_MONTHS);
+
       return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
     }
 
@@ -119,14 +117,29 @@ export class SubscriptionService {
 
     await this.subscriptionRepo.create(current.accountId, newPlanId, startedAt, endsAt);
 
+    // Send downgrade notification (best-effort: email is a side effect).
+    if (this.emailSender && recipientEmail) {
+      await this.emailSender.send({
+        to: recipientEmail,
+        subject: "Tu plan ha sido degradado",
+        html: [
+          `<p>Tu plan ha sido degradado a <strong>${newPlan.name}</strong>.</p>`,
+          "<p>Si tenías negocios en exceso, han sido ocultados pero se conservan por 90 días.</p>",
+          "<p>Podés volver a subir de plan en cualquier momento para restaurar el acceso completo.</p>",
+        ].join(""),
+      });
+    }
+
     return current;
   }
 
   async cancel(subscriptionId: string): Promise<void> {
     const current = await this.subscriptionRepo.getById(subscriptionId);
+
     if (!current) {
       throw new Error("Subscription not found");
     }
+
     if (current.status !== "active") {
       throw new Error("Subscription is not active");
     }
@@ -134,10 +147,6 @@ export class SubscriptionService {
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
   }
 
-  /**
-   * Marks a subscription as being in its grace period after a failed renewal.
-   * The subscription stays usable until graceEnd; downgrade happens only after.
-   */
   async failRenewal(
     subscriptionId: string,
     failedAt: Date,
@@ -150,10 +159,9 @@ export class SubscriptionService {
     }
 
     await this.subscriptionRepo.updateStatus(subscriptionId, "grace");
+
     await this.subscriptionRepo.updateGraceEnd(subscriptionId, graceDeadline(failedAt));
 
-    // Send grace-period warning email (best-effort: email is a side effect,
-    // not the source of truth). Only sends when both sender and email exist.
     if (this.emailSender && recipientEmail) {
       const graceEnd = graceDeadline(failedAt);
 
@@ -176,6 +184,7 @@ export class SubscriptionService {
     newPlanId: PlanId,
     now: Date = new Date(),
     visibleBusinessIds?: string[],
+    recipientEmail?: string,
   ): Promise<Subscription | null> {
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
@@ -193,10 +202,12 @@ export class SubscriptionService {
       if (!selection.allowed) throw new Error(`UPGRADE_REQUIRED: ${selection.hint}`);
 
       const businesses = await this.businessRepo.listByAccount(current.accountId);
+
       const toHide = hiddenBusinessIds(
         businesses.map((b) => b.id),
         visibleBusinessIds,
       );
+
       const retainedUntil = retentionDeadline(now);
 
       for (const id of toHide) {
@@ -205,6 +216,22 @@ export class SubscriptionService {
     }
 
     const endsAt = addMonths(now, PERIOD_MONTHS);
-    return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
+    const newSub = await this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
+
+    // Send downgrade notification (best-effort: email is a side effect).
+    if (this.emailSender && recipientEmail) {
+      const plan = await this.planRepo.getById(newPlanId);
+      await this.emailSender.send({
+        to: recipientEmail,
+        subject: "Tu plan ha sido degradado",
+        html: [
+          `<p>Tu plan ha sido degradado a <strong>${plan?.name ?? newPlanId}</strong>.</p>`,
+          "<p>Tu periodo de gracia expiró. Si tenías negocios en exceso, han sido ocultados pero se conservan por 90 días.</p>",
+          "<p>Podés volver a subir de plan en cualquier momento para restaurar el acceso completo.</p>",
+        ].join(""),
+      });
+    }
+
+    return newSub;
   }
 }

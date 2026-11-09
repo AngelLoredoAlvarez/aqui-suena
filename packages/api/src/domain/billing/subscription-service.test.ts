@@ -525,3 +525,171 @@ describe("SubscriptionService.failRenewal with email", () => {
     ).resolves.toBeUndefined();
   });
 });
+
+describe("SubscriptionService.changePlan downgrade notification", () => {
+  it("sends downgrade notification when downgrading with email", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.changePlan(
+      current.id,
+      "trades",
+      undefined,
+      new Date("2026-01-15"),
+      "owner@example.com",
+    );
+
+    expect(fakeEmail.sent).toHaveLength(1);
+    expect(fakeEmail.sent[0]?.to).toBe("owner@example.com");
+    expect(fakeEmail.sent[0]?.subject).toContain("degradado");
+  });
+
+  it("does not send notification when upgrading", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.changePlan(
+      current.id,
+      "trades",
+      undefined,
+      new Date("2026-01-15"),
+      "owner@example.com",
+    );
+
+    expect(fakeEmail.sent).toHaveLength(0);
+  });
+
+  it("does not send notification when no emailSender", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await expect(
+      service.changePlan(
+        current.id,
+        "trades",
+        undefined,
+        new Date("2026-01-15"),
+        "owner@example.com",
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it("does not send notification when no recipientEmail", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.changePlan(current.id, "trades");
+
+    expect(fakeEmail.sent).toHaveLength(0);
+  });
+});
+
+describe("SubscriptionService.downgradeExpiredGrace notification", () => {
+  it("sends downgrade notification when grace expires with email", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+
+    await service.downgradeExpiredGrace(
+      sub.id,
+      "community",
+      new Date("2026-02-10T00:00:00Z"),
+      undefined,
+      "owner@example.com",
+    );
+
+    // failRenewal sends grace warning + downgradeExpiredGrace sends downgrade notification
+    expect(fakeEmail.sent).toHaveLength(2);
+    expect(fakeEmail.sent[1]?.subject).toContain("degradado");
+  });
+
+  it("does not send notification when no emailSender", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService(subRepo, planRepo);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+
+    const result = await service.downgradeExpiredGrace(
+      sub.id,
+      "community",
+      new Date("2026-02-10T00:00:00Z"),
+    );
+
+    expect(result).not.toBeNull();
+  });
+
+  it("does not send notification when no recipientEmail", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const fakeEmail = new FakeEmailSender();
+    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+
+    await service.downgradeExpiredGrace(sub.id, "community", new Date("2026-02-10T00:00:00Z"));
+
+    // Only the grace warning from failRenewal, no downgrade notification
+    expect(fakeEmail.sent).toHaveLength(1);
+    expect(fakeEmail.sent[0]?.subject).toContain("gracia");
+  });
+});
