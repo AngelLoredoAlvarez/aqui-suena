@@ -219,3 +219,17 @@ export const hours = sqliteTable("hours", {
   openMinute: integer("open_minute").notNull(), // minutes since midnight
   closeMinute: integer("close_minute").notNull(),
 });
+
+export const media = sqliteTable("media", {
+  id: text("id").primaryKey(),
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => accounts.id),
+  kind: text("kind").notNull(), // "product-photo" | "flyer" | "spot-audio" | "avatar"
+  r2Key: text("r2_key").notNull(),
+  mime: text("mime").notNull(),
+  size: integer("size").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
