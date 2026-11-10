@@ -1,5 +1,5 @@
-import type { AdsCarouselItem } from "@aqui-suena/api/ads";
-import { adsCarouselOutput } from "@aqui-suena/api/ads";
+import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";
+import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/ads-carousel";
 import type { ListenerStatus } from "@aqui-suena/api/domain/radio/listener";
 import { getMockListenerStatus, listenerStatusInput } from "@aqui-suena/api/domain/radio/listener";
 import * as v from "valibot";
@@ -51,4 +51,4 @@ export async function fetchAdsCarousel(baseUrl?: string): Promise<AdsCarouselIte
   return v.parse(adsCarouselOutput, items);
 }
 
-export type { AdsCarouselItem } from "@aqui-suena/api/ads";
+export type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";

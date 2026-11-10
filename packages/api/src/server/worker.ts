@@ -4,7 +4,7 @@ import {
   seedPlanVectors,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
-import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/d1-plan-repository";
+import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/catalog/d1-plan-repository";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";

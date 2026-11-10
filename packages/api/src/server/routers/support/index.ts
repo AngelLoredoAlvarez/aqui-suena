@@ -3,7 +3,7 @@ import {
   FullCatalogRetriever,
   type PlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 
 export interface AiBinding {

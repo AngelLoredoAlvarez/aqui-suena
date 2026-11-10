@@ -2,8 +2,8 @@ import {
   getMockListenerStatus,
   listenerStatusInput,
   listenerStatusOutput,
-} from "@aqui-suena/api/listener";
-import { publicProcedure, router } from "@aqui-suena/api/trpc";
+} from "@aqui-suena/api/domain/radio/listener";
+import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 
 export const listenerRouter = router({
   getStatus: publicProcedure

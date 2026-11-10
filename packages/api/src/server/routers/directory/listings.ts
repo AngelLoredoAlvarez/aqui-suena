@@ -1,18 +1,18 @@
-import type { PlanId } from "@aqui-suena/api/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import {
   canCreateProduct,
   ENTITLEMENTS,
   isWithinPhotoQuota,
   isWithinProductPhotoQuota,
   isWithinProductQuota,
-} from "@aqui-suena/api/entitlements";
+} from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import {
   capProducts,
   createProductInputSchema,
   deriveListingOpen,
   listingInputSchema,
-} from "@aqui-suena/api/listing";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+} from "@aqui-suena/api/domain/directory/contracts/listing";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 

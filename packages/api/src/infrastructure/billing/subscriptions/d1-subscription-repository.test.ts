@@ -1,4 +1,4 @@
-import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/d1-subscription-repository";
+import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { describe, expect, it } from "vitest";
 
 function makeCapturingDb() {

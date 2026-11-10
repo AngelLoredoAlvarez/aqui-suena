@@ -1,5 +1,5 @@
 import type { ServiceRepository } from "@aqui-suena/api/domain/directory/service";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const createServiceInput = v.object({

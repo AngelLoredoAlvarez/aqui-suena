@@ -1,7 +1,7 @@
 import {
   InMemoryInvoiceRepository,
   InMemoryPaymentRepository,
-} from "@aqui-suena/api/domain/billing/payments/payments";
+} from "@aqui-suena/api/domain/billing/payments/payment";
 import { describe, expect, it } from "vitest";
 
 describe("InMemoryPaymentRepository", () => {

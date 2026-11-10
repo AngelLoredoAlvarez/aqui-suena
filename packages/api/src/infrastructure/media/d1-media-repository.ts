@@ -1,5 +1,5 @@
 import type { CreateMediaInput, Media, MediaRepository } from "@aqui-suena/api/domain/media/media";
-import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type MediaRow = {
   id: string;

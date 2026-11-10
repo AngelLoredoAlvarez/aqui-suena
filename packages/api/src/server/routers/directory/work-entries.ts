@@ -1,5 +1,5 @@
 import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const createWorkEntryInput = v.object({

@@ -1,5 +1,5 @@
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const createHourInput = v.object({

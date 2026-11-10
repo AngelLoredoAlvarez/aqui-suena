@@ -1,4 +1,4 @@
-import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/d1-payment-repository";
+import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import { describe, expect, it } from "vitest";
 
 function makeCapturingDb() {

@@ -3,8 +3,8 @@ import type {
   Subscription,
   SubscriptionRepository,
   SubscriptionStatus,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
-import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type SubscriptionRow = {
   id: string;

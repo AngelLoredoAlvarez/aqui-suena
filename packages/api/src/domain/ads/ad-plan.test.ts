@@ -1,4 +1,4 @@
-import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { describe, expect, it } from "vitest";
 import { resolvePlan } from "./ad-plan";
 

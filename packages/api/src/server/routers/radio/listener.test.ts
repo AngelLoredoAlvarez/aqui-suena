@@ -1,4 +1,4 @@
-import { appRouter } from "@aqui-suena/api/router";
+import { appRouter } from "@aqui-suena/api/server/trpc/router";
 import { describe, expect, it } from "vitest";
 
 const caller = appRouter.createCaller({ user: null });

@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { describe, expect, it } from "vitest";
 
 describe("protectedProcedure", () => {

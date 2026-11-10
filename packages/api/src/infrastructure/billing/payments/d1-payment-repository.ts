@@ -2,8 +2,8 @@ import type {
   Payment,
   PaymentRepository,
   PaymentStatus,
-} from "@aqui-suena/api/domain/billing/payments/payments";
-import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+} from "@aqui-suena/api/domain/billing/payments/payment";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type PaymentRow = {
   id: string;

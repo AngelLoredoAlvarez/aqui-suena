@@ -1,5 +1,5 @@
-import type { AdsCarouselItem } from "@aqui-suena/api/ads";
-import { isOpenNow } from "@aqui-suena/api/listing";
+import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";
+import { isOpenNow } from "@aqui-suena/api/domain/directory/contracts/listing";
 
 export type CarouselItemSource = {
   readonly business: {

@@ -1,4 +1,4 @@
-import { appRouter } from "@aqui-suena/api/router";
+import { appRouter } from "@aqui-suena/api/server/trpc/router";
 import { describe, expect, it } from "vitest";
 
 describe("business router — caps", () => {

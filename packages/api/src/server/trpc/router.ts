@@ -20,7 +20,7 @@ import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/director
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { listenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
-import { router } from "@aqui-suena/api/trpc";
+import { router } from "@aqui-suena/api/server/trpc/trpc";
 
 export function createAppRouter(
   planRepository: PlanRepository,

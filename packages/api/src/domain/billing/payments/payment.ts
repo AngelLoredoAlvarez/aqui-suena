@@ -1,6 +1,6 @@
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
 
-import type { PlanId } from "@aqui-suena/api/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 
 export type Payment = {
   id: string;

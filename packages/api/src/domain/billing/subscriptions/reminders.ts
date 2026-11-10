@@ -1,4 +1,4 @@
-import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 
 export type ReminderType = "renewal_7d" | "renewal_1d";
 

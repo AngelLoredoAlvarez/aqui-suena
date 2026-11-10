@@ -1,5 +1,5 @@
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
@@ -16,7 +16,7 @@ import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-
 import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
-import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/d1-subscription-repository";
+import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
 import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
 import { D1HourRepository } from "@aqui-suena/api/infrastructure/directory/d1-hour-repository";

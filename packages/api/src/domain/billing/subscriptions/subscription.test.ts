@@ -1,4 +1,4 @@
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { describe, expect, it } from "vitest";
 
 describe("InMemorySubscriptionRepository", () => {
