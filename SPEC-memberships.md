@@ -95,8 +95,10 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 ```
 packages/db/src/schema.ts                 → plans, subscriptions, payments, invoices tables
 packages/api/src/server/routers/plans/plans.ts  → plans.list (tRPC)
-packages/api/src/domain/billing/          → entitlements, plans, subscriptions, payments domain logic
-packages/api/src/infrastructure/billing/  → D1 repositories (plan, subscription, payment, invoice)
+packages/api/src/domain/plans/            → plan catalog and entitlements (shared kernel)
+packages/api/src/domain/billing/          → subscriptions, grace window, payments domain logic
+packages/api/src/infrastructure/plans/    → D1 plan repository
+packages/api/src/infrastructure/billing/  → D1 repositories (subscription, payment, invoice)
 packages/ui/src/plan-card.tsx             → three-plan comparison + current-plan badge (planned)
 apps/web/app/owner/billing/page.tsx       → billing route (web-first, planned)
 ```

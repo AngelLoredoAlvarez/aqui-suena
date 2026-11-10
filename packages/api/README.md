@@ -44,6 +44,7 @@ gate that proves the types, exactly like the other packages.
 | ------------------------------ | ------ | ----------------------------------------- |
 | `src/client.ts`                | shared | yes — the only safe entry for clients     |
 | `src/domain/radio/listener.ts` | shared | yes — schemas only (subpath `./listener`) |
+| `src/shared/stream-proxy.ts`   | shared | yes — zero-import stream proxy core       |
 | `src/server/http/app.ts`       | server | no — the portable fetch handler           |
 | `src/server/worker.ts`         | server | no — Cloudflare Workers entry             |
 | `src/server/trpc/router.ts`    | server | no — evaluates `initTRPC.create()`        |
