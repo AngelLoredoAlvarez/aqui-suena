@@ -107,5 +107,5 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 ## Open Questions
 
 - Should we use Cloudflare Image Resizing (paid, $5/mo for 50k transforms) or client-side compression only? (Recommendation: client-side compression for V1, Image Resizing for V2 if budget allows.)
-- R2 custom domain vs Worker proxy for serving? (Recommendation: Worker proxy for dev, custom domain for prod — both free.)
+- R2 custom domain vs Worker proxy for serving? (Recommendation: Worker proxy for dev/staging, custom domain later — both free.)
 - Should avatars be stored in R2 or Supabase Storage? (Recommendation: R2 for consistency.)
