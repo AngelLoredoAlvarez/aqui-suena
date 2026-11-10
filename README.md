@@ -4,7 +4,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Quick path
 
-1. Install: `pnpm install` (requires Node 22+, pnpm 12.14.0)
+1. Install: `pnpm install` (requires Node 24, see `.nvmrc`; pnpm 12.16.1)
 2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on an emulator. If any of those services is already running, `pnpm dev` reuses it instead of restarting it and keeps the rest of the group up (Ctrl-C stops only what this invocation started).
 3. Run a single client: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm dev:desktop` (this one starts its own web).
 4. Verify: `pnpm build && pnpm typecheck && pnpm exec biome check .`
