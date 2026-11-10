@@ -16,6 +16,33 @@ Last synced 2026-11-10 against `main` (email templates track merged; media stora
   `feat/production-wiring`; details in `odd/tasks/feat-production-wiring.md`.
   Staging seed command prepared but not executed.
 
+## Production wiring pending
+
+Documented state, not fixed yet. Nothing below changes behavior today.
+
+- [ ] Email sender and triggers: instantiate `ResendEmailSender` in the
+  composition root (`server/worker.ts`, `server/main.ts`, `server/http/app.ts`),
+  pass it to the three `Template*Notifier`s, and add the production call sites
+  (signup/verification, payment receipt, cancellation, renewal reminders,
+  failed renewal, downgrade). Until then `RESEND_API_KEY` is reserved and no
+  email is sent, even when the key is set.
+- [ ] Real listener status: `listener.getStatus` returns
+  `getMockListenerStatus` (fixed stream URL, `listeners: 42`) for every id.
+  Replace it with listener counts and the active stream URL read from
+  persistence.
+- [ ] Listings from the database: `directory.listings.list` and `.get` echo the
+  request body instead of querying, and `createProduct` derives the plan from
+  client input. Read listings from D1, paginate, answer `NOT_FOUND` for a
+  missing listing, derive the plan from `ctx.account`, and recount products
+  server-side. These are the `TODO(memberships)` markers.
+- [ ] Seed plans in staging: `POST /admin/seed-plans` was prepared but never
+  executed, so the staging D1 plan catalog has 0 rows. Run it once after the
+  migration.
+- [ ] R2 secrets in staging: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+  `R2_SECRET_ACCESS_KEY` (and optional `R2_BUCKET_NAME`/`R2_ENDPOINT`) are not
+  set, so staging reports `media: unconfigured` and media mutations answer
+  `503`.
+
 ## Persistence validation and error codes (closed 2026-11-10)
 
 - [x] Persisted enums (`plan_id`, `category`, subscription/payment `status`) are
@@ -148,4 +175,3 @@ call site.
   from where it was granted or revoked; preferences vary by plan; owners can define
   their own rules. When it happens, prefer a typed one-row-per-account table with
   explicit columns over a `key/value` store.
-

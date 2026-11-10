@@ -1,7 +1,7 @@
 # Aquí Suena — transactional email templates
 
-Product: Aquí Suena by 17Labs (open radio + local directory). Email is sent through
-Resend as `{ to, subject, html }`.
+Product: Aquí Suena by 17Labs (open radio + local directory). The design targets
+Resend as `{ to, subject, html }`; no sender is wired in production yet.
 
 This folder holds **design artifacts only**; none of it is imported at runtime.
 The runtime lives in `packages/api/src/infrastructure/email/`.
@@ -9,8 +9,8 @@ The runtime lives in `packages/api/src/infrastructure/email/`.
 ## Design artifacts (this folder)
 
 - `SPEC.md` — the visual specification in words (tokens, spacing, hierarchy).
-- `TEMPLATES.md` and `manifest.json` — the contract for the 10 templates: subject,
-  preheader, CTA, secondary link and variables.
+- `TEMPLATES.md` — the single source for the contract of the 10 templates:
+  subject, preheader, CTA, secondary link and variables.
 - `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files).
 - `logo-aqui-suena-noche.svg` — app logo for dark backgrounds.
 
@@ -63,7 +63,10 @@ Rules:
 - Adding a language means extending `EMAIL_LOCALES`, adding `<code>.json` under
   `src/infrastructure/email/`, and registering it in the renderer's copy map.
 
-## Wired send sites
+## Notifier owners (no production call sites yet)
+
+Nothing below is called in production: the notifiers are tested but no entry point
+constructs them or a `ResendEmailSender`, so no email is sent.
 
 - Subscription lifecycle: `TemplateSubscriptionNotifier` — downgrade, failed-renewal,
   grace-expired, renewal-7d, renewal-1d, cancellation.

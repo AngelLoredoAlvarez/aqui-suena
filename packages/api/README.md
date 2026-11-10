@@ -27,7 +27,7 @@ gate that proves the types, exactly like the other packages.
 | `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                       |
 | `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                 |
 | `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                 |
-| `RESEND_API_KEY`  | (optional) | Resend API key for transactional emails (grace/renewal warnings). When unset, email sending is a no-op. |
+| `RESEND_API_KEY`  | (optional) | Reserved for transactional email. No email call site is wired yet, so setting it changes nothing today. |
 
 ## Routes
 
@@ -46,6 +46,37 @@ unconfigured (`/health` says so) and media mutations answer
 `SERVICE_UNAVAILABLE`; the router never substitutes `FakeObjectStorage`. Only
 the local Node entry (`server/main.ts`) injects the fake, on purpose.
 
+## Email (transactional)
+
+The email stack is implemented but **not wired to production**. What exists:
+
+- The 10 template definitions, runtime renderer (`renderEmail`) and copy files
+  in `src/infrastructure/email/`.
+- `ResendEmailSender` (`src/infrastructure/email/resend-email-sender.ts`), an
+  adapter for the `EmailSender` port.
+- `TemplateSubscriptionNotifier`, `TemplateAccountNotifier` and
+  `TemplatePaymentNotifier`, each covered by tests.
+
+What is missing: `ResendEmailSender` is never instantiated in a composition
+root (`server/worker.ts`, `server/main.ts`, `server/http/app.ts`), no notifier
+is constructed outside tests, and no domain flow calls one. No email leaves the
+system, whether or not `RESEND_API_KEY` is set. Wiring the sender into the
+composition and adding the trigger call sites is tracked in
+`odd/tasks/backlog.md`.
+
+## Known placeholders
+
+These endpoints are reachable in production but serve mock data. They are kept
+for client integration and are covered by tests; they are not implementations
+of their eventual behavior.
+
+| Endpoint                           | Returns today                                                                      | Missing                                                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `listener.getStatus`               | A fixed station (`MOCK_ACTIVE_URL`) with `listeners: 42` for any requested id.     | Real listener counts and the live stream URL from persistence.                                                 |
+| `directory.listings.list`          | Echoes the listings passed in the request body and caps products by an input plan. | Reading listings from the database and paginating them.                                                        |
+| `directory.listings.get`           | Echoes the listing passed in the request body.                                     | Looking the listing up by id from the database and answering `NOT_FOUND` when absent.                          |
+| `directory.listings.createProduct` | Validates and returns a generated id without persisting.                           | Deriving the plan from the authenticated account (not client input) and recounting products from the database. |
+
 ## Layout, and the one rule that keeps it safe
 
 | Path                           | Side   | Reachable from a browser or React Native  |
@@ -60,7 +91,7 @@ the local Node entry (`server/main.ts`) injects the fake, on purpose.
 | `src/server/http/cors.ts`      | server | no                                        |
 | `src/server/env.ts`            | server | no                                        |
 | `src/infrastructure/email/`    | server | no — renderer, adapter and copy           |
-| `design/email-templates/`      | design | no — SPEC, manifest and samples           |
+| `design/email-templates/`      | design | no — SPEC, template contract and samples  |
 | `src/server/main.ts`           | server | no — starts the Node process              |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from
@@ -100,8 +131,8 @@ anything other than the client-safe entries.
   `parsePaymentStatus`); an unknown value raises `DataIntegrityError`, which is
   logged with its field and value and answered as a generic
   `INTERNAL_SERVER_ERROR`.
-- `packages/api/design/` holds design artifacts (specs, manifest, pre-rendered
-  samples). Nothing there is imported at runtime.
+- `packages/api/design/` holds design artifacts (specs, the template contract,
+  pre-rendered samples). Nothing there is imported at runtime.
 - Layer rules are enforced by `pnpm arch`: `domain` cannot import
   `infrastructure` or `server`; `infrastructure` cannot import `server`;
   `directory` cannot import `billing`; `plans` cannot import any other domain

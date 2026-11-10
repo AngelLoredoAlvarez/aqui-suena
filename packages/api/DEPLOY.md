@@ -45,6 +45,11 @@ Replace `<worker>` with the deployed URL.
    Set `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and,
    optionally, `R2_BUCKET_NAME`/`R2_ENDPOINT` as Worker secrets/vars.
 
+   **Current staging state:** none of the `R2_*` secrets are configured, so the
+   staging deployment reports `media: unconfigured` and every media mutation
+   answers `503`. Media features cannot be exercised there until those secrets
+   are set. This is the intended explicit-storage behavior, not a bug.
+
 2. **tRPC** — proves the shared router runs on the edge (GET query):
 
    ```bash
@@ -84,6 +89,12 @@ curl -fsS https://<worker>/admin/seed-vectors \
 curl -fsS -X POST https://<worker>/admin/purge-expired-businesses \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
+
+**Current staging state:** `POST /admin/seed-plans` has never been run against
+staging, so its D1 plan catalog holds **0 rows**. Until the command above is
+executed, anything that reads plans from the database (plans listing,
+entitlements resolved from D1) sees an empty catalog. Run the seed once per
+environment after migrating D1; it is idempotent and safe to repeat.
 
 ## Wiring the clients afterward
 
