@@ -1,12 +1,12 @@
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
-import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { describe, expect, it } from "vitest";
 
 describe("media router", () => {
   function setup() {
     const repository = new InMemoryMediaRepository([]);
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const router = createMediaRouter(repository, storage);
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 

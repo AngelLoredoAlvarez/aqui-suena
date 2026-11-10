@@ -1,17 +1,17 @@
-import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { readConfig } from "@aqui-suena/api/server/env";
 import { createApiServer } from "@aqui-suena/api/server/server";
 
 const config = readConfig(process.env);
-// Local Node has no R2 credentials: use the in-memory fake explicitly. This is
-// the only entry point allowed to do so; the Worker never substitutes a fake.
+// Local Node has no R2 credentials: use the in-memory adapter explicitly. This
+// is the only entry point allowed to do so; the Worker never substitutes one.
 const server = createApiServer({
   allowedOrigins: config.allowedOrigins,
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY,
   supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
   supabaseJwksUrl: process.env.SUPABASE_JWKS_URL,
-  mediaStorage: new FakeObjectStorage(),
+  mediaStorage: new InMemoryObjectStorage(),
 });
 
 server.listen(config.port, config.host, () => {

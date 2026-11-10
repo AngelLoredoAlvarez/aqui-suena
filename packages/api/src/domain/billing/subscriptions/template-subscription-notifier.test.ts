@@ -1,6 +1,6 @@
 import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/template-subscription-notifier";
-import { FakeEmailSender } from "@aqui-suena/api/domain/email/email";
 import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/email/email-template-renderer";
+import { FakeEmailSender } from "@aqui-suena/api/testing/email";
 import { describe, expect, it } from "vitest";
 
 const renderer = createEmailTemplateRenderer({

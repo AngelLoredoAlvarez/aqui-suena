@@ -43,8 +43,8 @@ gate that proves the types, exactly like the other packages.
 Media storage is explicit: the Worker passes `R2ObjectStorage` only when the
 three R2 credentials are complete. Missing or partial credentials leave media
 unconfigured (`/health` says so) and media mutations answer
-`SERVICE_UNAVAILABLE`; the router never substitutes `FakeObjectStorage`. Only
-the local Node entry (`server/main.ts`) injects the fake, on purpose.
+`SERVICE_UNAVAILABLE`; the router never substitutes `InMemoryObjectStorage`.
+Only the local Node entry (`server/main.ts`) injects that adapter, on purpose.
 
 ## Email (transactional)
 
@@ -116,6 +116,12 @@ anything other than the client-safe entries.
   reverse; `directory/retention.ts` owns the hiding and retention helpers.
 - `src/infrastructure/<context>/` mirrors the domain module it implements. One
   adapter per port; no business rules.
+- `src/testing/` holds test-only doubles (`FakeEmailSender`, the `Fake*Notifier`
+  classes). Production files must never import it; the `pnpm arch` rule
+  `production-must-not-import-test-support` enforces that, with `.test.ts`
+  files exempt. In-memory adapters that production also uses
+  (`InMemoryObjectStorage`, `InMemory*Repository`) stay next to their port, not
+  here.
 - `src/server/composition/` is the only place that picks drivers. Both entry
   points share it: adding a repository means editing `repositories.ts` once.
 - Directory mutations are owner-scoped: `domain/directory/authorization.ts`

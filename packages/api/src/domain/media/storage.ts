@@ -102,10 +102,11 @@ export interface ObjectStorage {
 }
 
 /**
- * In-memory test double. Captures presigned requests and simulates stored
- * metadata via `confirm()`. Validates input through `validateMediaUpload`.
+ * In-memory `ObjectStorage` adapter. Used by the local Node process (which has
+ * no R2 credentials) and by tests. It captures presigned requests and simulates
+ * stored metadata via `confirm()`, validating input through `validateMediaUpload`.
  */
-export class FakeObjectStorage implements ObjectStorage {
+export class InMemoryObjectStorage implements ObjectStorage {
   private counter = 0;
   readonly presigned: PresignUploadInput[] = [];
   private readonly stored = new Map<string, ObjectMetadata>();
@@ -129,7 +130,7 @@ export class FakeObjectStorage implements ObjectStorage {
     this.stored.delete(key);
   }
 
-  /** Test helper: simulates a client that finished uploading to `key`. */
+  /** Simulates a client that finished uploading to `key`. */
   confirm(key: string, size: number, contentType: string): void {
     this.stored.set(key, { key, size, contentType });
   }

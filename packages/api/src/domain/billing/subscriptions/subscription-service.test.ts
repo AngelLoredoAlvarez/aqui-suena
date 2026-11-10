@@ -6,8 +6,8 @@ import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
 import type { Plan } from "@aqui-suena/api/domain/plans/plans";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
-import { FakeSubscriptionNotifier } from "./subscription-notifier";
 
 const communityPlan: Plan = {
   id: "community",

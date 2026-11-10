@@ -1,7 +1,7 @@
 import { InMemoryReminderLogRepository } from "@aqui-suena/api/domain/billing/subscriptions/reminders";
 import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { FakeSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
 const ENDS_AT = new Date("2026-02-08T00:00:00Z");
