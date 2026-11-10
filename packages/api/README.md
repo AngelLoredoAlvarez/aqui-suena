@@ -13,6 +13,7 @@ Worker (`src/server/worker.ts`).
 pnpm --filter @aqui-suena/api dev     # tsx watch, reloads on change
 pnpm --filter @aqui-suena/api start   # production process
 pnpm --filter @aqui-suena/api test    # vitest, node environment
+pnpm --filter @aqui-suena/api test:coverage  # vitest + v8 coverage (text, lcov)
 ```
 
 `tsx` runs the TypeScript sources directly, so the deployable ships sources
