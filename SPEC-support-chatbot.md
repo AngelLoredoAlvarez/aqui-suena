@@ -133,7 +133,7 @@ when the authenticated owner requests it, and only their own.
   `seedPlanVectors`.
 - `packages/api/src/server/routers/support/index.ts` — `support.chat` router,
   `buildCatalog`, system prompts.
-- `packages/api/src/worker.ts` — wiring, `PLAN_VECTORS`, `AI_GATEWAY_ID`.
+- `packages/api/src/server/worker.ts` — wiring, `PLAN_VECTORS`, `AI_GATEWAY_ID`.
 - `packages/api/README.md` — retrieval and Vectorize/AI Gateway setup.
 - `packages/db/src/schema.ts` — domain tables (plans, businesses, services,
   products, hours, photos, flyers, work_entries, accounts, subscriptions,

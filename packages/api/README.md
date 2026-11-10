@@ -5,7 +5,7 @@ fetch handler that serves it. This mirrors the T4 stack (`packages/api` is the
 worker that deploys itself), so web, desktop and mobile call one backend and no
 secret ever has to live inside a distributed binary. The same portable core
 (`src/server/http/app.ts`) runs as a Node process (`src/server/main.ts`) and as a Cloudflare
-Worker (`src/worker.ts`).
+Worker (`src/server/worker.ts`).
 
 ## Run
 
@@ -45,13 +45,13 @@ gate that proves the types, exactly like the other packages.
 | `src/client.ts`                | shared | yes — the only safe entry for clients     |
 | `src/domain/radio/listener.ts` | shared | yes — schemas only (subpath `./listener`) |
 | `src/server/http/app.ts`       | server | no — the portable fetch handler           |
-| `src/worker.ts`                | server | no — Cloudflare Workers entry             |
+| `src/server/worker.ts`         | server | no — Cloudflare Workers entry             |
 | `src/server/trpc/router.ts`    | server | no — evaluates `initTRPC.create()`        |
 | `src/server/server.ts`         | server | no — node:http bridge to `app.ts`         |
 | `src/server/http/cors.ts`      | server | no                                        |
 | `src/server/env.ts`            | server | no                                        |
-| `src/infrastructure/email/` | server | no — transactional email renderer, adapter and copy |
-| `design/email-templates/` | design | no — SPEC, manifest and pre-rendered samples |
+| `src/infrastructure/email/`    | server | no — renderer, adapter and copy           |
+| `design/email-templates/`      | design | no — SPEC, manifest and samples           |
 | `src/server/main.ts`           | server | no — starts the Node process              |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from
@@ -60,6 +60,25 @@ Next only bundle what they actually reach; adding a server export to the root
 would drag `node:http` into the mobile and web bundles. The dependency-cruiser
 rule `client-never-imports-server-entry` fails the build if a client imports
 anything other than the client-safe entries.
+
+## Directory conventions
+
+- `src/domain/<context>/` holds one bounded context. Use a singular or mass noun
+  when the folder models one concept (`billing`, `directory`, `email`, `media`,
+  `radio`, `support`), and the plural of the feature when it groups several
+  (`ads`, `accounts`, `subscriptions`, `payments`).
+- `src/domain/billing/` subdivides by concern: `catalog/` (plans and
+  entitlements), `subscriptions/` (lifecycle, grace, reminders, notifiers) and
+  `payments/` (payments, invoices, receipt notifier).
+- `src/infrastructure/<context>/` mirrors the domain module it implements. One
+  adapter per port; no business rules.
+- `src/server/composition/` is the only place that picks drivers. Both entry
+  points share it: adding a repository means editing `repositories.ts` once.
+- `packages/api/design/` holds design artifacts (specs, manifest, pre-rendered
+  samples). Nothing there is imported at runtime.
+- Layer rules are enforced by `pnpm arch`: `domain` cannot import
+  `infrastructure` or `server`, and `infrastructure` cannot import `server`.
+  Tests are exempt because they may wire real adapters.
 
 ## Origin contract per platform
 

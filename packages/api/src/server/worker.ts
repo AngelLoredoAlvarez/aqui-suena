@@ -1,4 +1,4 @@
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 import {
   FullCatalogRetriever,
   seedPlanVectors,
