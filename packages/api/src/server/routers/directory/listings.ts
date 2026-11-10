@@ -49,7 +49,7 @@ const listListingsInput = v.object({
   now: v.optional(v.date()),
 });
 
-export const businessRouter = router({
+export const listingsRouter = router({
   list: publicProcedure.input(listListingsInput).query(({ input }) => {
     const now = input.now ?? new Date();
     // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.
