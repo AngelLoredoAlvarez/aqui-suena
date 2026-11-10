@@ -1,5 +1,6 @@
 import { request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
+import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
 import { createApiServer } from "@aqui-suena/api/server/server";
 import type { AppRouter } from "@aqui-suena/api/server/trpc/router";
@@ -19,8 +20,15 @@ interface StartedServer {
 
 const running: Array<() => Promise<void>> = [];
 
-async function startServer(upstreamFetch?: typeof fetch): Promise<StartedServer> {
-  const server = createApiServer({ allowedOrigins: DEFAULT_ALLOWED_ORIGINS, upstreamFetch });
+async function startServer(
+  upstreamFetch?: typeof fetch,
+  mediaStorage?: FakeObjectStorage,
+): Promise<StartedServer> {
+  const server = createApiServer({
+    allowedOrigins: DEFAULT_ALLOWED_ORIGINS,
+    upstreamFetch,
+    mediaStorage,
+  });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address() as AddressInfo;
   const close = () =>
@@ -64,12 +72,20 @@ afterEach(async () => {
 });
 
 describe("GET /health", () => {
-  it("reports ok for a deploy probe", async () => {
+  it("reports ok and unconfigured media for a deploy probe without storage", async () => {
     const { url } = await startServer();
     const response = await rawRequest(`${url}/health`);
 
     expect(response.status).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ status: "ok" });
+    expect(JSON.parse(response.body)).toEqual({ status: "ok", media: "unconfigured" });
+  });
+
+  it("reports configured media when storage is injected", async () => {
+    const { url } = await startServer(undefined, new FakeObjectStorage());
+    const response = await rawRequest(`${url}/health`);
+
+    expect(response.status).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ status: "ok", media: "configured" });
   });
 
   it("accepts a call without an Origin header, which is how mobile calls the API", async () => {

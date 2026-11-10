@@ -206,4 +206,39 @@ describe("media router", () => {
 
     await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
+
+  it("answers SERVICE_UNAVAILABLE on presign when storage is not configured", async () => {
+    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(
+      caller.presignUpload({ kind: "avatar", contentType: "image/png", sizeBytes: 512 }),
+    ).rejects.toMatchObject({
+      code: "SERVICE_UNAVAILABLE",
+      message: "media storage is not configured",
+    });
+  });
+
+  it("answers SERVICE_UNAVAILABLE on confirm when storage is not configured", async () => {
+    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(
+      caller.confirm({
+        key: "avatar/acc-1/1",
+        kind: "avatar",
+        contentType: "image/png",
+        sizeBytes: 512,
+      }),
+    ).rejects.toMatchObject({ code: "SERVICE_UNAVAILABLE" });
+  });
+
+  it("answers SERVICE_UNAVAILABLE on delete when storage is not configured", async () => {
+    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(caller.delete("media-1")).rejects.toMatchObject({
+      code: "SERVICE_UNAVAILABLE",
+    });
+  });
 });

@@ -1,5 +1,4 @@
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
-import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
@@ -25,10 +24,10 @@ import { router } from "@aqui-suena/api/server/trpc/trpc";
 export function createAppRouter(
   planRepository: PlanRepository,
   directoryRepositories: DirectoryRepositories,
-  ai?: AiBinding,
-  planCatalogRetriever?: PlanCatalogRetriever,
-  aiGatewayId?: string,
-  mediaStorage?: ObjectStorage,
+  ai: AiBinding | undefined,
+  planCatalogRetriever: PlanCatalogRetriever | undefined,
+  aiGatewayId: string | undefined,
+  mediaStorage: ObjectStorage | undefined,
 ) {
   return router({
     ads: createCarouselRouter({
@@ -51,7 +50,7 @@ export function createAppRouter(
       business: directoryRepositories.business,
     }),
     listener: listenerRouter,
-    media: createMediaRouter(directoryRepositories.media, mediaStorage ?? new FakeObjectStorage()),
+    media: createMediaRouter(directoryRepositories.media, mediaStorage),
     photos: createPhotosRouter({
       photo: directoryRepositories.photo,
       business: directoryRepositories.business,
@@ -73,6 +72,13 @@ export function createAppRouter(
   });
 }
 
-export const appRouter = createAppRouter(defaultPlanRepository, defaultDirectoryRepositories);
+export const appRouter = createAppRouter(
+  defaultPlanRepository,
+  defaultDirectoryRepositories,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+);
 
 export type AppRouter = typeof appRouter;

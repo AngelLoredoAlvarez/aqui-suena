@@ -1,6 +1,6 @@
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import worker, { type WorkerEnv } from "@aqui-suena/api/server/worker";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 function makeDb() {
   const calls: { sql: string; params: unknown[] }[] = [];
@@ -63,5 +63,44 @@ describe("POST /admin/seed-plans", () => {
     expect(await response.json()).toEqual({ seeded: DEFAULT_PLAN_CATALOG.length });
     expect(calls).toHaveLength(DEFAULT_PLAN_CATALOG.length);
     expect(calls[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
+  });
+});
+
+describe("GET /health media wiring", () => {
+  it("reports unconfigured media when no R2 credentials are present", async () => {
+    const { db } = makeDb();
+    const response = await worker.fetch(new Request("https://worker.test/health"), {
+      aqui_suena_db: db,
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ok", media: "unconfigured" });
+  });
+
+  it("reports configured media when all R2 credentials are present", async () => {
+    const { db } = makeDb();
+    const response = await worker.fetch(new Request("https://worker.test/health"), {
+      aqui_suena_db: db,
+      R2_ACCOUNT_ID: "account",
+      R2_ACCESS_KEY_ID: "key",
+      R2_SECRET_ACCESS_KEY: "secret",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ok", media: "configured" });
+  });
+
+  it("logs partial R2 configuration and reports media unconfigured", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { db } = makeDb();
+    const response = await worker.fetch(new Request("https://worker.test/health"), {
+      aqui_suena_db: db,
+      R2_ACCOUNT_ID: "account",
+    } as unknown as WorkerEnv);
+
+    expect(await response.json()).toEqual({ status: "ok", media: "unconfigured" });
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("incomplete R2 configuration"));
+
+    log.mockRestore();
   });
 });
