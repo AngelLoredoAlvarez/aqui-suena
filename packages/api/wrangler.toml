@@ -22,11 +22,33 @@ AI_GATEWAY_ID = "aqui-suena"
 [[d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db"
-database_id = "45bd7ed5-4ac4-433d-a1d8-ed933fb8fd3b"
+database_id = "8737a12b-6bff-4fd2-bed0-34a48d6cddd7"
 
 [ai]
 binding = "AI"
 
 [[vectorize]]
+binding = "PLAN_VECTORS"
+index_name = "aqui-suena-plan-catalog"
+
+# ----------------------------------------------------------------------------
+# Staging environment. Deploy with: npx wrangler deploy --env staging
+# ----------------------------------------------------------------------------
+[env.staging]
+name = "aqui-suena-api-staging"
+
+[env.staging.vars]
+ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhost,https://aqui-suena-web-staging.pages.dev"
+AI_GATEWAY_ID = "aqui-suena"
+
+[[env.staging.d1_databases]]
+binding = "aqui_suena_db"
+database_name = "aqui-suena-db-staging"
+database_id = "8737a12b-6bff-4fd2-bed0-34a48d6cddd7"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.vectorize]]
 binding = "PLAN_VECTORS"
 index_name = "aqui-suena-plan-catalog"
