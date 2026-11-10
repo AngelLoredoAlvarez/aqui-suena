@@ -46,6 +46,22 @@ module.exports = {
       to: { circular: true },
     },
     {
+      name: "api-domain-directory-must-not-depend-on-billing",
+      severity: "error",
+      comment:
+        "Directory owns businesses and their visibility; billing may depend on it (downgrade hides businesses), never the reverse.",
+      from: { path: "^packages/api/src/domain/directory", pathNot: "\\.test\\.ts$" },
+      to: { path: "^packages/api/src/domain/billing" },
+    },
+    {
+      name: "api-domain-plans-must-stay-lowest",
+      severity: "error",
+      comment:
+        "Plans and entitlements are a shared kernel: they must not import other domain modules.",
+      from: { path: "^packages/api/src/domain/plans", pathNot: "\\.test\\.ts$" },
+      to: { path: "^packages/api/src/domain/(?!plans)" },
+    },
+    {
       name: "api-infrastructure-must-not-depend-on-server",
       severity: "error",
       comment: "Infrastructure may depend on domain, never on the server layer.",

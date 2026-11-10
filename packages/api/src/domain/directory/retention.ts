@@ -4,7 +4,6 @@
 // chooses which businesses stay visible (up to the new cap); the rest are
 // hidden, not deleted, and retained for 90 days before permanent deletion.
 export const RETENTION_DAYS = 90;
-export const GRACE_DAYS = 7;
 
 export function hiddenBusinessIds(
   allIds: readonly string[],
@@ -41,16 +40,4 @@ export function retentionDeadline(hiddenAt: Date): Date {
 
 export function isRetentionExpired(retainedUntil: Date, now: Date): boolean {
   return retainedUntil.getTime() <= now.getTime();
-}
-
-export function graceDeadline(failedAt: Date): Date {
-  const deadline = new Date(failedAt);
-
-  deadline.setDate(deadline.getDate() + GRACE_DAYS);
-
-  return deadline;
-}
-
-export function isInGracePeriod(graceEnd: Date, now: Date): boolean {
-  return now.getTime() <= graceEnd.getTime();
 }

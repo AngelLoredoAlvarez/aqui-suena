@@ -1,5 +1,5 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 
 export function createPlansRouter(repository: PlanRepository) {

@@ -8,7 +8,7 @@
     ".": "./src/index.ts",
     "./ads": "./src/domain/ads/contract.ts",
     "./client": "./src/client.ts",
-    "./entitlements": "./src/domain/billing/catalog/entitlements.ts",
+    "./entitlements": "./src/domain/plans/entitlements.ts",
     "./listener": "./src/domain/radio/listener.ts",
     "./listing": "./src/domain/directory/contracts/listing.ts",
     "./ranking": "./src/domain/ads/ranking.ts",

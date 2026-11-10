@@ -1,10 +1,10 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import type { Plan } from "@aqui-suena/api/domain/billing/catalog/plans";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
+import type { Plan } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { describe, expect, it } from "vitest";
 import { FakeSubscriptionNotifier } from "./subscription-notifier";
 

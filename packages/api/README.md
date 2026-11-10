@@ -67,9 +67,13 @@ anything other than the client-safe entries.
   when the folder models one concept (`billing`, `directory`, `email`, `media`,
   `radio`, `support`), and the plural of the feature when it groups several
   (`ads`, `accounts`, `subscriptions`, `payments`).
-- `src/domain/billing/` subdivides by concern: `catalog/` (plans and
-  entitlements), `subscriptions/` (lifecycle, grace, reminders, notifiers) and
-  `payments/` (payments, invoices, receipt notifier).
+- `src/domain/plans/` is the shared kernel: the plan catalog and its
+  entitlements. It imports no other domain module, so billing, directory, ads
+  and support can all depend on it without coupling to each other.
+- `src/domain/billing/` subdivides into `subscriptions/` (lifecycle, grace,
+  reminders, notifiers) and `payments/` (payments, invoices, receipt notifier).
+  Billing may depend on directory (a downgrade hides businesses), never the
+  reverse; `directory/retention.ts` owns the hiding and retention helpers.
 - `src/infrastructure/<context>/` mirrors the domain module it implements. One
   adapter per port; no business rules.
 - `src/server/composition/` is the only place that picks drivers. Both entry
@@ -77,8 +81,10 @@ anything other than the client-safe entries.
 - `packages/api/design/` holds design artifacts (specs, manifest, pre-rendered
   samples). Nothing there is imported at runtime.
 - Layer rules are enforced by `pnpm arch`: `domain` cannot import
-  `infrastructure` or `server`, and `infrastructure` cannot import `server`.
-  Tests are exempt because they may wire real adapters.
+  `infrastructure` or `server`; `infrastructure` cannot import `server`;
+  `directory` cannot import `billing`; `plans` cannot import any other domain
+  module; and no file may form a dependency cycle. Tests are exempt from the
+  layer rules because they may wire real adapters.
 
 ## Origin contract per platform
 

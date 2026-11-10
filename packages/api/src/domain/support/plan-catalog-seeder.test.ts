@@ -1,4 +1,4 @@
-import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
+import type { Plan, PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { planDocument, seedPlanVectors } from "@aqui-suena/api/domain/support/plan-catalog";
 import { describe, expect, it } from "vitest";
 

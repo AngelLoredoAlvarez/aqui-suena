@@ -1,12 +1,3 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
-import {
-  canChooseVisibleCount,
-  graceDeadline,
-  hiddenBusinessIds,
-  isInGracePeriod,
-  retentionDeadline,
-} from "@aqui-suena/api/domain/billing/subscriptions/downgrade";
 import type {
   Subscription,
   SubscriptionRepository,
@@ -14,9 +5,17 @@ import type {
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import {
+  canChooseVisibleCount,
+  hiddenBusinessIds,
+  retentionDeadline,
+} from "@aqui-suena/api/domain/directory/retention";
+import {
   DEFAULT_EMAIL_LOCALE,
   type EmailLocale,
 } from "@aqui-suena/api/domain/email/email-template";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { graceDeadline, isInGracePeriod } from "./grace";
 
 const PERIOD_MONTHS = 1;
 

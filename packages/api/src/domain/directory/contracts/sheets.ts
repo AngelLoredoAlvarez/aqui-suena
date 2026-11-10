@@ -1,6 +1,6 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import { getEntitlements } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import { capProducts } from "@aqui-suena/api/domain/directory/contracts/listing";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { getEntitlements } from "@aqui-suena/api/domain/plans/entitlements";
 
 export type SheetBusiness = {
   readonly id: string;

@@ -1,5 +1,5 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
-import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/downgrade";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { isInGracePeriod } from "./grace";
 export type SubscriptionStatus = "active" | "cancelled" | "expired" | "grace";
 
 export type Subscription = {

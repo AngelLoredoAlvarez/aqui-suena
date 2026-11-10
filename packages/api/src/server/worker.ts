@@ -1,11 +1,11 @@
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
+import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   FullCatalogRetriever,
   seedPlanVectors,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
-import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/catalog/d1-plan-repository";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
+import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";

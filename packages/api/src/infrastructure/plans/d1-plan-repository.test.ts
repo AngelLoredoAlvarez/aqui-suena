@@ -1,6 +1,6 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/catalog/entitlements";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
 
-import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/catalog/d1-plan-repository";
+import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { describe, expect, it } from "vitest";
 
 describe("D1PlanRepository", () => {
