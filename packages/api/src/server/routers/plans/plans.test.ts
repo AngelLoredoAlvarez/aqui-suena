@@ -1,6 +1,6 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { createPlansRouter } from "@aqui-suena/api/server/routers/billing/plans";
+import { createPlansRouter } from "@aqui-suena/api/server/routers/plans/plans";
 import { describe, expect, it } from "vitest";
 
 describe("plans router", () => {

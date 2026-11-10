@@ -8,7 +8,6 @@ import {
   defaultDirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carousel";
-import { createPlansRouter } from "@aqui-suena/api/server/routers/billing/plans";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
@@ -18,6 +17,7 @@ import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/p
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/directory/work-entries";
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
+import { createPlansRouter } from "@aqui-suena/api/server/routers/plans/plans";
 import { listenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { router } from "@aqui-suena/api/server/trpc/trpc";

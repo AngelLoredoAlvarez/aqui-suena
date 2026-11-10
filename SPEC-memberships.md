@@ -94,7 +94,7 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 
 ```
 packages/db/src/schema.ts                 → plans, subscriptions, payments, invoices tables
-packages/api/src/server/routers/billing/plans.ts  → plans.list (tRPC)
+packages/api/src/server/routers/plans/plans.ts  → plans.list (tRPC)
 packages/api/src/domain/billing/          → entitlements, plans, subscriptions, payments domain logic
 packages/api/src/infrastructure/billing/  → D1 repositories (plan, subscription, payment, invoice)
 packages/ui/src/plan-card.tsx             → three-plan comparison + current-plan badge (planned)
@@ -139,7 +139,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 ## Testing Strategy
 
 - Framework: Vitest; integration via tRPC caller.
-- Locations: `packages/api/src/domain/billing/*.test.ts`, `packages/api/src/infrastructure/billing/*.test.ts`, `packages/api/src/server/routers/billing/plans.test.ts`.
+- Locations: `packages/api/src/domain/{plans,billing}/*.test.ts`, `packages/api/src/infrastructure/{plans,billing}/*.test.ts`, `packages/api/src/server/routers/plans/plans.test.ts`.
 - Coverage: 100% on entitlement matrix and downgrade/upgrade transitions across all three plans.
 - Levels: unit (limits per plan) → integration (subscription change propagates to listing and carousel within 1 min).
 
