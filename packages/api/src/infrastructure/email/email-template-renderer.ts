@@ -5,7 +5,7 @@ import type {
   EmailTemplateVars,
   RenderedEmail,
 } from "@aqui-suena/api/domain/email/email-template";
-import { renderEmail } from "@aqui-suena/api/infrastructure/billing/email-templates/renderer";
+import { renderEmail } from "@aqui-suena/api/infrastructure/email/renderer";
 
 export interface EmailTemplateRendererOptions {
   readonly appUrl: string;

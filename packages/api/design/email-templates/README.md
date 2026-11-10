@@ -3,30 +3,34 @@
 Product: Aquí Suena by 17Labs (open radio + local directory). Email is sent through
 Resend as `{ to, subject, html }`.
 
-## Runtime pieces
+This folder holds **design artifacts only**; none of it is imported at runtime.
+The runtime lives in `packages/api/src/infrastructure/email/`.
 
-- `renderer.ts` — the renderer. ESM + TypeScript, no dependencies. Single source of
-  truth for markup and copy. Exposes `renderEmail(id, locale, vars)` returning
+## Design artifacts (this folder)
+
+- `SPEC.md` — the visual specification in words (tokens, spacing, hierarchy).
+- `TEMPLATES.md` and `manifest.json` — the contract for the 10 templates: subject,
+  preheader, CTA, secondary link and variables.
+- `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files).
+- `logo-aqui-suena-noche.svg` — app logo for dark backgrounds.
+
+## Runtime (packages/api/src/infrastructure/email/)
+
+- `renderer.ts` — ESM + TypeScript renderer. Imports `es-MX.json` and `en.json` as the
+  single source of copy and exposes `renderEmail(id, locale, vars)` returning
   `{ subject, html }`.
+- `es-MX.json`, `en.json` — runtime copy. Edit these, not a duplicate.
 - `email-template-renderer.ts` — adapter that implements the domain port
   `EmailTemplateRenderer` and injects deployment links (`appUrl`, `supportEmail`,
   `billingUrl`, `ownerPortalUrl`).
-- `SPEC.md` — the visual specification in words (tokens, spacing, hierarchy).
-- `TEMPLATES.md` and `manifest.json` — the design contract for the 10 templates:
-  subject, preheader, CTA, secondary link and variables.
-- `es-MX.json`, `en.json` — copy exported by the design tool. Reference only; the
-  renderer carries the runtime copy.
-- `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files).
-  Never consumed at runtime.
-- `logo-aqui-suena-noche.svg` — app logo for dark backgrounds.
 
-`render.js` no longer exists. It was migrated to `renderer.ts` and the numeric index
+`render.js` no longer exists; it was migrated to `renderer.ts` and the numeric index
 API was replaced by template ids.
 
 ## Rendering
 
 ```ts
-import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/billing/email-templates/email-template-renderer";
+import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/email/email-template-renderer";
 
 const renderer = createEmailTemplateRenderer({
   appUrl: "https://aquisuena.mx",
@@ -56,8 +60,8 @@ Rules:
 - Supported locales are `es-MX` and `en`; the default is `es-MX`.
 - Stored account values are normalized with `resolveEmailLocale` before rendering, so
   an unknown value falls back to the default instead of crashing the renderer.
-- Adding a language means extending `EMAIL_LOCALES`, the copy map in `renderer.ts`,
-  and any localized labels owned by a notifier (billing period, durations).
+- Adding a language means extending `EMAIL_LOCALES`, adding `<code>.json` under
+  `src/infrastructure/email/`, and registering it in the renderer's copy map.
 
 ## Wired send sites
 

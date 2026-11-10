@@ -45,4 +45,4 @@ Símbolo horizontal, centrado: **tienda** con toldo trapezoidal de 4 festones re
 Matraz de laboratorio en trazo blanco (`#FFFFFF`) con `</>` en `#14B8A6` dentro del cuerpo y bits (óvalos y flechas pequeñas en `#14B8A6`) cayendo por el cuello.
 
 ## Plantillas
-Ver `TEMPLATES.md` (asuntos, CTA, enlaces, variables) y `es-MX.json` / `en.json` (textos).
+Ver `TEMPLATES.md` (asuntos, CTA, enlaces, variables). Los textos de runtime viven en `packages/api/src/infrastructure/email/es-MX.json` y `en.json`.
