@@ -14,9 +14,18 @@ Test runner: `pnpm --filter @aqui-suena/api test`.
 ## Tasks
 
 - T1 / S1 — `period.ts` + tests, replace the private `addMonths`, add service-level month-end coverage. DONE. RED: 3 service month-end assertions failed (got 2026-03-03). GREEN: 40 subscription tests. Commit `08fbd1b`.
-- T2 / S2 — export `daysBetween` with UTC calendar-day math + tests, preserve reminder thresholds. DONE. RED: 7 `daysBetween` tests failed (function not exported). GREEN: 92 subscription tests. Commit: TBD.
+- T2 / S2 — export `daysBetween` with UTC calendar-day math + tests, preserve reminder thresholds. DONE. RED: 7 `daysBetween` tests failed (function not exported). GREEN: 92 subscription tests. Commit `0305521`.
 
 ## Log
+
+### L2 — 2026-11-10 — closing evidence
+
+- T1: `fix(billing): clamp subscription periods to the target month` — `08fbd1b`. RED: three service month-end assertions returned `2026-03-03`; the new pure module did not exist. GREEN: 8 period tests + 32 service tests.
+- T2: `fix(billing): count reminder days in UTC calendar days` — `0305521`. RED: seven `daysBetween` tests failed because the function was private. GREEN: 24 reminder tests, including the 167-hour DST span returning 7.
+- Semantics: `daysBetween` now counts UTC calendar days; a two-hour span crossing UTC midnight counts as 1 day. `addMonths` keeps the original time of day and clamps the day to the target month.
+- Out of scope confirmed untouched: `graceDeadline`, `retentionDeadline`, D1 enums, seeds and pagination.
+- Closing gates: `pnpm -r typecheck` pass, `pnpm -r test` pass (api 557, db 14, ui 143, player 66, config 10), `pnpm arch` no violations, Biome clean on the touched module.
+- No push, no merge.
 
 ### L1 — 2026-11-10 — original request (verbatim)
 
