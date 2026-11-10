@@ -1,5 +1,35 @@
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import {
+  InMemorySubscriptionRepository,
+  parseSubscriptionStatus,
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
+
+describe("parseSubscriptionStatus", () => {
+  it.each(["active", "cancelled", "expired", "grace"])("accepts the valid status %s", (status) => {
+    expect(parseSubscriptionStatus(status)).toBe(status);
+  });
+
+  it.each(["paused", "", "ACTIVE"])("rejects the unknown status %s", (value) => {
+    expect(() => parseSubscriptionStatus(value)).toThrow(DataIntegrityError);
+  });
+
+  it.each([null, 1, {}])("rejects the non-string value %s", (value) => {
+    expect(() => parseSubscriptionStatus(value)).toThrow(DataIntegrityError);
+  });
+
+  it("carries the field and the offending value", () => {
+    let thrown: unknown;
+    try {
+      parseSubscriptionStatus("paused");
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(DataIntegrityError);
+    expect(thrown).toMatchObject({ field: "status", value: "paused" });
+  });
+});
 
 describe("InMemorySubscriptionRepository", () => {
   it("creates a subscription with active status", async () => {

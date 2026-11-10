@@ -1,6 +1,18 @@
-export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
-
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+
+export const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"] as const;
+
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+/** Parses a persisted status; an unknown value is a data-integrity failure. */
+export function parsePaymentStatus(value: unknown): PaymentStatus {
+  if (typeof value === "string" && (PAYMENT_STATUSES as readonly string[]).includes(value)) {
+    return value as PaymentStatus;
+  }
+
+  throw new DataIntegrityError("status", value);
+}
 
 export type Payment = {
   id: string;

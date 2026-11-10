@@ -2,7 +2,7 @@ import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { resolveEmailLocale } from "@aqui-suena/api/domain/email/email-template";
-import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type AccountRow = {
@@ -35,7 +35,7 @@ export class D1AccountRepository implements AccountRepository {
     return {
       id: row.id,
       email: row.email,
-      planId: row.plan_id as PlanId,
+      planId: parsePlanId(row.plan_id),
       locale: resolveEmailLocale(row.locale),
     };
   }

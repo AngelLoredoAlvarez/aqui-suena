@@ -48,10 +48,22 @@ describe("hours router", () => {
     expect(hours[0]?.id).toBe("hr-1");
   });
 
-  it("returns null when getById finds nothing", async () => {
+  it("rejects getById with NOT_FOUND when nothing matches", async () => {
     const { caller } = setup([]);
 
-    expect(await caller.getById("nonexistent")).toBeNull();
+    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a malformed id with BAD_REQUEST", async () => {
+    const { caller } = setup();
+
+    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects deleting a missing hour with NOT_FOUND", async () => {
+    const { caller } = setup([]);
+
+    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates an hour with generated id", async () => {

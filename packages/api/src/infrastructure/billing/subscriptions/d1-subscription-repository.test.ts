@@ -1,4 +1,5 @@
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 function makeCapturingDb() {
@@ -102,6 +103,56 @@ describe("D1SubscriptionRepository", () => {
     expect(sub).not.toBeNull();
     expect(sub?.status).toBe("cancelled");
     expect(sub?.planId).toBe("commerce");
+  });
+
+  it("throws DataIntegrityError when a stored status is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => ({
+            id: "sub-1",
+            account_id: "acc-1",
+            plan_id: "trades",
+            status: "paused",
+            started_at: 1700000000,
+            ends_at: 1702678400,
+            created_at: 1700000000,
+            updated_at: 1700000000,
+          }),
+          all: async () => ({ results: [] }),
+          run: async () => ({ success: true }),
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repo = new D1SubscriptionRepository(fakeDb);
+
+    await expect(repo.getById("sub-1")).rejects.toBeInstanceOf(DataIntegrityError);
+  });
+
+  it("throws DataIntegrityError when a stored plan id is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => ({
+            id: "sub-1",
+            account_id: "acc-1",
+            plan_id: "enterprise",
+            status: "active",
+            started_at: 1700000000,
+            ends_at: 1702678400,
+            created_at: 1700000000,
+            updated_at: 1700000000,
+          }),
+          all: async () => ({ results: [] }),
+          run: async () => ({ success: true }),
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repo = new D1SubscriptionRepository(fakeDb);
+
+    await expect(repo.getById("sub-1")).rejects.toBeInstanceOf(DataIntegrityError);
   });
 
   it("returns null for non-existent subscription (getById)", async () => {

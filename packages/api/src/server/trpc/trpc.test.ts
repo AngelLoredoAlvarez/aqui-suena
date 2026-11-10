@@ -1,5 +1,11 @@
-import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
-import { describe, expect, it } from "vitest";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
+import {
+  ConflictError,
+  DataIntegrityError,
+  NotFoundError,
+  ValidationError,
+} from "@aqui-suena/api/shared/domain-error";
+import { describe, expect, it, vi } from "vitest";
 
 describe("protectedProcedure", () => {
   it("throws UNAUTHORIZED when no user in context", async () => {
@@ -16,5 +22,43 @@ describe("protectedProcedure", () => {
     const caller = r.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.ping()).toBe("pong");
+  });
+});
+
+describe("DataIntegrityError mapping", () => {
+  it("answers a generic INTERNAL_SERVER_ERROR and logs field and value", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const r = router({
+      broken: publicProcedure.query(() => {
+        throw new DataIntegrityError("planId", "enterprise");
+      }),
+    });
+    const caller = r.createCaller({ user: null });
+
+    await expect(caller.broken()).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Internal server error",
+    });
+    expect(log).toHaveBeenCalledWith("Data integrity error", {
+      field: "planId",
+      value: "enterprise",
+    });
+
+    log.mockRestore();
+  });
+
+  it.each([
+    [new ValidationError("Invalid input"), "BAD_REQUEST"],
+    [new NotFoundError("Missing entity"), "NOT_FOUND"],
+    [new ConflictError("Wrong state"), "CONFLICT"],
+  ])("maps %s to %s", async (error, code) => {
+    const r = router({
+      broken: publicProcedure.query(() => {
+        throw error;
+      }),
+    });
+    const caller = r.createCaller({ user: null });
+
+    await expect(caller.broken()).rejects.toMatchObject({ code, message: error.message });
   });
 });

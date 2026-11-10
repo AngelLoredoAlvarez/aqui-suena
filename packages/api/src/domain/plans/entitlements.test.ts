@@ -1,3 +1,4 @@
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,6 +10,7 @@ import {
   getEntitlements,
   isWithinPhotoQuota,
   isWithinProductQuota,
+  parsePlanId,
   UpgradeRequired,
 } from "./entitlements";
 
@@ -209,6 +211,32 @@ describe("canCreateBusiness", () => {
       code: "UPGRADE_REQUIRED",
       hint: "billing.upgradeRequired.businessCreate",
     });
+  });
+});
+
+describe("parsePlanId", () => {
+  it.each(["community", "trades", "commerce"])("accepts the valid plan id %s", (id) => {
+    expect(parsePlanId(id)).toBe(id);
+  });
+
+  it.each(["premium", "", "COMMUNITY"])("rejects the unknown plan id %s", (value) => {
+    expect(() => parsePlanId(value)).toThrow(DataIntegrityError);
+  });
+
+  it.each([null, undefined, 42, {}])("rejects the non-string value %s", (value) => {
+    expect(() => parsePlanId(value)).toThrow(DataIntegrityError);
+  });
+
+  it("carries the field and the offending value", () => {
+    let thrown: unknown;
+    try {
+      parsePlanId("premium");
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(DataIntegrityError);
+    expect(thrown).toMatchObject({ field: "planId", value: "premium" });
   });
 });
 

@@ -84,6 +84,14 @@ anything other than the client-safe entries.
   `NOT_FOUND` so a foreign resource never leaks its existence. Public
   `list`/`getById` reads filter `hidden_at IS NULL`; owner reads use
   `getByIdForOwner`/`listByAccount` and stay unfiltered.
+- Client-caused failures use typed domain errors, mapped once in
+  `server/trpc/trpc.ts`: `ValidationError` → `BAD_REQUEST`, `NotFoundError` →
+  `NOT_FOUND`, `ConflictError` → `CONFLICT`. A missing or foreign entity is
+  `NOT_FOUND`, never `null`/`false`. Persisted values are parsed on read
+  (`parsePlanId`, `parseBusinessCategory`, `parseSubscriptionStatus`,
+  `parsePaymentStatus`); an unknown value raises `DataIntegrityError`, which is
+  logged with its field and value and answered as a generic
+  `INTERNAL_SERVER_ERROR`.
 - `packages/api/design/` holds design artifacts (specs, manifest, pre-rendered
   samples). Nothing there is imported at runtime.
 - Layer rules are enforced by `pnpm arch`: `domain` cannot import

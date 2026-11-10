@@ -1,14 +1,17 @@
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { parse } from "valibot";
 import { describe, expect, it } from "vitest";
 
 import {
   addPhotoInputSchema,
+  BUSINESS_CATEGORIES,
   businessCategorySchema,
   capProducts,
   createProductInputSchema,
   deriveListingOpen,
   isOpenNow,
   listingInputSchema,
+  parseBusinessCategory,
 } from "./listing";
 
 describe("businessCategorySchema", () => {
@@ -18,6 +21,32 @@ describe("businessCategorySchema", () => {
 
   it("rejects an unknown category", () => {
     expect(() => parse(businessCategorySchema, "random")).toThrow();
+  });
+});
+
+describe("parseBusinessCategory", () => {
+  it.each(BUSINESS_CATEGORIES)("accepts the valid category %s", (category) => {
+    expect(parseBusinessCategory(category)).toBe(category);
+  });
+
+  it.each(["restaurant", "", "FOOD"])("rejects the unknown category %s", (value) => {
+    expect(() => parseBusinessCategory(value)).toThrow(DataIntegrityError);
+  });
+
+  it.each([null, 7, {}])("rejects the non-string value %s", (value) => {
+    expect(() => parseBusinessCategory(value)).toThrow(DataIntegrityError);
+  });
+
+  it("carries the field and the offending value", () => {
+    let thrown: unknown;
+    try {
+      parseBusinessCategory("restaurant");
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(DataIntegrityError);
+    expect(thrown).toMatchObject({ field: "category", value: "restaurant" });
   });
 });
 

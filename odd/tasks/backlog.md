@@ -5,6 +5,16 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
 
+## Persistence validation and error codes (closed 2026-11-10)
+
+- [x] Persisted enums (`plan_id`, `category`, subscription/payment `status`) are
+  parsed on read and an unknown value raises `DataIntegrityError` instead of
+  flowing into the domain; `media.confirm` verifies the key prefix and the real
+  object metadata before persisting; client-caused failures map to
+  `BAD_REQUEST`/`NOT_FOUND`/`CONFLICT` and missing entities no longer return
+  `null`/`false`. Branch `fix/persistence-validation`; details in
+  `odd/tasks/fix-persistence-validation.md`.
+
 ## Billing correctness (closed 2026-11-10)
 
 - [x] Subscription periods clamp to the target month's last day in UTC, and

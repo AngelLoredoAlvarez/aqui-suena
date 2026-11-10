@@ -1,5 +1,5 @@
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
+import { ENTITLEMENTS, parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { Plan, PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 
 type PlanRow = {
@@ -39,8 +39,10 @@ export class D1PlanRepository implements PlanRepository {
   }
 
   private mapRow(row: PlanRow): Plan {
+    const id = parsePlanId(row.id);
+
     return {
-      id: row.id as PlanId,
+      id,
       name: row.name,
       audience: row.audience,
       description: row.description,
@@ -49,7 +51,7 @@ export class D1PlanRepository implements PlanRepository {
       priceAnnual: row.price_annual,
       currency: row.currency,
       active: row.active === 1,
-      entitlements: ENTITLEMENTS[row.id as keyof typeof ENTITLEMENTS],
+      entitlements: ENTITLEMENTS[id],
     };
   }
 }

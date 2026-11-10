@@ -4,6 +4,7 @@ import type {
   CreateBusinessInput,
   UpdateBusinessInput,
 } from "@aqui-suena/api/domain/directory/business";
+import { parseBusinessCategory } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type BusinessRow = {
@@ -196,7 +197,7 @@ export class D1BusinessRepository implements BusinessRepository {
       id: row.id,
       accountId: row.account_id,
       name: row.name,
-      category: row.category as Business["category"],
+      category: parseBusinessCategory(row.category),
       phone: row.phone,
       email: row.email,
       address: row.address,

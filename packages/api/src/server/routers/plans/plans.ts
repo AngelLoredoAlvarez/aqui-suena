@@ -1,6 +1,8 @@
-import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { isPlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
+import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 
 export function createPlansRouter(repository: PlanRepository) {
   return router({
@@ -8,15 +10,12 @@ export function createPlansRouter(repository: PlanRepository) {
       return repository.list();
     }),
 
-    getById: publicProcedure
-      .input((value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) {
-          throw new Error("Plan id is required");
-        }
-        return value;
-      })
-      .query(async ({ input }) => {
-        return repository.getById(input as PlanId);
-      }),
+    getById: publicProcedure.input(requiredId("Plan id is required")).query(async ({ input }) => {
+      if (!isPlanId(input)) {
+        throw new NotFoundError("Plan not found");
+      }
+
+      return requireFound(await repository.getById(input), "Plan not found");
+    }),
   });
 }

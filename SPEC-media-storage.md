@@ -51,7 +51,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required).
 2. Server validates type/size limits, generates a unique R2 key, returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the R2 key; server stores metadata in DB.
+4. Client calls `media.confirm` with the R2 key and the declared type/size. The server requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB.
 5. Client receives the public URL (R2 custom domain or worker proxy).
 
 ## Image Optimization (listeners)
@@ -90,7 +90,7 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 
 ## Boundaries
 
-- Always: validate type and size before presigning, use content-addressed keys for immutable caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
+- Always: validate type and size before presigning, revalidate the real object metadata and the key prefix on `confirm` (never persist client-declared type/size), use content-addressed keys for immutable caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
 - Ask first: add a new media type, change size limits, add video support, enable Cloudflare Image Resizing (paid tier).
 - Never: proxy uploads through the server (waste bandwidth), store raw uploads without validation, exceed R2 free tier (10GB), use Cloudflare Images (paid) without approval, block audio during upload, expose R2 credentials to client.
 

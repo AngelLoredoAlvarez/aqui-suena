@@ -2,6 +2,8 @@
 // spots, owner-portal) reads through `getEntitlements` / the helpers below.
 // Never re-implement a limit anywhere else: add a field here instead.
 
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+
 export const UPGRADE_HINTS = {
   productCreate: "billing.upgradeRequired.productCreate",
   businessCreate: "billing.upgradeRequired.businessCreate",
@@ -65,6 +67,22 @@ export const ENTITLEMENTS = {
 export type PlanId = keyof typeof ENTITLEMENTS;
 export type Entitlements = (typeof ENTITLEMENTS)[PlanId];
 export type MediaTier = Entitlements["media"];
+
+/** Narrows an untrusted value to a known plan id without throwing. */
+export function isPlanId(value: unknown): value is PlanId {
+  return typeof value === "string" && Object.hasOwn(ENTITLEMENTS, value);
+}
+
+/**
+ * Parses a persisted plan id. Unknown values are a data-integrity failure, not
+ * a silent fallback, so a stale migration or manual write cannot masquerade as
+ * a valid plan.
+ */
+export function parsePlanId(value: unknown): PlanId {
+  if (isPlanId(value)) return value;
+
+  throw new DataIntegrityError("planId", value);
+}
 
 export class UpgradeRequired extends Error {
   readonly code = "UPGRADE_REQUIRED" as const;

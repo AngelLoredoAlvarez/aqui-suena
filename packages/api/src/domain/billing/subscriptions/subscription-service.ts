@@ -15,6 +15,7 @@ import {
 } from "@aqui-suena/api/domain/email/email-template";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { graceDeadline, isInGracePeriod } from "./grace";
 import { addMonths } from "./period";
 
@@ -82,11 +83,11 @@ export class SubscriptionService {
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
-      throw new Error("Subscription not found");
+      throw new NotFoundError("Subscription not found");
     }
 
     if (current.status !== "active") {
-      throw new Error("Subscription is not active");
+      throw new ConflictError("Subscription is not active");
     }
 
     const currentPlan = await this.planRepo.getById(current.planId);
@@ -94,11 +95,11 @@ export class SubscriptionService {
     const newPlan = await this.planRepo.getById(newPlanId);
 
     if (!currentPlan || !newPlan) {
-      throw new Error("Plan not found");
+      throw new NotFoundError("Plan not found");
     }
 
     if (current.planId === newPlanId) {
-      throw new Error("Already on this plan");
+      throw new ConflictError("Already on this plan");
     }
 
     const isUpgrade = newPlan.entitlements.priority > currentPlan.entitlements.priority;
@@ -119,7 +120,7 @@ export class SubscriptionService {
       );
 
       if (!selection.allowed) {
-        throw new Error(`UPGRADE_REQUIRED: ${selection.hint}`);
+        throw new ConflictError(`UPGRADE_REQUIRED: ${selection.hint}`);
       }
     }
 
@@ -160,11 +161,11 @@ export class SubscriptionService {
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
-      throw new Error("Subscription not found");
+      throw new NotFoundError("Subscription not found");
     }
 
     if (current.status !== "active") {
-      throw new Error("Subscription is not active");
+      throw new ConflictError("Subscription is not active");
     }
 
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
@@ -189,7 +190,7 @@ export class SubscriptionService {
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
-      throw new Error("Subscription not found");
+      throw new NotFoundError("Subscription not found");
     }
 
     const graceEnd = graceDeadline(failedAt);
@@ -232,7 +233,7 @@ export class SubscriptionService {
       const cap = newPlan?.entitlements.maxBusinesses ?? 0;
       const selection = canChooseVisibleCount(cap, visibleBusinessIds.length);
 
-      if (!selection.allowed) throw new Error(`UPGRADE_REQUIRED: ${selection.hint}`);
+      if (!selection.allowed) throw new ConflictError(`UPGRADE_REQUIRED: ${selection.hint}`);
 
       const businesses = await this.businessRepo.listByAccount(current.accountId);
 

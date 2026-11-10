@@ -34,16 +34,37 @@ describe("businesses router", () => {
     expect(businesses[0]?.name).toBe("Tacos El Güero");
   });
 
-  it("returns null when getById finds nothing", async () => {
+  it("rejects getById with NOT_FOUND when nothing matches", async () => {
     const repository = new InMemoryBusinessRepository([]);
     const router = createBusinessesRouter({
       business: repository,
       subscription: new InMemorySubscriptionRepository([]),
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
-    const business = await caller.getById("nonexistent");
 
-    expect(business).toBeNull();
+    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a malformed id with BAD_REQUEST", async () => {
+    const repository = new InMemoryBusinessRepository([]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects deleting a missing business with NOT_FOUND", async () => {
+    const repository = new InMemoryBusinessRepository([]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates a business and returns it with a generated id", async () => {
@@ -127,7 +148,7 @@ describe("businesses router", () => {
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect(await caller.list()).toEqual([]);
-    expect(await caller.getById("biz-hidden")).toBeNull();
+    await expect(caller.getById("biz-hidden")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("returns hidden businesses through the owner endpoints", async () => {
@@ -161,7 +182,7 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    expect(await caller.getMine("biz-foreign")).toBeNull();
+    await expect(caller.getMine("biz-foreign")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a business when the account cap is reached", async () => {

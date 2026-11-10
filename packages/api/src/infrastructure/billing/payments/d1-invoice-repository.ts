@@ -1,5 +1,6 @@
 import type { Invoice, InvoiceRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type InvoiceRow = {
@@ -84,7 +85,7 @@ export class D1InvoiceRepository implements InvoiceRepository {
       id: row.id,
       paymentId: row.payment_id,
       accountId: row.account_id,
-      planId: row.plan_id as PlanId,
+      planId: parsePlanId(row.plan_id),
       amount: row.amount,
       currency: row.currency,
       issuedAt: new Date(row.issued_at * 1000),

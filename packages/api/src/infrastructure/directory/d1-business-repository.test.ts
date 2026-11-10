@@ -1,4 +1,5 @@
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 describe("D1BusinessRepository", () => {
@@ -35,6 +36,36 @@ describe("D1BusinessRepository", () => {
     expect(businesses[0]?.category).toBe("food");
     expect(businesses[0]?.delivery).toBe(true);
     expect(businesses[0]?.createdAt).toBeInstanceOf(Date);
+  });
+
+  it("throws DataIntegrityError when a stored category is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        all: async () => ({
+          results: [
+            {
+              id: "biz-1",
+              account_id: "acc-1",
+              name: "Tacos El Güero",
+              category: "restaurant",
+              phone: null,
+              email: null,
+              address: null,
+              timezone: "America/Mexico_City",
+              delivery: 1,
+              hidden_at: null,
+              retained_until: null,
+              created_at: 1700000000,
+              updated_at: 1700000000,
+            },
+          ],
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repository = new D1BusinessRepository(fakeDb);
+
+    await expect(repository.list()).rejects.toBeInstanceOf(DataIntegrityError);
   });
 
   it("returns null when getById finds nothing", async () => {

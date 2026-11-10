@@ -1,4 +1,5 @@
 import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 function makeCapturingDb() {
@@ -54,6 +55,31 @@ describe("D1PaymentRepository", () => {
     expect(payment?.amount).toBe(4900);
     expect(payment?.status).toBe("completed");
     expect(payment?.paidAt).toBeInstanceOf(Date);
+  });
+
+  it("throws DataIntegrityError when a stored status is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => ({
+            id: "pay-1",
+            subscription_id: "sub-1",
+            amount: 4900,
+            currency: "MXN",
+            status: "unknown",
+            paid_at: null,
+            created_at: 1700000000,
+            updated_at: 1700000000,
+          }),
+          all: async () => ({ results: [] }),
+          run: async () => ({ success: true }),
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repo = new D1PaymentRepository(fakeDb);
+
+    await expect(repo.getById("pay-1")).rejects.toBeInstanceOf(DataIntegrityError);
   });
 
   it("returns null for non-existent payment (getById)", async () => {

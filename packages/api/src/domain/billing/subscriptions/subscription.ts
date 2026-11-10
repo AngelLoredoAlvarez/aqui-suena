@@ -1,6 +1,19 @@
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { isInGracePeriod } from "./grace";
-export type SubscriptionStatus = "active" | "cancelled" | "expired" | "grace";
+
+export const SUBSCRIPTION_STATUSES = ["active", "cancelled", "expired", "grace"] as const;
+
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+/** Parses a persisted status; an unknown value is a data-integrity failure. */
+export function parseSubscriptionStatus(value: unknown): SubscriptionStatus {
+  if (typeof value === "string" && (SUBSCRIPTION_STATUSES as readonly string[]).includes(value)) {
+    return value as SubscriptionStatus;
+  }
+
+  throw new DataIntegrityError("status", value);
+}
 
 export type Subscription = {
   id: string;

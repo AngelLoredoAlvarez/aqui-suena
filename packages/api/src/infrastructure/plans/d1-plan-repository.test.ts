@@ -1,6 +1,7 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
 
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 describe("D1PlanRepository", () => {
@@ -34,5 +35,31 @@ describe("D1PlanRepository", () => {
     expect(plans[0]?.id).toBe("community");
     expect(plans[0]?.benefits).toEqual(["Contacto directo", "1 flyer básico"]);
     expect(plans[0]?.entitlements).toBe(ENTITLEMENTS.community);
+  });
+
+  it("throws DataIntegrityError when a stored plan id is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        all: async () => ({
+          results: [
+            {
+              id: "enterprise",
+              name: "Enterprise",
+              audience: "Nope",
+              description: "Nope",
+              benefits: JSON.stringify([]),
+              price_monthly: 0,
+              price_annual: 0,
+              currency: "MXN",
+              active: 1,
+            },
+          ],
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repository = new D1PlanRepository(fakeDb);
+
+    await expect(repository.list()).rejects.toBeInstanceOf(DataIntegrityError);
   });
 });
