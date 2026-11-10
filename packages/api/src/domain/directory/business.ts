@@ -1,6 +1,6 @@
-import { isRetentionExpired } from "@aqui-suena/api/domain/billing/downgrade";
+import { isRetentionExpired } from "@aqui-suena/api/domain/directory/retention";
 import type * as v from "valibot";
-import type { businessCategorySchema } from "./listing";
+import type { businessCategorySchema } from "./contracts/listing";
 
 export type Business = {
   id: string;

@@ -27,6 +27,47 @@ module.exports = {
         pathNot: "packages/api/src/(client|domain/listener)\\.ts$",
       },
     },
+    {
+      name: "api-domain-must-not-depend-on-outer-layers",
+      severity: "error",
+      comment:
+        "Clean Architecture: packages/api/src/domain is the inner layer. It must not import infrastructure or server; depend on ports instead. Tests are exempt because they may wire real adapters.",
+      from: {
+        path: "^packages/api/src/domain",
+        pathNot: "\\.test\\.ts$",
+      },
+      to: { path: "^packages/api/src/(infrastructure|server)" },
+    },
+    {
+      name: "no-circular",
+      severity: "error",
+      comment: "A cycle means two modules cannot be reasoned about independently.",
+      from: {},
+      to: { circular: true },
+    },
+    {
+      name: "api-domain-directory-must-not-depend-on-billing",
+      severity: "error",
+      comment:
+        "Directory owns businesses and their visibility; billing may depend on it (downgrade hides businesses), never the reverse.",
+      from: { path: "^packages/api/src/domain/directory", pathNot: "\\.test\\.ts$" },
+      to: { path: "^packages/api/src/domain/billing" },
+    },
+    {
+      name: "api-domain-plans-must-stay-lowest",
+      severity: "error",
+      comment:
+        "Plans and entitlements are a shared kernel: they must not import other domain modules.",
+      from: { path: "^packages/api/src/domain/plans", pathNot: "\\.test\\.ts$" },
+      to: { path: "^packages/api/src/domain/(?!plans)" },
+    },
+    {
+      name: "api-infrastructure-must-not-depend-on-server",
+      severity: "error",
+      comment: "Infrastructure may depend on domain, never on the server layer.",
+      from: { path: "^packages/api/src/infrastructure" },
+      to: { path: "^packages/api/src/server" },
+    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },

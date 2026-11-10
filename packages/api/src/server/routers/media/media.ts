@@ -1,6 +1,6 @@
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
-import { protectedProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const mediaKind = v.picklist(["product-photo", "flyer", "spot-audio", "avatar"]);

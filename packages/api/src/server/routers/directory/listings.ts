@@ -1,18 +1,18 @@
-import type { PlanId } from "@aqui-suena/api/entitlements";
+import {
+  capProducts,
+  createProductInputSchema,
+  deriveListingOpen,
+  listingInputSchema,
+} from "@aqui-suena/api/domain/directory/contracts/listing";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import {
   canCreateProduct,
   ENTITLEMENTS,
   isWithinPhotoQuota,
   isWithinProductPhotoQuota,
   isWithinProductQuota,
-} from "@aqui-suena/api/entitlements";
-import {
-  capProducts,
-  createProductInputSchema,
-  deriveListingOpen,
-  listingInputSchema,
-} from "@aqui-suena/api/listing";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+} from "@aqui-suena/api/domain/plans/entitlements";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -49,7 +49,7 @@ const listListingsInput = v.object({
   now: v.optional(v.date()),
 });
 
-export const businessRouter = router({
+export const listingsRouter = router({
   list: publicProcedure.input(listListingsInput).query(({ input }) => {
     const now = input.now ?? new Date();
     // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.

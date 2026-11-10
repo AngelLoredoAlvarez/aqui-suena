@@ -1,5 +1,5 @@
-import { createSupabaseClient } from "@aqui-suena/api/supabase";
-import type { Context } from "@aqui-suena/api/trpc";
+import { createSupabaseClient } from "@aqui-suena/api/server/auth/supabase";
+import type { Context } from "@aqui-suena/api/server/trpc/trpc";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function createContext(

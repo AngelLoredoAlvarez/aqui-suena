@@ -4,7 +4,7 @@ import type {
   ServiceRepository,
   UpdateServiceInput,
 } from "@aqui-suena/api/domain/directory/service";
-import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type ServiceRow = {
   id: string;

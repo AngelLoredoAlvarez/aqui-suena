@@ -8,6 +8,6 @@ export {
   listenerStatusInput,
   listenerStatusOutput,
 } from "@aqui-suena/api/domain/radio/listener";
-export { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
 export type { AppRouter } from "@aqui-suena/api/server/trpc/router";
 export { appRouter } from "@aqui-suena/api/server/trpc/router";
+export { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";

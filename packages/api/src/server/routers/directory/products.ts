@@ -1,5 +1,5 @@
 import type { ProductRepository } from "@aqui-suena/api/domain/directory/product";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const createProductInput = v.object({

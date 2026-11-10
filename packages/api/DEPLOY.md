@@ -2,7 +2,7 @@
 
 The backend has a portable fetch handler (`src/app.ts`) with two runtime entries:
 the Node process (`src/main.ts`, used by `pnpm dev`) and a Cloudflare Worker
-(`src/worker.ts`). This documents the first deploy of the Worker, which is also
+(`src/server/worker.ts`). This documents the first deploy of the Worker, which is also
 the smoke test that confirms long-lived audio streaming works on the free plan.
 
 ## Prerequisites
@@ -21,7 +21,7 @@ the smoke test that confirms long-lived audio streaming works on the free plan.
 pnpm --filter @aqui-suena/api deploy:worker
 ```
 
-This runs `wrangler deploy`, which bundles `src/worker.ts` (and its relative
+This runs `wrangler deploy`, which bundles `src/server/worker.ts` (and its relative
 imports) with esbuild and uploads the Worker. Note the URL it prints, e.g.
 `https://aqui-suena-api.<your-subdomain>.workers.dev`.
 

@@ -1,9 +1,9 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { businessCategorySchema } from "@aqui-suena/api/domain/directory/listing";
-import { assertCanCreateBusiness } from "@aqui-suena/api/entitlements";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
+import { assertCanCreateBusiness } from "@aqui-suena/api/domain/plans/entitlements";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 

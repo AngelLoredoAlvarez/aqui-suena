@@ -1,5 +1,5 @@
 import type { PhotoRepository } from "@aqui-suena/api/domain/directory/photo";
-import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/trpc";
+import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
 const photoKind = v.picklist(["logo", "product", "work"]);

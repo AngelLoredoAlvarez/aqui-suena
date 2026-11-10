@@ -1,9 +1,9 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { resolveEmailLocale } from "@aqui-suena/api/domain/email/email-template";
-import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type AccountRow = {
   id: string;

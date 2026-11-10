@@ -4,7 +4,7 @@ import type {
   ProductRepository,
   UpdateProductInput,
 } from "@aqui-suena/api/domain/directory/product";
-import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
+import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type ProductRow = {
   id: string;
