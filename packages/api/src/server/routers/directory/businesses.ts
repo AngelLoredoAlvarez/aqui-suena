@@ -1,5 +1,5 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/listing";
 import { assertCanCreateBusiness } from "@aqui-suena/api/entitlements";

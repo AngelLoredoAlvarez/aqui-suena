@@ -1,4 +1,4 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/d1-plan-repository";
 import { describe, expect, it } from "vitest";

@@ -2,7 +2,7 @@ import type {
   Payment,
   PaymentRepository,
   PaymentStatus,
-} from "@aqui-suena/api/domain/billing/payments";
+} from "@aqui-suena/api/domain/billing/payments/payments";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type PaymentRow = {

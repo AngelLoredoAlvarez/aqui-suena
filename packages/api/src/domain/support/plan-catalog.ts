@@ -1,4 +1,4 @@
-import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { Plan, PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 
 /**
  * Text embedded per plan. The retrieval quality depends entirely on this

@@ -3,9 +3,9 @@ import {
   type ReminderLogRepository,
   type ReminderPreferences,
   type ReminderType,
-} from "@aqui-suena/api/domain/billing/reminders";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscription-notifier";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+} from "@aqui-suena/api/domain/billing/subscriptions/reminders";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import {
   DEFAULT_EMAIL_LOCALE,
   type EmailLocale,

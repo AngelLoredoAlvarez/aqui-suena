@@ -1,5 +1,5 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
-import { getEntitlements } from "@aqui-suena/api/domain/billing/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
+import { getEntitlements } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import * as v from "valibot";
 
 // Fixed giro enum shared between API and forms. "other" is the only free-text

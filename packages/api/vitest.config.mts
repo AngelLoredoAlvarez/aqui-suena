@@ -10,7 +10,7 @@ export default defineConfig({
     alias: {
       "@aqui-suena/api/ads": src("domain/ads/ads-carousel.ts"),
       "@aqui-suena/api/client": src("client.ts"),
-      "@aqui-suena/api/entitlements": src("domain/billing/entitlements.ts"),
+      "@aqui-suena/api/entitlements": src("domain/billing/catalog/entitlements.ts"),
       "@aqui-suena/api/listener": src("domain/radio/listener.ts"),
       "@aqui-suena/api/listing": src("domain/directory/listing.ts"),
       "@aqui-suena/api/router": src("server/trpc/router.ts"),

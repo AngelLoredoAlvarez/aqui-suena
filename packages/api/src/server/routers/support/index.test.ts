@@ -1,5 +1,5 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/catalog/entitlements";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { describe, expect, it, vi } from "vitest";

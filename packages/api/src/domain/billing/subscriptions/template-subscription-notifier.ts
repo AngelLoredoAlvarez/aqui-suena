@@ -6,7 +6,7 @@ import type {
   RenewalUpcomingNotification,
   SubscriptionNotificationRecipient,
   SubscriptionNotifier,
-} from "@aqui-suena/api/domain/billing/subscription-notifier";
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { EmailSender } from "@aqui-suena/api/domain/email/email";
 import { formatEmailDate } from "@aqui-suena/api/domain/email/email-format";
 import type { EmailTemplateRenderer } from "@aqui-suena/api/domain/email/email-template";

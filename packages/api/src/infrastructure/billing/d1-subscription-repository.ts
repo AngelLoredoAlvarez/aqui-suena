@@ -1,9 +1,9 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import type {
   Subscription,
   SubscriptionRepository,
   SubscriptionStatus,
-} from "@aqui-suena/api/domain/billing/subscriptions";
+} from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";
 
 type SubscriptionRow = {

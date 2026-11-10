@@ -1,16 +1,16 @@
+import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 import {
   canChooseVisibleCount,
   graceDeadline,
   hiddenBusinessIds,
   isInGracePeriod,
   retentionDeadline,
-} from "@aqui-suena/api/domain/billing/downgrade";
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscription-notifier";
+} from "@aqui-suena/api/domain/billing/subscriptions/downgrade";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type {
   Subscription,
   SubscriptionRepository,
-} from "@aqui-suena/api/domain/billing/subscriptions";
+} from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import {
   DEFAULT_EMAIL_LOCALE,

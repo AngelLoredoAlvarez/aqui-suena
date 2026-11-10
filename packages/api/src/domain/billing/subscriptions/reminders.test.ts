@@ -2,8 +2,8 @@ import {
   dueReminders,
   InMemoryReminderLogRepository,
   type ReminderType,
-} from "@aqui-suena/api/domain/billing/reminders";
-import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions";
+} from "@aqui-suena/api/domain/billing/subscriptions/reminders";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import { describe, expect, it } from "vitest";
 
 const activeSub: Subscription = {

@@ -1,7 +1,7 @@
-import type { Plan } from "@aqui-suena/api/domain/billing/plans";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscription-service";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import type { Plan } from "@aqui-suena/api/domain/billing/catalog/plans";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
+import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/entitlements";

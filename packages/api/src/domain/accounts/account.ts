@@ -1,4 +1,4 @@
-import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 
 export interface Account {

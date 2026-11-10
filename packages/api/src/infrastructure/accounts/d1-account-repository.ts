@@ -1,6 +1,6 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import type { PlanId } from "@aqui-suena/api/domain/billing/entitlements";
+import type { PlanId } from "@aqui-suena/api/domain/billing/catalog/entitlements";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { resolveEmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { toEpoch } from "@aqui-suena/api/infrastructure/shared/d1-epoch";

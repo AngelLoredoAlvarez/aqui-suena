@@ -1,6 +1,6 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/ads";
-import { getEntitlements } from "@aqui-suena/api/domain/billing/entitlements";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import { getEntitlements } from "@aqui-suena/api/domain/billing/catalog/entitlements";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";

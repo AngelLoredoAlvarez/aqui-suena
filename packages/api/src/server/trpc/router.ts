@@ -1,4 +1,4 @@
-import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { PlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";

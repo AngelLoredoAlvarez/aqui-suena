@@ -3,7 +3,7 @@ import type {
   PaymentNotificationRecipient,
   PaymentNotifier,
   PaymentReceiptNotification,
-} from "@aqui-suena/api/domain/billing/payment-notifier";
+} from "@aqui-suena/api/domain/billing/payments/payment-notifier";
 import type { EmailSender } from "@aqui-suena/api/domain/email/email";
 import { formatEmailDate, formatEmailMoney } from "@aqui-suena/api/domain/email/email-format";
 import type {

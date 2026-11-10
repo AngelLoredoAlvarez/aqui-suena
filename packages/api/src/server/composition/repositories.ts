@@ -1,5 +1,5 @@
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";

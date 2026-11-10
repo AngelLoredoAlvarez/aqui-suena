@@ -1,4 +1,4 @@
-import { TemplatePaymentNotifier } from "@aqui-suena/api/domain/billing/template-payment-notifier";
+import { TemplatePaymentNotifier } from "@aqui-suena/api/domain/billing/payments/template-payment-notifier";
 import { FakeEmailSender } from "@aqui-suena/api/domain/email/email";
 import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/email/email-template-renderer";
 import { describe, expect, it } from "vitest";

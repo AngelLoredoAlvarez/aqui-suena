@@ -1,5 +1,5 @@
-import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/billing/catalog/entitlements";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/billing/catalog/plans";
 
 /**
  * In-memory plan catalog used by tests and local runs. D1 holds the real rows.
