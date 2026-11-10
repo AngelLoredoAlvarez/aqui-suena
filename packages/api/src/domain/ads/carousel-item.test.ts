@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { type CarouselItemSource, toCarouselItem } from "./carousel";
+import { type CarouselItemSource, toCarouselItem } from "./carousel-item";
 
 const source: CarouselItemSource = {
   business: {

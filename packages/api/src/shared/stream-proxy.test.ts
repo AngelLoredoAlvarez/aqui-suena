@@ -1,4 +1,4 @@
-import { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
+import { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";
 import { describe, expect, it, vi } from "vitest";
 
 function upstreamOk(body = "audio-bytes", contentType = "audio/mpeg"): Response {

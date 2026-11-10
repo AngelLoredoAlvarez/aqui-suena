@@ -1,4 +1,4 @@
-import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";
+import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
 import { isOpenNow } from "@aqui-suena/api/domain/directory/contracts/listing";
 
 export type CarouselItemSource = {

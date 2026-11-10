@@ -1,6 +1,6 @@
-import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/ads-carousel";
 import type { BusinessCarouselDeps } from "@aqui-suena/api/domain/ads/business-carousel";
 import { getBusinessCarousel } from "@aqui-suena/api/domain/ads/business-carousel";
+import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/contract";
 import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 
 export function createCarouselRouter(deps: BusinessCarouselDeps) {

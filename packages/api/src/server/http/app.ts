@@ -7,10 +7,10 @@ import {
   defaultDirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
-import { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
+import { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 

@@ -1,5 +1,5 @@
-import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";
-import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/ads-carousel";
+import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
+import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/contract";
 import type { ListenerStatus } from "@aqui-suena/api/domain/radio/listener";
 import { getMockListenerStatus, listenerStatusInput } from "@aqui-suena/api/domain/radio/listener";
 import * as v from "valibot";
@@ -11,7 +11,7 @@ export { listenerStatusInput, listenerStatusOutput } from "@aqui-suena/api/domai
 // the client-safe entry: stream-proxy has zero imports (no @trpc/server in
 // its graph), so this keeps the client entry server-free (see client.test.ts
 // guard) while satisfying the client-never-imports-server-entry rule.
-export { fetchProxiedStream } from "@aqui-suena/api/server/http/stream-proxy";
+export { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";
 
 // Client-safe fetcher for TanStack Query: validates the mock through the
 // same valibot schemas the server router enforces, with no @trpc/server import
@@ -51,4 +51,4 @@ export async function fetchAdsCarousel(baseUrl?: string): Promise<AdsCarouselIte
   return v.parse(adsCarouselOutput, items);
 }
 
-export type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/ads-carousel";
+export type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
