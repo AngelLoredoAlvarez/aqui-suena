@@ -39,6 +39,13 @@ module.exports = {
       to: { path: "^packages/api/src/(infrastructure|server)" },
     },
     {
+      name: "no-circular",
+      severity: "error",
+      comment: "A cycle means two modules cannot be reasoned about independently.",
+      from: {},
+      to: { circular: true },
+    },
+    {
       name: "api-infrastructure-must-not-depend-on-server",
       severity: "error",
       comment: "Infrastructure may depend on domain, never on the server layer.",
