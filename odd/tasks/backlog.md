@@ -87,3 +87,16 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-stor
 - [ ] Cloudflare media storage (SPEC-media-storage.md) — R2 upload + image optimization (lazy loading, WebP/AVIF, blur placeholder). Free tier (10GB + 1M ops/month). Depends on: none. Blocks: business-directory photos, ads-display flyers, owner-portal uploads, radio-spots audio.
 - [ ] Chatbot with Cloudflare Workers AI — update SPEC-owner-portal.md (replaces Gemini with Workers AI, free: 10k neurons/day). Depends on: owner-portal auth (Supabase).
 - [ ] Image loading optimization for flyers — part of SPEC-media-storage (responsive sizes, lazy loading, blur placeholder). Depends on: SPEC-media-storage.
+
+## Deferred (account preferences — revisit on the third preference)
+
+- Account preferences table (`account_preferences`). DEFERRED: `accounts` holds one
+  persisted preference (`locale`) and `renewalRemindersEnabled` is specified but not
+  persisted yet. A key/value table would lose type safety to solve a problem that does
+  not exist, and adding a column here is a cheap additive change (drizzle-diffed
+  `ALTER TABLE`, no rewrite). Revisit when any of these holds: a third persisted
+  preference; notification consent needs an audit trail (LFPDPPP) recording when and
+  from where it was granted or revoked; preferences vary by plan; owners can define
+  their own rules. When it happens, prefer a typed one-row-per-account table with
+  explicit columns over a `key/value` store.
+
