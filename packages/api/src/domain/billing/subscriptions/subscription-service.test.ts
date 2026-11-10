@@ -70,6 +70,24 @@ describe("SubscriptionService.changePlan", () => {
     expect(oldSub?.status).toBe("expired");
   });
 
+  it("upgrades at month-end with the period ending on the target month's last day", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const current = await subRepo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+    const newSub = await service.changePlan(current.id, "trades", {
+      now: new Date("2026-01-31T12:00:00Z"),
+    });
+
+    expect(newSub.endsAt?.toISOString()).toBe("2026-02-28T12:00:00.000Z");
+  });
+
   it("downgrades: marks current as cancelled (stays active until endsAt)", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
@@ -88,6 +106,28 @@ describe("SubscriptionService.changePlan", () => {
 
     const updated = await subRepo.getById(current.id);
     expect(updated?.status).toBe("cancelled");
+  });
+
+  it("downgrades at month-end with the next period clamped to the target month", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-01-31T12:00:00Z"),
+    );
+
+    await service.changePlan(current.id, "trades", {
+      now: new Date("2026-01-10T00:00:00Z"),
+    });
+
+    const next = (await subRepo.listByAccount("acc-1")).find((sub) => sub.planId === "trades");
+
+    expect(next?.startedAt.toISOString()).toBe("2026-01-31T12:00:00.000Z");
+    expect(next?.endsAt?.toISOString()).toBe("2026-02-28T12:00:00.000Z");
   });
 
   it("throws when subscription not found", async () => {
@@ -441,6 +481,27 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
     expect(result?.planId).toBe("community");
     expect(result?.status).toBe("active");
     expect((await subRepo.getById(sub.id))?.status).toBe("cancelled");
+  });
+
+  it("clamps the new period at month-end after the grace window expires", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-01-20T00:00:00Z"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-01-20T00:00:00Z"));
+
+    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-01-31T12:00:00Z"),
+    });
+
+    expect(result?.endsAt?.toISOString()).toBe("2026-02-28T12:00:00.000Z");
   });
 
   it("returns null for a non-grace subscription", async () => {

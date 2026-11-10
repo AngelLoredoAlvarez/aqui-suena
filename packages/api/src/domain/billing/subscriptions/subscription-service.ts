@@ -16,14 +16,9 @@ import {
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { graceDeadline, isInGracePeriod } from "./grace";
+import { addMonths } from "./period";
 
 const PERIOD_MONTHS = 1;
-
-function addMonths(date: Date, months: number): Date {
-  const result = new Date(date);
-  result.setMonth(result.getMonth() + months);
-  return result;
-}
 
 export interface SubscriptionServiceDependencies {
   readonly subscriptionRepo: SubscriptionRepository;
