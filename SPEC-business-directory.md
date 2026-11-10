@@ -33,9 +33,9 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
 apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
 packages/db/src/schema.ts                   → businesses, services, products, photos, work_entries, flyers, hours
-packages/api/src/routers/business.ts         → business.list / business.get
-packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos
-packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD)
+packages/api/src/server/routers/directory/   → business.list / business.get + directory CRUD routers
+packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos + authorization/visibility guards
+packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD, hidden-parent filtering)
 packages/ui/src/business-card.tsx            → shared card + sheet
 ```
 
@@ -78,13 +78,14 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for sheet flows.
-- Locations: `packages/api/src/routers/*.test.ts`, `packages/ui/src/*.test.tsx`, e2e `apps/web/e2e/business.spec.ts`.
+- Locations: `packages/api/src/server/routers/**/*.test.ts`, `packages/ui/src/*.test.tsx`, e2e `apps/web/e2e/business.spec.ts`.
 - Coverage: 100% on open/closed derivation and price formatting.
 - Levels: unit (hours→open, phone/address formatting) → integration (tRPC list/get) → e2e (open listing from carousel, audio keeps playing).
 
 ## Boundaries
 
-- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth on mutations (short-lived JWT in Authorization Bearer, verified server-side), run `typecheck + lint + test` before commit.
+- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth and business ownership on mutations (short-lived JWT in Authorization Bearer, verified server-side; a resource owned by another account answers `NOT_FOUND`), run `typecheck + lint + test` before commit.
+- Always: public reads (`list`, `getById`) and public child lists exclude businesses with `hidden_at` set; the owner still sees and edits them through the owner-scoped endpoints.
 - Ask first: add a listing field, change hours model, add image hosting provider (now R2 — see SPEC-media-storage).
 - Never: expose owner emails/phones to scrapers without rate limits, hardcode categories in UI (use shared enum), stop audio when opening a listing.
 

@@ -1,12 +1,36 @@
-import { appRouter } from "@aqui-suena/api/server/trpc/router";
+import type { Business } from "@aqui-suena/api/domain/directory/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { createListingsRouter } from "@aqui-suena/api/server/routers/directory/listings";
 import { describe, expect, it } from "vitest";
 
+const business: Business = {
+  id: "biz-1",
+  accountId: "acc-1",
+  name: "Tacos El Güero",
+  category: "food",
+  phone: null,
+  email: null,
+  address: null,
+  timezone: "America/Mexico_City",
+  delivery: false,
+  hiddenAt: null,
+  retainedUntil: null,
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  updatedAt: new Date("2024-01-01T00:00:00Z"),
+};
+
+function makeCaller() {
+  const router = createListingsRouter(new InMemoryBusinessRepository([business]));
+
+  return router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+}
+
 describe("business router — caps", () => {
-  const caller = appRouter.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+  const caller = makeCaller();
 
   it("rejects createProduct on free with UPGRADE_REQUIRED", async () => {
     await expect(
-      caller.business.createProduct({
+      caller.createProduct({
         plan: "community",
         businessId: "biz-1",
         name: "Taco",
@@ -16,7 +40,7 @@ describe("business router — caps", () => {
   });
 
   it("allows createProduct on premium within quota", async () => {
-    const result = await caller.business.createProduct({
+    const result = await caller.createProduct({
       plan: "commerce",
       businessId: "biz-1",
       name: "Taco",
@@ -28,7 +52,7 @@ describe("business router — caps", () => {
 
   it("rejects createProduct on premium at cap (100)", async () => {
     await expect(
-      caller.business.createProduct({
+      caller.createProduct({
         plan: "commerce",
         businessId: "biz-1",
         name: "Taco",
@@ -39,7 +63,7 @@ describe("business router — caps", () => {
   });
 
   it("allows logo photo on community within quota (1)", async () => {
-    const result = await caller.business.addPhoto({
+    const result = await caller.addPhoto({
       plan: "community",
       businessId: "biz-1",
       kind: "logo",
@@ -52,7 +76,7 @@ describe("business router — caps", () => {
 
   it("rejects 2nd marketing photo on community", async () => {
     await expect(
-      caller.business.addPhoto({
+      caller.addPhoto({
         plan: "community",
         businessId: "biz-1",
         kind: "logo",
@@ -64,7 +88,7 @@ describe("business router — caps", () => {
 
   it("rejects product photo on community", async () => {
     await expect(
-      caller.business.addPhoto({
+      caller.addPhoto({
         plan: "community",
         businessId: "biz-1",
         kind: "product",
@@ -75,7 +99,7 @@ describe("business router — caps", () => {
   });
 
   it("enforces three product photos per product on commerce", async () => {
-    const thirdPhoto = await caller.business.addPhoto({
+    const thirdPhoto = await caller.addPhoto({
       plan: "commerce",
       businessId: "biz-1",
       kind: "product",
@@ -86,7 +110,7 @@ describe("business router — caps", () => {
     expect(thirdPhoto).toMatchObject({ kind: "product" });
 
     await expect(
-      caller.business.addPhoto({
+      caller.addPhoto({
         plan: "commerce",
         businessId: "biz-1",
         kind: "product",
@@ -105,7 +129,7 @@ describe("business router — caps", () => {
       hours: [{ day: 1, openMinute: 8 * 60, closeMinute: 20 * 60 }],
     };
 
-    const result = await caller.business.get({
+    const result = await caller.get({
       listing,
       now: new Date("2026-10-26T10:00:00-06:00"),
     });
@@ -123,7 +147,7 @@ describe("business router — caps", () => {
       hours: [{ day: 1, openMinute: 8 * 60, closeMinute: 20 * 60 }],
     };
 
-    const result = await caller.business.get({
+    const result = await caller.get({
       listing,
       now: new Date("2026-10-26T23:00:00-06:00"),
     });
@@ -133,7 +157,7 @@ describe("business router — caps", () => {
 });
 
 describe("business router — list and create", () => {
-  const caller = appRouter.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+  const caller = makeCaller();
 
   it("caps products per plan in list (commerce)", async () => {
     const listing = {
@@ -146,7 +170,7 @@ describe("business router — list and create", () => {
 
     const products = Array.from({ length: 60 }, (_, i) => ({ name: `p${i}`, price: 100 }));
 
-    const result = await caller.business.list({
+    const result = await caller.list({
       plan: "commerce",
       items: [{ listing, products }],
       now: new Date("2026-10-26T10:00:00-06:00"),
@@ -171,7 +195,7 @@ describe("business router — list and create", () => {
 
     const products = Array.from({ length: 5 }, (_, i) => ({ name: `p${i}`, price: 100 }));
 
-    const result = await caller.business.list({
+    const result = await caller.list({
       plan: "community",
       items: [{ listing, products }],
       now: new Date("2026-10-26T10:00:00-06:00"),
@@ -193,7 +217,7 @@ describe("business router — list and create", () => {
       hours: [] as { day: number; openMinute: number; closeMinute: number }[],
     };
 
-    const result = await caller.business.create(listing);
+    const result = await caller.create(listing);
 
     expect(result).toMatchObject({ name: "X" });
     expect(typeof result.id).toBe("string");

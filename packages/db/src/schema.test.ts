@@ -19,6 +19,34 @@ function columnNames(table: Parameters<typeof getTableConfig>[0]): string[] {
   return getTableConfig(table).columns.map((column) => column.name);
 }
 
+describe("directory foreign keys", () => {
+  it("cascades business children when a business is deleted", () => {
+    for (const table of [services, workEntries, products, photos, flyers, hours]) {
+      const foreignKeys = getTableConfig(table).foreignKeys.filter(
+        (foreignKey) => foreignKey.reference().foreignTable === businesses,
+      );
+
+      expect(foreignKeys.length).toBeGreaterThan(0);
+      for (const foreignKey of foreignKeys) {
+        expect(foreignKey.onDelete).toBe("cascade");
+      }
+    }
+  });
+
+  it("cascades a photo when its work entry or product is deleted", () => {
+    const foreignKeys = getTableConfig(photos).foreignKeys;
+    const workEntry = foreignKeys.find(
+      (foreignKey) => foreignKey.reference().foreignTable === workEntries,
+    );
+    const product = foreignKeys.find(
+      (foreignKey) => foreignKey.reference().foreignTable === products,
+    );
+
+    expect(workEntry?.onDelete).toBe("cascade");
+    expect(product?.onDelete).toBe("cascade");
+  });
+});
+
 describe("stations", () => {
   it("exposes id, name and stream url columns", () => {
     expect(columnNames(stations)).toEqual(expect.arrayContaining(["id", "name", "stream_url"]));

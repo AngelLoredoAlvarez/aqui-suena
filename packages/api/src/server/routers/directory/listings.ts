@@ -1,3 +1,4 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import {
   capProducts,
   createProductInputSchema,
@@ -12,6 +13,7 @@ import {
   isWithinProductPhotoQuota,
   isWithinProductQuota,
 } from "@aqui-suena/api/domain/plans/entitlements";
+import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
@@ -49,87 +51,93 @@ const listListingsInput = v.object({
   now: v.optional(v.date()),
 });
 
-export const listingsRouter = router({
-  list: publicProcedure.input(listListingsInput).query(({ input }) => {
-    const now = input.now ?? new Date();
-    // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.
+export function createListingsRouter(business: BusinessRepository) {
+  return router({
+    list: publicProcedure.input(listListingsInput).query(({ input }) => {
+      const now = input.now ?? new Date();
+      // TODO(memberships): read from DB and paginate; hidden (capped) items are not deleted.
 
-    return input.items.map((item) => ({
-      listing: item.listing,
-      open: deriveListingOpen(item.listing, now),
-      products: capProducts(item.products, input.plan),
-    }));
-  }),
+      return input.items.map((item) => ({
+        listing: item.listing,
+        open: deriveListingOpen(item.listing, now),
+        products: capProducts(item.products, input.plan),
+      }));
+    }),
 
-  get: publicProcedure.input(getListingInput).query(({ input }) => {
-    const now = input.now ?? new Date();
-    // TODO(memberships): look up by id from DB and return 404 when missing.
+    get: publicProcedure.input(getListingInput).query(({ input }) => {
+      const now = input.now ?? new Date();
+      // TODO(memberships): look up by id from DB and return 404 when missing.
 
-    return { ...input.listing, open: deriveListingOpen(input.listing, now) };
-  }),
+      return { ...input.listing, open: deriveListingOpen(input.listing, now) };
+    }),
 
-  createProduct: protectedProcedure.input(createProductInput).mutation(({ input }) => {
-    const plan = input.plan as PlanId;
+    createProduct: protectedProcedure.input(createProductInput).mutation(async ({ input, ctx }) => {
+      await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
 
-    // TODO(memberships): derive plan from ctx.account instead of input (untrusted).
-    // TODO: server must recount products from DB; client count is untrusted.
-    const productPermission = canCreateProduct(plan);
-    if (!productPermission.allowed) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: `UPGRADE_REQUIRED: ${productPermission.hint}`,
-      });
-    }
-    const used = input.currentProductCount ?? 0;
+      const plan = input.plan as PlanId;
 
-    if (!isWithinProductQuota(plan, used)) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "UPGRADE_REQUIRED: product quota exceeded",
-      });
-    }
-
-    return { id: crypto.randomUUID(), name: input.name, price: input.price };
-  }),
-
-  addPhoto: protectedProcedure.input(addPhotoInput).mutation(({ input }) => {
-    const plan = input.plan as PlanId;
-    const isMarketing = input.kind === "logo";
-
-    if (input.kind === "product" && !ENTITLEMENTS[plan].productListingEnabled) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "UPGRADE_REQUIRED: product photos require commerce",
-      });
-    }
-
-    if (input.kind === "product") {
-      const used = input.currentProductPhotoCount ?? 0;
-
-      if (!isWithinProductPhotoQuota(plan, used)) {
+      // TODO(memberships): derive plan from ctx.account instead of input (untrusted).
+      // TODO: server must recount products from DB; client count is untrusted.
+      const productPermission = canCreateProduct(plan);
+      if (!productPermission.allowed) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "PRODUCT_PHOTO_QUOTA_EXCEEDED",
+          message: `UPGRADE_REQUIRED: ${productPermission.hint}`,
         });
       }
-    }
+      const used = input.currentProductCount ?? 0;
 
-    if (isMarketing) {
-      const used = input.currentPhotoCount ?? 0;
-
-      if (!isWithinPhotoQuota(plan, used)) {
+      if (!isWithinProductQuota(plan, used)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "UPGRADE_REQUIRED: photo quota exceeded",
+          message: "UPGRADE_REQUIRED: product quota exceeded",
         });
       }
-    }
 
-    return { id: crypto.randomUUID(), kind: input.kind };
-  }),
+      return { id: crypto.randomUUID(), name: input.name, price: input.price };
+    }),
 
-  create: protectedProcedure.input(listingInputSchema).mutation(({ input }) => {
-    // Mock-first (T2): no persistence yet. Memberships will add DB writes.
-    return { id: crypto.randomUUID(), ...input };
-  }),
-});
+    addPhoto: protectedProcedure.input(addPhotoInput).mutation(async ({ input, ctx }) => {
+      await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
+
+      const plan = input.plan as PlanId;
+      const isMarketing = input.kind === "logo";
+
+      if (input.kind === "product" && !ENTITLEMENTS[plan].productListingEnabled) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "UPGRADE_REQUIRED: product photos require commerce",
+        });
+      }
+
+      if (input.kind === "product") {
+        const used = input.currentProductPhotoCount ?? 0;
+
+        if (!isWithinProductPhotoQuota(plan, used)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "PRODUCT_PHOTO_QUOTA_EXCEEDED",
+          });
+        }
+      }
+
+      if (isMarketing) {
+        const used = input.currentPhotoCount ?? 0;
+
+        if (!isWithinPhotoQuota(plan, used)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "UPGRADE_REQUIRED: photo quota exceeded",
+          });
+        }
+      }
+
+      return { id: crypto.randomUUID(), kind: input.kind };
+    }),
+
+    create: protectedProcedure.input(listingInputSchema).mutation(({ input }) => {
+      // Mock-first (T2): no persistence yet. Memberships will add DB writes.
+      return { id: crypto.randomUUID(), ...input };
+    }),
+  });
+}

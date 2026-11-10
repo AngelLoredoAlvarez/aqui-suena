@@ -20,7 +20,12 @@ export class D1FlyerRepository implements FlyerRepository {
 
   async list(): Promise<Flyer[]> {
     const results = await this.db
-      .prepare("SELECT id, business_id, url, replaced_at, created_at, updated_at FROM flyers")
+      .prepare(
+        `SELECT f.id, f.business_id, f.url, f.replaced_at, f.created_at, f.updated_at
+         FROM flyers f
+         JOIN businesses b ON b.id = f.business_id
+         WHERE b.hidden_at IS NULL`,
+      )
       .all();
 
     return results.results.map((row) => this.mapRow(row as FlyerRow));

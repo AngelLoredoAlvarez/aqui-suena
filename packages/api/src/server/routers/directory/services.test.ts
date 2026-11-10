@@ -1,3 +1,5 @@
+import type { Business } from "@aqui-suena/api/domain/directory/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/service";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { describe, expect, it } from "vitest";
@@ -12,11 +14,36 @@ const sample = {
   updatedAt: new Date("2024-01-01T00:00:00Z"),
 };
 
+const business: Business = {
+  id: "biz-1",
+  accountId: "acc-1",
+  name: "Tacos El Güero",
+  category: "food",
+  phone: null,
+  email: null,
+  address: null,
+  timezone: "America/Mexico_City",
+  delivery: false,
+  hiddenAt: null,
+  retainedUntil: null,
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  updatedAt: new Date("2024-01-01T00:00:00Z"),
+};
+
+function setup(services = [sample]) {
+  const repository = new InMemoryServiceRepository(services);
+  const router = createServicesRouter({
+    service: repository,
+    business: new InMemoryBusinessRepository([business]),
+  });
+  const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+  return { repository, caller };
+}
+
 describe("services router", () => {
   it("lists services from the repository", async () => {
-    const repository = new InMemoryServiceRepository([{ ...sample }]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const { caller } = setup();
     const services = await caller.list();
 
     expect(services).toHaveLength(1);
@@ -24,17 +51,13 @@ describe("services router", () => {
   });
 
   it("returns null when getById finds nothing", async () => {
-    const repository = new InMemoryServiceRepository([]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const { caller } = setup([]);
 
     expect(await caller.getById("nonexistent")).toBeNull();
   });
 
   it("creates a service with generated id", async () => {
-    const repository = new InMemoryServiceRepository([]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const { caller } = setup([]);
     const created = await caller.create({
       businessId: "biz-1",
       name: "Corte",
@@ -48,9 +71,7 @@ describe("services router", () => {
   });
 
   it("updates a service and preserves unprovided fields", async () => {
-    const repository = new InMemoryServiceRepository([{ ...sample }]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const { caller } = setup();
     const updated = await caller.update({ id: "svc-1", name: "Corte premium", basePrice: 20000 });
 
     expect(updated?.name).toBe("Corte premium");
@@ -58,18 +79,16 @@ describe("services router", () => {
     expect(updated?.description).toBe("Corte clasico");
   });
 
-  it("returns null when updating a non-existent service", async () => {
-    const repository = new InMemoryServiceRepository([]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+  it("rejects updating a non-existent service with NOT_FOUND", async () => {
+    const { caller } = setup([]);
 
-    expect(await caller.update({ id: "nonexistent", name: "X" })).toBeNull();
+    await expect(caller.update({ id: "nonexistent", name: "X" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("deletes a service and reports success", async () => {
-    const repository = new InMemoryServiceRepository([{ ...sample }]);
-    const router = createServicesRouter(repository);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const { caller } = setup();
 
     expect(await caller.delete("svc-1")).toBe(true);
   });

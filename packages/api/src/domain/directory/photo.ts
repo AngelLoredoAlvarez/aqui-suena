@@ -1,3 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+
 export type PhotoKind = "logo" | "product" | "work";
 
 export type Photo = {
@@ -35,10 +38,17 @@ export interface PhotoRepository {
 }
 
 export class InMemoryPhotoRepository implements PhotoRepository {
-  constructor(private readonly photos: Photo[]) {}
+  constructor(
+    private readonly photos: Photo[],
+    private readonly businesses?: BusinessRepository,
+  ) {}
 
   async list(): Promise<Photo[]> {
-    return this.photos;
+    if (this.businesses === undefined) return this.photos;
+
+    const visible = await visibleBusinessIds(this.businesses);
+
+    return this.photos.filter((photo) => visible.has(photo.businessId));
   }
 
   async getById(id: string): Promise<Photo | null> {

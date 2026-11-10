@@ -18,7 +18,12 @@ export class D1HourRepository implements HourRepository {
 
   async list(): Promise<Hour[]> {
     const results = await this.db
-      .prepare("SELECT id, business_id, day, open_minute, close_minute FROM hours")
+      .prepare(
+        `SELECT h.id, h.business_id, h.day, h.open_minute, h.close_minute
+         FROM hours h
+         JOIN businesses b ON b.id = h.business_id
+         WHERE b.hidden_at IS NULL`,
+      )
       .all();
 
     return results.results.map((row) => this.mapRow(row as HourRow));

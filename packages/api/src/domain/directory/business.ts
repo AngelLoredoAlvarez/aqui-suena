@@ -44,6 +44,7 @@ export type UpdateBusinessInput = {
 export interface BusinessRepository {
   list(): Promise<Business[]>;
   getById(id: string): Promise<Business | null>;
+  getByIdForOwner(id: string): Promise<Business | null>;
   listByAccount(accountId: string): Promise<Business[]>;
   create(input: CreateBusinessInput): Promise<Business>;
   update(id: string, input: UpdateBusinessInput): Promise<Business | null>;
@@ -55,10 +56,16 @@ export class InMemoryBusinessRepository implements BusinessRepository {
   constructor(private readonly businesses: Business[]) {}
 
   async list(): Promise<Business[]> {
-    return this.businesses;
+    return this.businesses.filter((business) => business.hiddenAt === null);
   }
 
   async getById(id: string): Promise<Business | null> {
+    const business = this.businesses.find((item) => item.id === id) ?? null;
+
+    return business?.hiddenAt === null ? business : null;
+  }
+
+  async getByIdForOwner(id: string): Promise<Business | null> {
     return this.businesses.find((business) => business.id === id) ?? null;
   }
 

@@ -83,6 +83,7 @@ describe("InMemoryBusinessRepository", () => {
     const deleted = await repo.deleteExpired(now);
 
     expect(deleted).toBe(0);
-    expect(await repo.getById(retained.id)).not.toBeNull();
+    expect(await repo.getByIdForOwner(retained.id)).not.toBeNull();
+    expect(await repo.getById(retained.id)).toBeNull();
   });
 });

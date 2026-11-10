@@ -222,9 +222,9 @@ describe("SubscriptionService.changePlan", () => {
 
     await service.changePlan(current.id, "trades", { visibleBusinessIds: [keep.id], now });
 
-    const kept = await businessRepo.getById(keep.id);
-    const h1 = await businessRepo.getById(hide1.id);
-    const h2 = await businessRepo.getById(hide2.id);
+    const kept = await businessRepo.getByIdForOwner(keep.id);
+    const h1 = await businessRepo.getByIdForOwner(hide1.id);
+    const h2 = await businessRepo.getByIdForOwner(hide2.id);
 
     expect(kept?.hiddenAt).toBeNull();
     expect(kept?.retainedUntil).toBeNull();

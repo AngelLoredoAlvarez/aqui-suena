@@ -1,4 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PhotoRepository } from "@aqui-suena/api/domain/directory/photo";
+import { assertBusinessOwned, notFound } from "@aqui-suena/api/server/routers/directory/access";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
@@ -20,7 +22,14 @@ const updatePhotoInput = v.object({
   url: v.optional(v.pipe(v.string(), v.url())),
 });
 
-export function createPhotosRouter(repository: PhotoRepository) {
+export type PhotosRouterDeps = {
+  readonly photo: PhotoRepository;
+  readonly business: BusinessRepository;
+};
+
+export function createPhotosRouter(deps: PhotosRouterDeps) {
+  const { photo: repository, business } = deps;
+
   return router({
     list: publicProcedure.query(async () => repository.list()),
 
@@ -32,12 +41,20 @@ export function createPhotosRouter(repository: PhotoRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: protectedProcedure
-      .input(createPhotoInput)
-      .mutation(async ({ input }) => repository.create(input)),
+    create: protectedProcedure.input(createPhotoInput).mutation(async ({ input, ctx }) => {
+      await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
 
-    update: protectedProcedure.input(updatePhotoInput).mutation(async ({ input }) => {
+      return repository.create(input);
+    }),
+
+    update: protectedProcedure.input(updatePhotoInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
+      const current = await repository.getById(id);
+
+      if (current === null) throw notFound();
+
+      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
       return repository.update(id, rest);
     }),
 
@@ -47,6 +64,14 @@ export function createPhotosRouter(repository: PhotoRepository) {
           throw new Error("Photo id is required");
         return value;
       })
-      .mutation(async ({ input }) => repository.delete(input)),
+      .mutation(async ({ input, ctx }) => {
+        const current = await repository.getById(input);
+
+        if (current === null) throw notFound();
+
+        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
+        return repository.delete(input);
+      }),
   });
 }

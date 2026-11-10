@@ -20,7 +20,12 @@ export class D1ProductRepository implements ProductRepository {
 
   async list(): Promise<Product[]> {
     const results = await this.db
-      .prepare("SELECT id, business_id, name, description, price, created_at FROM products")
+      .prepare(
+        `SELECT p.id, p.business_id, p.name, p.description, p.price, p.created_at
+         FROM products p
+         JOIN businesses b ON b.id = p.business_id
+         WHERE b.hidden_at IS NULL`,
+      )
       .all();
 
     return results.results.map((row) => this.mapRow(row as ProductRow));

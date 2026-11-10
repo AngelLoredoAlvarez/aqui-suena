@@ -88,6 +88,15 @@ describe("getBusinessCarousel", () => {
     expect(result).toEqual([]);
   });
 
+  it("excludes hidden businesses even when they have a flyer", async () => {
+    const hidden = makeBusiness({ id: "b-1", hiddenAt: new Date("2026-11-01T00:00:00-06:00") });
+    const deps = makeDeps([hidden], [makeFlyer("b-1")], [makeHour("b-1")], []);
+
+    const result = await getBusinessCarousel(deps, now);
+
+    expect(result).toEqual([]);
+  });
+
   it("excludes businesses without a flyer", async () => {
     const b = makeBusiness({ id: "b-1" });
     const deps = makeDeps([b], [], [makeHour("b-1")], []);

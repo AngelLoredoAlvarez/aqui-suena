@@ -21,7 +21,10 @@ export class D1WorkEntryRepository implements WorkEntryRepository {
   async list(): Promise<WorkEntry[]> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, title, description, created_at, updated_at FROM work_entries",
+        `SELECT w.id, w.business_id, w.title, w.description, w.created_at, w.updated_at
+         FROM work_entries w
+         JOIN businesses b ON b.id = w.business_id
+         WHERE b.hidden_at IS NULL`,
       )
       .all();
 

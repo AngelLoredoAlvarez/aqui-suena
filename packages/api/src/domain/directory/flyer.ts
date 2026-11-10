@@ -1,3 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+
 export type Flyer = {
   id: string;
   businessId: string;
@@ -26,10 +29,17 @@ export interface FlyerRepository {
 }
 
 export class InMemoryFlyerRepository implements FlyerRepository {
-  constructor(private readonly flyers: Flyer[]) {}
+  constructor(
+    private readonly flyers: Flyer[],
+    private readonly businesses?: BusinessRepository,
+  ) {}
 
   async list(): Promise<Flyer[]> {
-    return this.flyers;
+    if (this.businesses === undefined) return this.flyers;
+
+    const visible = await visibleBusinessIds(this.businesses);
+
+    return this.flyers.filter((flyer) => visible.has(flyer.businessId));
   }
 
   async getById(id: string): Promise<Flyer | null> {

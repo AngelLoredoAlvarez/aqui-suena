@@ -22,7 +22,10 @@ export class D1PhotoRepository implements PhotoRepository {
   async list(): Promise<Photo[]> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, work_entry_id, product_id, kind, url, created_at FROM photos",
+        `SELECT p.id, p.business_id, p.work_entry_id, p.product_id, p.kind, p.url, p.created_at
+         FROM photos p
+         JOIN businesses b ON b.id = p.business_id
+         WHERE b.hidden_at IS NULL`,
       )
       .all();
 

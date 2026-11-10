@@ -43,14 +43,16 @@ export interface DirectoryRepositories {
  * driver is injected.
  */
 export function createInMemoryRepositories(): DirectoryRepositories {
+  const business = new InMemoryBusinessRepository([]);
+
   return {
-    business: new InMemoryBusinessRepository([]),
-    service: new InMemoryServiceRepository([]),
-    product: new InMemoryProductRepository([]),
-    photo: new InMemoryPhotoRepository([]),
-    workEntry: new InMemoryWorkEntryRepository([]),
-    flyer: new InMemoryFlyerRepository([]),
-    hour: new InMemoryHourRepository([]),
+    business,
+    service: new InMemoryServiceRepository([], business),
+    product: new InMemoryProductRepository([], business),
+    photo: new InMemoryPhotoRepository([], business),
+    workEntry: new InMemoryWorkEntryRepository([], business),
+    flyer: new InMemoryFlyerRepository([], business),
+    hour: new InMemoryHourRepository([], business),
     subscription: new InMemorySubscriptionRepository([]),
     media: new InMemoryMediaRepository([]),
   };
