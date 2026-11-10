@@ -11,7 +11,7 @@ import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carouse
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
-import { listingsRouter } from "@aqui-suena/api/server/routers/directory/listings";
+import { createListingsRouter } from "@aqui-suena/api/server/routers/directory/listings";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
@@ -37,19 +37,37 @@ export function createAppRouter(
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
     }),
-    business: listingsRouter,
+    business: createListingsRouter(directoryRepositories.business),
     businesses: createBusinessesRouter({
       business: directoryRepositories.business,
       subscription: directoryRepositories.subscription,
     }),
-    flyers: createFlyersRouter(directoryRepositories.flyer),
-    hours: createHoursRouter(directoryRepositories.hour),
+    flyers: createFlyersRouter({
+      flyer: directoryRepositories.flyer,
+      business: directoryRepositories.business,
+    }),
+    hours: createHoursRouter({
+      hour: directoryRepositories.hour,
+      business: directoryRepositories.business,
+    }),
     listener: listenerRouter,
     media: createMediaRouter(directoryRepositories.media, mediaStorage ?? new FakeObjectStorage()),
-    photos: createPhotosRouter(directoryRepositories.photo),
-    products: createProductsRouter(directoryRepositories.product),
-    services: createServicesRouter(directoryRepositories.service),
-    workEntries: createWorkEntriesRouter(directoryRepositories.workEntry),
+    photos: createPhotosRouter({
+      photo: directoryRepositories.photo,
+      business: directoryRepositories.business,
+    }),
+    products: createProductsRouter({
+      product: directoryRepositories.product,
+      business: directoryRepositories.business,
+    }),
+    services: createServicesRouter({
+      service: directoryRepositories.service,
+      business: directoryRepositories.business,
+    }),
+    workEntries: createWorkEntriesRouter({
+      workEntry: directoryRepositories.workEntry,
+      business: directoryRepositories.business,
+    }),
     plans: createPlansRouter(planRepository),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
   });

@@ -3,6 +3,7 @@ import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subs
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { assertCanCreateBusiness } from "@aqui-suena/api/domain/plans/entitlements";
+import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
@@ -53,11 +54,14 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
         return repository.getById(input);
       }),
 
-    create: protectedProcedure.input(createBusinessInput).mutation(async ({ input }) => {
-      const subscription = await subscriptionRepository.getActive(input.accountId);
+    create: protectedProcedure.input(createBusinessInput).mutation(async ({ input, ctx }) => {
+      // Never trust a client-supplied accountId: a business always belongs to
+      // the authenticated account.
+      const accountId = ctx.user.accountId;
+      const subscription = await subscriptionRepository.getActive(accountId);
       const plan = resolvePlan(subscription);
 
-      const existing = await repository.listByAccount(input.accountId);
+      const existing = await repository.listByAccount(accountId);
 
       try {
         assertCanCreateBusiness(plan, existing.length);
@@ -68,11 +72,13 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
         });
       }
 
-      return repository.create(input);
+      return repository.create({ ...input, accountId });
     }),
 
-    update: protectedProcedure.input(updateBusinessInput).mutation(async ({ input }) => {
+    update: protectedProcedure.input(updateBusinessInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
+      await assertBusinessOwned(repository, ctx.user.accountId, id);
+
       return repository.update(id, rest);
     }),
 
@@ -83,7 +89,9 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
         }
         return value;
       })
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        await assertBusinessOwned(repository, ctx.user.accountId, input);
+
         return repository.delete(input);
       }),
   });

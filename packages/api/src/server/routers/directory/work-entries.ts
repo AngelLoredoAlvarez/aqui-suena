@@ -1,4 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
+import { assertBusinessOwned, notFound } from "@aqui-suena/api/server/routers/directory/access";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
@@ -14,7 +16,14 @@ const updateWorkEntryInput = v.object({
   description: v.optional(v.nullable(v.string())),
 });
 
-export function createWorkEntriesRouter(repository: WorkEntryRepository) {
+export type WorkEntriesRouterDeps = {
+  readonly workEntry: WorkEntryRepository;
+  readonly business: BusinessRepository;
+};
+
+export function createWorkEntriesRouter(deps: WorkEntriesRouterDeps) {
+  const { workEntry: repository, business } = deps;
+
   return router({
     list: publicProcedure.query(async () => repository.list()),
 
@@ -26,12 +35,20 @@ export function createWorkEntriesRouter(repository: WorkEntryRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: protectedProcedure
-      .input(createWorkEntryInput)
-      .mutation(async ({ input }) => repository.create(input)),
+    create: protectedProcedure.input(createWorkEntryInput).mutation(async ({ input, ctx }) => {
+      await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
 
-    update: protectedProcedure.input(updateWorkEntryInput).mutation(async ({ input }) => {
+      return repository.create(input);
+    }),
+
+    update: protectedProcedure.input(updateWorkEntryInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
+      const current = await repository.getById(id);
+
+      if (current === null) throw notFound();
+
+      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
       return repository.update(id, rest);
     }),
 
@@ -41,6 +58,14 @@ export function createWorkEntriesRouter(repository: WorkEntryRepository) {
           throw new Error("Work entry id is required");
         return value;
       })
-      .mutation(async ({ input }) => repository.delete(input)),
+      .mutation(async ({ input, ctx }) => {
+        const current = await repository.getById(input);
+
+        if (current === null) throw notFound();
+
+        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
+        return repository.delete(input);
+      }),
   });
 }

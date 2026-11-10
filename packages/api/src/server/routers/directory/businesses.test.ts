@@ -88,16 +88,17 @@ describe("businesses router", () => {
     expect(updated?.phone).toBe("+521234567890");
   });
 
-  it("returns null when updating a non-existent business", async () => {
+  it("rejects updating a non-existent business with NOT_FOUND", async () => {
     const repository = new InMemoryBusinessRepository([]);
     const router = createBusinessesRouter({
       business: repository,
       subscription: new InMemorySubscriptionRepository([]),
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
-    const result = await caller.update({ id: "nonexistent", name: "X" });
 
-    expect(result).toBeNull();
+    await expect(caller.update({ id: "nonexistent", name: "X" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("deletes a business and reports success", async () => {

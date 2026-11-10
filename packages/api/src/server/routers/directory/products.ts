@@ -1,4 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { ProductRepository } from "@aqui-suena/api/domain/directory/product";
+import { assertBusinessOwned, notFound } from "@aqui-suena/api/server/routers/directory/access";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import * as v from "valibot";
 
@@ -16,7 +18,14 @@ const updateProductInput = v.object({
   price: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
 });
 
-export function createProductsRouter(repository: ProductRepository) {
+export type ProductsRouterDeps = {
+  readonly product: ProductRepository;
+  readonly business: BusinessRepository;
+};
+
+export function createProductsRouter(deps: ProductsRouterDeps) {
+  const { product: repository, business } = deps;
+
   return router({
     list: publicProcedure.query(async () => repository.list()),
 
@@ -28,12 +37,20 @@ export function createProductsRouter(repository: ProductRepository) {
       })
       .query(async ({ input }) => repository.getById(input)),
 
-    create: protectedProcedure
-      .input(createProductInput)
-      .mutation(async ({ input }) => repository.create(input)),
+    create: protectedProcedure.input(createProductInput).mutation(async ({ input, ctx }) => {
+      await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
 
-    update: protectedProcedure.input(updateProductInput).mutation(async ({ input }) => {
+      return repository.create(input);
+    }),
+
+    update: protectedProcedure.input(updateProductInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
+      const current = await repository.getById(id);
+
+      if (current === null) throw notFound();
+
+      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
       return repository.update(id, rest);
     }),
 
@@ -43,6 +60,14 @@ export function createProductsRouter(repository: ProductRepository) {
           throw new Error("Product id is required");
         return value;
       })
-      .mutation(async ({ input }) => repository.delete(input)),
+      .mutation(async ({ input, ctx }) => {
+        const current = await repository.getById(input);
+
+        if (current === null) throw notFound();
+
+        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+
+        return repository.delete(input);
+      }),
   });
 }
