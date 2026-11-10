@@ -5,6 +5,13 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
 
+## Billing correctness (closed 2026-11-10)
+
+- [x] Subscription periods clamp to the target month's last day in UTC, and
+  renewal reminders count UTC calendar days instead of elapsed 24-hour blocks.
+  Branch `fix/billing-period-math`; details in
+  `odd/tasks/fix-billing-period-math.md`.
+
 ## Security (closed 2026-11-10)
 
 - [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`
