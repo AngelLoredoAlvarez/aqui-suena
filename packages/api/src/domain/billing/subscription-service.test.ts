@@ -6,7 +6,7 @@ import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/bus
 import type { PlanId } from "@aqui-suena/api/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/entitlements";
 import { describe, expect, it } from "vitest";
-import { FakeEmailSender } from "./email";
+import { FakeSubscriptionNotifier } from "./subscription-notifier";
 
 const communityPlan: Plan = {
   id: "community",
@@ -53,7 +53,7 @@ describe("SubscriptionService.changePlan", () => {
   it("upgrades immediately: closes current and creates new active subscription", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -73,7 +73,7 @@ describe("SubscriptionService.changePlan", () => {
   it("downgrades: marks current as cancelled (stays active until endsAt)", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -93,7 +93,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     await expect(service.changePlan("non-existent", "trades")).rejects.toThrow(
       "Subscription not found",
@@ -103,7 +103,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when subscription is not active", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -119,7 +119,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when new plan does not exist", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -136,7 +136,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when changing to the same plan", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -151,7 +151,7 @@ describe("SubscriptionService.changePlan", () => {
   it("downgrade schedules the new plan for the end of the period", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -176,7 +176,7 @@ describe("SubscriptionService.changePlan", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const businessRepo = new InMemoryBusinessRepository([]);
-    const service = new SubscriptionService(subRepo, planRepo, businessRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, businessRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -220,7 +220,7 @@ describe("SubscriptionService.changePlan", () => {
 
     const now = new Date("2026-01-15T00:00:00Z");
 
-    await service.changePlan(current.id, "trades", [keep.id], now);
+    await service.changePlan(current.id, "trades", { visibleBusinessIds: [keep.id], now });
 
     const kept = await businessRepo.getById(keep.id);
     const h1 = await businessRepo.getById(hide1.id);
@@ -242,7 +242,7 @@ describe("SubscriptionService.changePlan", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const businessRepo = new InMemoryBusinessRepository([]);
-    const service = new SubscriptionService(subRepo, planRepo, businessRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, businessRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -276,9 +276,9 @@ describe("SubscriptionService.changePlan", () => {
     // trades cap = 3, so 2 visibles is fine; community cap = 1, so 2 visibles must fail.
     const now = new Date("2026-01-15T00:00:00Z");
 
-    await expect(service.changePlan(current.id, "community", [b1.id, b2.id], now)).rejects.toThrow(
-      /UPGRADE_REQUIRED/,
-    );
+    await expect(
+      service.changePlan(current.id, "community", { visibleBusinessIds: [b1.id, b2.id], now }),
+    ).rejects.toThrow(/UPGRADE_REQUIRED/);
 
     // Nothing should have been hidden because validation fails before mutation.
     expect((await businessRepo.getById(b1.id))?.hiddenAt).toBeNull();
@@ -290,7 +290,7 @@ describe("SubscriptionService.cancel", () => {
   it("marks subscription as cancelled without creating new one", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -310,7 +310,7 @@ describe("SubscriptionService.cancel", () => {
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     await expect(service.cancel("non-existent")).rejects.toThrow("Subscription not found");
   });
@@ -320,7 +320,7 @@ describe("SubscriptionService.subscribe", () => {
   it("cancels any existing active subscription before creating the new one", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const first = await subRepo.create(
       "acc-1",
@@ -349,7 +349,7 @@ describe("SubscriptionService.subscribe", () => {
   it("creates a subscription when none exists", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await service.subscribe(
       "acc-1",
@@ -367,7 +367,7 @@ describe("SubscriptionService.failRenewal", () => {
   it("marks the subscription as grace with a 7-day deadline", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -388,7 +388,7 @@ describe("SubscriptionService.failRenewal", () => {
   it("throws when the subscription does not exist", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     await expect(service.failRenewal("non-existent", new Date())).rejects.toThrow(
       "Subscription not found",
@@ -400,7 +400,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   it("does not downgrade while still in the grace window", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -411,11 +411,9 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
 
     await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
 
-    const result = await service.downgradeExpiredGrace(
-      sub.id,
-      "community",
-      new Date("2026-02-05T00:00:00Z"),
-    );
+    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-02-05T00:00:00Z"),
+    });
 
     expect(result).toBeNull();
     expect((await subRepo.getById(sub.id))?.status).toBe("grace");
@@ -424,7 +422,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   it("downgrades once the grace window has expired", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -435,11 +433,9 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
 
     await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
 
-    const result = await service.downgradeExpiredGrace(
-      sub.id,
-      "community",
-      new Date("2026-02-10T00:00:00Z"),
-    );
+    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-02-10T00:00:00Z"),
+    });
 
     expect(result).not.toBeNull();
     expect(result?.planId).toBe("community");
@@ -450,7 +446,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   it("returns null for a non-grace subscription", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -459,106 +455,97 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
       new Date("2026-02-01"),
     );
 
-    const result = await service.downgradeExpiredGrace(
-      sub.id,
-      "community",
-      new Date("2026-02-10T00:00:00Z"),
-    );
+    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-02-10T00:00:00Z"),
+    });
 
     expect(result).toBeNull();
   });
 });
 
-describe("SubscriptionService.failRenewal with email", () => {
-  it("sends a grace-period warning email when sender and email are provided", async () => {
+describe("SubscriptionService.failRenewal notification", () => {
+  function setup() {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+    return { subRepo, notifier, service };
+  }
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+  async function createActiveSubscription(repo: InMemorySubscriptionRepository) {
+    return repo.create("acc-1", "trades", new Date("2026-01-01"), new Date("2026-02-01"));
+  }
 
-    expect(fakeEmail.sent).toHaveLength(1);
-    expect(fakeEmail.sent[0]?.to).toBe("owner@example.com");
-    expect(fakeEmail.sent[0]?.subject).toContain("gracia");
+  it("notifies the owner when a recipient email is provided", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createActiveSubscription(subRepo);
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+      recipientEmail: "owner@example.com",
+    });
+
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "renewal-failed",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: { graceEnd: new Date("2026-02-08T00:00:00.000Z") },
+    });
   });
 
-  it("does not send email when no recipient email is provided", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
-
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+  it("does not notify without a recipient email", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createActiveSubscription(subRepo);
 
     await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
 
-    expect(fakeEmail.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("does not send email when no email sender is injected", async () => {
+  it("does not notify when no notifier is injected", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
-
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const sub = await createActiveSubscription(subRepo);
 
     await expect(
-      service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com"),
+      service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+        recipientEmail: "owner@example.com",
+      }),
     ).resolves.toBeUndefined();
   });
 });
 
-describe("SubscriptionService.changePlan downgrade notification", () => {
-  it("sends downgrade notification when downgrading with email", async () => {
+describe("SubscriptionService.changePlan notification", () => {
+  async function createCommerceSubscription(repo: InMemorySubscriptionRepository) {
+    return repo.create("acc-1", "commerce", new Date("2026-01-01"), new Date("2026-02-01"));
+  }
+
+  it("notifies the owner on downgrade", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const current = await createCommerceSubscription(subRepo);
 
-    const current = await subRepo.create(
-      "acc-1",
-      "commerce",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+    await service.changePlan(current.id, "trades", {
+      now: new Date("2026-01-15"),
+      recipientEmail: "owner@example.com",
+    });
 
-    await service.changePlan(
-      current.id,
-      "trades",
-      undefined,
-      new Date("2026-01-15"),
-      "owner@example.com",
-    );
-
-    expect(fakeEmail.sent).toHaveLength(1);
-    expect(fakeEmail.sent[0]?.to).toBe("owner@example.com");
-    expect(fakeEmail.sent[0]?.subject).toContain("degradado");
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "plan-downgraded",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: { planName: "Oficios & Servicios" },
+    });
   });
 
-  it("does not send notification when upgrading", async () => {
+  it("does not notify on upgrade", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
-
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
     const current = await subRepo.create(
       "acc-1",
       "community",
@@ -566,66 +553,47 @@ describe("SubscriptionService.changePlan downgrade notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.changePlan(
-      current.id,
-      "trades",
-      undefined,
-      new Date("2026-01-15"),
-      "owner@example.com",
-    );
+    await service.changePlan(current.id, "trades", {
+      now: new Date("2026-01-15"),
+      recipientEmail: "owner@example.com",
+    });
 
-    expect(fakeEmail.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("does not send notification when no emailSender", async () => {
+  it("does not notify when no notifier is injected", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
-
-    const current = await subRepo.create(
-      "acc-1",
-      "commerce",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const current = await createCommerceSubscription(subRepo);
 
     await expect(
-      service.changePlan(
-        current.id,
-        "trades",
-        undefined,
-        new Date("2026-01-15"),
-        "owner@example.com",
-      ),
+      service.changePlan(current.id, "trades", {
+        now: new Date("2026-01-15"),
+        recipientEmail: "owner@example.com",
+      }),
     ).resolves.toBeDefined();
   });
 
-  it("does not send notification when no recipientEmail", async () => {
+  it("does not notify without a recipient email", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const current = await createCommerceSubscription(subRepo);
 
-    const current = await subRepo.create(
-      "acc-1",
-      "commerce",
-      new Date("2026-01-01"),
-      new Date("2026-02-01"),
-    );
+    await service.changePlan(current.id, "trades", { now: new Date("2026-01-15") });
 
-    await service.changePlan(current.id, "trades");
-
-    expect(fakeEmail.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 });
 
 describe("SubscriptionService.downgradeExpiredGrace notification", () => {
-  it("sends downgrade notification when grace expires with email", async () => {
+  it("notifies the owner when the grace window expires", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
-
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -633,26 +601,27 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+      recipientEmail: "owner@example.com",
+    });
 
-    await service.downgradeExpiredGrace(
-      sub.id,
-      "community",
-      new Date("2026-02-10T00:00:00Z"),
-      undefined,
-      "owner@example.com",
-    );
+    await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-02-10T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
-    // failRenewal sends grace warning + downgradeExpiredGrace sends downgrade notification
-    expect(fakeEmail.sent).toHaveLength(2);
-    expect(fakeEmail.sent[1]?.subject).toContain("degradado");
+    expect(notifier.calls.map((call) => call.event)).toEqual(["renewal-failed", "grace-expired"]);
+    expect(notifier.calls[1]).toMatchObject({
+      event: "grace-expired",
+      data: { planName: "Comunidad" },
+    });
   });
 
-  it("does not send notification when no emailSender", async () => {
+  it("does not notify without a recipient email", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService(subRepo, planRepo);
-
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -660,23 +629,46 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+      recipientEmail: "owner@example.com",
+    });
 
-    const result = await service.downgradeExpiredGrace(
-      sub.id,
-      "community",
-      new Date("2026-02-10T00:00:00Z"),
+    await service.downgradeExpiredGrace(sub.id, "community", {
+      now: new Date("2026-02-10T00:00:00Z"),
+    });
+
+    expect(notifier.calls.map((call) => call.event)).toEqual(["renewal-failed"]);
+  });
+});
+
+describe("SubscriptionService.cancel notification", () => {
+  it("notifies the owner with the plan name and active-until date", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
     );
 
-    expect(result).not.toBeNull();
+    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "cancelled",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: { planName: "Oficios & Servicios", activeUntil: new Date("2026-02-01") },
+    });
   });
 
-  it("does not send notification when no recipientEmail", async () => {
+  it("does not notify without a recipient email", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const fakeEmail = new FakeEmailSender();
-    const service = new SubscriptionService(subRepo, planRepo, undefined, fakeEmail);
-
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -684,12 +676,8 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), "owner@example.com");
+    await service.cancel(sub.id);
 
-    await service.downgradeExpiredGrace(sub.id, "community", new Date("2026-02-10T00:00:00Z"));
-
-    // Only the grace warning from failRenewal, no downgrade notification
-    expect(fakeEmail.sent).toHaveLength(1);
-    expect(fakeEmail.sent[0]?.subject).toContain("gracia");
+    expect(notifier.calls).toHaveLength(0);
   });
 });

@@ -5,13 +5,17 @@ import {
   isInGracePeriod,
   retentionDeadline,
 } from "@aqui-suena/api/domain/billing/downgrade";
-import type { EmailSender } from "@aqui-suena/api/domain/billing/email";
 import type { PlanRepository } from "@aqui-suena/api/domain/billing/plans";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscription-notifier";
 import type {
   Subscription,
   SubscriptionRepository,
 } from "@aqui-suena/api/domain/billing/subscriptions";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import {
+  DEFAULT_EMAIL_LOCALE,
+  type EmailLocale,
+} from "@aqui-suena/api/domain/email/email-template";
 import type { PlanId } from "@aqui-suena/api/entitlements";
 
 const PERIOD_MONTHS = 1;
@@ -22,13 +26,35 @@ function addMonths(date: Date, months: number): Date {
   return result;
 }
 
+export interface SubscriptionServiceDependencies {
+  readonly subscriptionRepo: SubscriptionRepository;
+  readonly planRepo: PlanRepository;
+  readonly businessRepo?: BusinessRepository;
+  readonly notifier?: SubscriptionNotifier;
+}
+
+export interface SubscriptionNotificationOptions {
+  readonly recipientEmail?: string;
+  readonly locale?: EmailLocale;
+}
+
+export interface SubscriptionPlanChangeOptions extends SubscriptionNotificationOptions {
+  readonly visibleBusinessIds?: string[];
+  readonly now?: Date;
+}
+
 export class SubscriptionService {
-  constructor(
-    private readonly subscriptionRepo: SubscriptionRepository,
-    private readonly planRepo: PlanRepository,
-    private readonly businessRepo?: BusinessRepository,
-    private readonly emailSender?: EmailSender,
-  ) {}
+  private readonly subscriptionRepo: SubscriptionRepository;
+  private readonly planRepo: PlanRepository;
+  private readonly businessRepo: BusinessRepository | undefined;
+  private readonly notifier: SubscriptionNotifier | undefined;
+
+  constructor(dependencies: SubscriptionServiceDependencies) {
+    this.subscriptionRepo = dependencies.subscriptionRepo;
+    this.planRepo = dependencies.planRepo;
+    this.businessRepo = dependencies.businessRepo;
+    this.notifier = dependencies.notifier;
+  }
 
   async subscribe(
     accountId: string,
@@ -50,10 +76,15 @@ export class SubscriptionService {
   async changePlan(
     subscriptionId: string,
     newPlanId: PlanId,
-    visibleBusinessIds?: string[],
-    now: Date = new Date(),
-    recipientEmail?: string,
+    options: SubscriptionPlanChangeOptions = {},
   ): Promise<Subscription> {
+    const {
+      visibleBusinessIds,
+      now = new Date(),
+      recipientEmail,
+      locale = DEFAULT_EMAIL_LOCALE,
+    } = options;
+
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
@@ -81,7 +112,6 @@ export class SubscriptionService {
     if (isUpgrade) {
       await this.subscriptionRepo.updateStatus(subscriptionId, "expired");
 
-      const now = new Date();
       const endsAt = addMonths(now, PERIOD_MONTHS);
 
       return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
@@ -117,23 +147,22 @@ export class SubscriptionService {
 
     await this.subscriptionRepo.create(current.accountId, newPlanId, startedAt, endsAt);
 
-    // Send downgrade notification (best-effort: email is a side effect).
-    if (this.emailSender && recipientEmail) {
-      await this.emailSender.send({
-        to: recipientEmail,
-        subject: "Tu plan ha sido degradado",
-        html: [
-          `<p>Tu plan ha sido degradado a <strong>${newPlan.name}</strong>.</p>`,
-          "<p>Si tenías negocios en exceso, han sido ocultados pero se conservan por 90 días.</p>",
-          "<p>Podés volver a subir de plan en cualquier momento para restaurar el acceso completo.</p>",
-        ].join(""),
-      });
+    if (this.notifier && recipientEmail) {
+      await this.notifier.planDowngraded(
+        { email: recipientEmail, locale },
+        { planName: newPlan.name },
+      );
     }
 
     return current;
   }
 
-  async cancel(subscriptionId: string): Promise<void> {
+  async cancel(
+    subscriptionId: string,
+    options: SubscriptionNotificationOptions = {},
+  ): Promise<void> {
+    const { recipientEmail, locale = DEFAULT_EMAIL_LOCALE } = options;
+
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
@@ -145,57 +174,67 @@ export class SubscriptionService {
     }
 
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
+
+    if (this.notifier && recipientEmail && current.endsAt) {
+      const plan = await this.planRepo.getById(current.planId);
+
+      await this.notifier.cancelled(
+        { email: recipientEmail, locale },
+        { planName: plan?.name ?? current.planId, activeUntil: current.endsAt },
+      );
+    }
   }
 
   async failRenewal(
     subscriptionId: string,
     failedAt: Date,
-    recipientEmail?: string,
+    options: SubscriptionNotificationOptions = {},
   ): Promise<void> {
+    const { recipientEmail, locale = DEFAULT_EMAIL_LOCALE } = options;
+
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (!current) {
       throw new Error("Subscription not found");
     }
 
+    const graceEnd = graceDeadline(failedAt);
+
     await this.subscriptionRepo.updateStatus(subscriptionId, "grace");
 
-    await this.subscriptionRepo.updateGraceEnd(subscriptionId, graceDeadline(failedAt));
+    await this.subscriptionRepo.updateGraceEnd(subscriptionId, graceEnd);
 
-    if (this.emailSender && recipientEmail) {
-      const graceEnd = graceDeadline(failedAt);
-
-      await this.emailSender.send({
-        to: recipientEmail,
-        subject: "Tu pago falló — periodo de gracia de 7 días",
-        html: [
-          "<p>Tu pago recurrente no se pudo procesar.</p>",
-          `<p>Tenés hasta el <strong>${graceEnd.toISOString().slice(0, 10)}</strong> `,
-          "para regularizar tu pago. Después de esa fecha, tu plan se degradará ",
-          "automáticamente al plan Comunidad.</p>",
-          "<p>Si creés que es un error, contactá a soporte.</p>",
-        ].join(""),
-      });
+    if (this.notifier && recipientEmail) {
+      await this.notifier.renewalFailed({ email: recipientEmail, locale }, { graceEnd });
     }
   }
 
   async downgradeExpiredGrace(
     subscriptionId: string,
     newPlanId: PlanId,
-    now: Date = new Date(),
-    visibleBusinessIds?: string[],
-    recipientEmail?: string,
+    options: SubscriptionPlanChangeOptions = {},
   ): Promise<Subscription | null> {
+    const {
+      visibleBusinessIds,
+      now = new Date(),
+      recipientEmail,
+      locale = DEFAULT_EMAIL_LOCALE,
+    } = options;
+
     const current = await this.subscriptionRepo.getById(subscriptionId);
 
     if (current?.status !== "grace" || !current.graceEnd) return null;
 
     if (isInGracePeriod(current.graceEnd, now)) return null;
 
+    const managesBusinesses = this.businessRepo !== undefined && visibleBusinessIds !== undefined;
+    const notifiesOwner = this.notifier !== undefined && recipientEmail !== undefined;
+    const newPlan =
+      managesBusinesses || notifiesOwner ? await this.planRepo.getById(newPlanId) : null;
+
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
 
     if (this.businessRepo && visibleBusinessIds !== undefined) {
-      const newPlan = await this.planRepo.getById(newPlanId);
       const cap = newPlan?.entitlements.maxBusinesses ?? 0;
       const selection = canChooseVisibleCount(cap, visibleBusinessIds.length);
 
@@ -218,18 +257,11 @@ export class SubscriptionService {
     const endsAt = addMonths(now, PERIOD_MONTHS);
     const newSub = await this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
 
-    // Send downgrade notification (best-effort: email is a side effect).
-    if (this.emailSender && recipientEmail) {
-      const plan = await this.planRepo.getById(newPlanId);
-      await this.emailSender.send({
-        to: recipientEmail,
-        subject: "Tu plan ha sido degradado",
-        html: [
-          `<p>Tu plan ha sido degradado a <strong>${plan?.name ?? newPlanId}</strong>.</p>`,
-          "<p>Tu periodo de gracia expiró. Si tenías negocios en exceso, han sido ocultados pero se conservan por 90 días.</p>",
-          "<p>Podés volver a subir de plan en cualquier momento para restaurar el acceso completo.</p>",
-        ].join(""),
-      });
+    if (this.notifier && recipientEmail) {
+      await this.notifier.graceExpired(
+        { email: recipientEmail, locale },
+        { planName: newPlan?.name ?? newPlanId },
+      );
     }
 
     return newSub;

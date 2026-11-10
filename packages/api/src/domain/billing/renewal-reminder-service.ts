@@ -1,33 +1,62 @@
-import type { EmailSender } from "@aqui-suena/api/domain/billing/email";
 import {
   dueReminders,
   type ReminderLogRepository,
   type ReminderPreferences,
   type ReminderType,
-  reminderContent,
 } from "@aqui-suena/api/domain/billing/reminders";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscription-notifier";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
+import {
+  DEFAULT_EMAIL_LOCALE,
+  type EmailLocale,
+} from "@aqui-suena/api/domain/email/email-template";
+
+const DEFAULT_PREFERENCES: ReminderPreferences = { renewalRemindersEnabled: true };
+
+export interface RenewalReminderServiceDependencies {
+  readonly subscriptionRepo: SubscriptionRepository;
+  readonly reminderLog: ReminderLogRepository;
+  readonly notifier: SubscriptionNotifier;
+}
+
+export interface ProcessSubscriptionOptions {
+  readonly now: Date;
+  readonly recipientEmail: string;
+  readonly locale?: EmailLocale;
+  readonly preferences?: ReminderPreferences;
+}
 
 export class RenewalReminderService {
-  constructor(
-    private readonly subscriptionRepo: SubscriptionRepository,
-    private readonly emailSender: EmailSender,
-    private readonly reminderLog: ReminderLogRepository,
-  ) {}
+  private readonly subscriptionRepo: SubscriptionRepository;
+  private readonly reminderLog: ReminderLogRepository;
+  private readonly notifier: SubscriptionNotifier;
+
+  constructor(dependencies: RenewalReminderServiceDependencies) {
+    this.subscriptionRepo = dependencies.subscriptionRepo;
+    this.reminderLog = dependencies.reminderLog;
+    this.notifier = dependencies.notifier;
+  }
 
   async processSubscription(
     subscriptionId: string,
-    now: Date,
-    recipientEmail: string,
-    preferences: ReminderPreferences = { renewalRemindersEnabled: true },
+    options: ProcessSubscriptionOptions,
   ): Promise<ReminderType[]> {
+    const {
+      now,
+      recipientEmail,
+      locale = DEFAULT_EMAIL_LOCALE,
+      preferences = DEFAULT_PREFERENCES,
+    } = options;
+
     const subscription = await this.subscriptionRepo.getById(subscriptionId);
 
     if (subscription === null) {
       return [];
     }
 
-    if (subscription.endsAt === null) {
+    const renewalDate = subscription.endsAt;
+
+    if (renewalDate === null) {
       return [];
     }
 
@@ -38,13 +67,10 @@ export class RenewalReminderService {
     const sentThisRun: ReminderType[] = [];
 
     for (const type of due) {
-      const content = reminderContent(type, subscription.endsAt);
-
-      await this.emailSender.send({
-        to: recipientEmail,
-        subject: content.subject,
-        html: content.html,
-      });
+      await this.notifier.renewalUpcoming(
+        { email: recipientEmail, locale },
+        { daysBefore: type === "renewal_7d" ? 7 : 1, renewalDate },
+      );
 
       await this.reminderLog.record(subscriptionId, type, now);
 

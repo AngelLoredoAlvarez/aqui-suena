@@ -91,26 +91,3 @@ export function dueReminders(
 
   return due;
 }
-
-export function reminderContent(
-  type: ReminderType,
-  endsAt: Date,
-): { subject: string; html: string } {
-  const dateStr = endsAt.toISOString().slice(0, 10);
-
-  if (type === "renewal_7d") {
-    return {
-      subject: "Tu plan se renueva en 7 días",
-      html: `<p>Tu plan se renueva el ${dateStr}. Si necesitás hacer cambios, podés gestionar tu suscripción antes de esa fecha.</p>`,
-    };
-  }
-
-  if (type === "renewal_1d") {
-    return {
-      subject: "Tu plan se renueva mañana",
-      html: `<p>Tu plan se renueva mañana (${dateStr}). Asegurate de tener tu método de pago al día.</p>`,
-    };
-  }
-
-  throw new Error(`Unknown reminder type: ${type}`);
-}

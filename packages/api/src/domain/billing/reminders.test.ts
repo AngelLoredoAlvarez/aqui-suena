@@ -2,7 +2,6 @@ import {
   dueReminders,
   InMemoryReminderLogRepository,
   type ReminderType,
-  reminderContent,
 } from "@aqui-suena/api/domain/billing/reminders";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions";
 import { describe, expect, it } from "vitest";
@@ -157,21 +156,5 @@ describe("InMemoryReminderLogRepository", () => {
     const repo = new InMemoryReminderLogRepository();
 
     expect(await repo.sentAt("sub-1", "renewal_7d")).toBeUndefined();
-  });
-});
-
-describe("reminderContent", () => {
-  it("returns subject and html for renewal_7d", () => {
-    const content = reminderContent("renewal_7d", new Date("2026-02-08T00:00:00Z"));
-
-    expect(content.subject).toContain("7 días");
-    expect(content.html).toContain("2026-02-08");
-  });
-
-  it("returns subject and html for renewal_1d", () => {
-    const content = reminderContent("renewal_1d", new Date("2026-02-08T00:00:00Z"));
-
-    expect(content.subject).toContain("mañana");
-    expect(content.html).toContain("2026-02-08");
   });
 });

@@ -1,4 +1,4 @@
-import type { EmailMessage, EmailSender } from "@aqui-suena/api/domain/billing/email";
+import type { EmailMessage, EmailSender } from "@aqui-suena/api/domain/email/email";
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 
