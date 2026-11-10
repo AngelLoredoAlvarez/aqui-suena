@@ -30,11 +30,17 @@ Documented state, not fixed yet. Nothing below changes behavior today.
   `getMockListenerStatus` (fixed stream URL, `listeners: 42`) for every id.
   Replace it with listener counts and the active stream URL read from
   persistence.
-- [ ] Listings from the database: `directory.listings.list` and `.get` echo the
-  request body instead of querying, and `createProduct` derives the plan from
-  client input. Read listings from D1, paginate, answer `NOT_FOUND` for a
-  missing listing, derive the plan from `ctx.account`, and recount products
-  server-side. These are the `TODO(memberships)` markers.
+- [x] Listings from the database — CLOSED 2026-11-10 by removing the surface
+  instead of implementing it. `directory.listings.list`, `.get`,
+  `.createProduct`, `.addPhoto` and `.create` echoed the request body, returned
+  fabricated ids and derived the plan from client input, duplicating the real
+  `products`/`businesses`/`flyers`/`photos`/`hours`/`services`/`workEntries`
+  routers, which already persist D1 data, enforce ownership and answer
+  `NOT_FOUND`. Nothing consumed them; the `business` router and its tests were
+  deleted (public surface 51 → 46 procedures). What actually remains open is
+  narrower: `products.create` does not enforce the plan product quota, and the
+  plan is not yet read from `ctx.account` — see the pagination and context items
+  below.
 - [x] Seed plans in staging — DONE 2026-11-10: `POST /admin/seed-plans`
   returned `{"seeded":3}` (idempotent), `plans.list` serves community, trades
   and commerce, and D1 holds 3 rows.
