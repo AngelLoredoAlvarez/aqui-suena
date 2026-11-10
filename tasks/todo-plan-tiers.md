@@ -1,19 +1,18 @@
 # Business Plan Tiers Track — Task Checklist
 
 > Current source of truth: SPEC-memberships.md. Replaces the previous FREE/PREMIUM ads-tiers track. Radio playback stays independent; monetization and visibility use only the visual carousel and business directory.
+>
+> Last synced 2026-11-10 against `main`: Task 1 checkboxes re-verified against the code, and a duplicated block left over from two branch merges was consolidated. Items marked `[x]` carry the file that proves them; items marked partial say what is still missing.
 
 ## Task 1: Three-plan entitlements and migration
 
-- [ ] Replace the two-plan resolver with Comunidad, Oficios & Servicios, and Comercios & Catálogo entitlements.
-- [ ] Remove legacy `free`/`premium` plan definitions; no account migration is needed because no accounts are registered yet.
-- [ ] Enforce downgrade without data loss: hide excess content, let the owner choose the visible business, and retain hidden content for 90 days before permanent deletion.
-- [ ] Implement immediate upgrades and end-of-period downgrades without proration in V1.
-- [ ] Implement cancellation without partial refunds: plan remains active until the end of the paid period, with 7-day failed-renewal grace and email warning.
-- [ ] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10.
-- [x] Preserve deterministic ranking (Comunidad 0, Oficios 10, Comercios 20; recency tie-breaker) and 1/2/3 appearances per cycle with consecutive-repeat avoidance. _(Done 2026-11-06 on `feature/plan-tiers-task1-caps`: `selectCarouselSlots` + integration in `getBusinessCarousel`.)_
-- [x] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10. _(Done 2026-11-06: `canCreateBusiness`/`assertCanCreateBusiness` + enforcer in `businesses` router.)_
-- [x] Downgrade without data loss: pure helpers + DB schema (hiddenAt/retainedUntil on businesses, grace status + graceEnd on subscriptions) + enforcer in `SubscriptionService.changePlan`/`downgradeExpiredGrace` (hiddenBusinessIds, canChooseVisibleCount, retentionDeadline) + 90-day cleanup (`BusinessRepository.deleteExpired` + `/admin/purge-expired-businesses`). _(Done 2026-11-06 on `feature/plan-tiers-task1-db`.)_
-- [x] Cancellation without partial refunds: grace status + failRenewal + downgradeExpiredGrace done; email warning implemented (EmailSender port + notifier, called from `failRenewal` behind the optional notifier; not wired to a sender in production). _(Done 2026-11-09 on `feature/email-warning-grace`.)_
+- [x] Replace the two-plan resolver with Comunidad, Oficios & Servicios, and Comercios & Catálogo entitlements. _(`ENTITLEMENTS` in `packages/api/src/domain/plans/entitlements.ts`; `PlanId` is `community | trades | commerce`.)_
+- [x] Remove legacy `free`/`premium` plan definitions; no account migration is needed because no accounts are registered yet. _(No `free`/`premium` plan identifier remains in `packages/` or `apps/`.)_
+- [x] Enforce downgrade without data loss: hide excess content, let the owner choose the visible business, and retain hidden content for 90 days before permanent deletion. _(Schema `hiddenAt`/`retainedUntil` on businesses and `grace` status + `graceEnd` on subscriptions; helpers `hiddenBusinessIds`, `canChooseVisibleCount`, `retentionDeadline`; cleanup via `BusinessRepository.deleteExpired` + `DELETE /admin/purge-expired-businesses`.)_
+- [x] Implement immediate upgrades and end-of-period downgrades without proration in V1. _(`SubscriptionService.changePlan`: an upgrade expires the current subscription and creates the new one from `now`; a downgrade marks it `cancelled` and starts the new period at `current.endsAt`. No proration path exists in either branch.)_
+- [x] Implement cancellation without partial refunds: plan remains active until the end of the paid period, with 7-day failed-renewal grace and email warning. _(Grace helpers in `domain/billing/subscriptions/grace.ts`; `failRenewal` + `downgradeExpiredGrace`; warning email through the `EmailSender` port — not wired to a sender in production yet.)_
+- [x] Enforce business count caps per account: Comunidad 1, Oficios 3, Comercios 10. _(`maxBusinesses` in `ENTITLEMENTS` + `canCreateBusiness`/`assertCanCreateBusiness` enforced in the `businesses` router.)_
+- [x] Preserve deterministic ranking (Comunidad 0, Oficios 10, Comercios 20; recency tie-breaker) and 1/2/3 appearances per cycle with consecutive-repeat avoidance. _(`rankSponsors` + `selectCarouselSlots` in `domain/ads/ranking.ts`, integrated in `getBusinessCarousel`.)_
 
 > Progress note (2026-11-09): Task 1 complete — caps, downgrade, grace, cleanup, and email warning (EmailSender port + notifiers; no production sender yet) all implemented and merged-ready on `feature/email-warning-grace`.
 >
@@ -43,16 +42,16 @@
 
 ## Task 4: Sheet and carousel contracts
 
-- [ ] Expose plan-appropriate DTOs without router/UI coupling.
+- [ ] Expose plan-appropriate DTOs without router/UI coupling. _(Partial: `resolveSheet(plan, source)` returns a discriminated `BusinessSheet` in `packages/api/src/domain/directory/contracts/sheets.ts`, but no client calls it yet, so the sheet is still unrendered.)_
 - [ ] Keep public plan-tier badges out of cards/sheets; urgency is a service badge, not a plan badge.
-- [ ] Rank deterministically: Comercios & Catálogo (20) > Oficios & Servicios (10) > Comunidad (0), recency as tie-breaker.
+- [x] Rank deterministically: Comercios & Catálogo (20) > Oficios & Servicios (10) > Comunidad (0), recency as tie-breaker. _(`rankSponsors` sorts by priority desc then recency desc.)_
 - [ ] Preserve audio during carousel and sheet interactions.
 
 ## Task 5: Verification
 
-- [ ] Unit coverage for entitlements, migration, validation, and ranking.
+- [x] Unit coverage for entitlements, migration, validation, and ranking. _(`entitlements.test.ts`, `catalog.test.ts`, `ranking` coverage through the carousel tests, `retention.test.ts`, `grace.test.ts`, `period.test.ts`.)_
 - [ ] Integration and headed checks for all three plans on web and native.
-- [ ] Typecheck, Biome, tests, and build green.
+- [x] Typecheck, Biome, tests, and build green. _(Verified on `main` at the 2026-11-10 sync: `pnpm -r typecheck`, `pnpm exec biome check .` and the api suite at 645 tests green.)_
 - [ ] Human review of plan definitions, downgrade behavior, and visual priority.
 
 ## Open decisions
