@@ -16,6 +16,8 @@
 - [x] Cancellation without partial refunds: grace status + failRenewal + downgradeExpiredGrace done; email warning implemented (Resend via EmailSender port, wired into failRenewal). _(Done 2026-11-09 on `feature/email-warning-grace`.)_
 
 > Progress note (2026-11-09): Task 1 complete — caps, downgrade, grace, cleanup, and email warning (Resend) all implemented and merged-ready on `feature/email-warning-grace`.
+>
+> Progress note (2026-11-10): transactional email templates integrated. A typed renderer replaces the CommonJS reference (`render.ts` → `renderer.ts`), and domain notifiers wire subscription lifecycle, account lifecycle and receipt emails. Accounts persist `locale` (default `es-MX`, migrated on staging D1). CFDI email remains blocked on fiscal data, a PAC integration and CFDI hosting.
 
 ## Task 2: Plan selection and billing views
 
@@ -34,7 +36,7 @@
 - [ ] Show contextual upgrade prompts only when an action hits a plan limit, with the specific next-tier benefit, a clear "Ver planes"/"View plans" action, and no repeated prompt in the same session.
 - [ ] Support optional temporary featured placements as an upsell with clear labeling, start/end dates, category or period capacity limits, and no override of paid-plan baseline priority.
 - [ ] Implement plan-tiered support routing: self-service + standard email for Comunidad, prioritized email for Oficios, dedicated support channel for Comercios.
-- [ ] Issue a receipt for every charge in MXN and keep plan, amount, and billing period visible in account history; fiscal invoices (CFDI) available on request.
+- [ ] Issue a receipt for every charge in MXN and keep plan, amount, and billing period visible in account history; fiscal invoices (CFDI) available on request. _(Receipt email implemented 2026-11-10 via `TemplatePaymentNotifier`; CFDI template render is ready but its send site stays blocked on fiscal data on `accounts`, a PAC integration, and CFDI file hosting.)_
 - [ ] Oficios & Servicios: specialties, coverage area, up to 30 offered services per business with optional base diagnostic rates, work gallery (up to 10 jobs per business with 3 photos each), urgency badge.
 - [ ] Comercios & Catálogo: categorized catalog with up to 50 products per business, reference prices, up to 3 photos per product, featured product/dish, social links, and accepted-payment icons.
 - [ ] Validate all new fields server-side and in shared form schemas.

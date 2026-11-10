@@ -1,168 +1,130 @@
-import { FakeEmailSender } from "@aqui-suena/api/domain/billing/email";
 import { InMemoryReminderLogRepository } from "@aqui-suena/api/domain/billing/reminders";
 import { RenewalReminderService } from "@aqui-suena/api/domain/billing/renewal-reminder-service";
+import { FakeSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscription-notifier";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions";
 import { describe, expect, it } from "vitest";
 
+const ENDS_AT = new Date("2026-02-08T00:00:00Z");
+
+function setup() {
+  const subRepo = new InMemorySubscriptionRepository();
+  const reminderLog = new InMemoryReminderLogRepository();
+  const notifier = new FakeSubscriptionNotifier();
+  const service = new RenewalReminderService({
+    subscriptionRepo: subRepo,
+    reminderLog,
+    notifier,
+  });
+
+  return { subRepo, reminderLog, notifier, service };
+}
+
+function createSubscription(repo: InMemorySubscriptionRepository) {
+  return repo.create("acc-1", "trades", new Date("2026-01-01"), ENDS_AT);
+}
+
 describe("RenewalReminderService", () => {
-  it("sends 7-day reminder when due", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("notifies the 7-day reminder when due", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
-
-    const sent = await service.processSubscription(
-      sub.id,
-      new Date("2026-02-01T00:00:00Z"),
-      "owner@example.com",
-    );
+    const sent = await service.processSubscription(sub.id, {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
     expect(sent).toEqual(["renewal_7d"]);
-    expect(emailSender.sent).toHaveLength(1);
-    expect(emailSender.sent[0]?.subject).toContain("7 días");
-    expect(await reminderLog.hasSent(sub.id, "renewal_7d")).toBe(true);
+    expect(notifier.calls).toEqual([
+      {
+        event: "renewal-upcoming",
+        recipient: { email: "owner@example.com", locale: "es-MX" },
+        data: { daysBefore: 7, renewalDate: ENDS_AT },
+      },
+    ]);
   });
 
-  it("sends 1-day reminder when due", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("notifies the 1-day reminder when due", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
-
-    const sent = await service.processSubscription(
-      sub.id,
-      new Date("2026-02-07T00:00:00Z"),
-      "owner@example.com",
-    );
+    const sent = await service.processSubscription(sub.id, {
+      now: new Date("2026-02-07T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
     expect(sent).toEqual(["renewal_1d"]);
-    expect(emailSender.sent).toHaveLength(1);
-    expect(emailSender.sent[0]?.subject).toContain("mañana");
+    expect(notifier.calls).toEqual([
+      {
+        event: "renewal-upcoming",
+        recipient: { email: "owner@example.com", locale: "es-MX" },
+        data: { daysBefore: 1, renewalDate: ENDS_AT },
+      },
+    ]);
   });
 
-  it("does not send when no reminder is due", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("does not notify when no reminder is due", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
-
-    const sent = await service.processSubscription(
-      sub.id,
-      new Date("2026-01-20T00:00:00Z"),
-      "owner@example.com",
-    );
+    const sent = await service.processSubscription(sub.id, {
+      now: new Date("2026-01-20T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
     expect(sent).toEqual([]);
-    expect(emailSender.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("does not send when already sent", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
-
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
+  it("does not notify when the reminder was already sent", async () => {
+    const { subRepo, reminderLog, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
 
     await reminderLog.record(sub.id, "renewal_7d", new Date("2026-02-01"));
 
-    const sent = await service.processSubscription(
-      sub.id,
-      new Date("2026-02-01T00:00:00Z"),
-      "owner@example.com",
-    );
+    const sent = await service.processSubscription(sub.id, {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
     expect(sent).toEqual([]);
-    expect(emailSender.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("does not send when reminders are disabled", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("does not notify when reminders are disabled", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
-
-    const sent = await service.processSubscription(
-      sub.id,
-      new Date("2026-02-01T00:00:00Z"),
-      "owner@example.com",
-      { renewalRemindersEnabled: false },
-    );
+    const sent = await service.processSubscription(sub.id, {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+      preferences: { renewalRemindersEnabled: false },
+    });
 
     expect(sent).toEqual([]);
-    expect(emailSender.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("returns empty for non-existent subscription", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("returns empty for a non-existent subscription", async () => {
+    const { notifier, service } = setup();
 
-    const sent = await service.processSubscription(
-      "non-existent",
-      new Date("2026-02-01T00:00:00Z"),
-      "owner@example.com",
-    );
+    const sent = await service.processSubscription("non-existent", {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
     expect(sent).toEqual([]);
-    expect(emailSender.sent).toHaveLength(0);
+    expect(notifier.calls).toHaveLength(0);
   });
 
-  it("records sent reminder in the log", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const emailSender = new FakeEmailSender();
-    const reminderLog = new InMemoryReminderLogRepository();
-    const service = new RenewalReminderService(subRepo, emailSender, reminderLog);
+  it("records the sent reminder in the log", async () => {
+    const { subRepo, reminderLog, service } = setup();
+    const sub = await createSubscription(subRepo);
 
-    const sub = await subRepo.create(
-      "acc-1",
-      "trades",
-      new Date("2026-01-01"),
-      new Date("2026-02-08T00:00:00Z"),
-    );
+    await service.processSubscription(sub.id, {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
 
-    await service.processSubscription(
-      sub.id,
-      new Date("2026-02-01T00:00:00Z"),
-      "owner@example.com",
-    );
-
-    const sentAt = await reminderLog.sentAt(sub.id, "renewal_7d");
-
-    expect(sentAt).toBeDefined();
+    expect(await reminderLog.sentAt(sub.id, "renewal_7d")).toBeDefined();
   });
 });

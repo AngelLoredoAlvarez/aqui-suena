@@ -1,0 +1,131 @@
+{
+  "c": {
+    "tag": "Radio abierta + directorio local",
+    "help": "¿Necesitas ayuda?",
+    "app": "Abrir Aquí Suena",
+    "bill": "Mi suscripción",
+    "fb": "Si el botón no funciona, copia y pega este enlace:",
+    "hi": "Hola",
+    "per": "Mensual",
+    "exp": "24 horas"
+  },
+  "t1": {
+    "s": "Tu plan ha sido degradado",
+    "pre": "Tu plan ahora es {planName}.",
+    "h": "Tu plan ha sido degradado",
+    "p": [
+      "Tu plan ha sido degradado a {planName}.",
+      "Si tenías negocios en exceso, se ocultaron pero se conservan por 90 días.",
+      "Puedes volver a subir de plan en cualquier momento para restaurar el acceso completo."
+    ],
+    "cta": "Gestionar mi suscripción"
+  },
+  "t2": {
+    "s": "Tu pago falló — periodo de gracia de 7 días",
+    "pre": "Tienes hasta el {graceEnd} para regularizar tu pago.",
+    "h": "No pudimos procesar tu pago",
+    "p": [
+      "Tu pago recurrente no se pudo procesar.",
+      "Tienes hasta el {graceEnd} para regularizar tu pago. Después de esa fecha, tu plan se degradará automáticamente al plan Comunidad.",
+      "Si crees que es un error, contacta a soporte."
+    ],
+    "cta": "Actualizar método de pago"
+  },
+  "t3": {
+    "s": "Tu plan ha sido degradado",
+    "pre": "Tu periodo de gracia expiró.",
+    "h": "Tu plan ha sido degradado",
+    "p": [
+      "Tu plan ha sido degradado a {planName}.",
+      "Tu periodo de gracia expiró. Si tenías negocios en exceso, se ocultaron pero se conservan por 90 días.",
+      "Puedes volver a subir de plan en cualquier momento para restaurar el acceso completo."
+    ],
+    "cta": "Ver planes"
+  },
+  "t4": {
+    "s": "Tu plan se renueva en 7 días",
+    "pre": "Tu plan se renueva el {renewalDate}.",
+    "h": "Tu plan se renueva en 7 días",
+    "p": [
+      "Tu plan se renueva el {renewalDate}. Si necesitas hacer cambios, puedes gestionar tu suscripción antes de esa fecha."
+    ],
+    "cta": "Gestionar mi suscripción"
+  },
+  "t5": {
+    "s": "Tu plan se renueva mañana",
+    "pre": "Renovación: {renewalDate}.",
+    "h": "Tu plan se renueva mañana",
+    "p": [
+      "Tu plan se renueva mañana ({renewalDate}). Asegúrate de tener tu método de pago al día."
+    ],
+    "cta": "Ver mi suscripción"
+  },
+  "t6": {
+    "s": "Verifica tu correo electrónico",
+    "pre": "Activa tu cuenta para publicar tu negocio.",
+    "h": "Verifica tu correo electrónico",
+    "p": [
+      "Bienvenido a Aquí Suena. Para activar tu cuenta y publicar tu negocio, verifica tu correo electrónico.",
+      "Este enlace expira en {expiresIn}.",
+      "Si no creaste esta cuenta, puedes ignorar este mensaje."
+    ],
+    "cta": "Verificar correo"
+  },
+  "t7": {
+    "s": "Tu recibo de pago — Aquí Suena",
+    "pre": "Recibo por {amount}.",
+    "h": "Recibo de pago",
+    "p": ["Gracias por tu pago.", "Puedes ver tu historial de pagos en tu cuenta."],
+    "rows": ["Plan", "Periodo", "Monto", "Fecha", "ID de pago"],
+    "cta": "Ver mi suscripción"
+  },
+  "t8": {
+    "s": "Tu factura fiscal (CFDI) está lista",
+    "pre": "Descarga tu CFDI de {planName}.",
+    "h": "Tu factura fiscal (CFDI) está lista",
+    "p": [
+      "Tu factura fiscal (CFDI) por el pago de {planName} ya está disponible.",
+      "Descárgala para tus registros fiscales.",
+      "Si los datos fiscales (RFC, razón social) son incorrectos, contacta a soporte antes de usarla."
+    ],
+    "rows": ["Folio", "Fecha de emisión", "Monto"],
+    "cta": "Descargar factura",
+    "c2": "Ver mi cuenta"
+  },
+  "t9": {
+    "s": "Bienvenido a Aquí Suena",
+    "pre": "Tu cuenta está lista.",
+    "h": "¡Bienvenido a Aquí Suena!",
+    "p": [
+      "Bienvenido a Aquí Suena. Tu cuenta está lista.",
+      "Tu plan actual es Comunidad (gratis). Puedes subir de plan cuando quieras para más visibilidad.",
+      "Gestiona todo desde tu panel de propietario."
+    ],
+    "b": "Tu negocio {businessName} ya está en el directorio.",
+    "r": "Según tu perfil, te recomendamos el plan {recommendedPlan}.",
+    "lt": "Completa tu perfil (opcional, a tu ritmo):",
+    "list": [
+      "Nombre y categoría del negocio",
+      "Teléfono / WhatsApp",
+      "Dirección y horarios",
+      "Flyer",
+      "Estado abierto / cerrado",
+      "Pasos de tu plan: servicios, galería o catálogo"
+    ],
+    "cta": "Ir a mi panel",
+    "c2": "Ver planes"
+  },
+  "t10": {
+    "s": "Tu cancelación ha sido confirmada",
+    "pre": "Tu plan sigue activo hasta el {activeUntil}.",
+    "h": "Cancelación confirmada",
+    "p": [
+      "Tu suscripción al plan {planName} ha sido cancelada.",
+      "Tu plan se mantendrá activo hasta el {activeUntil}; después de esa fecha pasarás automáticamente al plan Comunidad.",
+      "No se realizan reembolsos parciales por tiempo no utilizado.",
+      "Puedes volver a suscribirte en cualquier momento."
+    ],
+    "cta": "Ver mi suscripción",
+    "c2": "Ver planes"
+  }
+}

@@ -28,6 +28,9 @@ export const accounts = sqliteTable("accounts", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   planId: text("plan_id").notNull().default("community"),
+  locale: text("locale", { enum: ["es-MX", "en"] })
+    .notNull()
+    .default("es-MX"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -16,7 +16,7 @@
     "./payments": "./src/domain/billing/payments.ts",
     "./subscriptions": "./src/domain/billing/subscriptions.ts",
     "./subscriptions-service": "./src/domain/billing/subscription-service.ts",
-    "./email": "./src/domain/billing/email.ts",
+    "./email": "./src/domain/email/email.ts",
     "./reminders": "./src/domain/billing/reminders.ts",
     "./renewal-reminder-service": "./src/domain/billing/renewal-reminder-service.ts",
     "./package.json": "./package.json",

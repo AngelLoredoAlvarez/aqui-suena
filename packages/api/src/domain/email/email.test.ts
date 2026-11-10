@@ -1,4 +1,4 @@
-import { FakeEmailSender } from "@aqui-suena/api/domain/billing/email";
+import { FakeEmailSender } from "@aqui-suena/api/domain/email/email";
 import { describe, expect, it } from "vitest";
 
 describe("FakeEmailSender", () => {

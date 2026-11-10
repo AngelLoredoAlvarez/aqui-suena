@@ -80,9 +80,9 @@ describe("hours", () => {
 });
 
 describe("accounts", () => {
-  it("exposes id, email, plan and timestamps", () => {
+  it("exposes id, email, plan, locale and timestamps", () => {
     expect(columnNames(accounts)).toEqual(
-      expect.arrayContaining(["id", "email", "plan_id", "created_at", "updated_at"]),
+      expect.arrayContaining(["id", "email", "plan_id", "locale", "created_at", "updated_at"]),
     );
   });
 });

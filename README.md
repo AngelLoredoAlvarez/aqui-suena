@@ -19,7 +19,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 | `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media)                                                                                                                        |
 | `packages/ui`     | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS                |
 | `packages/player` | Playback core (fallback picker, error mapper, `usePlayer`)                                                                                                                       |
-| `packages/api`    | tRPC contract (`listener.getStatus`, `plans.list`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + AI support chatbot (Vectorize RAG + AI Gateway, both optional)  |
+| `packages/api`    | tRPC contract (`listener.getStatus`, `plans.list`) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + transactional email notifiers + AI support chatbot (Vectorize RAG + AI Gateway, both optional)  |
 | `packages/db`     | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`, `plans`, `subscriptions` (with `grace_end`), `payments`, `invoices`, `businesses` (with `hidden_at`/`retained_until`)) |
 
 ## Scripts
@@ -116,6 +116,7 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 - Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `SPEC-radio-playback.md` (Responsive composition).
 - Ads carousel now serves real ranked inventory by plan (Comercios > Oficios > Comunidad, recency tie-break) via `ads.carousel` (F1+F2 complete); no static seed, empty state shown when no sponsors. Carousel now expands 1/2/3 appearances per cycle with consecutive-repeat avoidance (Task 1 (b)).
 - Business plan Task 1 complete (2026-11-09): business count caps, downgrade/grace helpers, DB schema (hiddenAt/retainedUntil, grace status + graceEnd), 90-day cleanup, email warnings (grace period), and renewal/downgrade notifications (Resend via EmailSender port) all implemented. Only plan selection/billing views (Task 2) and directory data/owner forms (Task 3) remain.
+- Transactional email templates complete (2026-11-10): 10 templates (es-MX/en) moved into `packages/api/src/infrastructure/billing/email-templates/`, migrated to a typed renderer with missing-variable guards and HTML escaping, and wired through domain notifiers for subscription lifecycle, account lifecycle and receipts. Accounts now persist `locale` (default `es-MX`). The CFDI email is rendered but has no send site until fiscal data, a PAC integration and CFDI hosting exist.
 - Ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 

@@ -1,0 +1,131 @@
+{
+  "c": {
+    "tag": "Open radio + local directory",
+    "help": "Need help?",
+    "app": "Open Aquí Suena",
+    "bill": "My subscription",
+    "fb": "If the button doesn't work, copy and paste this link:",
+    "hi": "Hi",
+    "per": "Monthly",
+    "exp": "24 hours"
+  },
+  "t1": {
+    "s": "Your plan has been downgraded",
+    "pre": "Your plan is now {planName}.",
+    "h": "Your plan has been downgraded",
+    "p": [
+      "Your plan has been downgraded to {planName}.",
+      "If you had excess businesses, they were hidden but are kept for 90 days.",
+      "You can upgrade again at any time to restore full access."
+    ],
+    "cta": "Manage my subscription"
+  },
+  "t2": {
+    "s": "Your payment failed — 7-day grace period",
+    "pre": "You have until {graceEnd} to update your payment.",
+    "h": "We couldn't process your payment",
+    "p": [
+      "Your recurring payment could not be processed.",
+      "You have until {graceEnd} to update your payment. After that date, your plan will be automatically downgraded to the Comunidad plan.",
+      "If you think this is an error, contact support."
+    ],
+    "cta": "Update payment method"
+  },
+  "t3": {
+    "s": "Your plan has been downgraded",
+    "pre": "Your grace period expired.",
+    "h": "Your plan has been downgraded",
+    "p": [
+      "Your plan has been downgraded to {planName}.",
+      "Your grace period expired. If you had excess businesses, they were hidden but are kept for 90 days.",
+      "You can upgrade again at any time to restore full access."
+    ],
+    "cta": "View plans"
+  },
+  "t4": {
+    "s": "Your plan renews in 7 days",
+    "pre": "Your plan renews on {renewalDate}.",
+    "h": "Your plan renews in 7 days",
+    "p": [
+      "Your plan renews on {renewalDate}. If you need to make changes, you can manage your subscription before that date."
+    ],
+    "cta": "Manage my subscription"
+  },
+  "t5": {
+    "s": "Your plan renews tomorrow",
+    "pre": "Renewal date: {renewalDate}.",
+    "h": "Your plan renews tomorrow",
+    "p": [
+      "Your plan renews tomorrow ({renewalDate}). Make sure your payment method is up to date."
+    ],
+    "cta": "View my subscription"
+  },
+  "t6": {
+    "s": "Verify your email address",
+    "pre": "Activate your account to publish your business.",
+    "h": "Verify your email address",
+    "p": [
+      "Welcome to Aquí Suena. To activate your account and publish your business, verify your email address.",
+      "This link expires in {expiresIn}.",
+      "If you didn't create this account, you can ignore this message."
+    ],
+    "cta": "Verify email"
+  },
+  "t7": {
+    "s": "Your payment receipt — Aquí Suena",
+    "pre": "Receipt for {amount}.",
+    "h": "Payment receipt",
+    "p": ["Thank you for your payment.", "You can view your payment history in your account."],
+    "rows": ["Plan", "Period", "Amount", "Date", "Payment ID"],
+    "cta": "View my subscription"
+  },
+  "t8": {
+    "s": "Your tax invoice (CFDI) is ready",
+    "pre": "Download your {planName} CFDI.",
+    "h": "Your tax invoice (CFDI) is ready",
+    "p": [
+      "Your tax invoice (CFDI) for the {planName} payment is now available.",
+      "Download it for your tax records.",
+      "If the tax details (RFC, business name) are incorrect, contact support before using it."
+    ],
+    "rows": ["Invoice ID", "Issue date", "Amount"],
+    "cta": "Download invoice",
+    "c2": "View my account"
+  },
+  "t9": {
+    "s": "Welcome to Aquí Suena",
+    "pre": "Your account is ready.",
+    "h": "Welcome to Aquí Suena!",
+    "p": [
+      "Welcome to Aquí Suena. Your account is ready.",
+      "Your current plan is Comunidad (free). You can upgrade anytime for more visibility.",
+      "Manage everything from your owner portal."
+    ],
+    "b": "Your business {businessName} is now in the directory.",
+    "r": "Based on your profile, we recommend the {recommendedPlan} plan.",
+    "lt": "Complete your profile (optional, at your own pace):",
+    "list": [
+      "Business name and category",
+      "Phone / WhatsApp",
+      "Address and hours",
+      "Flyer",
+      "Open / closed status",
+      "Plan steps: services, gallery or catalog"
+    ],
+    "cta": "Go to my dashboard",
+    "c2": "View plans"
+  },
+  "t10": {
+    "s": "Your cancellation has been confirmed",
+    "pre": "Your plan stays active until {activeUntil}.",
+    "h": "Cancellation confirmed",
+    "p": [
+      "Your {planName} subscription has been cancelled.",
+      "Your plan stays active until {activeUntil}; after that date you'll automatically move to the Comunidad plan.",
+      "No partial refunds are issued for unused time.",
+      "You can resubscribe at any time."
+    ],
+    "cta": "View my subscription",
+    "c2": "View plans"
+  }
+}

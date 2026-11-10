@@ -75,7 +75,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
 - DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table
-- Email: Resend (transactional email, free tier) for grace-period and renewal warnings; wired through an `EmailSender` port so the provider stays swappable
+- Email: Resend (transactional email, free tier) for grace-period, renewal, downgrade, cancellation, verification, welcome and receipt emails; wired through an `EmailSender` port so the provider stays swappable. Templates (10, es-MX/en) live in `packages/api/src/infrastructure/billing/email-templates/` with a TypeScript renderer (`renderer.ts`). The CFDI email is rendered but has no send site yet (see `TEMPLATES.md`).
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
@@ -173,7 +173,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - Featured placements are an optional temporary upsell, not a replacement for plan priority. They are clearly labeled, time-boxed, capacity-limited, and never remove a paid plan's baseline carousel weight or allocated appearances. Comercios & Catálogo may include preferred featured benefits such as a monthly free featured slot or discounted featured purchases.
 - Catalog categories for Comercios & Catálogo are a controlled shared enum with i18n display names; owners cannot create arbitrary categories.
 - Plan upgrade prompts are contextual: they appear only when an action hits a plan limit, explain the specific benefit of the next tier, include a clear "Ver planes"/"View plans" action, and do not repeat within the same session.
-- Billing issues a receipt for every charge in MXN; fiscal invoices (CFDI) are available on request. Plan, amount, and billing period remain visible in account history.
+- Billing issues a receipt for every charge in MXN; fiscal invoices (CFDI) are available on request. Plan, amount, and billing period remain visible in account history. The receipt email (template 7) is implemented by `TemplatePaymentNotifier.paymentReceipt`; the CFDI email (template 8) is designed and rendered but has no send site yet. It is blocked on product decisions: fiscal data (RFC, legal name) stored on `accounts`, a PAC integration that issues the CFDI, and storage for the downloadable PDF/XML. See `packages/api/src/infrastructure/billing/email-templates/TEMPLATES.md`.
 - The billing/pricing page shows three aligned plan cards first, followed by a secondary comparison table grouped by usage, features, visibility, support, stats, and billing.
 - The billing page defaults to annual billing with a monthly/annual toggle, highlights the annual savings as "2 meses gratis", and allows changing the billing period before payment.
 - The system sends renewal and expiration reminders: 7 days before charge, 1 day before charge, immediately on failed payment, and when a plan downgrades; non-critical reminders can be disabled by the owner.
