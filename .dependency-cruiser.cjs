@@ -27,6 +27,24 @@ module.exports = {
         pathNot: "packages/api/src/(client|domain/listener)\\.ts$",
       },
     },
+    {
+      name: "api-domain-must-not-depend-on-outer-layers",
+      severity: "error",
+      comment:
+        "Clean Architecture: packages/api/src/domain is the inner layer. It must not import infrastructure or server; depend on ports instead. Tests are exempt because they may wire real adapters.",
+      from: {
+        path: "^packages/api/src/domain",
+        pathNot: "\\.test\\.ts$",
+      },
+      to: { path: "^packages/api/src/(infrastructure|server)" },
+    },
+    {
+      name: "api-infrastructure-must-not-depend-on-server",
+      severity: "error",
+      comment: "Infrastructure may depend on domain, never on the server layer.",
+      from: { path: "^packages/api/src/infrastructure" },
+      to: { path: "^packages/api/src/server" },
+    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },
