@@ -1,6 +1,8 @@
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
+import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
 const mediaKind = v.picklist(["product-photo", "flyer", "spot-audio", "avatar"]);
@@ -31,16 +33,49 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
     }),
 
     confirm: protectedProcedure.input(confirmInput).mutation(async ({ input, ctx }) => {
+      // The key must belong to the authenticated account and the declared kind;
+      // anything else answers NOT_FOUND so a foreign object never leaks.
+      const expectedPrefix = `${input.kind}/${ctx.user.accountId}/`;
+      if (!input.key.startsWith(expectedPrefix)) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
+      }
+
       const meta = await storage.head(input.key);
       if (meta === null) {
-        throw new Error("Object not found in storage");
+        throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
       }
+
+      if (meta.contentType !== input.contentType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Uploaded content type does not match the declared content type",
+        });
+      }
+
+      if (meta.size !== input.sizeBytes) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Uploaded size does not match the declared size",
+        });
+      }
+
+      try {
+        validateMediaUpload(input.kind, meta.contentType, meta.size);
+      } catch (error) {
+        if (error instanceof MediaValidationError) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
+        }
+
+        throw error;
+      }
+
+      // Persist what storage actually holds, never the client's declarations.
       return repository.create({
         ownerId: ctx.user.accountId,
         kind: input.kind,
         r2Key: input.key,
-        mime: input.contentType,
-        size: input.sizeBytes,
+        mime: meta.contentType,
+        size: meta.size,
       });
     }),
 
