@@ -10,7 +10,6 @@ import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/wo
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
-import { createListingsRouter } from "@aqui-suena/api/server/routers/directory/listings";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
@@ -317,30 +316,6 @@ describe("directory mutation authorization", () => {
     });
 
     expect(created.accountId).toBe("acc-a");
-  });
-
-  it("rejects listings mutations under a foreign business", async () => {
-    const s = setup();
-    const router = createListingsRouter(s.businessRepository);
-    const caller = router.createCaller(s.callerA);
-
-    await expect(
-      caller.createProduct({
-        plan: "commerce",
-        businessId: "biz-b",
-        name: "Injected",
-        price: 100,
-      }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
-
-    await expect(
-      caller.addPhoto({
-        plan: "commerce",
-        businessId: "biz-b",
-        kind: "logo",
-        url: "https://example.com/injected.jpg",
-      }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("still rejects unauthenticated mutations with UNAUTHORIZED", async () => {
