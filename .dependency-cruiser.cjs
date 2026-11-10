@@ -39,6 +39,17 @@ module.exports = {
       to: { path: "^packages/api/src/(infrastructure|server)" },
     },
     {
+      name: "production-must-not-import-test-support",
+      severity: "error",
+      comment:
+        "Test doubles live in packages/api/src/testing and must never be reachable from production code. Tests are exempt because using them is their only purpose. The rule matches both the resolved path and the unresolved `@aqui-suena/api/testing` alias, because dependency-cruiser does not resolve tsconfig path aliases here.",
+      from: {
+        path: "^packages/api/src",
+        pathNot: "(\\.test\\.ts$|^packages/api/src/testing/)",
+      },
+      to: { path: "^(packages/api/src/testing/|@aqui-suena/api/testing)" },
+    },
+    {
       name: "no-circular",
       severity: "error",
       comment: "A cycle means two modules cannot be reasoned about independently.",

@@ -11,14 +11,3 @@ export interface EmailMessage {
 export interface EmailSender {
   send(message: EmailMessage): Promise<void>;
 }
-
-/**
- * Test double that captures sent messages for assertions.
- */
-export class FakeEmailSender implements EmailSender {
-  readonly sent: EmailMessage[] = [];
-
-  async send(message: EmailMessage): Promise<void> {
-    this.sent.push(message);
-  }
-}

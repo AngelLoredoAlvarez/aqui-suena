@@ -28,36 +28,3 @@ export interface AccountNotifier {
 
   welcome(recipient: AccountNotificationRecipient, data: AccountWelcomeNotification): Promise<void>;
 }
-
-export type AccountNotificationCall =
-  | {
-      readonly event: "email-verification-requested";
-      readonly recipient: AccountNotificationRecipient;
-      readonly data: EmailVerificationNotification;
-    }
-  | {
-      readonly event: "welcome";
-      readonly recipient: AccountNotificationRecipient;
-      readonly data: AccountWelcomeNotification;
-    };
-
-/**
- * Test double that records notifications instead of sending them.
- */
-export class FakeAccountNotifier implements AccountNotifier {
-  readonly calls: AccountNotificationCall[] = [];
-
-  async emailVerificationRequested(
-    recipient: AccountNotificationRecipient,
-    data: EmailVerificationNotification,
-  ): Promise<void> {
-    this.calls.push({ event: "email-verification-requested", recipient, data });
-  }
-
-  async welcome(
-    recipient: AccountNotificationRecipient,
-    data: AccountWelcomeNotification,
-  ): Promise<void> {
-    this.calls.push({ event: "welcome", recipient, data });
-  }
-}

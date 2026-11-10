@@ -26,23 +26,3 @@ export interface PaymentNotifier {
     data: PaymentReceiptNotification,
   ): Promise<void>;
 }
-
-export type PaymentNotificationCall = {
-  readonly event: "payment-receipt";
-  readonly recipient: PaymentNotificationRecipient;
-  readonly data: PaymentReceiptNotification;
-};
-
-/**
- * Test double that records notifications instead of sending them.
- */
-export class FakePaymentNotifier implements PaymentNotifier {
-  readonly calls: PaymentNotificationCall[] = [];
-
-  async paymentReceipt(
-    recipient: PaymentNotificationRecipient,
-    data: PaymentReceiptNotification,
-  ): Promise<void> {
-    this.calls.push({ event: "payment-receipt", recipient, data });
-  }
-}

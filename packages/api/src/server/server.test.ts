@@ -1,6 +1,6 @@
 import { request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
-import { FakeObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
 import { createApiServer } from "@aqui-suena/api/server/server";
 import type { AppRouter } from "@aqui-suena/api/server/trpc/router";
@@ -22,7 +22,7 @@ const running: Array<() => Promise<void>> = [];
 
 async function startServer(
   upstreamFetch?: typeof fetch,
-  mediaStorage?: FakeObjectStorage,
+  mediaStorage?: InMemoryObjectStorage,
 ): Promise<StartedServer> {
   const server = createApiServer({
     allowedOrigins: DEFAULT_ALLOWED_ORIGINS,
@@ -81,7 +81,7 @@ describe("GET /health", () => {
   });
 
   it("reports configured media when storage is injected", async () => {
-    const { url } = await startServer(undefined, new FakeObjectStorage());
+    const { url } = await startServer(undefined, new InMemoryObjectStorage());
     const response = await rawRequest(`${url}/health`);
 
     expect(response.status).toBe(200);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  FakeObjectStorage,
+  InMemoryObjectStorage,
   MEDIA_LIMITS,
   MediaValidationError,
   validateMediaUpload,
@@ -40,9 +40,9 @@ describe("validateMediaUpload", () => {
   });
 });
 
-describe("FakeObjectStorage", () => {
+describe("InMemoryObjectStorage", () => {
   it("presigns a valid upload and records the request", async () => {
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     const result = await storage.presignUpload({
       kind: "product-photo",
@@ -57,7 +57,7 @@ describe("FakeObjectStorage", () => {
   });
 
   it("rejects an invalid upload before presigning", async () => {
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     await expect(
       storage.presignUpload({
@@ -72,13 +72,13 @@ describe("FakeObjectStorage", () => {
   });
 
   it("returns null when heading an unknown key", async () => {
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     expect(await storage.head("nope")).toBeNull();
   });
 
   it("returns metadata after confirm", async () => {
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     const { key } = await storage.presignUpload({
       kind: "avatar",
@@ -95,7 +95,7 @@ describe("FakeObjectStorage", () => {
   });
 
   it("delete removes the object", async () => {
-    const storage = new FakeObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     const { key } = await storage.presignUpload({
       kind: "flyer",

@@ -10,7 +10,7 @@ Last synced 2026-11-10 against `main` (email templates track merged; media stora
 - [x] D1 plan catalog is seedable: `DEFAULT_PLAN_CATALOG` is the single source,
   `POST /admin/seed-plans` (guarded by `ADMIN_TOKEN`) upserts it idempotently,
   and the in-memory repository is built from the same constant. Media storage
-  is explicit: the Worker never falls back to `FakeObjectStorage`, `/health`
+  is explicit: the Worker never falls back to `InMemoryObjectStorage`, `/health`
   reports `media: configured|unconfigured`, and missing/partial R2 credentials
   make media mutations answer `503 SERVICE_UNAVAILABLE`. Branch
   `feat/production-wiring`; details in `odd/tasks/feat-production-wiring.md`.
