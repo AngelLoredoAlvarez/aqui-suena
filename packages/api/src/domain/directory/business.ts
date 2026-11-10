@@ -56,11 +56,13 @@ export class InMemoryBusinessRepository implements BusinessRepository {
   constructor(private readonly businesses: Business[]) {}
 
   async list(): Promise<Business[]> {
-    return this.businesses;
+    return this.businesses.filter((business) => business.hiddenAt === null);
   }
 
   async getById(id: string): Promise<Business | null> {
-    return this.businesses.find((business) => business.id === id) ?? null;
+    const business = this.businesses.find((item) => item.id === id) ?? null;
+
+    return business?.hiddenAt === null ? business : null;
   }
 
   async getByIdForOwner(id: string): Promise<Business | null> {

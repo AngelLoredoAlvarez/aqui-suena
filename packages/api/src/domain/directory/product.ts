@@ -1,3 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+
 export type Product = {
   id: string;
   businessId: string;
@@ -30,10 +33,17 @@ export interface ProductRepository {
 }
 
 export class InMemoryProductRepository implements ProductRepository {
-  constructor(private readonly products: Product[]) {}
+  constructor(
+    private readonly products: Product[],
+    private readonly businesses?: BusinessRepository,
+  ) {}
 
   async list(): Promise<Product[]> {
-    return this.products;
+    if (this.businesses === undefined) return this.products;
+
+    const visible = await visibleBusinessIds(this.businesses);
+
+    return this.products.filter((product) => visible.has(product.businessId));
   }
 
   async listByBusiness(businessId: string): Promise<Product[]> {

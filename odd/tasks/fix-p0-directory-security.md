@@ -13,8 +13,8 @@ Test runner: `pnpm --filter @aqui-suena/api test` and `pnpm --filter @aqui-suena
 
 ## Tasks
 
-- T1 / S1 — reusable ownership guard in `domain/directory/authorization.ts`; applied to all eight directory routers; router tests for cross-account and unauthenticated access. (commit: TBD)
-- T2 / S2 — hidden filtering in D1 repositories, in-memory parity, owner endpoints, carousel check; tests. (commit: TBD)
+- T1 / S1 — reusable ownership guard in `domain/directory/authorization.ts`; applied to all eight directory routers; router tests for cross-account and unauthenticated access. DONE. RED: 17/18 authorization tests failed (factory signatures + missing guards), GREEN: 526 api tests. Commit `8904f08`.
+- T2 / S2 — hidden filtering in D1 repositories, in-memory parity, owner endpoints, carousel check; tests. DONE. RED: 8 visibility tests failed, GREEN: 536 api tests. Commit: TBD.
 - T3 / S3 — cascade FKs in `packages/db/src/schema.ts`, SQLite-backed deletion test; migration pre-flight documented, not run. (commit: TBD)
 
 ## Log

@@ -1,3 +1,6 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+
 export type Hour = {
   id: string;
   businessId: string;
@@ -29,10 +32,17 @@ export interface HourRepository {
 }
 
 export class InMemoryHourRepository implements HourRepository {
-  constructor(private readonly hours: Hour[]) {}
+  constructor(
+    private readonly hours: Hour[],
+    private readonly businesses?: BusinessRepository,
+  ) {}
 
   async list(): Promise<Hour[]> {
-    return this.hours;
+    if (this.businesses === undefined) return this.hours;
+
+    const visible = await visibleBusinessIds(this.businesses);
+
+    return this.hours.filter((hour) => visible.has(hour.businessId));
   }
 
   async getById(id: string): Promise<Hour | null> {

@@ -74,7 +74,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
-- DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table
+- DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table. Public business and child lists filter `hidden_at IS NULL`; owner-scoped reads keep hidden businesses visible. Deleting a business cascades to its directory children.
 - Email: Resend (transactional email, free tier) for grace-period, renewal, downgrade, cancellation, verification, welcome and receipt emails; wired through an `EmailSender` port so the provider stays swappable. Templates (10, es-MX/en) are rendered by `packages/api/src/infrastructure/email/renderer.ts`; the design artifacts live in `packages/api/design/email-templates/`. The CFDI email is rendered but has no send site yet (see `TEMPLATES.md`).
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)

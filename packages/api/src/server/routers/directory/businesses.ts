@@ -43,6 +43,27 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
       return repository.list();
     }),
 
+    listMine: protectedProcedure.query(async ({ ctx }) => {
+      return repository.listByAccount(ctx.user.accountId);
+    }),
+
+    getMine: protectedProcedure
+      .input((value: unknown) => {
+        if (typeof value !== "string" || value.length === 0) {
+          throw new Error("Business id is required");
+        }
+        return value;
+      })
+      .query(async ({ input, ctx }) => {
+        const business = await repository.getByIdForOwner(input);
+
+        if (business === null || business.accountId !== ctx.user.accountId) {
+          return null;
+        }
+
+        return business;
+      }),
+
     getById: publicProcedure
       .input((value: unknown) => {
         if (typeof value !== "string" || value.length === 0) {

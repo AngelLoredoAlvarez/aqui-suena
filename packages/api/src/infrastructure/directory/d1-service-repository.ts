@@ -22,7 +22,10 @@ export class D1ServiceRepository implements ServiceRepository {
   async list(): Promise<Service[]> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, name, description, base_price, created_at, updated_at FROM services",
+        `SELECT s.id, s.business_id, s.name, s.description, s.base_price, s.created_at, s.updated_at
+         FROM services s
+         JOIN businesses b ON b.id = s.business_id
+         WHERE b.hidden_at IS NULL`,
       )
       .all();
 

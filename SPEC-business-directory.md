@@ -84,7 +84,8 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 
 ## Boundaries
 
-- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth on mutations (short-lived JWT in Authorization Bearer, verified server-side), run `typecheck + lint + test` before commit.
+- Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth and business ownership on mutations (short-lived JWT in Authorization Bearer, verified server-side; a resource owned by another account answers `NOT_FOUND`), run `typecheck + lint + test` before commit.
+- Always: public reads (`list`, `getById`) and public child lists exclude businesses with `hidden_at` set; the owner still sees and edits them through the owner-scoped endpoints.
 - Ask first: add a listing field, change hours model, add image hosting provider (now R2 — see SPEC-media-storage).
 - Never: expose owner emails/phones to scrapers without rate limits, hardcode categories in UI (use shared enum), stop audio when opening a listing.
 

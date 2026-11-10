@@ -113,6 +113,57 @@ describe("businesses router", () => {
     expect(deleted).toBe(true);
   });
 
+  it("hides a hidden business from the public list and getById", async () => {
+    const hidden = {
+      ...sampleBusiness,
+      id: "biz-hidden",
+      hiddenAt: new Date("2024-02-01T00:00:00Z"),
+    };
+    const repository = new InMemoryBusinessRepository([hidden]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    expect(await caller.list()).toEqual([]);
+    expect(await caller.getById("biz-hidden")).toBeNull();
+  });
+
+  it("returns hidden businesses through the owner endpoints", async () => {
+    const hidden = {
+      ...sampleBusiness,
+      id: "biz-hidden",
+      hiddenAt: new Date("2024-02-01T00:00:00Z"),
+    };
+    const repository = new InMemoryBusinessRepository([hidden]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    expect((await caller.listMine()).map((item) => item.id)).toEqual(["biz-hidden"]);
+    expect((await caller.getMine("biz-hidden"))?.id).toBe("biz-hidden");
+  });
+
+  it("does not return another account's business through the owner endpoint", async () => {
+    const foreign = {
+      ...sampleBusiness,
+      id: "biz-foreign",
+      accountId: "acc-2",
+      hiddenAt: new Date("2024-02-01T00:00:00Z"),
+    };
+    const repository = new InMemoryBusinessRepository([foreign]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    expect(await caller.getMine("biz-foreign")).toBeNull();
+  });
+
   it("rejects creating a business when the account cap is reached", async () => {
     const repository = new InMemoryBusinessRepository([{ ...sampleBusiness }]);
     const subscriptionRepository = new InMemorySubscriptionRepository([]);

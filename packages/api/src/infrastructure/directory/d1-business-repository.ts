@@ -28,7 +28,7 @@ export class D1BusinessRepository implements BusinessRepository {
   async list(): Promise<Business[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses",
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL",
       )
       .all();
 
@@ -38,7 +38,7 @@ export class D1BusinessRepository implements BusinessRepository {
   async getById(id: string): Promise<Business | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE id = ?",
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE id = ? AND hidden_at IS NULL",
       )
       .bind(id)
       .first();
