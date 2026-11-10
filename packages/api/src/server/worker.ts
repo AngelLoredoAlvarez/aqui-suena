@@ -1,3 +1,4 @@
+import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   FullCatalogRetriever,
@@ -5,6 +6,7 @@ import {
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
+import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
@@ -96,6 +98,22 @@ export default {
       }
       const deleted = await directoryRepositories.business.deleteExpired(new Date());
       return Response.json({ deleted });
+    }
+
+    // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
+    // configured; requires it to match.
+    if (new URL(request.url).pathname === "/admin/seed-plans") {
+      if (
+        !env.ADMIN_TOKEN ||
+        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
+      ) {
+        return new Response("Not found", { status: 404 });
+      }
+      const seeded = await seedPlans(
+        new D1PlanCatalogWriter(env.aqui_suena_db),
+        DEFAULT_PLAN_CATALOG,
+      );
+      return Response.json({ seeded });
     }
 
     const retriever =
