@@ -9,6 +9,30 @@ export class DomainError extends Error {
   }
 }
 
+/** The caller supplied a value the domain rejects (malformed input). */
+export class ValidationError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+/** The requested entity does not exist or is not visible to this caller. */
+export class NotFoundError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+/** The request is valid but the entity's current state forbids it. */
+export class ConflictError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
+
 /**
  * A value that was persisted (or otherwise external) does not match the
  * domain contract: an unknown enum member, a malformed stored field, etc.

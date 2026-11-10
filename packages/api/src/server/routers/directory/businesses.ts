@@ -4,7 +4,9 @@ import type { BusinessRepository } from "@aqui-suena/api/domain/directory/busine
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { assertCanCreateBusiness } from "@aqui-suena/api/domain/plans/entitlements";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
+import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
+import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -48,31 +50,21 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
     }),
 
     getMine: protectedProcedure
-      .input((value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) {
-          throw new Error("Business id is required");
-        }
-        return value;
-      })
+      .input(requiredId("Business id is required"))
       .query(async ({ input, ctx }) => {
         const business = await repository.getByIdForOwner(input);
 
         if (business === null || business.accountId !== ctx.user.accountId) {
-          return null;
+          throw new NotFoundError("Business not found");
         }
 
         return business;
       }),
 
     getById: publicProcedure
-      .input((value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) {
-          throw new Error("Business id is required");
-        }
-        return value;
-      })
+      .input(requiredId("Business id is required"))
       .query(async ({ input }) => {
-        return repository.getById(input);
+        return requireFound(await repository.getById(input), "Business not found");
       }),
 
     create: protectedProcedure.input(createBusinessInput).mutation(async ({ input, ctx }) => {
@@ -100,20 +92,19 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
       const { id, ...rest } = input;
       await assertBusinessOwned(repository, ctx.user.accountId, id);
 
-      return repository.update(id, rest);
+      return requireFound(await repository.update(id, rest), "Business not found");
     }),
 
     delete: protectedProcedure
-      .input((value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) {
-          throw new Error("Business id is required");
-        }
-        return value;
-      })
+      .input(requiredId("Business id is required"))
       .mutation(async ({ input, ctx }) => {
         await assertBusinessOwned(repository, ctx.user.accountId, input);
 
-        return repository.delete(input);
+        if (!(await repository.delete(input))) {
+          throw new NotFoundError("Business not found");
+        }
+
+        return true;
       }),
   });
 }

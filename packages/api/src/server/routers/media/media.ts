@@ -1,7 +1,9 @@
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
+import { requiredId } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
+import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -84,19 +86,17 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
     }),
 
     delete: protectedProcedure
-      .input((value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) {
-          throw new Error("Media id is required");
-        }
-        return value;
-      })
+      .input(requiredId("Media id is required"))
       .mutation(async ({ input, ctx }) => {
         const media = await repository.getById(input);
         if (media === null || media.ownerId !== ctx.user.accountId) {
-          return false;
+          throw new NotFoundError("Media not found");
         }
         await storage.delete(media.r2Key);
-        return repository.delete(input);
+        if (!(await repository.delete(input))) {
+          throw new NotFoundError("Media not found");
+        }
+        return true;
       }),
   });
 }

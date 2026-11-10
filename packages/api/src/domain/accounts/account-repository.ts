@@ -1,5 +1,6 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
+import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 
 export interface AccountRepository {
   getById(id: string): Promise<Account | null>;
@@ -17,7 +18,7 @@ export class InMemoryAccountRepository implements AccountRepository {
     const account = this.store.find((candidate) => candidate.id === id);
 
     if (account === undefined) {
-      throw new Error("Account not found");
+      throw new NotFoundError("Account not found");
     }
 
     const index = this.store.indexOf(account);

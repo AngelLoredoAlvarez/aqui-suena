@@ -194,4 +194,16 @@ describe("media router", () => {
     expect(ok).toBe(true);
     expect(await storage.head(key)).toBeNull();
   });
+
+  it("rejects deleting a malformed id with BAD_REQUEST", async () => {
+    const { caller } = setup();
+
+    await expect(caller.delete(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects deleting a missing media with NOT_FOUND", async () => {
+    const { caller } = setup();
+
+    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
 });

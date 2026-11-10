@@ -1,4 +1,9 @@
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import {
+  ConflictError,
+  DataIntegrityError,
+  NotFoundError,
+  ValidationError,
+} from "@aqui-suena/api/shared/domain-error";
 import { initTRPC, TRPCError } from "@trpc/server";
 
 export type User = {
@@ -24,14 +29,29 @@ const mapDomainErrors = t.middleware(async ({ next }) => {
 
   // tRPC captures downstream errors in the result instead of throwing, so the
   // original cause is inspected here rather than in a try/catch.
-  if (!result.ok && result.error.cause instanceof DataIntegrityError) {
+  if (!result.ok) {
     const error = result.error.cause;
-    console.error("Data integrity error", { field: error.field, value: error.value });
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Internal server error",
-      cause: error,
-    });
+
+    if (error instanceof DataIntegrityError) {
+      console.error("Data integrity error", { field: error.field, value: error.value });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal server error",
+        cause: error,
+      });
+    }
+
+    if (error instanceof ValidationError) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: error.message, cause: error });
+    }
+
+    if (error instanceof NotFoundError) {
+      throw new TRPCError({ code: "NOT_FOUND", message: error.message, cause: error });
+    }
+
+    if (error instanceof ConflictError) {
+      throw new TRPCError({ code: "CONFLICT", message: error.message, cause: error });
+    }
   }
 
   return result;

@@ -24,7 +24,3 @@ export async function assertBusinessOwned(
     throw error;
   }
 }
-
-export function notFound(): TRPCError {
-  return new TRPCError({ code: "NOT_FOUND", message: "Not found" });
-}

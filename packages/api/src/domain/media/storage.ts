@@ -1,3 +1,5 @@
+import { ValidationError } from "@aqui-suena/api/shared/domain-error";
+
 export type MediaKind = "product-photo" | "flyer" | "spot-audio" | "avatar";
 
 export interface MediaLimits {
@@ -32,7 +34,7 @@ export const MEDIA_LIMITS: Record<MediaKind, MediaLimits> = {
  * Thrown when an upload request violates the media rules.
  * Callers (tRPC router) map this to a typed error the UI can show.
  */
-export class MediaValidationError extends Error {
+export class MediaValidationError extends ValidationError {
   constructor(message: string) {
     super(message);
     this.name = "MediaValidationError";

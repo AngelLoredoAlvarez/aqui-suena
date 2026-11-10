@@ -5,6 +5,7 @@ import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
 import type { Plan } from "@aqui-suena/api/domain/plans/plans";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 import { FakeSubscriptionNotifier } from "./subscription-notifier";
 
@@ -740,5 +741,33 @@ describe("SubscriptionService.cancel notification", () => {
     await service.cancel(sub.id);
 
     expect(notifier.calls).toHaveLength(0);
+  });
+});
+
+describe("SubscriptionService error types", () => {
+  it("throws NotFoundError when the subscription is missing", async () => {
+    const service = new SubscriptionService({
+      subscriptionRepo: new InMemorySubscriptionRepository(),
+      planRepo: new InMemoryPlanRepository(plans),
+    });
+
+    await expect(service.cancel("non-existent")).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("throws ConflictError when the subscription is not active", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const service = new SubscriptionService({
+      subscriptionRepo: subRepo,
+      planRepo: new InMemoryPlanRepository(plans),
+    });
+    const sub = await subRepo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01"),
+      new Date("2026-02-01"),
+    );
+    await subRepo.updateStatus(sub.id, "cancelled");
+
+    await expect(service.changePlan(sub.id, "trades")).rejects.toBeInstanceOf(ConflictError);
   });
 });

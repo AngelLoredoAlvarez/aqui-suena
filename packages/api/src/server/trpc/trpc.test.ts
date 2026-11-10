@@ -1,5 +1,10 @@
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import {
+  ConflictError,
+  DataIntegrityError,
+  NotFoundError,
+  ValidationError,
+} from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it, vi } from "vitest";
 
 describe("protectedProcedure", () => {
@@ -40,5 +45,20 @@ describe("DataIntegrityError mapping", () => {
     });
 
     log.mockRestore();
+  });
+
+  it.each([
+    [new ValidationError("Invalid input"), "BAD_REQUEST"],
+    [new NotFoundError("Missing entity"), "NOT_FOUND"],
+    [new ConflictError("Wrong state"), "CONFLICT"],
+  ])("maps %s to %s", async (error, code) => {
+    const r = router({
+      broken: publicProcedure.query(() => {
+        throw error;
+      }),
+    });
+    const caller = r.createCaller({ user: null });
+
+    await expect(caller.broken()).rejects.toMatchObject({ code, message: error.message });
   });
 });
