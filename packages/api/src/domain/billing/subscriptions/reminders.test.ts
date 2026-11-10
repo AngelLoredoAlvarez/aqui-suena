@@ -1,4 +1,5 @@
 import {
+  daysBetween,
   dueReminders,
   InMemoryReminderLogRepository,
   type ReminderType,
@@ -17,6 +18,39 @@ const activeSub: Subscription = {
   createdAt: new Date("2026-01-01"),
   updatedAt: new Date("2026-01-01"),
 };
+
+describe("daysBetween", () => {
+  it("counts seven calendar days", () => {
+    expect(daysBetween(new Date("2026-02-01T00:00:00Z"), new Date("2026-02-08T00:00:00Z"))).toBe(7);
+  });
+
+  it("counts seven calendar days across a DST transition", () => {
+    // 2026-03-08T07:00Z is the US DST transition; this span is 167 hours.
+    expect(daysBetween(new Date("2026-03-07T08:00:00Z"), new Date("2026-03-14T07:00:00Z"))).toBe(7);
+  });
+
+  it("returns zero for the same calendar day", () => {
+    expect(daysBetween(new Date("2026-02-08T00:00:00Z"), new Date("2026-02-08T00:00:00Z"))).toBe(0);
+  });
+
+  it("returns one for the next calendar day", () => {
+    expect(daysBetween(new Date("2026-02-07T00:00:00Z"), new Date("2026-02-08T00:00:00Z"))).toBe(1);
+  });
+
+  it("counts a midnight crossing as one calendar day", () => {
+    expect(daysBetween(new Date("2026-02-01T23:00:00Z"), new Date("2026-02-02T01:00:00Z"))).toBe(1);
+  });
+
+  it("counts eight calendar days", () => {
+    expect(daysBetween(new Date("2026-02-01T00:00:00Z"), new Date("2026-02-09T00:00:00Z"))).toBe(8);
+  });
+
+  it("returns a negative value when the target is in the past", () => {
+    expect(daysBetween(new Date("2026-02-08T00:00:00Z"), new Date("2026-02-07T00:00:00Z"))).toBe(
+      -1,
+    );
+  });
+});
 
 describe("dueReminders", () => {
   it("returns empty when subscription is not active", () => {
@@ -49,6 +83,16 @@ describe("dueReminders", () => {
 
   it("returns renewal_7d when 7 days before expiry", () => {
     const result = dueReminders(activeSub, new Date("2026-02-01"), new Set(), {
+      renewalRemindersEnabled: true,
+    });
+
+    expect(result).toEqual(["renewal_7d"]);
+  });
+
+  it("returns renewal_7d across a DST transition at the seven-day boundary", () => {
+    const sub = { ...activeSub, endsAt: new Date("2026-03-14T07:00:00Z") };
+
+    const result = dueReminders(sub, new Date("2026-03-07T08:00:00Z"), new Set(), {
       renewalRemindersEnabled: true,
     });
 

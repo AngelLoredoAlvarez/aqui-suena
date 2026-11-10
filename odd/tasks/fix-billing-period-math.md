@@ -13,8 +13,8 @@ Test runner: `pnpm --filter @aqui-suena/api test`.
 
 ## Tasks
 
-- T1 / S1 — `period.ts` + tests, replace the private `addMonths`, add service-level month-end coverage. (commit: TBD)
-- T2 / S2 — export `daysBetween` with UTC calendar-day math + tests, preserve reminder thresholds. (commit: TBD)
+- T1 / S1 — `period.ts` + tests, replace the private `addMonths`, add service-level month-end coverage. DONE. RED: 3 service month-end assertions failed (got 2026-03-03). GREEN: 40 subscription tests. Commit `08fbd1b`.
+- T2 / S2 — export `daysBetween` with UTC calendar-day math + tests, preserve reminder thresholds. DONE. RED: 7 `daysBetween` tests failed (function not exported). GREEN: 92 subscription tests. Commit: TBD.
 
 ## Log
 

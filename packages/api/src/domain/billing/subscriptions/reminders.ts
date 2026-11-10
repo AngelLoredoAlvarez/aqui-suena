@@ -55,10 +55,19 @@ export class InMemoryReminderLogRepository implements ReminderLogRepository {
   }
 }
 
-function daysBetween(from: Date, to: Date): number {
-  const msPerDay = 1000 * 60 * 60 * 24;
+/**
+ * Count calendar days between two instants using UTC midnights.
+ *
+ * A DST transition makes a "day" 23 or 25 hours long, so elapsed milliseconds
+ * are not a reliable day count. Normalizing both dates to `Date.UTC(y, m, d)`
+ * keeps the result independent of the process time zone and DST.
+ */
+export function daysBetween(from: Date, to: Date): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const fromDay = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+  const toDay = Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate());
 
-  return Math.floor((to.getTime() - from.getTime()) / msPerDay);
+  return Math.round((toDay - fromDay) / msPerDay);
 }
 
 export function dueReminders(

@@ -180,6 +180,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - The billing/pricing page shows three aligned plan cards first, followed by a secondary comparison table grouped by usage, features, visibility, support, stats, and billing.
 - The billing page defaults to annual billing with a monthly/annual toggle, highlights the annual savings as "2 meses gratis", and allows changing the billing period before payment.
 - The system sends renewal and expiration reminders: 7 days before charge, 1 day before charge, immediately on failed payment, and when a plan downgrades; non-critical reminders can be disabled by the owner.
+- Reminder timing counts UTC calendar days, not elapsed 24-hour blocks, so a seven-calendar-day window that crosses a DST transition still fires `renewal_7d`.
 - Abuse prevention for the free plan requires email verification, phone verification before publishing, duplicate-account detection by email/phone/device, and manual review for suspicious signup patterns.
 - Owner onboarding uses an informational, non-blocking checklist: business name/category, phone/WhatsApp, address/hours, flyer upload, open/closed status, and plan-specific services/gallery/catalog steps. Steps are marked automatically and the checklist can be hidden when complete.
 
