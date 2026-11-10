@@ -67,16 +67,13 @@ composition and adding the trigger call sites is tracked in
 
 ## Known placeholders
 
-These endpoints are reachable in production but serve mock data. They are kept
-for client integration and are covered by tests; they are not implementations
-of their eventual behavior.
+This endpoint is reachable in production but serves mock data. It is kept for
+client integration and is covered by tests; it is not an implementation of its
+eventual behavior.
 
-| Endpoint                           | Returns today                                                                      | Missing                                                                                                        |
-| ---------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `listener.getStatus`               | A fixed station (`MOCK_ACTIVE_URL`) with `listeners: 42` for any requested id.     | Real listener counts and the live stream URL from persistence.                                                 |
-| `directory.listings.list`          | Echoes the listings passed in the request body and caps products by an input plan. | Reading listings from the database and paginating them.                                                        |
-| `directory.listings.get`           | Echoes the listing passed in the request body.                                     | Looking the listing up by id from the database and answering `NOT_FOUND` when absent.                          |
-| `directory.listings.createProduct` | Validates and returns a generated id without persisting.                           | Deriving the plan from the authenticated account (not client input) and recounting products from the database. |
+| Endpoint             | Returns today                                                                  | Missing                                                        |
+| -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `listener.getStatus` | A fixed station (`MOCK_ACTIVE_URL`) with `listeners: 42` for any requested id. | Real listener counts and the live stream URL from persistence. |
 
 ## Layout, and the one rule that keeps it safe
 
