@@ -35,13 +35,31 @@ Documented state, not fixed yet. Nothing below changes behavior today.
   client input. Read listings from D1, paginate, answer `NOT_FOUND` for a
   missing listing, derive the plan from `ctx.account`, and recount products
   server-side. These are the `TODO(memberships)` markers.
-- [ ] Seed plans in staging: `POST /admin/seed-plans` was prepared but never
-  executed, so the staging D1 plan catalog has 0 rows. Run it once after the
-  migration.
-- [ ] R2 secrets in staging: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
-  `R2_SECRET_ACCESS_KEY` (and optional `R2_BUCKET_NAME`/`R2_ENDPOINT`) are not
-  set, so staging reports `media: unconfigured` and media mutations answer
-  `503`.
+- [x] Seed plans in staging — DONE 2026-11-10: `POST /admin/seed-plans`
+  returned `{"seeded":3}` (idempotent), `plans.list` serves community, trades
+  and commerce, and D1 holds 3 rows.
+- [x] R2 secrets in staging — DONE 2026-11-10: the five `R2_*` secrets were
+  uploaded and the Worker redeployed; `/health` reports `media: "configured"`.
+
+## Pending engineering (post api tracks)
+
+Detected during the api structure and security reviews, deferred to their own
+branches. None of these blocks the product today.
+
+- [ ] Pagination for list endpoints (`feat/list-pagination`). Every `list()`
+  returns the full table (`businesses`, `products`, `services`, `photos`,
+  `hours`, `flyers`, `media`). Add `limit`/`offset` with defaults and caps
+  across routers and repositories; this is a contract change.
+- [ ] Shared D1 test double (`chore/d1-test-support`). 17 test files
+  reimplement `as unknown as D1Database` with the same prepare/bind/first/all/run
+  stubs. Extract one helper in `src/testing/` and migrate them.
+- [ ] Worker observability (`chore/observability`). The Worker has no request or
+  error logging. Add structured logs (method, path, status, duration, error) and
+  a request id, without leaking secrets.
+- [ ] Api cleanups (`chore/api-cleanups`). Extract the `ADMIN_TOKEN` guard that
+  `server/worker.ts` repeats for three admin endpoints; `defaultDirectoryRepositories`
+  is shared mutable state between `app.ts` and `router.ts`; and
+  `email-template-renderer.ts` hardcodes `/cuenta/suscripcion` and `/panel`.
 
 ## Persistence validation and error codes (closed 2026-11-10)
 
