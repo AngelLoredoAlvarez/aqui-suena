@@ -1,6 +1,10 @@
+import {
+  InMemorySubscriptionRepository,
+  type Subscription,
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { Business } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryProductRepository } from "@aqui-suena/api/domain/directory/product";
+import { InMemoryProductRepository, type Product } from "@aqui-suena/api/domain/directory/product";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { describe, expect, it } from "vitest";
 
@@ -29,15 +33,44 @@ const business: Business = {
   updatedAt: new Date("2024-01-01T00:00:00Z"),
 };
 
-function setup(products = [sample]) {
+const commerceSubscription: Subscription = {
+  id: "sub-1",
+  accountId: "acc-1",
+  planId: "commerce",
+  status: "active",
+  startedAt: new Date("2024-01-01T00:00:00Z"),
+  endsAt: null,
+  graceEnd: null,
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  updatedAt: new Date("2024-01-01T00:00:00Z"),
+};
+
+function setup(
+  products: Product[] = [sample],
+  subscriptions: readonly Subscription[] = [commerceSubscription],
+) {
   const repository = new InMemoryProductRepository(products);
+
   const router = createProductsRouter({
     product: repository,
     business: new InMemoryBusinessRepository([business]),
+    subscription: new InMemorySubscriptionRepository([...subscriptions]),
   });
+
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
   return { repository, caller };
+}
+
+function makeProducts(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `pdct-${index + 1}`,
+    businessId: "biz-1",
+    name: `Product ${index + 1}`,
+    description: null,
+    price: 100,
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+  }));
 }
 
 describe("products router", () => {
@@ -100,5 +133,51 @@ describe("products router", () => {
     const { caller } = setup();
 
     expect(await caller.delete("pdct-1")).toBe(true);
+  });
+
+  it("rejects creating a product without a paid plan", async () => {
+    const { caller } = setup([], []);
+
+    await expect(
+      caller.create({ businessId: "biz-1", name: "SSD", description: null, price: 5000 }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: expect.stringContaining("UPGRADE_REQUIRED"),
+    });
+  });
+
+  it("ignores a subscription owned by another account", async () => {
+    const { caller } = setup([], [{ ...commerceSubscription, accountId: "acc-2" }]);
+
+    await expect(
+      caller.create({ businessId: "biz-1", name: "SSD", description: null, price: 5000 }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: expect.stringContaining("UPGRADE_REQUIRED"),
+    });
+  });
+
+  it("rejects creating a product past the commerce quota", async () => {
+    const { caller } = setup(makeProducts(50));
+
+    await expect(
+      caller.create({ businessId: "biz-1", name: "Extra", description: null, price: 100 }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: expect.stringContaining("UPGRADE_REQUIRED"),
+    });
+  });
+
+  it("allows the last product within the commerce quota", async () => {
+    const { caller } = setup(makeProducts(49));
+
+    const created = await caller.create({
+      businessId: "biz-1",
+      name: "Last one",
+      description: null,
+      price: 100,
+    });
+
+    expect(created.id).toBeTruthy();
   });
 });

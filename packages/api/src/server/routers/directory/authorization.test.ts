@@ -116,10 +116,18 @@ function setup() {
   };
 }
 
+function makeProductsRouter(repositories: ReturnType<typeof setup>) {
+  return createProductsRouter({
+    product: repositories.product,
+    business: repositories.businessRepository,
+    subscription: new InMemorySubscriptionRepository([]),
+  });
+}
+
 describe("directory mutation authorization", () => {
   it("rejects updating a product owned by another account with NOT_FOUND", async () => {
     const s = setup();
-    const router = createProductsRouter({ product: s.product, business: s.businessRepository });
+    const router = makeProductsRouter(s);
     const caller = router.createCaller(s.callerA);
 
     await expect(caller.update({ id: "product-b", name: "Stolen" })).rejects.toMatchObject({
@@ -130,7 +138,7 @@ describe("directory mutation authorization", () => {
 
   it("rejects deleting a product owned by another account with NOT_FOUND", async () => {
     const s = setup();
-    const router = createProductsRouter({ product: s.product, business: s.businessRepository });
+    const router = makeProductsRouter(s);
     const caller = router.createCaller(s.callerA);
 
     await expect(caller.delete("product-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
@@ -139,7 +147,7 @@ describe("directory mutation authorization", () => {
 
   it("rejects creating a product under a foreign business with NOT_FOUND", async () => {
     const s = setup();
-    const router = createProductsRouter({ product: s.product, business: s.businessRepository });
+    const router = makeProductsRouter(s);
     const caller = router.createCaller(s.callerA);
 
     await expect(
@@ -149,7 +157,7 @@ describe("directory mutation authorization", () => {
 
   it("lets the owner update a product", async () => {
     const s = setup();
-    const router = createProductsRouter({ product: s.product, business: s.businessRepository });
+    const router = makeProductsRouter(s);
     const caller = router.createCaller(s.callerB);
 
     const updated = await caller.update({ id: "product-b", name: "Mine" });
@@ -320,7 +328,7 @@ describe("directory mutation authorization", () => {
 
   it("still rejects unauthenticated mutations with UNAUTHORIZED", async () => {
     const s = setup();
-    const router = createProductsRouter({ product: s.product, business: s.businessRepository });
+    const router = makeProductsRouter(s);
     const caller = router.createCaller(s.anonymous);
 
     await expect(
