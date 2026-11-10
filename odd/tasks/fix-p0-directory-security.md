@@ -15,7 +15,7 @@ Test runner: `pnpm --filter @aqui-suena/api test` and `pnpm --filter @aqui-suena
 
 - T1 / S1 — reusable ownership guard in `domain/directory/authorization.ts`; applied to all eight directory routers; router tests for cross-account and unauthenticated access. DONE. RED: 17/18 authorization tests failed (factory signatures + missing guards), GREEN: 526 api tests. Commit `8904f08`.
 - T2 / S2 — hidden filtering in D1 repositories, in-memory parity, owner endpoints, carousel check; tests. DONE. RED: 8 visibility tests failed, GREEN: 536 api tests. Commit `2a30465`.
-- T3 / S3 — cascade FKs in `packages/db/src/schema.ts`, SQLite-backed deletion test; migration pre-flight documented, not run. DONE. RED: 2 schema FK tests failed, GREEN: 14 db tests + 538 api tests. Migration guide: `packages/db/MIGRATION-cascade-delete.md`. Commit `01a45a8`.
+- T3 / S3 — cascade FKs in `packages/db/src/schema.ts`, SQLite-backed deletion test; migration pre-flight documented, not run. DONE. RED: 2 schema FK tests failed, GREEN: 14 db tests + 538 api tests. Applied to staging D1; migration guide and evidence: `packages/db/MIGRATION-cascade-delete.md`. Commit `01a45a8`.
 
 ## Log
 
@@ -25,7 +25,7 @@ Test runner: `pnpm --filter @aqui-suena/api test` and `pnpm --filter @aqui-suena
 - T2: `fix(api): hide hidden businesses from public directory reads` — `2a30465`.
 - T3: `fix(db): cascade directory children on business deletion` — `01a45a8`.
 - Closing gates: `pnpm -r typecheck` pass, `pnpm -r test` pass (api 538, db 14, ui 143, player 66, config 10), `pnpm arch` no violations, Biome clean on touched source.
-- Pending: the D1 migration is prepared in `packages/db/MIGRATION-cascade-delete.md` and has NOT been executed. No push, no merge.
+- D1: staging migrated on 2026-11-10 (`Changes applied`); the eight staging FKs report `CASCADE`, row counts unchanged at zero. Production migration remains pending. Evidence and rollback bookmarks: `packages/db/MIGRATION-cascade-delete.md`.
 
 ### L1 — 2026-11-10 — original request (verbatim)
 

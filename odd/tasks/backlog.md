@@ -5,6 +5,14 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
 
+## Security (closed 2026-11-10)
+
+- [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`
+  for foreign/missing resources), hidden businesses excluded from public reads
+  and child lists, and cascade delete for the 90-day retention cleanup.
+  Branch `fix/p0-directory-security`; staging D1 migrated, production pending.
+  Details: `odd/tasks/fix-p0-directory-security.md`.
+
 ## Known limitations (platform)
 
 - Android media notification (cosmetic, dev assets only): the system notification

@@ -79,6 +79,11 @@ anything other than the client-safe entries.
   adapter per port; no business rules.
 - `src/server/composition/` is the only place that picks drivers. Both entry
   points share it: adding a repository means editing `repositories.ts` once.
+- Directory mutations are owner-scoped: `domain/directory/authorization.ts`
+  owns `assertOwnsBusiness`, and the server adapter maps a denial to
+  `NOT_FOUND` so a foreign resource never leaks its existence. Public
+  `list`/`getById` reads filter `hidden_at IS NULL`; owner reads use
+  `getByIdForOwner`/`listByAccount` and stay unfiltered.
 - `packages/api/design/` holds design artifacts (specs, manifest, pre-rendered
   samples). Nothing there is imported at runtime.
 - Layer rules are enforced by `pnpm arch`: `domain` cannot import

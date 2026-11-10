@@ -33,9 +33,9 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
 apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
 packages/db/src/schema.ts                   → businesses, services, products, photos, work_entries, flyers, hours
-packages/api/src/routers/business.ts         → business.list / business.get
-packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos
-packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD)
+packages/api/src/server/routers/directory/   → business.list / business.get + directory CRUD routers
+packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos + authorization/visibility guards
+packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD, hidden-parent filtering)
 packages/ui/src/business-card.tsx            → shared card + sheet
 ```
 
@@ -78,7 +78,7 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for sheet flows.
-- Locations: `packages/api/src/routers/*.test.ts`, `packages/ui/src/*.test.tsx`, e2e `apps/web/e2e/business.spec.ts`.
+- Locations: `packages/api/src/server/routers/**/*.test.ts`, `packages/ui/src/*.test.tsx`, e2e `apps/web/e2e/business.spec.ts`.
 - Coverage: 100% on open/closed derivation and price formatting.
 - Levels: unit (hours→open, phone/address formatting) → integration (tRPC list/get) → e2e (open listing from carousel, audio keeps playing).
 
