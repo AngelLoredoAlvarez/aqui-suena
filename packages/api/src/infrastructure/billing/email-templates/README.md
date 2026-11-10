@@ -1,36 +1,74 @@
-# Aquí Suena — plantillas de email transaccionales (export para agentes sin visión)
+# Aquí Suena — transactional email templates
 
-Todo está en texto: HTML real, JSON y Markdown. No hace falta abrir imágenes.
-Producto: Aquí Suena by 17Labs (radio abierta + directorio local). Envío con Resend: `{ to, subject, html }`.
+Product: Aquí Suena by 17Labs (open radio + local directory). Email is sent through
+Resend as `{ to, subject, html }`.
 
-## Orden de lectura
-1. `SPEC.md` — diseño descrito con palabras: tokens, capas, medidas, componentes, el logo.
-2. `TEMPLATES.md` y `manifest.json` — las 10 plantillas: asunto, preheader, CTA, enlace secundario y variables.
-3. `locales/es-MX.json`, `locales/en.json` — todos los textos. Claves: `c` (comunes), `t1`…`t10`.
-4. `renderer/render.js` — implementación de referencia (Node, sin dependencias).
-5. `templates/email-N-slug.{es-MX,en}.html` — salida ya renderizada con datos de ejemplo (20 archivos).
-6. `assets/logo-aqui-suena-noche.svg` — logo de la app para fondo oscuro.
+## Runtime pieces
 
-## Uso del renderizador
-```js
-const { render, fmtDate, fmtMoney } = require('./renderer/render.js');
-// render(indice0, locale, variables?) -> string HTML. Indice 0 = plantilla 1.
-const html = render(6, 'es-MX', {
-  planName: 'Oficios & Servicios',
-  amount: fmtMoney('es-MX', 4900),      // el backend guarda centavos
-  paidAt: fmtDate('es-MX', '2026-03-01'),
-  period: 'Mensual', paymentId: 'pay_123',
-  billingUrl: 'https://…', appUrl: 'https://…', supportEmail: 'soporte@…'
+- `renderer.ts` — the renderer. ESM + TypeScript, no dependencies. Single source of
+  truth for markup and copy. Exposes `renderEmail(id, locale, vars)` returning
+  `{ subject, html }`.
+- `email-template-renderer.ts` — adapter that implements the domain port
+  `EmailTemplateRenderer` and injects deployment links (`appUrl`, `supportEmail`,
+  `billingUrl`, `ownerPortalUrl`).
+- `SPEC.md` — the visual specification in words (tokens, spacing, hierarchy).
+- `TEMPLATES.md` and `manifest.json` — the design contract for the 10 templates:
+  subject, preheader, CTA, secondary link and variables.
+- `es-MX.json`, `en.json` — copy exported by the design tool. Reference only; the
+  renderer carries the runtime copy.
+- `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files).
+  Never consumed at runtime.
+- `logo-aqui-suena-noche.svg` — app logo for dark backgrounds.
+
+`render.js` no longer exists. It was migrated to `renderer.ts` and the numeric index
+API was replaced by template ids.
+
+## Rendering
+
+```ts
+import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/billing/email-templates/email-template-renderer";
+
+const renderer = createEmailTemplateRenderer({
+  appUrl: "https://aquisuena.mx",
+  supportEmail: "soporte@aquisuena.mx",
 });
-const subject = require('./locales/es-MX.json').t7.s;  // reemplazar {variables} igual que el cuerpo
-```
-Las variables no enviadas toman los datos de ejemplo. Se deben pasar fechas y montos ya formateados.
 
-## Notas de integración
-- `EmailMessage.html` = `render(...)`; `subject` sale de la clave `s` del mismo diccionario.
-- Locale: preferencia de la cuenta del destinatario; si no existe, `es-MX`. Se resuelve antes de `send()` porque Resend recibe un solo `html`. El puerto `EmailMessage` puede necesitar un campo `locale`, o un renderer que lo acepte.
-- Idioma nuevo: copiar `locales/en.json` a `locales/<codigo>.json` y traducir valores. El marcado no cambia. Fechas y moneda usan `Intl` según el locale.
-- Español: tuteo mexicano ("tú", "puedes", "tienes"); migrar el voseo actual del backend ("Podés", "Tenés").
-- Plantillas 6–10 (verificación, recibo, CFDI, bienvenida, cancelación) aún no tienen llamada a `EmailSender`: el backend necesita nuevos puntos de envío.
-- Ubicación sugerida en el repo: `packages/api/src/infrastructure/billing/email-templates/` con subcarpeta `locales/`.
-- El logo es SVG en línea; Gmail y Outlook no lo muestran. En producción usar un PNG con fondo transparente (aprox. 124×82 px para el símbolo) con `alt` y dimensiones fijas. Lo mismo para el logo de 17 Labs del pie.
+const { subject, html } = renderer.render("receipt", "es-MX", {
+  planName: "Oficios & Servicios",
+  period: "Mensual",
+  amount: "$49.00 MXN",
+  paidAt: "1 de marzo de 2026",
+  paymentId: "pay_8F2K91XQ",
+});
+```
+
+Rules:
+
+- Every variable must be formatted before it reaches the renderer. Use
+  `formatEmailDate`, `formatEmailMoney` and `formatEmailHours` from
+  `domain/email/email-format.ts`.
+- A missing variable throws instead of shipping a literal `{placeholder}`.
+- Injected values are HTML-escaped, so a business name cannot break the markup.
+- There is no sample-data fallback. Production data is always explicit.
+
+## Locale
+
+- Supported locales are `es-MX` and `en`; the default is `es-MX`.
+- Stored account values are normalized with `resolveEmailLocale` before rendering, so
+  an unknown value falls back to the default instead of crashing the renderer.
+- Adding a language means extending `EMAIL_LOCALES`, the copy map in `renderer.ts`,
+  and any localized labels owned by a notifier (billing period, durations).
+
+## Wired send sites
+
+- Subscription lifecycle: `TemplateSubscriptionNotifier` — downgrade, failed-renewal,
+  grace-expired, renewal-7d, renewal-1d, cancellation.
+- Account lifecycle: `TemplateAccountNotifier` — verify-email, welcome.
+- Payments: `TemplatePaymentNotifier` — receipt.
+- Blocked: `invoice-cfdi`. See the "Blocked" section in `TEMPLATES.md`.
+
+## Logo caveat
+
+The logo is inline SVG; Gmail and Outlook do not render it. In production use a PNG
+with a transparent background (about 124×82 px for the symbol) with `alt` and fixed
+dimensions. The same applies to the 17 Labs footer logo.

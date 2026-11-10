@@ -38,11 +38,11 @@ El email usa Brasa para el cuerpo y Noche para encabezado y pie. Línea divisori
 ## Accesibilidad
 `lang` del `<html>` = locale; `role="presentation"` en tablas de maquetación; SVG con `role="img"` y `aria-label`; sin JavaScript; HTML semántico (`h1`, `p`, `ul`).
 
-## Logo de la app (`assets/logo-aqui-suena-noche.svg`)
+## Logo de la app (`logo-aqui-suena-noche.svg`)
 Símbolo horizontal, centrado: **tienda** con toldo trapezoidal de 4 festones redondeados en la parte superior; debajo, cuerpo de la tienda como cuadrado de esquinas redondeadas con **3 barras verticales de audio** recortadas (huecos): la central más alta, la izquierda y la derecha más cortas. A cada lado, **dos arcos de onda de radio** concéntricos (como paréntesis): el interior en `#FF8A65` y el exterior más largo en `#FFC4B3`. Tienda e interior en `#FF8A65`. Trazo redondeado de 40 unidades en un lienzo de 1024.
 
 ## Logo de 17 Labs (pie)
 Matraz de laboratorio en trazo blanco (`#FFFFFF`) con `</>` en `#14B8A6` dentro del cuerpo y bits (óvalos y flechas pequeñas en `#14B8A6`) cayendo por el cuello.
 
 ## Plantillas
-Ver `TEMPLATES.md` (asuntos, CTA, enlaces, variables) y `locales/*.json` (textos).
+Ver `TEMPLATES.md` (asuntos, CTA, enlaces, variables) y `es-MX.json` / `en.json` (textos).
