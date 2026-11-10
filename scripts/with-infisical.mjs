@@ -28,7 +28,7 @@ export function maybeReexecUnderInfisical() {
   const inCi = !!process.env.CI;
   const linked = existsSync(path.join(repoRoot, ".infisical.yaml"));
   const envPopulated =
-    !!process.env.DATABASE_URL ||
+    !!process.env.SUPABASE_URL ||
     !!process.env.EXPO_PUBLIC_API_BASE_URL ||
     !!process.env.NEXT_PUBLIC_API_BASE_URL ||
     !!process.env.API_ORIGIN;

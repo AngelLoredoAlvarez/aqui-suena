@@ -17,6 +17,8 @@ import { Hono } from "hono";
 export interface AppOptions {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
+  supabaseSecretKey?: string;
+  supabaseJwksUrl?: string;
   allowedOrigins: readonly string[];
   // Injected for tests: the stream route must never reach the network there.
   upstreamFetch?: typeof fetch;

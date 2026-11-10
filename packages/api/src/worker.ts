@@ -32,6 +32,9 @@ export interface WorkerEnv {
   ALLOWED_ORIGINS?: string;
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  SUPABASE_PUBLISHABLE_KEY?: string;
+  SUPABASE_SECRET_KEY?: string;
+  SUPABASE_JWKS_URL?: string;
   aqui_suena_db: D1Database;
   AI: Ai;
   /** Set when the [[vectorize]] binding is enabled in wrangler.toml. */
@@ -127,7 +130,9 @@ export default {
     const app = createApp({
       allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
       supabaseUrl: env.SUPABASE_URL,
-      supabaseAnonKey: env.SUPABASE_ANON_KEY,
+      supabaseAnonKey: env.SUPABASE_ANON_KEY ?? env.SUPABASE_PUBLISHABLE_KEY,
+      supabaseSecretKey: env.SUPABASE_SECRET_KEY,
+      supabaseJwksUrl: env.SUPABASE_JWKS_URL,
       planRepository,
       directoryRepositories,
       ai,
