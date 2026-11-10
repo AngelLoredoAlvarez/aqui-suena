@@ -10,7 +10,6 @@ import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carouse
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
-import { createListingsRouter } from "@aqui-suena/api/server/routers/directory/listings";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
@@ -36,7 +35,6 @@ export function createAppRouter(
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
     }),
-    business: createListingsRouter(directoryRepositories.business),
     businesses: createBusinessesRouter({
       business: directoryRepositories.business,
       subscription: directoryRepositories.subscription,
