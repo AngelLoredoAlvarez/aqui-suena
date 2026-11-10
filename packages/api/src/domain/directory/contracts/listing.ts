@@ -1,5 +1,6 @@
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { getEntitlements } from "@aqui-suena/api/domain/plans/entitlements";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import * as v from "valibot";
 
 // Fixed giro enum shared between API and forms. "other" is the only free-text
@@ -14,6 +15,17 @@ export const BUSINESS_CATEGORIES = [
 ] as const;
 
 export const businessCategorySchema = v.picklist(BUSINESS_CATEGORIES);
+
+export type BusinessCategory = v.InferOutput<typeof businessCategorySchema>;
+
+/** Parses a persisted category; an unknown value is a data-integrity failure. */
+export function parseBusinessCategory(value: unknown): BusinessCategory {
+  const result = v.safeParse(businessCategorySchema, value);
+
+  if (result.success) return result.output;
+
+  throw new DataIntegrityError("category", value);
+}
 
 export const listingInputSchema = v.object({
   name: v.pipe(v.string(), v.minLength(1)),

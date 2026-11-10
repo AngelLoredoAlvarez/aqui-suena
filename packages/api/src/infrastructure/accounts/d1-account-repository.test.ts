@@ -1,4 +1,5 @@
 import { D1AccountRepository } from "@aqui-suena/api/infrastructure/accounts/d1-account-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 describe("D1AccountRepository", () => {
@@ -47,6 +48,27 @@ describe("D1AccountRepository", () => {
     const account = await new D1AccountRepository(fakeDb).getById("acc-1");
 
     expect(account?.locale).toBe("es-MX");
+  });
+
+  it("throws DataIntegrityError when the stored plan id is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => ({
+            id: "acc-1",
+            email: "owner@example.com",
+            plan_id: "enterprise",
+            locale: "en",
+          }),
+          all: async () => ({ results: [] }),
+          run: async () => ({ success: true }),
+        }),
+      }),
+    } as unknown as D1Database;
+
+    await expect(new D1AccountRepository(fakeDb).getById("acc-1")).rejects.toBeInstanceOf(
+      DataIntegrityError,
+    );
   });
 
   it("returns null when the account does not exist", async () => {

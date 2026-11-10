@@ -3,6 +3,7 @@ import type {
   PaymentRepository,
   PaymentStatus,
 } from "@aqui-suena/api/domain/billing/payments/payment";
+import { parsePaymentStatus } from "@aqui-suena/api/domain/billing/payments/payment";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type PaymentRow = {
@@ -80,7 +81,7 @@ export class D1PaymentRepository implements PaymentRepository {
       subscriptionId: row.subscription_id,
       amount: row.amount,
       currency: row.currency,
-      status: row.status as PaymentStatus,
+      status: parsePaymentStatus(row.status),
       paidAt: fromEpoch(row.paid_at),
       createdAt: new Date(row.created_at * 1000),
       updatedAt: new Date(row.updated_at * 1000),

@@ -3,7 +3,9 @@ import type {
   SubscriptionRepository,
   SubscriptionStatus,
 } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { parseSubscriptionStatus } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type SubscriptionRow = {
@@ -115,8 +117,8 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
     return {
       id: row.id,
       accountId: row.account_id,
-      planId: row.plan_id as PlanId,
-      status: row.status as SubscriptionStatus,
+      planId: parsePlanId(row.plan_id),
+      status: parseSubscriptionStatus(row.status),
       startedAt: new Date(row.started_at * 1000),
       endsAt: fromEpoch(row.ends_at),
       graceEnd: fromEpoch(row.grace_end ?? null),

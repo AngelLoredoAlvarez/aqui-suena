@@ -1,8 +1,39 @@
 import {
   InMemoryInvoiceRepository,
   InMemoryPaymentRepository,
+  parsePaymentStatus,
 } from "@aqui-suena/api/domain/billing/payments/payment";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
+
+describe("parsePaymentStatus", () => {
+  it.each(["pending", "completed", "failed", "refunded"])(
+    "accepts the valid status %s",
+    (status) => {
+      expect(parsePaymentStatus(status)).toBe(status);
+    },
+  );
+
+  it.each(["unknown", "", "PAID"])("rejects the unknown status %s", (value) => {
+    expect(() => parsePaymentStatus(value)).toThrow(DataIntegrityError);
+  });
+
+  it.each([null, 3, {}])("rejects the non-string value %s", (value) => {
+    expect(() => parsePaymentStatus(value)).toThrow(DataIntegrityError);
+  });
+
+  it("carries the field and the offending value", () => {
+    let thrown: unknown;
+    try {
+      parsePaymentStatus("unknown");
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(DataIntegrityError);
+    expect(thrown).toMatchObject({ field: "status", value: "unknown" });
+  });
+});
 
 describe("InMemoryPaymentRepository", () => {
   it("creates a payment with pending status", async () => {

@@ -1,4 +1,5 @@
 import { D1InvoiceRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-invoice-repository";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 describe("D1InvoiceRepository", () => {
@@ -33,6 +34,31 @@ describe("D1InvoiceRepository", () => {
     expect(invoice?.planId).toBe("trades");
     expect(invoice?.amount).toBe(4900);
     expect(invoice?.issuedAt).toBeInstanceOf(Date);
+  });
+
+  it("throws DataIntegrityError when a stored plan id is unknown", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => ({
+            id: "inv-1",
+            payment_id: "pay-1",
+            account_id: "acc-1",
+            plan_id: "enterprise",
+            amount: 4900,
+            currency: "MXN",
+            issued_at: 1700000000,
+            created_at: 1700000000,
+          }),
+          all: async () => ({ results: [] }),
+          run: async () => ({ success: true }),
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repo = new D1InvoiceRepository(fakeDb);
+
+    await expect(repo.getById("inv-1")).rejects.toBeInstanceOf(DataIntegrityError);
   });
 
   it("returns null for non-existent invoice (getById)", async () => {
