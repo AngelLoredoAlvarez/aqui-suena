@@ -5,22 +5,13 @@ import {
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/billing/d1-plan-repository";
-import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/d1-subscription-repository";
-import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
-import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
-import { D1HourRepository } from "@aqui-suena/api/infrastructure/directory/d1-hour-repository";
-import { D1PhotoRepository } from "@aqui-suena/api/infrastructure/directory/d1-photo-repository";
-import { D1ProductRepository } from "@aqui-suena/api/infrastructure/directory/d1-product-repository";
-import { D1ServiceRepository } from "@aqui-suena/api/infrastructure/directory/d1-service-repository";
-import { D1WorkEntryRepository } from "@aqui-suena/api/infrastructure/directory/d1-work-entry-repository";
-import { D1MediaRepository } from "@aqui-suena/api/infrastructure/media/d1-media-repository";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
+import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { createApp } from "@aqui-suena/api/server/http/app";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
-import type { DirectoryRepositories } from "@aqui-suena/api/server/trpc/directory-repositories";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
 const EMBEDDING_MODEL = "@cf/baai/bge-m3";
@@ -64,17 +55,7 @@ export default {
       : undefined;
 
     const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
-    const directoryRepositories: DirectoryRepositories = {
-      business: new D1BusinessRepository(env.aqui_suena_db),
-      service: new D1ServiceRepository(env.aqui_suena_db),
-      product: new D1ProductRepository(env.aqui_suena_db),
-      photo: new D1PhotoRepository(env.aqui_suena_db),
-      workEntry: new D1WorkEntryRepository(env.aqui_suena_db),
-      flyer: new D1FlyerRepository(env.aqui_suena_db),
-      hour: new D1HourRepository(env.aqui_suena_db),
-      subscription: new D1SubscriptionRepository(env.aqui_suena_db),
-      media: new D1MediaRepository(env.aqui_suena_db),
-    };
+    const directoryRepositories = createD1Repositories(env.aqui_suena_db);
 
     const mediaStorage =
       env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY
