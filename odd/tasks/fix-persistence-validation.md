@@ -27,24 +27,24 @@ Test runner: `pnpm --filter @aqui-suena/api test`.
 - Closing gates: `pnpm -r typecheck` pass, `pnpm -r test` pass, `pnpm arch` no violations, Biome clean on touched source.
 - Endpoint → error code:
 
-| Endpoint | Malformed id | Missing/foreign | Notes |
-| --- | --- | --- | --- |
-| `businesses.getById` | `BAD_REQUEST` | `NOT_FOUND` | public read |
-| `businesses.getMine` | `BAD_REQUEST` | `NOT_FOUND` | owner read |
-| `businesses.update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | ownership denial stays `NOT_FOUND` |
-| `businesses.create` (cap) | `BAD_REQUEST` | — | unchanged `FORBIDDEN` + `UPGRADE_REQUIRED` |
-| `products.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `flyers.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `hours.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `photos.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `services.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `workEntries.getById` / `update` / `delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `media.confirm` | `BAD_REQUEST` (schema) | `NOT_FOUND` (key prefix / object / owner) | MIME/size mismatch `BAD_REQUEST` |
-| `media.delete` | `BAD_REQUEST` | `NOT_FOUND` | |
-| `plans.getById` | `BAD_REQUEST` | `NOT_FOUND` | unknown plan id is `NOT_FOUND` |
-| `SubscriptionService` | — | `NotFoundError` (`NOT_FOUND`) | non-active/duplicate → `ConflictError` (`CONFLICT`) |
-| `listings.*` (`UPGRADE_REQUIRED`) | — | — | unchanged `FORBIDDEN` |
-| `support.chat` | — | — | unchanged `BAD_REQUEST` |
+| Endpoint                                    | Malformed id           | Missing/foreign                           | Notes                                               |
+| ------------------------------------------- | ---------------------- | ----------------------------------------- | --------------------------------------------------- |
+| `businesses.getById`                        | `BAD_REQUEST`          | `NOT_FOUND`                               | public read                                         |
+| `businesses.getMine`                        | `BAD_REQUEST`          | `NOT_FOUND`                               | owner read                                          |
+| `businesses.update` / `delete`              | `BAD_REQUEST`          | `NOT_FOUND`                               | ownership denial stays `NOT_FOUND`                  |
+| `businesses.create` (cap)                   | `BAD_REQUEST`          | —                                         | unchanged `FORBIDDEN` + `UPGRADE_REQUIRED`          |
+| `products.getById` / `update` / `delete`    | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `flyers.getById` / `update` / `delete`      | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `hours.getById` / `update` / `delete`       | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `photos.getById` / `update` / `delete`      | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `services.getById` / `update` / `delete`    | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `workEntries.getById` / `update` / `delete` | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `media.confirm`                             | `BAD_REQUEST` (schema) | `NOT_FOUND` (key prefix / object / owner) | MIME/size mismatch `BAD_REQUEST`                    |
+| `media.delete`                              | `BAD_REQUEST`          | `NOT_FOUND`                               |                                                     |
+| `plans.getById`                             | `BAD_REQUEST`          | `NOT_FOUND`                               | unknown plan id is `NOT_FOUND`                      |
+| `SubscriptionService`                       | —                      | `NotFoundError` (`NOT_FOUND`)             | non-active/duplicate → `ConflictError` (`CONFLICT`) |
+| `listings.*` (`UPGRADE_REQUIRED`)           | —                      | —                                         | unchanged `FORBIDDEN`                               |
+| `support.chat`                              | —                      | —                                         | unchanged `BAD_REQUEST`                             |
 
 - No schema or data migration; this work only validates what it reads.
 - No push, no merge.
@@ -64,6 +64,7 @@ problema.
 Rama: `fix/persistence-validation` desde `main`.
 
 Constraints:
+
 - Nunca trabajar sobre `main`. Commits convencionales, sin atribución de IA.
 - No push, no merge, no migraciones D1 sin autorización explícita.
 - Biome: prohibidas non-null assertions (`!`) y optional chaining inseguro.

@@ -41,6 +41,7 @@ una rama nueva desde `main`, con un commit revisable por problema.
 Rama: `fix/p0-directory-security`.
 
 Constraints del repo:
+
 - Nunca trabajar sobre `main`. Commits convencionales, sin atribución de IA.
 - No hacer push, merge ni correr migraciones contra D1 sin pedirme autorización explícita.
 - Biome es el linter: prohibidas las non-null assertions (`!`) y el optional chaining inseguro.

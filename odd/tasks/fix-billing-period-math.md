@@ -41,6 +41,7 @@ recordatorios. Son dos bugs de dominio con impacto en fechas persistidas. TDD es
 Rama: `fix/billing-period-math` desde `main`.
 
 Constraints del repo:
+
 - Nunca trabajar sobre `main`. Commits convencionales, sin atribución de IA.
 - No push, no merge, no migraciones D1 sin autorización explícita.
 - Biome: prohibidas non-null assertions (`!`) y optional chaining inseguro.

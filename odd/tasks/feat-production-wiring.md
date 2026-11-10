@@ -48,6 +48,7 @@ una rama, un commit por problema.
 Rama: `feat/production-wiring` desde `main`.
 
 Constraints:
+
 - Nunca trabajar sobre `main`. Commits convencionales, sin atribución de IA.
 - No push, no merge, no escrituras contra D1 ni cambios de secretos sin autorización explícita.
 - Biome: prohibidas non-null assertions (`!`) y optional chaining inseguro.
