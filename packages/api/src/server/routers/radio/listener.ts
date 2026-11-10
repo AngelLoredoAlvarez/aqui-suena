@@ -9,5 +9,9 @@ export const listenerRouter = router({
   getStatus: publicProcedure
     .input(listenerStatusInput)
     .output(listenerStatusOutput)
-    .query(({ input }) => getMockListenerStatus(input.stationId)),
+    .query(({ input }) => {
+      // TODO(production): serves mock status (fixed stream URL, listeners: 42)
+      // until listener counts and the active URL are read from persistence.
+      return getMockListenerStatus(input.stationId);
+    }),
 });
