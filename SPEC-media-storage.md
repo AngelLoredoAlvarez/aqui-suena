@@ -54,6 +54,11 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 4. Client calls `media.confirm` with the R2 key and the declared type/size. The server requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB.
 5. Client receives the public URL (R2 custom domain or worker proxy).
 
+Storage is an explicit dependency, never a silent in-memory fake. `/health`
+reports `media: "configured" | "unconfigured"`; when the R2 credentials are
+missing or only partially set, any media mutation answers
+`503 SERVICE_UNAVAILABLE` with `media storage is not configured`.
+
 ## Image Optimization (listeners)
 
 - Lazy loading: images load when entering viewport (IntersectionObserver).

@@ -1,3 +1,4 @@
+import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   FullCatalogRetriever,
@@ -5,6 +6,7 @@ import {
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
+import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
@@ -34,7 +36,11 @@ export interface WorkerEnv {
   AI_GATEWAY_ID?: string;
   /** Required to call POST /admin/seed-vectors. */
   ADMIN_TOKEN?: string;
-  /** R2 (S3-compatible) credentials for media storage. Optional: when absent, media uses an in-memory fake. */
+  /**
+   * R2 (S3-compatible) credentials for media storage. When all three are
+   * absent media is reported as unconfigured; a partial set is a configuration
+   * error (logged, still unconfigured). The Worker never uses a fake.
+   */
   R2_ACCOUNT_ID?: string;
   R2_ACCESS_KEY_ID?: string;
   R2_SECRET_ACCESS_KEY?: string;
@@ -57,16 +63,26 @@ export default {
     const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
     const directoryRepositories = createD1Repositories(env.aqui_suena_db);
 
-    const mediaStorage =
-      env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY
-        ? new R2ObjectStorage({
-            accountId: env.R2_ACCOUNT_ID,
-            accessKeyId: env.R2_ACCESS_KEY_ID,
-            secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-            bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
-            endpoint: env.R2_ENDPOINT,
-          })
-        : undefined;
+    const r2Credentials = {
+      accountId: env.R2_ACCOUNT_ID,
+      accessKeyId: env.R2_ACCESS_KEY_ID,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+    };
+
+    let mediaStorage: R2ObjectStorage | undefined;
+    if (r2Credentials.accountId && r2Credentials.accessKeyId && r2Credentials.secretAccessKey) {
+      mediaStorage = new R2ObjectStorage({
+        accountId: r2Credentials.accountId,
+        accessKeyId: r2Credentials.accessKeyId,
+        secretAccessKey: r2Credentials.secretAccessKey,
+        bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
+        endpoint: env.R2_ENDPOINT,
+      });
+    } else if (Object.values(r2Credentials).some((value) => value !== undefined && value !== "")) {
+      console.error(
+        "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
+      );
+    }
 
     // One-off seeding endpoint for the Vectorize plan index. Returns 404
     // unless ADMIN_TOKEN is configured; requires it to match.
@@ -96,6 +112,22 @@ export default {
       }
       const deleted = await directoryRepositories.business.deleteExpired(new Date());
       return Response.json({ deleted });
+    }
+
+    // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
+    // configured; requires it to match.
+    if (new URL(request.url).pathname === "/admin/seed-plans") {
+      if (
+        !env.ADMIN_TOKEN ||
+        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
+      ) {
+        return new Response("Not found", { status: 404 });
+      }
+      const seeded = await seedPlans(
+        new D1PlanCatalogWriter(env.aqui_suena_db),
+        DEFAULT_PLAN_CATALOG,
+      );
+      return Response.json({ seeded });
     }
 
     const retriever =

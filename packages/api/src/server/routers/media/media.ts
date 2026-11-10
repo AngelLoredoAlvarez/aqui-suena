@@ -22,10 +22,26 @@ const confirmInput = v.object({
   sizeBytes: v.number(),
 });
 
-export function createMediaRouter(repository: MediaRepository, storage: ObjectStorage) {
+/**
+ * Media storage is an explicit dependency: when it is not configured the
+ * mutation answers SERVICE_UNAVAILABLE instead of silently using a fake.
+ */
+function requireStorage(storage: ObjectStorage | undefined): ObjectStorage {
+  if (storage === undefined) {
+    throw new TRPCError({
+      code: "SERVICE_UNAVAILABLE",
+      message: "media storage is not configured",
+    });
+  }
+
+  return storage;
+}
+
+export function createMediaRouter(repository: MediaRepository, storage: ObjectStorage | undefined) {
   return router({
     presignUpload: protectedProcedure.input(presignInput).mutation(async ({ input, ctx }) => {
-      const { key, uploadUrl } = await storage.presignUpload({
+      const activeStorage = requireStorage(storage);
+      const { key, uploadUrl } = await activeStorage.presignUpload({
         kind: input.kind,
         contentType: input.contentType,
         sizeBytes: input.sizeBytes,
@@ -35,6 +51,8 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
     }),
 
     confirm: protectedProcedure.input(confirmInput).mutation(async ({ input, ctx }) => {
+      const activeStorage = requireStorage(storage);
+
       // The key must belong to the authenticated account and the declared kind;
       // anything else answers NOT_FOUND so a foreign object never leaks.
       const expectedPrefix = `${input.kind}/${ctx.user.accountId}/`;
@@ -42,7 +60,7 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
         throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
       }
 
-      const meta = await storage.head(input.key);
+      const meta = await activeStorage.head(input.key);
       if (meta === null) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
       }
@@ -88,11 +106,12 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
     delete: protectedProcedure
       .input(requiredId("Media id is required"))
       .mutation(async ({ input, ctx }) => {
+        const activeStorage = requireStorage(storage);
         const media = await repository.getById(input);
         if (media === null || media.ownerId !== ctx.user.accountId) {
           throw new NotFoundError("Media not found");
         }
-        await storage.delete(media.r2Key);
+        await activeStorage.delete(media.r2Key);
         if (!(await repository.delete(input))) {
           throw new NotFoundError("Media not found");
         }

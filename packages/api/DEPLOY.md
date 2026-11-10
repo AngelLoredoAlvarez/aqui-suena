@@ -37,8 +37,13 @@ Replace `<worker>` with the deployed URL.
 
    ```bash
    curl https://<worker>/health
-   # -> {"status":"ok"}
+   # -> {"status":"ok","media":"configured"}
    ```
+
+   `media` is `unconfigured` when the R2 credentials are missing (or only
+   partially set), and media mutations then answer `503 SERVICE_UNAVAILABLE`.
+   Set `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and,
+   optionally, `R2_BUCKET_NAME`/`R2_ENDPOINT` as Worker secrets/vars.
 
 2. **tRPC** — proves the shared router runs on the edge (GET query):
 
@@ -59,6 +64,26 @@ Replace `<worker>` with the deployed URL.
    # in another terminal, watch it grow:
    watch -n 2 'ls -l /tmp/stream.mp3'
    ```
+
+## Admin endpoints
+
+All three require `Authorization: Bearer <ADMIN_TOKEN>`; when `ADMIN_TOKEN` is
+not configured or does not match they answer `404`, so the routes stay hidden.
+
+```bash
+# Seed/update the D1 plan catalog (idempotent). Run once per environment.
+curl -fsS -X POST https://<worker>/admin/seed-plans \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+# -> {"seeded":3}
+
+# Seed the Vectorize plan index used by support.chat.
+curl -fsS https://<worker>/admin/seed-vectors \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Delete businesses past their 90-day retention window.
+curl -fsS -X POST https://<worker>/admin/purge-expired-businesses \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
 
 ## Wiring the clients afterward
 

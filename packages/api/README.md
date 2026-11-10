@@ -33,10 +33,18 @@ gate that proves the types, exactly like the other packages.
 
 | Route                             | Method                        | Behavior                                                    |
 | --------------------------------- | ----------------------------- | ----------------------------------------------------------- |
-| `/health`                         | `GET`                         | `{"status":"ok"}` for deploy probes.                        |
+| `/health`                         | `GET`                         | `{"status":"ok","media":"configured"\|"unconfigured"}`.     |
 | `/trpc/*`                         | `GET,POST`                    | The shared `appRouter` from `./router`.                     |
 | `/stream?url=`                    | `GET`                         | Proxies an allowlisted radio mirror, streamed.              |
+| `/admin/seed-plans`               | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the plan catalog into D1.              |
+| `/admin/seed-vectors`             | any (Bearer `ADMIN_TOKEN`)    | Embeds active plans into the Vectorize index.               |
 | `/admin/purge-expired-businesses` | `POST` (Bearer `ADMIN_TOKEN`) | Permanently deletes businesses past their 90-day retention. |
+
+Media storage is explicit: the Worker passes `R2ObjectStorage` only when the
+three R2 credentials are complete. Missing or partial credentials leave media
+unconfigured (`/health` says so) and media mutations answer
+`SERVICE_UNAVAILABLE`; the router never substitutes `FakeObjectStorage`. Only
+the local Node entry (`server/main.ts`) injects the fake, on purpose.
 
 ## Layout, and the one rule that keeps it safe
 

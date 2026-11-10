@@ -5,6 +5,17 @@ active feature but must not be lost. Checked items move to Engram, not deleted.
 
 Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
 
+## Production wiring (closed 2026-11-10)
+
+- [x] D1 plan catalog is seedable: `DEFAULT_PLAN_CATALOG` is the single source,
+  `POST /admin/seed-plans` (guarded by `ADMIN_TOKEN`) upserts it idempotently,
+  and the in-memory repository is built from the same constant. Media storage
+  is explicit: the Worker never falls back to `FakeObjectStorage`, `/health`
+  reports `media: configured|unconfigured`, and missing/partial R2 credentials
+  make media mutations answer `503 SERVICE_UNAVAILABLE`. Branch
+  `feat/production-wiring`; details in `odd/tasks/feat-production-wiring.md`.
+  Staging seed command prepared but not executed.
+
 ## Persistence validation and error codes (closed 2026-11-10)
 
 - [x] Persisted enums (`plan_id`, `category`, subscription/payment `status`) are

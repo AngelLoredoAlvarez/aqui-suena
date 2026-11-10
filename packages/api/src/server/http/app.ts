@@ -72,7 +72,12 @@ export function createApp(options: AppOptions): Hono {
     }
   });
 
-  app.get("/health", (c) => c.json({ status: "ok" }));
+  app.get("/health", (c) =>
+    c.json({
+      status: "ok",
+      media: options.mediaStorage === undefined ? "unconfigured" : "configured",
+    }),
+  );
 
   app.get("/stream", async (c) => {
     const proxied = await fetchProxiedStream(upstreamFetch, c.req.query("url") ?? null);

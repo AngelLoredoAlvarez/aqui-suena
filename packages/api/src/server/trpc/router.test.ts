@@ -1,4 +1,6 @@
-import { appRouter } from "@aqui-suena/api/server/trpc/router";
+import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
+import { defaultDirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
+import { appRouter, createAppRouter } from "@aqui-suena/api/server/trpc/router";
 import { describe, expect, it } from "vitest";
 
 describe("appRouter ads.carousel", () => {
@@ -14,5 +16,23 @@ describe("appRouter ads.carousel", () => {
     const result = await caller.ads.carousel();
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("createAppRouter media storage", () => {
+  it("never substitutes a fake when storage is omitted", async () => {
+    const router = createAppRouter(
+      defaultPlanRepository,
+      defaultDirectoryRepositories,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(
+      caller.media.presignUpload({ kind: "avatar", contentType: "image/png", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "SERVICE_UNAVAILABLE" });
   });
 });
