@@ -50,6 +50,7 @@ gate that proves the types, exactly like the other packages.
 | `src/server/server.ts`         | server | no — node:http bridge to `app.ts`         |
 | `src/server/http/cors.ts`      | server | no                                        |
 | `src/server/env.ts`            | server | no                                        |
+| `src/infrastructure/billing/email-templates/` | server | no — transactional email templates (HTML + locales + renderer) |
 | `src/server/main.ts`           | server | no — starts the Node process              |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from

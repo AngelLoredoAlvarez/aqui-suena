@@ -75,7 +75,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
 - DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table
-- Email: Resend (transactional email, free tier) for grace-period and renewal warnings; wired through an `EmailSender` port so the provider stays swappable
+- Email: Resend (transactional email, free tier) for grace-period and renewal warnings; wired through an `EmailSender` port so the provider stays swappable. Templates (10, es-MX/en) live in `packages/api/src/infrastructure/billing/email-templates/` with a Node renderer (`render.js`) and locale dictionaries.
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
