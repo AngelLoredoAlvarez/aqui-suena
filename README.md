@@ -102,13 +102,13 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Status
 
-The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features planned (specs created, implementation pending):
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features tracked with their specs:
 
-- Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, free tier.
-- Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker.
-- Cloudflare media storage (SPEC-media-storage.md): R2 upload + image optimization, free tier.
-- Chatbot with Cloudflare Workers AI: update to SPEC-owner-portal (replaces Gemini).
-- Image loading optimization for flyers: part of SPEC-media-storage.
+- Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, free tier — pending.
+- Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker — pending.
+- Cloudflare media storage (SPEC-media-storage.md): R2 upload, D1 media repository, `media` tRPC router — DONE.
+- Chatbot with Cloudflare Workers AI: support domain, Vectorize index and AI Gateway wiring — DONE.
+- Image pipeline: `OptimizedImage` (lazy loading + blur placeholder) ships and is used by the ads carousel; responsive size variants and WebP/AVIF generation are still pending.
 
 Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 

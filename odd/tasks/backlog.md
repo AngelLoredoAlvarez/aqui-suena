@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-storage blocked on Expo Go moved out of active items).
+Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
 
 ## Known limitations (platform)
 
@@ -22,8 +22,10 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-stor
 ## Restyle follow-ups (from player-restyle-01)
 
 - [x] Wide desktop composition (1440): DONE 2026-10-23. From `md` up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector is a 480px popover at the dock's right edge. The same horizontal dock is used on mobile, tablet and web. Verified with unit tests, Playwright e2e at 1440×900, and Chrome DevTools at 390/768/1024/1440. Feature: odd/tasks/wide-desktop-composition.md. The two-column business directory (380px list + 480px flyer/detail) remains `business-directory` scope.
-- [ ] Empty + ad-countdown states → ads-display / owner modules.
-  `AdsCarousel` is still a static placeholder, so no trigger exists yet.
+- [x] Empty state → ads carousel. DONE: the carousel serves real ranked inventory
+  and renders the designed empty state when no sponsor is eligible.
+- [ ] Ad countdown state → ads-display. PENDING: there is no expiring banner or
+  time-boxed spot in the data model yet, so the countdown has no trigger.
 - [ ] System-following themes (`useColorScheme` → noche/brasa) + brasa headed
   verification. The noche/brasa token sets exist; no `useColorScheme` call
   does.
@@ -82,11 +84,22 @@ Last synced 2026-10-23 against `main` (T4 parity + docs close merged; async-stor
 
 ## New features (planned — docs/specs created 2026-10-23)
 
-- [ ] Push notifications (SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Free tier. Depends on: none.
-- [ ] Offline/no-connection handling (SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none.
-- [ ] Cloudflare media storage (SPEC-media-storage.md) — R2 upload + image optimization (lazy loading, WebP/AVIF, blur placeholder). Free tier (10GB + 1M ops/month). Depends on: none. Blocks: business-directory photos, ads-display flyers, owner-portal uploads, radio-spots audio.
-- [ ] Chatbot with Cloudflare Workers AI — update SPEC-owner-portal.md (replaces Gemini with Workers AI, free: 10k neurons/day). Depends on: owner-portal auth (Supabase).
-- [ ] Image loading optimization for flyers — part of SPEC-media-storage (responsive sizes, lazy loading, blur placeholder). Depends on: SPEC-media-storage.
+- [ ] Push notifications (SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Free tier. Depends on: none. NOT STARTED: no `notification_tokens` table or dispatch code yet.
+- [ ] Offline/no-connection handling (SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none. NOT STARTED: no service worker in `apps/web` yet.
+- [x] Cloudflare media storage (SPEC-media-storage.md) — DONE: `ObjectStorage` port + `R2ObjectStorage` (SigV4 presigned URLs), D1 media repository, `media` tRPC router, Worker wiring and R2 secrets configured on the Worker.
+- [x] Chatbot with Cloudflare Workers AI — DONE: support domain (plan catalog), Vectorize index seeder, Workers AI embeddings and AI Gateway wiring behind optional env vars.
+- [ ] Image pipeline completion — the `OptimizedImage` component (lazy loading via IntersectionObserver, blur placeholder, error state) ships and is used by the ads carousel. MISSING: responsive size variants / `srcset` and WebP/AVIF generation, which need an image resizing service. Depends on: media storage (done).
+
+## Email integration follow-ups (2026-11-10)
+
+Templates, renderer and notifiers are merged; the notifiers still have no production
+call site.
+
+- [ ] Account flows: call `AccountNotifier.emailVerificationRequested` and `.welcome` from signup and email verification once auth exists (only the null-safe Supabase seam exists today).
+- [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
+- [ ] Cancellation: expose an endpoint that passes `recipientEmail` and `locale` into `SubscriptionService.cancel`.
+- [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral below).
+- [ ] CFDI email: blocked on fiscal data on `accounts`, a PAC integration and CFDI file hosting (see `email-templates/TEMPLATES.md`).
 
 ## Deferred (account preferences — revisit on the third preference)
 
