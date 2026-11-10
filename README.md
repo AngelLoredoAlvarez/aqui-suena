@@ -75,8 +75,8 @@ Both the dashboard build and the export compile from `apps/web`, and Next takes 
 
 | Target             | Command                                                     | Where                                                                         |
 | ------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Web                | `NEXT_PUBLIC_API_BASE_URL=https://<worker> pnpm deploy:web` | Cloudflare Pages (`https://aqui-suena-web.pages.dev`)                         |
-| API / stream proxy | `pnpm --filter @aqui-suena/api run deploy:worker`           | Cloudflare Worker (`https://aqui-suena-api.angel-loredo-alvarez.workers.dev`) |
+| Web (staging)      | `NEXT_PUBLIC_API_BASE_URL=https://aqui-suena-api-staging.angel-loredo-alvarez.workers.dev pnpm deploy:web` | Cloudflare Pages (`https://aqui-suena-web-staging.pages.dev`) |
+| API / stream proxy (staging) | `pnpm --filter @aqui-suena/api run deploy` (with `--env staging`) | Cloudflare Worker (`https://aqui-suena-api-staging.angel-loredo-alvarez.workers.dev`) |
 | Mobile staging     | `pnpm build:mobile:staging`                                 | Local release APK; EAS builds Android + iOS in the cloud                      |
 
 The web app builds as a static export with `NEXT_PUBLIC_API_BASE_URL` baked, so the browser calls the deployed Worker for audio. See `apps/web/DEPLOY.md`, `packages/api/DEPLOY.md`, and `apps/mobile/STAGING.md`.
@@ -130,6 +130,16 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 required/optional, defaults). Secrets live in Infisical and are injected at
 runtime with `infisical run -- <command>`; no `.env` files are committed
 (`.env*` is gitignored, except `.env.schema` and `.env.example`).
+
+Active environments: **dev** (local) and **staging** (Cloudflare). Production
+is temporarily disabled (no Supabase project yet); `main` maps to `staging` in
+`.infisical.yaml`. Infisical environments: `dev`, `staging`. Cloudflare
+resources per environment:
+
+- D1: `aqui-suena-db-dev`, `aqui-suena-db-staging`
+- R2: `aqui-suena-media-dev`, `aqui-suena-media-staging`
+- Worker: `aqui-suena-api-staging` (staging only; dev runs locally)
+- Pages: `aqui-suena-web-staging`
 
 - `pnpm varlock:load` — resolve and validate the current environment.
 - `pnpm varlock:audit` — check that schema and code references agree.

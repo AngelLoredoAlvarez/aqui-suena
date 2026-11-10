@@ -103,5 +103,5 @@ Conventions: tokens are upserted (not duplicated) on re-registration; stale toke
 ## Open Questions
 
 - Should notifications be opt-in per category (new stations, sponsor updates, spot airings)?
-- Web Push requires HTTPS in production — how does this interact with the Cloudflare Pages deploy?
+- Web Push requires HTTPS in staging/prod — how does this interact with the Cloudflare Pages deploy?
 - Should we use Expo Push Service directly or FCM/APNs directly? (Recommendation: Expo Push Service for V1 — free, unified, no native config.)
