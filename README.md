@@ -4,7 +4,7 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Quick path
 
-1. Install: `pnpm install` (requires Node 22+, pnpm 12.14.0)
+1. Install: `pnpm install` (requires Node 24, see `.nvmrc`; pnpm 12.16.1)
 2. Run everything: `pnpm dev` → API on :3001, web on :3000, Metro on :8081 and the desktop window. Add `--android` to open mobile on an emulator. If any of those services is already running, `pnpm dev` reuses it instead of restarting it and keeps the rest of the group up (Ctrl-C stops only what this invocation started).
 3. Run a single client: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm dev:desktop` (this one starts its own web).
 4. Verify: `pnpm build && pnpm typecheck && pnpm exec biome check .`
@@ -127,7 +127,24 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 ## Conventions
 
 - Documents in English; Biome for lint/format (no ESLint/Prettier).
-- Conventional Commits on feature branches; push/PR/merge are maintainer decisions.
+- Conventional Commits on feature branches.
+
+### Branch protection and the quality gate
+
+`main` is protected: changes land through a pull request, direct pushes and
+force pushes are rejected, and the branch must be up to date before merging.
+Required checks are `quality` (`.github/workflows/quality.yml`) and `scan`
+(gitleaks). The `quality` workflow runs `biome check`, `pnpm arch`,
+`pnpm -r typecheck`, `pnpm test`, the api coverage thresholds and
+`pnpm check:singletons` on every push to `main` and on every pull request.
+
+Flow:
+
+1. Branch from `main` (`feature/<name>`, `fix/<name>`, `docs/<name>`, `chore/<name>`).
+2. Commit with a Conventional Commit message.
+3. Push the branch and open a pull request.
+4. Wait for `quality` and `scan` to pass.
+5. Merge from GitHub. A local `git merge` plus `git push origin main` is rejected.
 
 ### Environment variables (Varlock + Infisical)
 
@@ -141,7 +158,7 @@ is temporarily disabled (no Supabase project yet); `main` maps to `staging` in
 `.infisical.yaml`. Infisical environments: `dev`, `staging`. Cloudflare
 resources per environment:
 
-- D1: `aqui-suena-db-dev`, `aqui-suena-db-staging`
+- D1: `aqui-suena-db-staging` (dev uses a local D1; there is no remote dev database)
 - R2: `aqui-suena-media-dev`, `aqui-suena-media-staging`
 - Worker: `aqui-suena-api-staging` (staging only; dev runs locally)
 - Pages: `aqui-suena-web-staging`
