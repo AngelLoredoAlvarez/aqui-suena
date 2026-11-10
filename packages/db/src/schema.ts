@@ -141,7 +141,7 @@ export const services = sqliteTable("services", {
   id: text("id").primaryKey(),
   businessId: text("business_id")
     .notNull()
-    .references(() => businesses.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
   basePrice: integer("base_price"),
@@ -157,7 +157,7 @@ export const workEntries = sqliteTable("work_entries", {
   id: text("id").primaryKey(),
   businessId: text("business_id")
     .notNull()
-    .references(() => businesses.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -172,7 +172,7 @@ export const products = sqliteTable("products", {
   id: text("id").primaryKey(),
   businessId: text("business_id")
     .notNull()
-    .references(() => businesses.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
   price: integer("price").notNull(),
@@ -185,9 +185,9 @@ export const photos = sqliteTable("photos", {
   id: text("id").primaryKey(),
   businessId: text("business_id")
     .notNull()
-    .references(() => businesses.id),
-  workEntryId: text("work_entry_id").references(() => workEntries.id),
-  productId: text("product_id").references(() => products.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
+  workEntryId: text("work_entry_id").references(() => workEntries.id, { onDelete: "cascade" }),
+  productId: text("product_id").references(() => products.id, { onDelete: "cascade" }),
   kind: text("kind").notNull(), // "logo" | "product" | "work"
   url: text("url").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -200,7 +200,7 @@ export const flyers = sqliteTable("flyers", {
   businessId: text("business_id")
     .notNull()
     .unique()
-    .references(() => businesses.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   replacedAt: integer("replaced_at", { mode: "timestamp" })
     .notNull()
@@ -217,7 +217,7 @@ export const hours = sqliteTable("hours", {
   id: text("id").primaryKey(),
   businessId: text("business_id")
     .notNull()
-    .references(() => businesses.id),
+    .references(() => businesses.id, { onDelete: "cascade" }),
   day: integer("day").notNull(), // 0..6 (Sun..Sat)
   openMinute: integer("open_minute").notNull(), // minutes since midnight
   closeMinute: integer("close_minute").notNull(),
