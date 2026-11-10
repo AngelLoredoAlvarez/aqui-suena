@@ -30,6 +30,7 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "deploy:worker": "wrangler deploy"
   },
   "dependencies": {
@@ -45,6 +46,7 @@
     "@cloudflare/workers-types": "^5.20261108.1",
     "@trpc/client": "11.25.2",
     "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.1.0",
     "typescript": "7.0.2",
     "vitest": "5.1.0"
   }
