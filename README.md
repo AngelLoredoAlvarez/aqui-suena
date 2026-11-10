@@ -127,6 +127,9 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 ## Conventions
 
 - Documents in English; Biome for lint/format (no ESLint/Prettier).
+- Email design templates (`packages/api/design/email-templates/**/*.html`) disable
+  `complexity/noImportantStyles`: the `@media` rules must override the inline
+  `style` attributes those templates use, so `!important` is required there.
 - Conventional Commits on feature branches.
 
 ### Branch protection and the quality gate

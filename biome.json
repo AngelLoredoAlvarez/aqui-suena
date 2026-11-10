@@ -84,6 +84,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["packages/api/design/email-templates/**/*.html"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
+          }
+        }
+      }
     }
   ]
 }
