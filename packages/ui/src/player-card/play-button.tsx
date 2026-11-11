@@ -21,16 +21,16 @@ export function PlayButton({
     return null;
   }
 
-  const label =
-    status === "playing"
-      ? dictionary.pause
-      : status === "paused"
-        ? dictionary.resume
-        : status === "idle"
-          ? dictionary.tapToPlay
-          : status === "blocked"
-            ? dictionary.tapToEnableSound
-            : dictionary.loading;
+  const statusLabels: Record<PlayerCardStatus, string> = {
+    idle: dictionary.tapToPlay,
+    playing: dictionary.pause,
+    paused: dictionary.resume,
+    loading: dictionary.loading,
+    error: dictionary.loading,
+    blocked: dictionary.tapToEnableSound,
+  };
+
+  const label = statusLabels[status];
 
   const isPlaying = status === "playing";
 

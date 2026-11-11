@@ -15,7 +15,8 @@ export function PlayerDock({
 }) {
   const sheetPlacement = position === "top" ? "below" : "above";
   const dockMarginTop = position === "bottom" ? "auto" : undefined;
-  const sheetAnchor = position === "top" ? { t: isWide ? 112 : 118 } : { b: isWide ? 112 : 118 };
+  const anchor = isWide ? 112 : 118;
+  const sheetAnchor = position === "top" ? { t: anchor } : { b: anchor };
 
   if (isWide) {
     return (

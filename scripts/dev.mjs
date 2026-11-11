@@ -67,7 +67,13 @@ export function resolveAvds(env = process.env, available = null) {
 // one name or null.
 export function avdName(env = process.env, available = null) {
   const avds = resolveAvds(env, available);
-  return avds.length === 1 ? avds[0] : avds.length === 0 ? null : (avds[0] ?? null);
+  if (avds.length === 1) {
+    return avds[0];
+  }
+  if (avds.length === 0) {
+    return null;
+  }
+  return avds[0] ?? null;
 }
 
 // Ask the emulator binary which AVDs it knows about. A missing binary or a

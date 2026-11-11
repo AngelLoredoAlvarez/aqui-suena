@@ -83,7 +83,12 @@ export function AdsCarousel({
   });
   const statusLabel = current.isOpen ? dictionary.open : dictionary.closed;
   const statusColor = current.isOpen ? "ok" : "error";
-  const nameFontSize = media.xl ? 26 : isWide ? 24 : 22;
+  let nameFontSize = 22;
+  if (media.xl) {
+    nameFontSize = 26;
+  } else if (isWide) {
+    nameFontSize = 24;
+  }
 
   return (
     <YStack
