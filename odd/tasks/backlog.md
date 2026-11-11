@@ -20,12 +20,14 @@ Last synced 2026-11-10 against `main` (email templates track merged; media stora
 
 Documented state, not fixed yet. Nothing below changes behavior today.
 
-- [ ] Email sender and triggers: instantiate `ResendEmailSender` in the
-  composition root (`server/worker.ts`, `server/main.ts`, `server/http/app.ts`),
-  pass it to the three `Template*Notifier`s, and add the production call sites
-  (signup/verification, payment receipt, cancellation, renewal reminders,
-  failed renewal, downgrade). Until then `RESEND_API_KEY` is reserved and no
-  email is sent, even when the key is set.
+- [ ] Email sender and triggers (partially done 2026-11-11): `ResendEmailSender`
+  and the `SubscriptionNotifier` are now instantiated in the composition root
+  (`feat/email-sender-wiring`) and wired through `createApp`/`createAppRouter`;
+  the first call site `subscriptions.cancel` is live. Remaining: wire the
+  `AccountNotifier` and `PaymentNotifier`, and add the signup/verification,
+  payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
+  payment provider, and a Worker cron). Until those exist, only the
+  cancellation email can actually be sent.
 - [ ] Real listener status: `listener.getStatus` returns
   `getMockListenerStatus` (fixed stream URL, `listeners: 42`) for every id.
   Replace it with listener counts and the active stream URL read from
