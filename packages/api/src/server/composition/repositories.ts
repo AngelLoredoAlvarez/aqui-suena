@@ -1,3 +1,5 @@
+import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
@@ -16,6 +18,7 @@ import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-
 import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
+import { D1AccountRepository } from "@aqui-suena/api/infrastructure/accounts/d1-account-repository";
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
 import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
@@ -36,6 +39,7 @@ export interface DirectoryRepositories {
   hour: HourRepository;
   subscription: SubscriptionRepository;
   media: MediaRepository;
+  account: AccountRepository;
 }
 
 /**
@@ -55,6 +59,7 @@ export function createInMemoryRepositories(): DirectoryRepositories {
     hour: new InMemoryHourRepository([], business),
     subscription: new InMemorySubscriptionRepository([]),
     media: new InMemoryMediaRepository([]),
+    account: new InMemoryAccountRepository([]),
   };
 }
 
@@ -73,6 +78,7 @@ export function createD1Repositories(db: D1Database): DirectoryRepositories {
     hour: new D1HourRepository(db),
     subscription: new D1SubscriptionRepository(db),
     media: new D1MediaRepository(db),
+    account: new D1AccountRepository(db),
   };
 }
 

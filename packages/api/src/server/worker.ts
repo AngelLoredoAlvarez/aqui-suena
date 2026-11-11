@@ -10,6 +10,7 @@ import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-pla
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
+import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { createApp } from "@aqui-suena/api/server/http/app";
@@ -46,6 +47,8 @@ export interface WorkerEnv {
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
   R2_ENDPOINT?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM?: string;
 }
 
 export default {
@@ -140,6 +143,8 @@ export default {
           })
         : new FullCatalogRetriever(planRepository);
 
+    const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
+
     const app = createApp({
       allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
       supabaseUrl: env.SUPABASE_URL,
@@ -152,6 +157,7 @@ export default {
       planCatalogRetriever: retriever,
       aiGatewayId: gatewayId,
       mediaStorage,
+      subscriptionNotifier,
     });
 
     return app.fetch(request, env);

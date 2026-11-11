@@ -1,8 +1,15 @@
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
 import { readConfig } from "@aqui-suena/api/server/env";
 import { createApiServer } from "@aqui-suena/api/server/server";
 
 const config = readConfig(process.env);
+
+const subscriptionNotifier = createSubscriptionNotifier(
+  process.env.RESEND_API_KEY,
+  process.env.RESEND_FROM,
+);
+
 // Local Node has no R2 credentials: use the in-memory adapter explicitly. This
 // is the only entry point allowed to do so; the Worker never substitutes one.
 const server = createApiServer({
@@ -12,6 +19,7 @@ const server = createApiServer({
   supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
   supabaseJwksUrl: process.env.SUPABASE_JWKS_URL,
   mediaStorage: new InMemoryObjectStorage(),
+  subscriptionNotifier,
 });
 
 server.listen(config.port, config.host, () => {
