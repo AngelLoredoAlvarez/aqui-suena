@@ -1,3 +1,4 @@
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
@@ -17,6 +18,7 @@ import { createWorkEntriesRouter } from "@aqui-suena/api/server/routers/director
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { createPlansRouter } from "@aqui-suena/api/server/routers/plans/plans";
 import { listenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
+import { createSubscriptionsRouter } from "@aqui-suena/api/server/routers/subscriptions/subscriptions";
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { router } from "@aqui-suena/api/server/trpc/trpc";
 
@@ -27,6 +29,7 @@ export function createAppRouter(
   planCatalogRetriever: PlanCatalogRetriever | undefined,
   aiGatewayId: string | undefined,
   mediaStorage: ObjectStorage | undefined,
+  subscriptionNotifier?: SubscriptionNotifier,
 ) {
   return router({
     ads: createCarouselRouter({
@@ -61,6 +64,12 @@ export function createAppRouter(
     services: createServicesRouter({
       service: directoryRepositories.service,
       business: directoryRepositories.business,
+    }),
+    subscriptions: createSubscriptionsRouter({
+      subscription: directoryRepositories.subscription,
+      plan: planRepository,
+      account: directoryRepositories.account,
+      notifier: subscriptionNotifier,
     }),
     workEntries: createWorkEntriesRouter({
       workEntry: directoryRepositories.workEntry,

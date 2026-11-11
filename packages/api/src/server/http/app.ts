@@ -1,3 +1,4 @@
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
@@ -28,6 +29,7 @@ export interface AppOptions {
   planRepository?: PlanRepository;
   directoryRepositories?: DirectoryRepositories;
   mediaStorage?: ObjectStorage;
+  subscriptionNotifier?: SubscriptionNotifier;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -41,6 +43,7 @@ export function createApp(options: AppOptions): Hono {
     options.planCatalogRetriever,
     options.aiGatewayId,
     options.mediaStorage,
+    options.subscriptionNotifier,
   );
   const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);
 

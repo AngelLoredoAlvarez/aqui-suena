@@ -5,6 +5,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 const EXPECTED_KEYS = [
+  "account",
   "business",
   "flyer",
   "hour",
