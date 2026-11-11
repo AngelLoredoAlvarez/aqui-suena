@@ -1,5 +1,3 @@
-import { getTableConfig } from "drizzle-orm/sqlite-core";
-import { describe, expect, it } from "vitest";
 import {
   accounts,
   businesses,
@@ -13,7 +11,9 @@ import {
   stations,
   subscriptions,
   workEntries,
-} from "./schema";
+} from "@aqui-suena/db/schema";
+import { getTableConfig } from "drizzle-orm/sqlite-core";
+import { describe, expect, it } from "vitest";
 
 function columnNames(table: Parameters<typeof getTableConfig>[0]): string[] {
   return getTableConfig(table).columns.map((column) => column.name);

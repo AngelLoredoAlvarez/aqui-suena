@@ -1,4 +1,4 @@
-import type { Unsubscribe } from "./tray-bridge";
+import type { Unsubscribe } from "@aqui-suena/player/tray/tray-bridge";
 
 export function cancelSafeSubscribe(attach: () => Promise<Unsubscribe>): Unsubscribe {
   let release: Unsubscribe | undefined;

@@ -1,6 +1,5 @@
+import { defaultLocale, en, es, getDictionary, resolveLocale } from "@aqui-suena/ui/i18n/locales";
 import { describe, expect, it } from "vitest";
-
-import { defaultLocale, en, es, getDictionary, resolveLocale } from "./locales";
 
 // T1 contract: typed es/en dictionaries with an exact -> base -> default
 // fallback chain. The parity test fails whenever a key is missing in

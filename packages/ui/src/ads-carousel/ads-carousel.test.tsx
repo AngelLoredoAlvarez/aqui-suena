@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
+import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/ads-carousel";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AdsCarousel } from "./ads-carousel";
 
 const ITEMS: readonly AdsCarouselItem[] = [
   {

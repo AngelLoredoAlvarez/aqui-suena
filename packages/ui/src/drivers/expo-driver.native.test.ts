@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
+
+import { useExpoAudioDriver } from "@aqui-suena/ui/drivers/expo-driver.native";
+import { toMediaFailure } from "@aqui-suena/ui/drivers/internal/media-failure";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { useExpoAudioDriver } from "./expo-driver.native";
-import { toMediaFailure } from "./internal/media-failure";
 
 type FakeNativePlayer = {
   replace: (url: string) => void;

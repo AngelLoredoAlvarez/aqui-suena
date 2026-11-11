@@ -1,5 +1,5 @@
+import type { PlayerCardStatus } from "@aqui-suena/ui/player-card/player-card.types";
 import { Paragraph, XStack } from "tamagui";
-import type { PlayerCardStatus } from "./player-card.types";
 
 export type StatusDictionary = {
   readonly playing: string;

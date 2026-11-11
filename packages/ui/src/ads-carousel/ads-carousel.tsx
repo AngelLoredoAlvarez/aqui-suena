@@ -1,11 +1,14 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
+import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
+import { PaginationDots } from "@aqui-suena/ui/ads-carousel/pagination-dots";
+import {
+  getResponsiveCarouselMaxW,
+  getResponsiveFlyerWidth,
+} from "@aqui-suena/ui/ads-carousel/responsive";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useCallback, useEffect, useState } from "react";
 import { Button, Paragraph, useMedia, YStack } from "tamagui";
-import { composeMeta } from "./compose-meta";
-import { PaginationDots } from "./pagination-dots";
-import { getResponsiveCarouselMaxW, getResponsiveFlyerWidth } from "./responsive";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 

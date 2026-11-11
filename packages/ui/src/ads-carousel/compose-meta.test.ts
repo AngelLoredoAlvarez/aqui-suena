@@ -1,5 +1,5 @@
+import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
 import { describe, expect, it } from "vitest";
-import { composeMeta } from "./compose-meta";
 
 const source = {
   category: "Comida",

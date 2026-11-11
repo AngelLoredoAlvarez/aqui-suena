@@ -7,8 +7,8 @@ import type {
   EmailTemplateVars,
   RenderedEmail,
 } from "@aqui-suena/api/domain/email/email-template";
-import en from "./en.json";
-import esMX from "./es-MX.json";
+import en from "@aqui-suena/api/infrastructure/email/en.json";
+import esMX from "@aqui-suena/api/infrastructure/email/es-MX.json";
 
 type TemplateKey = "t1" | "t2" | "t3" | "t4" | "t5" | "t6" | "t7" | "t8" | "t9" | "t10" | "t11";
 

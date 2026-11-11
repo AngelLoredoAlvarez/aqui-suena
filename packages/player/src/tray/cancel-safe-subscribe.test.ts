@@ -1,6 +1,6 @@
+import { cancelSafeSubscribe } from "@aqui-suena/player/tray/cancel-safe-subscribe";
+import type { Unsubscribe } from "@aqui-suena/player/tray/tray-bridge";
 import { describe, expect, it, vi } from "vitest";
-import { cancelSafeSubscribe } from "./cancel-safe-subscribe";
-import type { Unsubscribe } from "./tray-bridge";
 
 function deferred() {
   let resolve: (release: Unsubscribe) => void = () => {};

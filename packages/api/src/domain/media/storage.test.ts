@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import {
   InMemoryObjectStorage,
   MEDIA_LIMITS,
   MediaValidationError,
   validateMediaUpload,
-} from "./storage";
+} from "@aqui-suena/api/domain/media/storage";
+import { describe, expect, it } from "vitest";
 
 describe("validateMediaUpload", () => {
   it("accepts a valid product photo within limits", () => {

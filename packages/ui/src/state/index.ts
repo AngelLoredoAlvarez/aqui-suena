@@ -6,5 +6,5 @@ export {
   savePersistedPlayerCardPosition,
   savePersistedPlayerCardPositionAsync,
   useSetPlayerCardPosition,
-} from "./player-card-position";
-export { selectedStationIdAtom } from "./station";
+} from "@aqui-suena/ui/state/player-card-position";
+export { selectedStationIdAtom } from "@aqui-suena/ui/state/station";

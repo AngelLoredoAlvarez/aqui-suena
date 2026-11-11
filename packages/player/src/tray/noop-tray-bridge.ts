@@ -1,4 +1,4 @@
-import type { TrayBridge } from "./tray-bridge";
+import type { TrayBridge } from "@aqui-suena/player/tray/tray-bridge";
 
 const ignore = (): void => undefined;
 

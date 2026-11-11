@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import {
   CLOSE_TO_TRAY_STORAGE_KEY,
   DEFAULT_CLOSE_TO_TRAY,
   readStoredCloseToTray,
   type StringStorage,
   writeStoredCloseToTray,
-} from "./close-to-tray-storage";
+} from "@aqui-suena/player/tray/close-to-tray-storage";
+import { describe, expect, it } from "vitest";
 
 type FakeStorage = StringStorage & { readonly entries: Map<string, string> };
 

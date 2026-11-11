@@ -1,4 +1,4 @@
-import type { ENTITLEMENTS, PlanId } from "./entitlements";
+import type { ENTITLEMENTS, PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 
 export type Plan = {
   id: PlanId;

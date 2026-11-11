@@ -1,6 +1,10 @@
 import type { PlayerStatus } from "@aqui-suena/player/status";
+import {
+  buildTrayMenuModel,
+  type TrayLabels,
+  type TrayStation,
+} from "@aqui-suena/player/tray/tray-menu-model";
 import { describe, expect, it } from "vitest";
-import { buildTrayMenuModel, type TrayLabels, type TrayStation } from "./tray-menu-model";
 
 const labels: TrayLabels = {
   play: "Reproducir",

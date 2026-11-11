@@ -1,7 +1,3 @@
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
-import { parse } from "valibot";
-import { describe, expect, it } from "vitest";
-
 import {
   addPhotoInputSchema,
   BUSINESS_CATEGORIES,
@@ -12,7 +8,10 @@ import {
   isOpenNow,
   listingInputSchema,
   parseBusinessCategory,
-} from "./listing";
+} from "@aqui-suena/api/domain/directory/contracts/listing";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import { parse } from "valibot";
+import { describe, expect, it } from "vitest";
 
 describe("businessCategorySchema", () => {
   it("accepts a known category", () => {

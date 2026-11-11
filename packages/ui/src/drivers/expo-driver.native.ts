@@ -1,17 +1,16 @@
 import type { AudioDriver, AudioDriverEvent, NowPlayingMetadata } from "@aqui-suena/player";
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-
-import type { NativePlayer } from "./internal/lock-screen";
+import type { NativePlayer } from "@aqui-suena/ui/drivers/internal/lock-screen";
 import {
   activateLockScreen,
   lockScreenControlsAvailable,
   metadataKey,
-} from "./internal/lock-screen";
-import { toMediaFailure } from "./internal/media-failure";
+} from "@aqui-suena/ui/drivers/internal/lock-screen";
+import { toMediaFailure } from "@aqui-suena/ui/drivers/internal/media-failure";
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
-export type { NativePlayer } from "./internal/lock-screen";
-export { toMediaFailure } from "./internal/media-failure";
+export type { NativePlayer } from "@aqui-suena/ui/drivers/internal/lock-screen";
+export { toMediaFailure } from "@aqui-suena/ui/drivers/internal/media-failure";
 
 type PendingPlay = {
   resolve: () => void;

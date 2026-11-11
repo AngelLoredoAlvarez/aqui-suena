@@ -1,6 +1,5 @@
+import { type Dictionary, getDictionary, type SupportedLocale } from "@aqui-suena/ui/i18n/locales";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
-
-import { type Dictionary, getDictionary, type SupportedLocale } from "./locales";
 
 export type LocaleContextValue = {
   readonly locale: SupportedLocale;

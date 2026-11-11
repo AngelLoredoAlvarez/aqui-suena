@@ -1,3 +1,5 @@
+import { graceDeadline, isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/grace";
+import { addMonths } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type {
   Subscription,
   SubscriptionRepository,
@@ -16,8 +18,6 @@ import {
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
-import { graceDeadline, isInGracePeriod } from "./grace";
-import { addMonths } from "./period";
 
 const PERIOD_MONTHS = 1;
 

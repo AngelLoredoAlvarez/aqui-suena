@@ -1,4 +1,4 @@
-import type { TrayMenuModel } from "./tray-menu-model";
+import type { TrayMenuModel } from "@aqui-suena/player/tray/tray-menu-model";
 
 export type Unsubscribe = () => void;
 

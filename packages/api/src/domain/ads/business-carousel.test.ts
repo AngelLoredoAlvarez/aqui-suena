@@ -1,3 +1,7 @@
+import {
+  type BusinessCarouselDeps,
+  getBusinessCarousel,
+} from "@aqui-suena/api/domain/ads/business-carousel";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { Business } from "@aqui-suena/api/domain/directory/business";
@@ -7,8 +11,6 @@ import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer"
 import type { Hour } from "@aqui-suena/api/domain/directory/hour";
 import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
 import { describe, expect, it } from "vitest";
-
-import { type BusinessCarouselDeps, getBusinessCarousel } from "./business-carousel";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {
   return {

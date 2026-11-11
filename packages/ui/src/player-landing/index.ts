@@ -1,2 +1,2 @@
-export { PlayerLanding } from "./player-landing";
-export { useListenerStatus } from "./use-listener-status";
+export { PlayerLanding } from "@aqui-suena/ui/player-landing/player-landing";
+export { useListenerStatus } from "@aqui-suena/ui/player-landing/use-listener-status";

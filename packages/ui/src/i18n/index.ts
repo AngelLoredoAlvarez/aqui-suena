@@ -1,4 +1,4 @@
-export type { LocaleContextValue, LocaleProviderProps } from "./locale-context";
-export { LocaleProvider, useLocale } from "./locale-context";
-export { LocaleSwitcher } from "./locale-switcher";
-export type { Dictionary, SupportedLocale } from "./locales";
+export type { LocaleContextValue, LocaleProviderProps } from "@aqui-suena/ui/i18n/locale-context";
+export { LocaleProvider, useLocale } from "@aqui-suena/ui/i18n/locale-context";
+export { LocaleSwitcher } from "@aqui-suena/ui/i18n/locale-switcher";
+export type { Dictionary, SupportedLocale } from "@aqui-suena/ui/i18n/locales";

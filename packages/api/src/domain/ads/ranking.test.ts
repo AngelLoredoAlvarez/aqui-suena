@@ -1,6 +1,5 @@
+import { rankSponsors, selectCarouselSlots } from "@aqui-suena/api/domain/ads/ranking";
 import { describe, expect, it } from "vitest";
-
-import { rankSponsors, selectCarouselSlots } from "./ranking";
 
 describe("rankSponsors", () => {
   it("orders sponsors by plan priority descending", () => {

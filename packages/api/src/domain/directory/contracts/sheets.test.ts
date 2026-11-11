@@ -1,6 +1,5 @@
+import { resolveSheet, type SheetSource } from "@aqui-suena/api/domain/directory/contracts/sheets";
 import { describe, expect, it } from "vitest";
-
-import { resolveSheet, type SheetSource } from "./sheets";
 
 const baseSource: SheetSource = {
   business: {

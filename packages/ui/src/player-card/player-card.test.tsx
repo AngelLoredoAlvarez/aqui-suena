@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
 
 import type { SupportedLocale } from "@aqui-suena/ui/i18n";
+import {
+  getPlaybackIcon,
+  PlayButton,
+  PlayerCard,
+  type PlayerCardStatus,
+} from "@aqui-suena/ui/player-card/player-card";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getPlaybackIcon, PlayButton, PlayerCard, type PlayerCardStatus } from "./player-card";
 
 function renderCard(props: {
   status: "idle" | "playing" | "paused" | "loading" | "error" | "blocked";

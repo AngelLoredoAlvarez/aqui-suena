@@ -1,9 +1,6 @@
 // @vitest-environment jsdom
 
-import { UiProvider } from "@aqui-suena/ui/shared";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocaleProvider, useLocale } from "./locale-context";
+import { LocaleProvider, useLocale } from "@aqui-suena/ui/i18n/locale-context";
 import {
   type AsyncLocaleStore,
   detectNativeLocale,
@@ -14,8 +11,11 @@ import {
   loadPersistedLocaleAsync,
   savePersistedLocale,
   savePersistedLocaleAsync,
-} from "./locale-storage";
-import { LocaleSwitcher } from "./locale-switcher";
+} from "@aqui-suena/ui/i18n/locale-storage";
+import { LocaleSwitcher } from "@aqui-suena/ui/i18n/locale-switcher";
+import { UiProvider } from "@aqui-suena/ui/shared";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 function memoryStore(): LocaleStore & { backing: Map<string, string> } {
   const backing = new Map<string, string>();

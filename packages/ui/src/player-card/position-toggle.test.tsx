@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
+import { PositionToggle } from "@aqui-suena/ui/player-card/position-toggle";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PositionToggle } from "./position-toggle";
 
 const LABEL = "Mover reproductor arriba o abajo";
 

@@ -1,12 +1,11 @@
-import { describe, expect, it } from "vitest";
-
 import {
   canChooseVisibleCount,
   hiddenBusinessIds,
   isRetentionExpired,
   RETENTION_DAYS,
   retentionDeadline,
-} from "./retention";
+} from "@aqui-suena/api/domain/directory/retention";
+import { describe, expect, it } from "vitest";
 
 describe("hiddenBusinessIds", () => {
   it("returns ids not in the visible set", () => {

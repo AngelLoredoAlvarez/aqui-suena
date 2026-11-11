@@ -1,6 +1,5 @@
+import { selectListenerStatus } from "@aqui-suena/ui/player-landing/select-listener-status";
 import { describe, expect, it } from "vitest";
-
-import { selectListenerStatus } from "./select-listener-status";
 
 const data = {
   station: { id: "test-pop", name: "Aquí Suena" },

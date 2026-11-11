@@ -1,6 +1,5 @@
+import { describeMediaError } from "@aqui-suena/player/errors/errors";
 import { describe, expect, it } from "vitest";
-
-import { describeMediaError } from "./errors";
 
 // Slice (b): media-error mapper. Contract under test: autoplay rejection
 // becomes `blocked`, source-not-supported (code 4) becomes an error, and

@@ -8,7 +8,7 @@ vi.mock("@trpc/server", () => {
   throw new Error("@trpc/server must never load in the client entry");
 });
 
-import { fetchAdsCarousel, resolveApiBaseUrl } from "./client";
+import { fetchAdsCarousel, resolveApiBaseUrl } from "@aqui-suena/api/client";
 
 const VALID_ITEM = {
   id: "ad-1",
@@ -30,7 +30,7 @@ function makeTrpcResponse(data: unknown, ok = true, status = 200) {
 
 describe("client entry (non-server safe)", () => {
   it("loads and serves status without the server module", async () => {
-    const { getListenerStatus } = await import("./client");
+    const { getListenerStatus } = await import("@aqui-suena/api/client");
     const status = await getListenerStatus("placeholder-station");
 
     expect(status.station.id).toBe("placeholder-station");

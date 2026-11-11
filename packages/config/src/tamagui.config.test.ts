@@ -1,7 +1,7 @@
+import tamaguiConfig from "@aqui-suena/config/tamagui.config";
 import { defaultConfig } from "@tamagui/config/v5";
 import { createTamagui } from "tamagui";
 import { describe, expect, it } from "vitest";
-import tamaguiConfig from "./tamagui.config";
 
 // Baseline: the untouched preset processed the same way, so Variable
 // wrapping cannot mask an edit to an existing token group.

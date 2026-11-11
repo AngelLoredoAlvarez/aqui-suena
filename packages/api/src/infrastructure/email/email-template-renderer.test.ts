@@ -3,9 +3,8 @@ import {
   EMAIL_TEMPLATE_IDS,
   type EmailTemplateVars,
 } from "@aqui-suena/api/domain/email/email-template";
+import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/email/email-template-renderer";
 import { describe, expect, it } from "vitest";
-
-import { createEmailTemplateRenderer } from "./email-template-renderer";
 
 const baseVars: EmailTemplateVars = {
   planName: "Oficios & Servicios",

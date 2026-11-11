@@ -1,5 +1,5 @@
+import { ResendEmailSender } from "@aqui-suena/api/infrastructure/email/resend-email-sender";
 import { describe, expect, it } from "vitest";
-import { ResendEmailSender } from "./resend-email-sender";
 
 type CapturedCall = { url: string; init: RequestInit };
 
