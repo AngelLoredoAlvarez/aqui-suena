@@ -29,6 +29,7 @@
         "noUnusedVariables": "error"
       },
       "style": {
+        "noNestedTernary": "error",
         "noRestrictedImports": {
           "level": "error",
           "options": {
