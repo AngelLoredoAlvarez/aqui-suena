@@ -33,7 +33,7 @@ export interface SubscriptionRepository {
   create(accountId: string, planId: PlanId, startedAt: Date, endsAt: Date): Promise<Subscription>;
   updateStatus(id: string, status: SubscriptionStatus): Promise<void>;
   updateEndsAt(id: string, endsAt: Date): Promise<void>;
-  updateGraceEnd(id: string, graceEnd: Date): Promise<void>;
+  enterGrace(id: string, graceEnd: Date): Promise<void>;
   listByAccount(accountId: string): Promise<Subscription[]>;
 }
 
@@ -110,10 +110,11 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     }
   }
 
-  async updateGraceEnd(id: string, graceEnd: Date): Promise<void> {
+  async enterGrace(id: string, graceEnd: Date): Promise<void> {
     const sub = this.store.find((s) => s.id === id);
 
     if (sub) {
+      sub.status = "grace";
       sub.graceEnd = graceEnd;
       sub.updatedAt = new Date();
     }

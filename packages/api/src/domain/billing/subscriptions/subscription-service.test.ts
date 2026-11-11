@@ -1,4 +1,7 @@
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import {
+  InMemorySubscriptionRepository,
+  type SubscriptionStatus,
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
@@ -553,6 +556,39 @@ describe("SubscriptionService.failRenewal", () => {
     await expect(service.failRenewal("non-existent", new Date())).rejects.toThrow(
       "Subscription not found",
     );
+  });
+});
+
+describe("SubscriptionService.failRenewal atomicity", () => {
+  class SpySubscriptionRepository extends InMemorySubscriptionRepository {
+    readonly mutations: string[] = [];
+
+    override async updateStatus(id: string, status: SubscriptionStatus): Promise<void> {
+      this.mutations.push(`updateStatus:${status}`);
+      await super.updateStatus(id, status);
+    }
+
+    override async enterGrace(id: string, graceEnd: Date): Promise<void> {
+      this.mutations.push("enterGrace");
+      await super.enterGrace(id, graceEnd);
+    }
+  }
+
+  it("enters grace with a single atomic write", async () => {
+    const subRepo = new SpySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+
+    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+
+    expect(subRepo.mutations).toEqual(["enterGrace"]);
   });
 });
 

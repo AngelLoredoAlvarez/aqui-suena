@@ -141,9 +141,7 @@ describe("InMemorySubscriptionRepository", () => {
       new Date("2026-02-01"),
     );
 
-    await repo.updateStatus(sub.id, "grace");
-
-    await repo.updateGraceEnd(sub.id, new Date("2026-02-08"));
+    await repo.enterGrace(sub.id, new Date("2026-02-08"));
 
     const active = await repo.getActive("acc-1", new Date("2026-02-05"));
 
@@ -162,9 +160,7 @@ describe("InMemorySubscriptionRepository", () => {
       new Date("2026-02-01"),
     );
 
-    await repo.updateStatus(sub.id, "grace");
-
-    await repo.updateGraceEnd(sub.id, new Date("2026-02-08"));
+    await repo.enterGrace(sub.id, new Date("2026-02-08"));
 
     const active = await repo.getActive("acc-1", new Date("2026-02-09"));
 
