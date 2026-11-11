@@ -15,6 +15,7 @@ export const EMAIL_TEMPLATE_IDS = [
   "invoice-cfdi",
   "welcome",
   "cancellation",
+  "cancellation-immediate",
 ] as const;
 
 export type EmailTemplateId = (typeof EMAIL_TEMPLATE_IDS)[number];

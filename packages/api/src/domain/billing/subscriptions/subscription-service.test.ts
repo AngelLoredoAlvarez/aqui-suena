@@ -438,6 +438,48 @@ describe("SubscriptionService.cancel", () => {
     expect(all).toHaveLength(1);
   });
 
+  it("cancels a grace subscription", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+
+    await subRepo.enterGrace(sub.id, new Date("2026-02-08T00:00:00Z"));
+
+    await service.cancel(sub.id);
+
+    const cancelled = await subRepo.getById(sub.id);
+
+    expect(cancelled?.status).toBe("cancelled");
+  });
+
+  it("treats an expired subscription as already cancelled", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+
+    await subRepo.updateStatus(sub.id, "expired");
+
+    await service.cancel(sub.id);
+
+    const still = await subRepo.getById(sub.id);
+
+    expect(still?.status).toBe("expired");
+  });
+
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
@@ -896,6 +938,30 @@ describe("SubscriptionService.cancel notification", () => {
     await service.cancel(sub.id);
 
     expect(notifier.calls).toHaveLength(0);
+  });
+
+  it("notifies a grace cancellation with no active-until date", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+    await subRepo.enterGrace(sub.id, new Date("2026-02-08T00:00:00Z"));
+
+    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "cancelled",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: { planName: "Oficios & Servicios", activeUntil: null },
+    });
   });
 });
 

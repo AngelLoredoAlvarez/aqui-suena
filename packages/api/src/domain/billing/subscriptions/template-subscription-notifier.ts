@@ -64,6 +64,18 @@ export class TemplateSubscriptionNotifier implements SubscriptionNotifier {
     recipient: SubscriptionNotificationRecipient,
     data: CancellationNotification,
   ): Promise<void> {
+    if (data.activeUntil === null) {
+      await sendRenderedEmail(
+        this.emailSender,
+        this.renderer,
+        "cancellation-immediate",
+        recipient,
+        { planName: data.planName },
+      );
+
+      return;
+    }
+
     await sendRenderedEmail(this.emailSender, this.renderer, "cancellation", recipient, {
       planName: data.planName,
       activeUntil: formatEmailDate(recipient.locale, data.activeUntil),
