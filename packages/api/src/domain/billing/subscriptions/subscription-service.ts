@@ -86,7 +86,12 @@ export class SubscriptionService {
       throw new NotFoundError("Subscription not found");
     }
 
-    if (current.status !== "active") {
+    // The instant the current period still has paid time for; null once it is
+    // over (or if it never ends). Paid time is never lost: a new period starts
+    // here instead of restarting at `now`.
+    const paidUntil = current.endsAt !== null && current.endsAt > now ? current.endsAt : null;
+
+    if (current.status !== "active" && !(current.status === "cancelled" && paidUntil !== null)) {
       throw new ConflictError("Subscription is not active");
     }
 
@@ -107,7 +112,9 @@ export class SubscriptionService {
     if (isUpgrade) {
       await this.subscriptionRepo.updateStatus(subscriptionId, "expired");
 
-      const endsAt = addMonths(now, PERIOD_MONTHS);
+      // An upgrade takes effect now but chains its period from the paid end,
+      // so the customer does not lose the days they already paid for.
+      const endsAt = addMonths(paidUntil ?? now, PERIOD_MONTHS);
 
       return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
     }
