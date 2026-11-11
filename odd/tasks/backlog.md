@@ -84,6 +84,20 @@ branches. None of these blocks the product today.
   Branch `fix/billing-period-math`; details in
   `odd/tasks/fix-billing-period-math.md`.
 
+## Billing follow-ups (opened 2026-11-10)
+
+Detected while fixing `resolvePlan`. Neither blocks anything today.
+
+- [ ] `SubscriptionService.changePlan` and `.cancel` require `status === "active"`,
+  so an account that cancelled but still has paid time left cannot change plans
+  during the period it already paid for. Decide whether the paid tail should
+  allow a plan change and implement it against `endsAt`.
+- [ ] `failRenewal` writes status `grace` and `graceEnd` in two statements, so a
+  `grace` subscription with `graceEnd === null` exists transiently.
+  `resolvePlan` fails closed to `community` for that shape, which is safe but
+  means a narrow window where a paying account looks free. Collapse into a
+  single write.
+
 ## Security (closed 2026-11-10)
 
 - [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`
