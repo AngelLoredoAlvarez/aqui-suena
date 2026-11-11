@@ -1,6 +1,6 @@
 # fix-paid-time-chaining
 
-Status: **not started.** Planned on 2026-11-10, to be executed in a later session.
+Status: **done.** Implemented 2026-11-11 on branch `fix/paid-time-chaining` with strict RED→GREEN TDD.
 
 Objective: stop the platform from discarding paid time. A new billing period must start where the paid period ends, never at `now` while paid time remains. Branch to create: `fix/paid-time-chaining`.
 
@@ -16,9 +16,9 @@ Test runner: `pnpm --filter @aqui-suena/api test`.
 
 ## Tasks
 
-- T1 / S1 — relax the `changePlan` guard to accept a `cancelled` subscription with paid time and chain `endsAt` on upgrade. NOT STARTED.
-- T2 / S2 — make `subscribe` resume a same-plan cancelled subscription. NOT STARTED.
-- T3 / S1-S2 — docs already updated (`SPEC-memberships.md`, "Paid time is never lost"); close this tracker with RED/GREEN evidence. NOT STARTED.
+- T1 / S1 — relax the `changePlan` guard to accept a `cancelled` subscription with paid time and chain `endsAt` on upgrade. DONE — RED: "upgrades a cancelled subscription that still has paid time" failed with `ConflictError: Subscription is not active`; GREEN after the guard accepts `cancelled` while `endsAt > now` and the upgrade chains from `paidUntil` (`2026-02-01 + 1 month = 2026-03-01`, not `2026-02-15`). Boundary guards added: reject past-period and at-exact-end.
+- T2 / S2 — make `subscribe` resume a same-plan cancelled subscription. DONE — RED: "reactivates a cancelled same-plan subscription instead of creating a second one" failed on a new id (second row); GREEN after `subscribe` finds the cancelled same-plan sub, extends `endsAt` by one period and reactivates it (exactly one row, `endsAt = 2026-03-01`).
+- T3 / S1-S2 — docs already updated (`SPEC-memberships.md`, "Paid time is never lost"); close this tracker with RED/GREEN evidence. DONE.
 
 ## Tests to write first (RED)
 
@@ -32,6 +32,13 @@ All four live in `packages/api/src/domain/billing/subscriptions/subscription-ser
 `startedAt` fixtures must be set explicitly. `InMemorySubscriptionRepository.create` defaults nothing, but `makeSubscription`-style helpers defaulting to `Date.now()` produced two false greens during the previous slice: a fixed `now` earlier than the default `startedAt` short-circuits on the `startedAt > now` guard.
 
 ## Log
+
+### L3 — 2026-11-11 — implemented with strict TDD
+
+- T1 (`changePlan`): relaxed the guard to accept `cancelled` while `endsAt > now` and changed the upgrade path to chain `endsAt` from `paidUntil` instead of `now`. Because the rule covers `active` too, the existing "upgrades at month-end" test was updated to pin the chained + clamped result (`addMonths(2026-01-31, 1) = 2026-02-28`).
+- T2 (`subscribe`): resume a same-plan cancelled subscription with paid time left — reactivate and extend `endsAt` by one period — instead of creating a second row. The service re-reads via `getById` after mutating so the D1 repository (which re-reads from the DB) returns fresh state, not the stale `listByAccount` snapshot.
+- Biome: the recommended preset forbids non-null assertions, so the paid-time condition carries the value (`paidUntil: Date | null`) and uses `??` instead of a boolean + `!`.
+- Verification: `tsc --noEmit` clean, full suite 663 tests green (77 files), `biome check` clean on the changed files.
 
 ### L2 — 2026-11-10 — decision recorded, no code yet
 

@@ -59,10 +59,32 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     const existing = await this.subscriptionRepo.listByAccount(accountId);
 
+    // A cancelled subscription for the same plan with paid time left is resumed
+    // instead of replaced, so the customer keeps the days they already paid for.
+    const cancelled = existing.find((sub) => sub.status === "cancelled" && sub.planId === planId);
+
+    // At most one active subscription per account.
     for (const sub of existing) {
       if (sub.status === "active") {
         await this.subscriptionRepo.updateStatus(sub.id, "cancelled");
       }
+    }
+
+    if (cancelled && cancelled.endsAt !== null && cancelled.endsAt > startedAt) {
+      await this.subscriptionRepo.updateEndsAt(
+        cancelled.id,
+        addMonths(cancelled.endsAt, PERIOD_MONTHS),
+      );
+
+      await this.subscriptionRepo.updateStatus(cancelled.id, "active");
+
+      const resumed = await this.subscriptionRepo.getById(cancelled.id);
+
+      if (!resumed) {
+        throw new NotFoundError("Subscription not found");
+      }
+
+      return resumed;
     }
 
     return this.subscriptionRepo.create(accountId, planId, startedAt, endsAt);
@@ -86,7 +108,12 @@ export class SubscriptionService {
       throw new NotFoundError("Subscription not found");
     }
 
-    if (current.status !== "active") {
+    // The instant the current period still has paid time for; null once it is
+    // over (or if it never ends). Paid time is never lost: a new period starts
+    // here instead of restarting at `now`.
+    const paidUntil = current.endsAt !== null && current.endsAt > now ? current.endsAt : null;
+
+    if (current.status !== "active" && !(current.status === "cancelled" && paidUntil !== null)) {
       throw new ConflictError("Subscription is not active");
     }
 
@@ -107,7 +134,9 @@ export class SubscriptionService {
     if (isUpgrade) {
       await this.subscriptionRepo.updateStatus(subscriptionId, "expired");
 
-      const endsAt = addMonths(now, PERIOD_MONTHS);
+      // An upgrade takes effect now but chains its period from the paid end,
+      // so the customer does not lose the days they already paid for.
+      const endsAt = addMonths(paidUntil ?? now, PERIOD_MONTHS);
 
       return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
     }

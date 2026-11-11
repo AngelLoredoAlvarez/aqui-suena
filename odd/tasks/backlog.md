@@ -88,10 +88,11 @@ branches. None of these blocks the product today.
 
 Detected while fixing `resolvePlan`. Neither blocks anything today.
 
-- [ ] `SubscriptionService.changePlan` and `.cancel` require `status === "active"`,
-  so an account that cancelled but still has paid time left cannot change plans
-  during the period it already paid for. Decide whether the paid tail should
-  allow a plan change and implement it against `endsAt`.
+- [ ] `SubscriptionService.cancel` still requires `status === "active"`, so a
+  second cancel on an already-cancelled subscription answers `ConflictError`
+  (non-idempotent). The `changePlan` half is DONE: `fix/paid-time-chaining`
+  (2026-11-11) accepts a `cancelled` subscription with paid time and chains the
+  upgrade period. Remaining: make `cancel` idempotent.
 - [ ] `failRenewal` writes status `grace` and `graceEnd` in two statements, so a
   `grace` subscription with `graceEnd === null` exists transiently.
   `resolvePlan` fails closed to `community` for that shape, which is safe but
