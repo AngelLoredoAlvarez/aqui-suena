@@ -12,6 +12,7 @@
 | 8   | invoice-cfdi   | Tu factura fiscal (CFDI) está lista         | Your tax invoice (CFDI) is ready         | Descargar factura -> downloadUrl        | Ver mi cuenta -> billingUrl | planName, invoiceId, issuedAt, amount, downloadUrl, billingUrl, appUrl, supportEmail |
 | 9   | welcome        | Bienvenido a Aquí Suena                     | Welcome to Aquí Suena                    | Ir a mi panel -> ownerPortalUrl         | Ver planes -> billingUrl    | businessName, recommendedPlan, ownerPortalUrl, billingUrl, appUrl, supportEmail      |
 | 10  | cancellation   | Tu cancelación ha sido confirmada           | Your cancellation has been confirmed     | Ver mi suscripción -> billingUrl        | Ver planes -> billingUrl    | activeUntil, planName, billingUrl, appUrl, supportEmail                              |
+| 11  | cancellation-immediate | Tu cancelación ha sido confirmada     | Your cancellation has been confirmed     | Ver mi suscripción -> billingUrl        | Ver planes -> billingUrl    | planName, billingUrl, appUrl, supportEmail                                           |
 
 ## Implementation status
 
@@ -28,7 +29,7 @@ Notifier owners (no production call site yet — no email is sent today):
 
 | Template                                                        | Notifier                                       |
 | --------------------------------------------------------------- | ---------------------------------------------- |
-| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation | `TemplateSubscriptionNotifier`                 |
+| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation, 11 cancellation-immediate | `TemplateSubscriptionNotifier`                 |
 | 4 renewal-7d, 5 renewal-1d                                      | `TemplateSubscriptionNotifier.renewalUpcoming` |
 | 6 verify-email, 9 welcome                                       | `TemplateAccountNotifier`                      |
 | 7 receipt                                                       | `TemplatePaymentNotifier.paymentReceipt`       |
