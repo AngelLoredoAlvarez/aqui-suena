@@ -104,11 +104,13 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
       .run();
   }
 
-  async updateGraceEnd(id: string, graceEnd: Date): Promise<void> {
+  async enterGrace(id: string, graceEnd: Date): Promise<void> {
     const now = new Date();
 
     await this.db
-      .prepare("UPDATE subscriptions SET grace_end = ?, updated_at = ? WHERE id = ?")
+      .prepare(
+        "UPDATE subscriptions SET status = 'grace', grace_end = ?, updated_at = ? WHERE id = ?",
+      )
       .bind(toEpoch(graceEnd), toEpoch(now), id)
       .run();
   }

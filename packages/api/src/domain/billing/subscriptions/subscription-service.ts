@@ -229,9 +229,7 @@ export class SubscriptionService {
 
     const graceEnd = graceDeadline(failedAt);
 
-    await this.subscriptionRepo.updateStatus(subscriptionId, "grace");
-
-    await this.subscriptionRepo.updateGraceEnd(subscriptionId, graceEnd);
+    await this.subscriptionRepo.enterGrace(subscriptionId, graceEnd);
 
     if (this.notifier && recipientEmail) {
       await this.notifier.renewalFailed({ email: recipientEmail, locale }, { graceEnd });
