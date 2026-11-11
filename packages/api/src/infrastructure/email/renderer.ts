@@ -10,7 +10,7 @@ import type {
 import en from "./en.json";
 import esMX from "./es-MX.json";
 
-type TemplateKey = "t1" | "t2" | "t3" | "t4" | "t5" | "t6" | "t7" | "t8" | "t9" | "t10";
+type TemplateKey = "t1" | "t2" | "t3" | "t4" | "t5" | "t6" | "t7" | "t8" | "t9" | "t10" | "t11";
 
 interface TemplateCopy {
   readonly s: string;
@@ -73,6 +73,7 @@ const TEMPLATE_META: Record<EmailTemplateId, TemplateMeta> = {
   },
   welcome: { key: "t9", ctaUrl: "ownerPortalUrl", secondaryUrl: "billingUrl" },
   cancellation: { key: "t10", ctaUrl: "billingUrl", secondaryUrl: "billingUrl" },
+  "cancellation-immediate": { key: "t11", ctaUrl: "billingUrl", secondaryUrl: "billingUrl" },
 };
 
 const F = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";

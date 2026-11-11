@@ -68,6 +68,19 @@ describe("TemplateSubscriptionNotifier", () => {
     expect(emailSender.sent[0]?.html).toContain("31 de marzo de 2026");
   });
 
+  it("sends the immediate cancellation template when there is no active-until date", async () => {
+    const { emailSender, notifier } = setup();
+
+    await notifier.cancelled(
+      { email: "owner@example.com", locale: "es-MX" },
+      { planName: "Oficios & Servicios", activeUntil: null },
+    );
+
+    expect(emailSender.sent[0]?.subject).toBe("Tu cancelación ha sido confirmada");
+    expect(emailSender.sent[0]?.html).toContain("Tu acceso termina de inmediato");
+    expect(emailSender.sent[0]?.html).not.toContain("se mantendrá activo hasta");
+  });
+
   it("sends the 7-day renewal template with the formatted date", async () => {
     const { emailSender, notifier } = setup();
 

@@ -24,7 +24,7 @@ export interface RenewalUpcomingNotification {
 
 export interface CancellationNotification {
   readonly planName: string;
-  readonly activeUntil: Date;
+  readonly activeUntil: Date | null;
 }
 
 /**

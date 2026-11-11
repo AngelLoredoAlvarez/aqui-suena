@@ -127,5 +127,18 @@
     ],
     "cta": "View my subscription",
     "c2": "View plans"
+  },
+  "t11": {
+    "s": "Your cancellation has been confirmed",
+    "pre": "Your subscription has been cancelled.",
+    "h": "Cancellation confirmed",
+    "p": [
+      "Your {planName} subscription has been cancelled.",
+      "Your access ends immediately.",
+      "No partial refunds are issued for unused time.",
+      "You can resubscribe at any time."
+    ],
+    "cta": "View my subscription",
+    "c2": "View plans"
   }
 }

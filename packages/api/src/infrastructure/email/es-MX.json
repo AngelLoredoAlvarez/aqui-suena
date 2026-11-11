@@ -127,5 +127,18 @@
     ],
     "cta": "Ver mi suscripción",
     "c2": "Ver planes"
+  },
+  "t11": {
+    "s": "Tu cancelación ha sido confirmada",
+    "pre": "Tu suscripción ha sido cancelada.",
+    "h": "Cancelación confirmada",
+    "p": [
+      "Tu suscripción al plan {planName} ha sido cancelada.",
+      "Tu acceso termina de inmediato.",
+      "No se realizan reembolsos parciales por tiempo no utilizado.",
+      "Puedes volver a suscribirte en cualquier momento."
+    ],
+    "cta": "Ver mi suscripción",
+    "c2": "Ver planes"
   }
 }

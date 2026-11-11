@@ -193,23 +193,26 @@ export class SubscriptionService {
       throw new NotFoundError("Subscription not found");
     }
 
-    // Idempotent: cancelling an already-cancelled subscription is a no-op, so a
-    // repeated cancel (double click, retried request) never throws nor re-notifies.
-    if (current.status === "cancelled") {
+    const wasActive = current.status === "active";
+
+    // Terminal states have nothing left to cancel: a repeated cancel on an
+    // already-cancelled subscription, or one on an expired subscription, is a
+    // no-op. Both active and grace transition to "cancelled".
+    if (current.status === "cancelled" || current.status === "expired") {
       return;
     }
 
-    if (current.status !== "active") {
-      throw new ConflictError("Subscription is not active");
-    }
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
 
-    if (this.notifier && recipientEmail && current.endsAt) {
+    if (this.notifier && recipientEmail) {
       const plan = await this.planRepo.getById(current.planId);
 
       await this.notifier.cancelled(
         { email: recipientEmail, locale },
-        { planName: plan?.name ?? current.planId, activeUntil: current.endsAt },
+        {
+          planName: plan?.name ?? current.planId,
+          activeUntil: wasActive ? current.endsAt : null,
+        },
       );
     }
   }
