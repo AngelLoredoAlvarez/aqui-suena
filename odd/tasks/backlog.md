@@ -92,11 +92,11 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
   (`fix/cancel-idempotent`): a second cancel on an already-cancelled
   subscription is a no-op (no throw, no re-notify). The `changePlan` half was
   done earlier in `fix/paid-time-chaining`.
-- [ ] `failRenewal` writes status `grace` and `graceEnd` in two statements, so a
-  `grace` subscription with `graceEnd === null` exists transiently.
-  `resolvePlan` fails closed to `community` for that shape, which is safe but
-  means a narrow window where a paying account looks free. Collapse into a
-  single write.
+- [x] `failRenewal` now enters grace in a single atomic write — DONE 2026-11-11
+  (`fix/fail-renewal-atomic`): the new `enterGrace` repository method sets
+  `status = 'grace'` and `graceEnd` in one operation, eliminating the transient
+  `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
+  removed.
 
 ## Security (closed 2026-11-10)
 
