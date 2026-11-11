@@ -59,10 +59,32 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     const existing = await this.subscriptionRepo.listByAccount(accountId);
 
+    // A cancelled subscription for the same plan with paid time left is resumed
+    // instead of replaced, so the customer keeps the days they already paid for.
+    const cancelled = existing.find((sub) => sub.status === "cancelled" && sub.planId === planId);
+
+    // At most one active subscription per account.
     for (const sub of existing) {
       if (sub.status === "active") {
         await this.subscriptionRepo.updateStatus(sub.id, "cancelled");
       }
+    }
+
+    if (cancelled && cancelled.endsAt !== null && cancelled.endsAt > startedAt) {
+      await this.subscriptionRepo.updateEndsAt(
+        cancelled.id,
+        addMonths(cancelled.endsAt, PERIOD_MONTHS),
+      );
+
+      await this.subscriptionRepo.updateStatus(cancelled.id, "active");
+
+      const resumed = await this.subscriptionRepo.getById(cancelled.id);
+
+      if (!resumed) {
+        throw new NotFoundError("Subscription not found");
+      }
+
+      return resumed;
     }
 
     return this.subscriptionRepo.create(accountId, planId, startedAt, endsAt);
