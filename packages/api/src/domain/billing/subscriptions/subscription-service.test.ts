@@ -408,6 +408,33 @@ describe("SubscriptionService.cancel", () => {
     expect(all).toHaveLength(1);
   });
 
+  it("is idempotent: a second cancel does not throw or re-notify", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const notifier = new FakeSubscriptionNotifier();
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+
+    const sub = await subRepo.create(
+      "acc-1",
+      "trades",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2026-02-01T00:00:00Z"),
+    );
+
+    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+
+    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+
+    const cancelled = await subRepo.getById(sub.id);
+
+    expect(cancelled?.status).toBe("cancelled");
+    expect(notifier.calls).toHaveLength(1);
+
+    const all = await subRepo.listByAccount("acc-1");
+
+    expect(all).toHaveLength(1);
+  });
+
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);

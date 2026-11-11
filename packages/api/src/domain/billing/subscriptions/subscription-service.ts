@@ -193,10 +193,15 @@ export class SubscriptionService {
       throw new NotFoundError("Subscription not found");
     }
 
+    // Idempotent: cancelling an already-cancelled subscription is a no-op, so a
+    // repeated cancel (double click, retried request) never throws nor re-notifies.
+    if (current.status === "cancelled") {
+      return;
+    }
+
     if (current.status !== "active") {
       throw new ConflictError("Subscription is not active");
     }
-
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
 
     if (this.notifier && recipientEmail && current.endsAt) {

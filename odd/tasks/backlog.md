@@ -88,11 +88,10 @@ branches. None of these blocks the product today.
 
 Detected while fixing `resolvePlan`. Neither blocks anything today.
 
-- [ ] `SubscriptionService.cancel` still requires `status === "active"`, so a
-  second cancel on an already-cancelled subscription answers `ConflictError`
-  (non-idempotent). The `changePlan` half is DONE: `fix/paid-time-chaining`
-  (2026-11-11) accepts a `cancelled` subscription with paid time and chains the
-  upgrade period. Remaining: make `cancel` idempotent.
+- [x] `SubscriptionService.cancel` is now idempotent — DONE 2026-11-11
+  (`fix/cancel-idempotent`): a second cancel on an already-cancelled
+  subscription is a no-op (no throw, no re-notify). The `changePlan` half was
+  done earlier in `fix/paid-time-chaining`.
 - [ ] `failRenewal` writes status `grace` and `graceEnd` in two statements, so a
   `grace` subscription with `graceEnd === null` exists transiently.
   `resolvePlan` fails closed to `community` for that shape, which is safe but
