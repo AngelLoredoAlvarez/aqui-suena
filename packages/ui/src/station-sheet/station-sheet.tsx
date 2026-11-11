@@ -1,6 +1,6 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
+import { useEscapeToClose } from "@aqui-suena/ui/station-sheet/use-escape-to-close";
 import { Button, isWeb, Paragraph, ScrollView, useMedia, XStack, YStack } from "tamagui";
-import { useEscapeToClose } from "./use-escape-to-close";
 
 export type SheetStation = {
   readonly id: string;

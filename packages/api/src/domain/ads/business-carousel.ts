@@ -1,12 +1,12 @@
+import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
+import { toCarouselItem } from "@aqui-suena/api/domain/ads/carousel-item";
 import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
+import { type CarouselSlotInput, selectCarouselSlots } from "@aqui-suena/api/domain/ads/ranking";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
 import { getEntitlements } from "@aqui-suena/api/domain/plans/entitlements";
-import { resolvePlan } from "./ad-plan";
-import { toCarouselItem } from "./carousel-item";
-import { type CarouselSlotInput, selectCarouselSlots } from "./ranking";
 
 export type BusinessCarouselDeps = {
   readonly businessRepository: BusinessRepository;

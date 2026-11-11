@@ -1,6 +1,5 @@
+import { createSupabaseClient } from "@aqui-suena/api/server/auth/supabase";
 import { describe, expect, it } from "vitest";
-
-import { createSupabaseClient } from "./supabase";
 
 describe("createSupabaseClient", () => {
   it("returns null when the url is missing", () => {

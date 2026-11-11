@@ -35,7 +35,7 @@
             "patterns": [
               {
                 "group": ["../**"],
-                "message": "Parent-relative imports are forbidden: use ./sibling or @aqui-suena/* aliases."
+                "message": "Parent-relative imports are forbidden: use @aqui-suena/* aliases."
               }
             ]
           }
@@ -91,6 +91,26 @@
         "rules": {
           "complexity": {
             "noImportantStyles": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/*/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["./**", "../**"],
+                    "message": "Relative imports are forbidden in packages: use @aqui-suena/* aliases."
+                  }
+                ]
+              }
+            }
           }
         }
       }

@@ -1,5 +1,5 @@
+import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { describe, expect, it } from "vitest";
-import { VectorizePlanVectorIndex } from "./vectorize-plan-index";
 
 function makeIndex(
   calls: { vector: number[]; options: unknown }[],

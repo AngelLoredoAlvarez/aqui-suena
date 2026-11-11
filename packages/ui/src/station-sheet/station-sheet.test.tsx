@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
+
+import type { SheetStation } from "@aqui-suena/ui/station-sheet/station-sheet";
+import { StationSheet } from "@aqui-suena/ui/station-sheet/station-sheet";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SheetStation } from "./station-sheet";
-import { StationSheet } from "./station-sheet";
 
 function manyStations(count: number): readonly SheetStation[] {
   return Array.from({ length: count }, (_, index) => ({

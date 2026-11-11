@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 
+import type { TrayBridge } from "@aqui-suena/player/tray/tray-bridge";
+import type {
+  TrayLabels,
+  TrayMenuModel,
+  TrayStation,
+} from "@aqui-suena/player/tray/tray-menu-model";
+import { type UseTraySyncInput, useTraySync } from "@aqui-suena/player/tray/use-tray-sync";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { TrayBridge } from "./tray-bridge";
-import type { TrayLabels, TrayMenuModel, TrayStation } from "./tray-menu-model";
-import { type UseTraySyncInput, useTraySync } from "./use-tray-sync";
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 

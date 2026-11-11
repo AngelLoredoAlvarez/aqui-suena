@@ -6,9 +6,8 @@ import type { Flyer } from "@aqui-suena/api/domain/directory/flyer";
 import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { Hour } from "@aqui-suena/api/domain/directory/hour";
 import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carousel";
 import { describe, expect, it } from "vitest";
-
-import { createCarouselRouter } from "./carousel";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {
   return {

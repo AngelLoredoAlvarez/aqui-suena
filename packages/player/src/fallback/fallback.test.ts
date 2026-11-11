@@ -1,6 +1,5 @@
+import { pickFallbackUrl } from "@aqui-suena/player/fallback/fallback";
 import { describe, expect, it } from "vitest";
-
-import { pickFallbackUrl } from "./fallback";
 
 // Slice (a): mirror fallback picker. Contract under test:
 // return the first candidate URL that was not tried yet,

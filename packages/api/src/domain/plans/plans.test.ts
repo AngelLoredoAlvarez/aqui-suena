@@ -1,6 +1,6 @@
+import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
+import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { describe, expect, it } from "vitest";
-import { ENTITLEMENTS } from "./entitlements";
-import { InMemoryPlanRepository } from "./plans";
 
 describe("InMemoryPlanRepository", () => {
   it("returns all seeded plans", async () => {

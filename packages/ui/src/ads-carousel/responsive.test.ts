@@ -1,7 +1,10 @@
 // packages/ui/src/ads-carousel/responsive.test.ts
 
+import {
+  getResponsiveCarouselMaxW,
+  getResponsiveFlyerWidth,
+} from "@aqui-suena/ui/ads-carousel/responsive";
 import { describe, expect, it } from "vitest";
-import { getResponsiveCarouselMaxW, getResponsiveFlyerWidth } from "./responsive";
 
 describe("getResponsiveCarouselMaxW", () => {
   it("returns 390 for mobile (no breakpoint)", () => {

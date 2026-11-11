@@ -1,6 +1,5 @@
+import { type CarouselItemSource, toCarouselItem } from "@aqui-suena/api/domain/ads/carousel-item";
 import { describe, expect, it } from "vitest";
-
-import { type CarouselItemSource, toCarouselItem } from "./carousel-item";
 
 const source: CarouselItemSource = {
   business: {

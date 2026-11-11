@@ -1,1 +1,1 @@
-export type { PlayerStatus } from "./status";
+export type { PlayerStatus } from "@aqui-suena/player/status/status";

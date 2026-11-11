@@ -1,31 +1,35 @@
-export type { MediaErrorDetail, MediaErrorKey, MediaFailure } from "./errors/errors";
-export { describeMediaError, narrowFailure } from "./errors/errors";
-export { STREAM_FALLBACK_URLS } from "./fallback/streams";
-export type { PlayerStatus } from "./status";
-export { cancelSafeSubscribe } from "./tray/cancel-safe-subscribe";
+export type {
+  MediaErrorDetail,
+  MediaErrorKey,
+  MediaFailure,
+} from "@aqui-suena/player/errors/errors";
+export { describeMediaError, narrowFailure } from "@aqui-suena/player/errors/errors";
+export { STREAM_FALLBACK_URLS } from "@aqui-suena/player/fallback/streams";
+export type { PlayerStatus } from "@aqui-suena/player/status";
+export { cancelSafeSubscribe } from "@aqui-suena/player/tray/cancel-safe-subscribe";
 export {
   CLOSE_TO_TRAY_STORAGE_KEY,
   DEFAULT_CLOSE_TO_TRAY,
   readStoredCloseToTray,
   type StringStorage,
   writeStoredCloseToTray,
-} from "./tray/close-to-tray-storage";
-export { noopTrayBridge } from "./tray/noop-tray-bridge";
-export type { TrayBridge, Unsubscribe } from "./tray/tray-bridge";
+} from "@aqui-suena/player/tray/close-to-tray-storage";
+export { noopTrayBridge } from "@aqui-suena/player/tray/noop-tray-bridge";
+export type { TrayBridge, Unsubscribe } from "@aqui-suena/player/tray/tray-bridge";
 export type {
   TrayLabels,
   TrayMenuModel,
   TrayStation,
   TrayStationEntry,
-} from "./tray/tray-menu-model";
-export { buildTrayMenuModel } from "./tray/tray-menu-model";
-export type { UseTraySyncInput } from "./tray/use-tray-sync";
-export { useTraySync } from "./tray/use-tray-sync";
+} from "@aqui-suena/player/tray/tray-menu-model";
+export { buildTrayMenuModel } from "@aqui-suena/player/tray/tray-menu-model";
+export type { UseTraySyncInput } from "@aqui-suena/player/tray/use-tray-sync";
+export { useTraySync } from "@aqui-suena/player/tray/use-tray-sync";
 export type {
   AudioDriver,
   AudioDriverEvent,
   NowPlayingMetadata,
   UsePlayerProps,
   UsePlayerReturn,
-} from "./use-player/use-player";
-export { usePlayer } from "./use-player/use-player";
+} from "@aqui-suena/player/use-player/use-player";
+export { usePlayer } from "@aqui-suena/player/use-player/use-player";

@@ -1,5 +1,5 @@
+import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import { describe, expect, it } from "vitest";
-import { WorkersAiEmbeddingModel } from "./workers-ai-embedding-model";
 
 function makeAi(
   calls: { model: string; inputs: unknown }[],

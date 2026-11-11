@@ -1,8 +1,8 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
+import { getPlaybackIcon, PlaybackIcon } from "@aqui-suena/ui/player-card/playback-icon";
+import type { PlayerCardStatus } from "@aqui-suena/ui/player-card/player-card.types";
+import { usePulse } from "@aqui-suena/ui/player-card/use-pulse";
 import { Button, YStack } from "tamagui";
-import { getPlaybackIcon, PlaybackIcon } from "./playback-icon";
-import type { PlayerCardStatus } from "./player-card.types";
-import { usePulse } from "./use-pulse";
 
 export function PlayButton({
   status,

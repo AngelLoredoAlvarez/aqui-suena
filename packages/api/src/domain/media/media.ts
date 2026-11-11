@@ -1,4 +1,4 @@
-import type { MediaKind } from "./storage";
+import type { MediaKind } from "@aqui-suena/api/domain/media/storage";
 
 export type Media = {
   id: string;

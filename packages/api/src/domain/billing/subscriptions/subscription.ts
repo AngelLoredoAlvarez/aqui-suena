@@ -1,6 +1,6 @@
+import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/grace";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
-import { isInGracePeriod } from "./grace";
 
 export const SUBSCRIPTION_STATUSES = ["active", "cancelled", "expired", "grace"] as const;
 

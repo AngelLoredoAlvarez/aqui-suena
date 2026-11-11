@@ -1,4 +1,4 @@
-import { resolveLocale, type SupportedLocale } from "./locales";
+import { resolveLocale, type SupportedLocale } from "@aqui-suena/ui/i18n/locales";
 
 // Platform boundary helpers. Detection input is injected (never read from a
 // global the shared package cannot see in tests): the web boundary passes

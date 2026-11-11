@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
 
+import { PlayerDock } from "@aqui-suena/ui/player-landing/player-dock";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-
-import { PlayerDock } from "./player-dock";
 
 describe("PlayerDock sheet placement", () => {
   afterEach(() => {

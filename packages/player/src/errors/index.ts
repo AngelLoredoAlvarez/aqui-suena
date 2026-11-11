@@ -1,2 +1,6 @@
-export type { MediaErrorDetail, MediaErrorKey, MediaFailure } from "./errors";
-export { describeMediaError, narrowFailure } from "./errors";
+export type {
+  MediaErrorDetail,
+  MediaErrorKey,
+  MediaFailure,
+} from "@aqui-suena/player/errors/errors";
+export { describeMediaError, narrowFailure } from "@aqui-suena/player/errors/errors";

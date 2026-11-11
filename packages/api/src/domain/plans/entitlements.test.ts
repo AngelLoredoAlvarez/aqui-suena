@@ -1,6 +1,3 @@
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
-import { describe, expect, it } from "vitest";
-
 import {
   assertCanCreateBusiness,
   assertCanCreateProduct,
@@ -12,7 +9,9 @@ import {
   isWithinProductQuota,
   parsePlanId,
   UpgradeRequired,
-} from "./entitlements";
+} from "@aqui-suena/api/domain/plans/entitlements";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import { describe, expect, it } from "vitest";
 
 describe("ENTITLEMENTS matrix", () => {
   it("defines community with zero products and one marketing photo", () => {

@@ -1,8 +1,8 @@
-export type { AdsCarouselItem, AdsCarouselProps } from "./ads-carousel";
-export { AdsCarousel } from "./ads-carousel";
-export type { LocaleContextValue, LocaleProviderProps } from "./i18n/locale-context";
-export { LocaleProvider, useLocale } from "./i18n/locale-context";
-export type { AsyncLocaleStore, LocaleStore } from "./i18n/locale-storage";
+export type { AdsCarouselItem, AdsCarouselProps } from "@aqui-suena/ui/ads-carousel";
+export { AdsCarousel } from "@aqui-suena/ui/ads-carousel";
+export type { LocaleContextValue, LocaleProviderProps } from "@aqui-suena/ui/i18n/locale-context";
+export { LocaleProvider, useLocale } from "@aqui-suena/ui/i18n/locale-context";
+export type { AsyncLocaleStore, LocaleStore } from "@aqui-suena/ui/i18n/locale-storage";
 export {
   detectNativeLocale,
   detectWebLocale,
@@ -11,17 +11,17 @@ export {
   loadPersistedLocaleAsync,
   savePersistedLocale,
   savePersistedLocaleAsync,
-} from "./i18n/locale-storage";
-export { LocaleSwitcher } from "./i18n/locale-switcher";
-export type { Dictionary, SupportedLocale } from "./i18n/locales";
-export { defaultLocale, en, es, getDictionary, resolveLocale } from "./i18n/locales";
-export type { OptimizedImageProps } from "./optimized-image";
-export { OptimizedImage } from "./optimized-image";
+} from "@aqui-suena/ui/i18n/locale-storage";
+export { LocaleSwitcher } from "@aqui-suena/ui/i18n/locale-switcher";
+export type { Dictionary, SupportedLocale } from "@aqui-suena/ui/i18n/locales";
+export { defaultLocale, en, es, getDictionary, resolveLocale } from "@aqui-suena/ui/i18n/locales";
+export type { OptimizedImageProps } from "@aqui-suena/ui/optimized-image";
+export { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 export type {
   PlayerCardProps,
   PlayerCardStatus,
   StationRef,
-} from "./player-card";
-export { PlayerCard } from "./player-card";
-export { PlayerLanding, useListenerStatus } from "./player-landing";
-export { SharedButton, UiProvider } from "./shared";
+} from "@aqui-suena/ui/player-card";
+export { PlayerCard } from "@aqui-suena/ui/player-card";
+export { PlayerLanding, useListenerStatus } from "@aqui-suena/ui/player-landing";
+export { SharedButton, UiProvider } from "@aqui-suena/ui/shared";

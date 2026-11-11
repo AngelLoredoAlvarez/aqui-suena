@@ -1,7 +1,11 @@
 import type { PlayerStatus } from "@aqui-suena/player/status";
+import type { TrayBridge } from "@aqui-suena/player/tray/tray-bridge";
+import {
+  buildTrayMenuModel,
+  type TrayLabels,
+  type TrayStation,
+} from "@aqui-suena/player/tray/tray-menu-model";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TrayBridge } from "./tray-bridge";
-import { buildTrayMenuModel, type TrayLabels, type TrayStation } from "./tray-menu-model";
 
 export type UseTraySyncInput = {
   readonly bridge: TrayBridge;

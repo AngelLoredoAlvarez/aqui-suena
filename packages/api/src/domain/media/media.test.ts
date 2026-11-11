@@ -1,5 +1,5 @@
+import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
 import { describe, expect, it } from "vitest";
-import { InMemoryMediaRepository } from "./media";
 
 describe("InMemoryMediaRepository", () => {
   it("creates a media record with generated id and createdAt", async () => {

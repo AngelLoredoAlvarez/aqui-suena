@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
+
+import { OptimizedImage } from "@aqui-suena/ui/optimized-image/optimized-image";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { OptimizedImage } from "./optimized-image";
 
 function wrapper({ children }: { children: ReactNode }) {
   return <UiProvider>{children}</UiProvider>;

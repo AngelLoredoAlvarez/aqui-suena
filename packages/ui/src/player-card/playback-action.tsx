@@ -1,5 +1,5 @@
-import { PlayButton } from "./play-button";
-import type { PlayerCardStatus } from "./player-card.types";
+import { PlayButton } from "@aqui-suena/ui/player-card/play-button";
+import type { PlayerCardStatus } from "@aqui-suena/ui/player-card/player-card.types";
 
 export type PlaybackActionProps = {
   readonly status: PlayerCardStatus;

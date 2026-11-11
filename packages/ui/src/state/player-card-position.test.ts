@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { describe, expect, it } from "vitest";
 import {
   loadPersistedPlayerCardPosition,
   loadPersistedPlayerCardPositionAsync,
@@ -8,7 +7,8 @@ import {
   type PlayerCardPositionStore,
   savePersistedPlayerCardPosition,
   savePersistedPlayerCardPositionAsync,
-} from "./player-card-position";
+} from "@aqui-suena/ui/state/player-card-position";
+import { describe, expect, it } from "vitest";
 
 function makeStore(initial: Record<string, string> = {}) {
   const data: Record<string, string> = { ...initial };

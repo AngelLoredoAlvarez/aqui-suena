@@ -2,14 +2,14 @@
 import { defaultStationId } from "@aqui-suena/config";
 import type { SupportedLocale } from "@aqui-suena/ui/i18n";
 import { LocaleProvider } from "@aqui-suena/ui/i18n";
+import { PlayerLanding } from "@aqui-suena/ui/player-landing/player-landing";
+import { useListenerStatus } from "@aqui-suena/ui/player-landing/use-listener-status";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PlayerLanding } from "./player-landing";
-import { useListenerStatus } from "./use-listener-status";
 
 // jsdom ships an Audio element whose play() is not implemented. Stub it so
 // the shared web driver resolves deterministically in these suites.

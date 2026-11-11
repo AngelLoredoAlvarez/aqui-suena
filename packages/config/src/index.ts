@@ -1,5 +1,5 @@
-export type { AppConfig } from "./tamagui.config";
-export { default as tamaguiConfig } from "./tamagui.config";
+export type { AppConfig } from "@aqui-suena/config/tamagui.config";
+export { default as tamaguiConfig } from "@aqui-suena/config/tamagui.config";
 
 export const appName = "Aquí Suena";
 

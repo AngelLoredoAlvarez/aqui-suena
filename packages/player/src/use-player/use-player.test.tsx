@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
+
+import type {
+  AudioDriver,
+  AudioDriverEvent,
+  NowPlayingMetadata,
+} from "@aqui-suena/player/use-player/use-player";
+import { usePlayer } from "@aqui-suena/player/use-player/use-player";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-
-import type { AudioDriver, AudioDriverEvent, NowPlayingMetadata } from "./use-player";
-import { usePlayer } from "./use-player";
 
 const URL_A = "https://ice1.example/live";
 const URL_B = "https://ice2.example/live";

@@ -1,6 +1,9 @@
+import {
+  GRACE_DAYS,
+  graceDeadline,
+  isInGracePeriod,
+} from "@aqui-suena/api/domain/billing/subscriptions/grace";
 import { describe, expect, it } from "vitest";
-
-import { GRACE_DAYS, graceDeadline, isInGracePeriod } from "./grace";
 
 describe("graceDeadline", () => {
   it("adds 7 days to the failed date", () => {

@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
+import { getResponsiveMaxW } from "@aqui-suena/ui/player-landing/responsive";
 import { describe, expect, it } from "vitest";
-
-import { getResponsiveMaxW } from "./responsive";
 
 describe("getResponsiveMaxW", () => {
   it("keeps the 390 mobile canvas below the md breakpoint", () => {

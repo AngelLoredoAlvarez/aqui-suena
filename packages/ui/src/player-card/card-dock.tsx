@@ -1,10 +1,10 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
+import { PlaybackAction } from "@aqui-suena/ui/player-card/playback-action";
+import type { PlayerCardProps } from "@aqui-suena/ui/player-card/player-card.types";
+import { PositionToggle } from "@aqui-suena/ui/player-card/position-toggle";
+import { StationButton } from "@aqui-suena/ui/player-card/station-button";
+import { StatusRow } from "@aqui-suena/ui/player-card/status-indicator";
 import { useMedia, XStack, YStack } from "tamagui";
-import { PlaybackAction } from "./playback-action";
-import type { PlayerCardProps } from "./player-card.types";
-import { PositionToggle } from "./position-toggle";
-import { StationButton } from "./station-button";
-import { StatusRow } from "./status-indicator";
 
 export function CardDock(props: PlayerCardProps) {
   const {

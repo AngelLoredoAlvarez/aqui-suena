@@ -2,6 +2,8 @@ import { type TrayBridge, type TrayLabels, usePlayer, useTraySync } from "@aqui-
 import { useExpoAudioDriver } from "@aqui-suena/ui/drivers";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { PlayerCard } from "@aqui-suena/ui/player-card";
+import { PlayerDock } from "@aqui-suena/ui/player-landing/player-dock";
+import { STATIONS, type TestChannel } from "@aqui-suena/ui/player-landing/test-channels";
 import type { PlayerCardPosition } from "@aqui-suena/ui/state";
 import { playerCardPositionAtom } from "@aqui-suena/ui/state";
 import {
@@ -12,8 +14,6 @@ import {
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Paragraph, useMedia, YStack } from "tamagui";
-import { PlayerDock } from "./player-dock";
-import { STATIONS, type TestChannel } from "./test-channels";
 
 export function StationPlayer({
   channel,

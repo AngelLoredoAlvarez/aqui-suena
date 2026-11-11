@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
+
+import { streamProxyUrl, useExpoAudioDriver } from "@aqui-suena/ui/drivers/expo-driver";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { streamProxyUrl, useExpoAudioDriver } from "./expo-driver";
 
 type PlayBehavior = { kind: "resolve" } | { kind: "reject"; error: unknown };
 

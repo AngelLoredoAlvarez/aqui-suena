@@ -1,2 +1,2 @@
-export { useExpoAudioDriver } from "./expo-driver";
-export { streamBaseUrl } from "./stream-base-url";
+export { useExpoAudioDriver } from "@aqui-suena/ui/drivers/expo-driver";
+export { streamBaseUrl } from "@aqui-suena/ui/drivers/stream-base-url";

@@ -1,6 +1,5 @@
+import { useLocale } from "@aqui-suena/ui/i18n/locale-context";
 import { Button, XStack } from "tamagui";
-
-import { useLocale } from "./locale-context";
 
 // Minimal shared locale switcher: two buttons, Tamagui primitives only,
 // no router. Rendered on the landing so the manual choice is one tap away

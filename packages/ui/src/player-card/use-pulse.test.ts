@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
+
+import { PULSE_INTERVAL_MS, usePulse } from "@aqui-suena/ui/player-card/use-pulse";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PULSE_INTERVAL_MS, usePulse } from "./use-pulse";
 
 describe("usePulse", () => {
   beforeEach(() => vi.useFakeTimers());
