@@ -56,6 +56,7 @@ export function createAppRouter(
     products: createProductsRouter({
       product: directoryRepositories.product,
       business: directoryRepositories.business,
+      subscription: directoryRepositories.subscription,
     }),
     services: createServicesRouter({
       service: directoryRepositories.service,
