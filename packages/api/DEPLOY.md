@@ -72,12 +72,19 @@ Replace `<worker>` with the deployed URL.
 
 ## Admin endpoints
 
-All three require `Authorization: Bearer <ADMIN_TOKEN>`; when `ADMIN_TOKEN` is
+All four require `Authorization: Bearer <ADMIN_TOKEN>`; when `ADMIN_TOKEN` is
 not configured or does not match they answer `404`, so the routes stay hidden.
 
 ```bash
 # Seed/update the D1 plan catalog (idempotent). Run once per environment.
 curl -fsS -X POST https://<worker>/admin/seed-plans \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+# -> {"seeded":3}
+
+# Seed the owned harness stations (idempotent). Requires STREAM_BASE_URL in the
+# environment; staging sets it in wrangler.toml. Production intentionally omits
+# it because the harness never ships to prod.
+curl -fsS -X POST https://<worker>/admin/seed-stations \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 # -> {"seeded":3}
 
@@ -95,6 +102,11 @@ staging, so its D1 plan catalog holds **0 rows**. Until the command above is
 executed, anything that reads plans from the database (plans listing,
 entitlements resolved from D1) sees an empty catalog. Run the seed once per
 environment after migrating D1; it is idempotent and safe to repeat.
+`POST /admin/seed-stations` has not been run either; until it is,
+`listener.getStatus` answers `NOT_FOUND` in staging because the Worker reads
+stations from D1. Staging also sets `FAKE_LISTENERS=1`, which simulates active
+listener sessions for demos; production leaves it unset and reports `0` until a
+real listener source exists.
 
 ## Wiring the clients afterward
 

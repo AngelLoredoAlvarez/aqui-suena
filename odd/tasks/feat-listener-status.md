@@ -22,11 +22,15 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
 
 ## Decisions required before implementation
 
-- D1 (station catalog): read stations from the existing D1 `stations` table
-  (recommended) or keep a typed config constant until production streams exist.
-- D2 (listener semantics): provider concurrent listeners (Icecast/AzuraCast
-  stats, recommended for the public counter), app sessions from
-  `listen_sessions` heartbeats (counts only our app), or hybrid.
+- D1 (station catalog): RESOLVED — the Worker reads the D1 `stations` table;
+  local Node keeps the in-memory harness. `POST /admin/seed-stations` seeds the
+  harness rows per environment with `STREAM_BASE_URL`.
+- D2 (listener semantics): PARTIAL — `listeners` sums active sessions from the
+  `listen_sessions` table (one row per listener session, `listeners` weight per
+  row) inside a 60s window. `FAKE_LISTENERS=1` (staging only) simulates the
+  heartbeat by refreshing one session per station before the same count query;
+  production without the flag reports `0`. A real provider or heartbeat writer
+  is still pending.
 - D3 (no data): when no provider is configured or it fails, return `0`, return
   the last known cached value, or hide the counter in the UI. A number shown to
   the listener must never be a fabricated constant.
@@ -63,18 +67,22 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
 
 ## Tasks
 
-- T1 (S1, D1, D5): station repository (InMemory + D1) and dev seed; align the
-  landing station id.
-- T2 (S1, S2): query handler reads the catalog; unknown id answers NOT_FOUND;
-  RED → GREEN tests.
-- T3 (S3, D2): provider stats adapter with cache, or the session-heartbeat
-  implementation, depending on the decision.
-- T4 (S4): client fetcher over HTTP with schema validation; remove the client
-  mock and its duplicate constant.
-- T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
+- [x] T1 (S1, D1, D5): station repository (InMemory + D1) and dev seed; align the
+  landing station id. DONE: `D1StationRepository`, `D1StationCatalogWriter` and
+  `POST /admin/seed-stations`; local Node uses the in-memory harness, the Worker
+  reads D1. Staging needs the seed run once (see `packages/api/DEPLOY.md`).
+- [x] T2 (S1, S2): query handler reads the catalog; unknown id answers NOT_FOUND;
+  RED → GREEN tests. DONE.
+- [x] T3 (S3, D2): provider stats adapter with cache, or the session-heartbeat
+  implementation, depending on the decision. PARTIAL: `ListenSessionRepository`
+  (InMemory + D1) and the simulated heartbeat (`FAKE_LISTENERS`) ship; the real
+  provider/heartbeat writer is pending.
+- [x] T4 (S4): client fetcher over HTTP with schema validation; remove the client
+  mock and its duplicate constant. DONE.
+- [ ] T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
   that is the decision.
-- T6 (S7): update `SPEC-radio-playback.md` (remove the mock success criterion)
-  and close the backlog item.
+- [ ] T6 (S7): update `SPEC-radio-playback.md` (remove the mock success criterion)
+  and close the backlog item. SPEC updated; backlog pending.
 
 ## Licensing prerequisite
 
@@ -99,3 +107,23 @@ catalog metadata. "Staging" is not a licensing exemption.
   and staging; third-party streams require an explicit license or written
   permission before entering the catalog. The spec was reviewed and is ready for
   a docs PR.
+- L3 (2026-11-13): T1 (harness part), T2 and T4 implemented. `listener.getStatus`
+  resolves the station from `InMemoryStationRepository` seeded with the harness
+  and answers `NOT_FOUND` for unknown ids; the client fetches over HTTP and the
+  duplicate mock is gone. `defaultStationId` is now `test-pop`. `listeners` is
+  `0` (honest unavailable value) until D2 is decided; the UI still renders the
+  counter, so D3 remains open. The D1 station repository is deferred until real
+  stations are seeded.
+- L4 (2026-11-13): D1 wiring completed. Added `D1StationRepository`, the
+  idempotent `D1StationCatalogWriter`, and `POST /admin/seed-stations` guarded
+  by `ADMIN_TOKEN`. The Worker now reads stations from D1; local Node keeps the
+  in-memory harness. The seed requires `STREAM_BASE_URL` and refuses to run
+  without it, so a localhost URL cannot reach a deployed database; staging sets
+  the variable in `wrangler.toml` and production leaves it unset because the
+  harness never ships to prod. Run the seed once per staging environment.
+- L5 (2026-11-13): Simulated listener counts implemented through the real
+  session path. `listen_sessions` is summed over a 60s window; staging sets
+  `FAKE_LISTENERS=1`, which upserts one weighted session per station before
+  reading the same count query. Local Node enables the flag; production leaves
+  it unset and reports 0. The client refetches every 30s. UI no-data state (D3)
+  remains open.
