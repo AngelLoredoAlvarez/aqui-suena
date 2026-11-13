@@ -4,6 +4,7 @@ import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/ac
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { cursorInputSchema } from "@aqui-suena/api/shared/pagination/input";
 import * as v from "valibot";
 
 const createFlyerInput = v.object({
@@ -25,7 +26,11 @@ export function createFlyersRouter(deps: FlyersRouterDeps) {
   const { flyer: repository, business } = deps;
 
   return router({
-    list: publicProcedure.query(async () => repository.list()),
+    list: publicProcedure
+      .input(v.optional(cursorInputSchema, { limit: 20 }))
+      .query(async ({ input }) => {
+        return repository.list({ limit: input.limit, cursor: input.cursor ?? null });
+      }),
 
     getById: publicProcedure
       .input(requiredId("Flyer id is required"))

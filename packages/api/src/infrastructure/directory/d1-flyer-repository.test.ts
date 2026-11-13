@@ -5,30 +5,32 @@ describe("D1FlyerRepository", () => {
   it("maps D1 rows into flyers", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "fly-1",
-              business_id: "biz-1",
-              url: "https://example.com/flyer.jpg",
-              replaced_at: 1700000000,
-              created_at: 1700000000,
-              updated_at: 1700000000,
-            },
-          ],
+        bind: () => ({
+          all: async () => ({
+            results: [
+              {
+                id: "fly-1",
+                business_id: "biz-1",
+                url: "https://example.com/flyer.jpg",
+                replaced_at: 1700000000,
+                created_at: 1700000000,
+                updated_at: 1700000000,
+              },
+            ],
+          }),
         }),
       }),
     } as unknown as D1Database;
 
     const repository = new D1FlyerRepository(fakeDb);
-    const flyers = await repository.list();
+    const page = await repository.list({ limit: 20, cursor: null });
 
-    expect(flyers).toHaveLength(1);
-    expect(flyers[0]?.id).toBe("fly-1");
-    expect(flyers[0]?.businessId).toBe("biz-1");
-    expect(flyers[0]?.url).toBe("https://example.com/flyer.jpg");
-    expect(flyers[0]?.replacedAt).toBeInstanceOf(Date);
-    expect(flyers[0]?.createdAt).toBeInstanceOf(Date);
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("fly-1");
+    expect(page.items[0]?.businessId).toBe("biz-1");
+    expect(page.items[0]?.url).toBe("https://example.com/flyer.jpg");
+    expect(page.items[0]?.replacedAt).toBeInstanceOf(Date);
+    expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
   });
 
   it("returns null when getById finds nothing", async () => {

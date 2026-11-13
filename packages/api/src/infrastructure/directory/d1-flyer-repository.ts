@@ -2,9 +2,13 @@ import type {
   CreateFlyerInput,
   Flyer,
   FlyerRepository,
+  ListFlyersInput,
   UpdateFlyerInput,
 } from "@aqui-suena/api/domain/directory/flyer";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import { decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
+import type { CursorPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateCursor } from "@aqui-suena/api/shared/pagination/page";
 
 type FlyerRow = {
   id: string;
@@ -18,17 +22,34 @@ type FlyerRow = {
 export class D1FlyerRepository implements FlyerRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Flyer[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT f.id, f.business_id, f.url, f.replaced_at, f.created_at, f.updated_at
-         FROM flyers f
-         JOIN businesses b ON b.id = f.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
+  async list(input: ListFlyersInput): Promise<CursorPage<Flyer>> {
+    const point = input.cursor === null ? null : decodeCursor(input.cursor);
 
-    return results.results.map((row) => this.mapRow(row as FlyerRow));
+    const base = `SELECT f.id, f.business_id, f.url, f.replaced_at, f.created_at, f.updated_at
+     FROM flyers f
+     JOIN businesses b ON b.id = f.business_id
+     WHERE b.hidden_at IS NULL`;
+
+    const sql =
+      point === null
+        ? `${base} ORDER BY f.created_at, f.id LIMIT ?`
+        : `${base} AND (f.created_at, f.id) > (?, ?) ORDER BY f.created_at, f.id LIMIT ?`;
+
+    const limitPlusOne = input.limit + 1;
+
+    const statement = this.db.prepare(sql);
+
+    const result =
+      point === null
+        ? await statement.bind(limitPlusOne).all()
+        : await statement.bind(point.createdAt, point.id, limitPlusOne).all();
+
+    const flyers = result.results.map((row) => this.mapRow(row as FlyerRow));
+
+    return paginateCursor(flyers, input.limit, (flyer) => ({
+      createdAt: toEpoch(flyer.createdAt),
+      id: flyer.id,
+    }));
   }
 
   async getById(id: string): Promise<Flyer | null> {

@@ -43,10 +43,10 @@ function setup(flyers = [sample]) {
 describe("flyers router", () => {
   it("lists flyers from the repository", async () => {
     const { caller } = setup();
-    const flyers = await caller.list();
+    const page = await caller.list();
 
-    expect(flyers).toHaveLength(1);
-    expect(flyers[0]?.id).toBe("fly-1");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("fly-1");
   });
 
   it("rejects getById with NOT_FOUND when nothing matches", async () => {

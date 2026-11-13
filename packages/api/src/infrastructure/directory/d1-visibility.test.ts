@@ -55,11 +55,11 @@ describe("D1 public visibility queries", () => {
 
   it("joins the parent business on every public child list", async () => {
     const { db, statements } = makeFakeDb();
+
     const repositories = [
       new D1ProductRepository(db),
       new D1ServiceRepository(db),
       new D1PhotoRepository(db),
-      new D1FlyerRepository(db),
       new D1HourRepository(db),
       new D1WorkEntryRepository(db),
     ];
@@ -68,7 +68,9 @@ describe("D1 public visibility queries", () => {
       await repository.list();
     }
 
-    expect(statements).toHaveLength(repositories.length);
+    await new D1FlyerRepository(db).list({ limit: 20, cursor: null });
+
+    expect(statements).toHaveLength(repositories.length + 1);
     for (const sql of statements) {
       expect(sql).toMatch(/JOIN businesses/);
       expect(sql).toMatch(/hidden_at IS NULL/);

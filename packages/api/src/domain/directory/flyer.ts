@@ -1,5 +1,7 @@
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+import { paginateKeyset } from "@aqui-suena/api/shared/pagination/keyset";
+import type { CursorPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type Flyer = {
   id: string;
@@ -9,6 +11,15 @@ export type Flyer = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type ListFlyersInput = {
+  limit: number;
+  cursor: string | null;
+};
+
+function toEpochSeconds(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}
 
 export type CreateFlyerInput = {
   businessId: string;
@@ -20,7 +31,7 @@ export type UpdateFlyerInput = {
 };
 
 export interface FlyerRepository {
-  list(): Promise<Flyer[]>;
+  list(input: ListFlyersInput): Promise<CursorPage<Flyer>>;
   getById(id: string): Promise<Flyer | null>;
   listByBusiness(businessId: string): Promise<Flyer[]>;
   create(input: CreateFlyerInput): Promise<Flyer>;
@@ -34,12 +45,19 @@ export class InMemoryFlyerRepository implements FlyerRepository {
     private readonly businesses?: BusinessRepository,
   ) {}
 
-  async list(): Promise<Flyer[]> {
-    if (this.businesses === undefined) return this.flyers;
+  async list(input: ListFlyersInput): Promise<CursorPage<Flyer>> {
+    let flyers = this.flyers;
 
-    const visible = await visibleBusinessIds(this.businesses);
+    if (this.businesses !== undefined) {
+      const visible = await visibleBusinessIds(this.businesses);
 
-    return this.flyers.filter((flyer) => visible.has(flyer.businessId));
+      flyers = flyers.filter((flyer) => visible.has(flyer.businessId));
+    }
+
+    return paginateKeyset(flyers, input, (flyer) => ({
+      createdAt: toEpochSeconds(flyer.createdAt),
+      id: flyer.id,
+    }));
   }
 
   async getById(id: string): Promise<Flyer | null> {

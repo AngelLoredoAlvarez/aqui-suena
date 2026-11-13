@@ -179,7 +179,9 @@ describe("hidden business visibility", () => {
     expect((await repositories.product.list()).map((item) => item.id)).toEqual(["product-visible"]);
     expect((await repositories.service.list()).map((item) => item.id)).toEqual(["service-visible"]);
     expect((await repositories.photo.list()).map((item) => item.id)).toEqual(["photo-visible"]);
-    expect((await repositories.flyer.list()).map((item) => item.id)).toEqual(["flyer-visible"]);
+    expect(
+      (await repositories.flyer.list({ limit: 20, cursor: null })).items.map((item) => item.id),
+    ).toEqual(["flyer-visible"]);
     expect((await repositories.hour.list()).map((item) => item.id)).toEqual(["hour-visible"]);
     expect((await repositories.workEntry.list()).map((item) => item.id)).toEqual(["work-visible"]);
   });

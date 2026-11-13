@@ -76,8 +76,10 @@ SOLID and CLEAN CODE mandatory.
   `list(input)` + `listAll()` escape hatch for internal consumers (carousel,
   visibility); `paginateCursor` refactored to a `toPoint` extractor. 719 tests
   green, typecheck clean.
-- T3 (S3, S4 — `flyers.list` keyset): same shape for `FlyerRepository.list`,
-  keeping the visibility filter. Route: teaching.
+- [x] T3 (S3, S4 — `flyers.list` keyset): same shape for `FlyerRepository.list`,
+  keeping the visibility filter. DONE: keyset `list(input)` on InMemory + D1
+  (JOIN + `(f.created_at, f.id)`); extracted `paginateKeyset` to shared and
+  refactored `business.ts` onto it. 727 tests green, typecheck clean.
 - T4 (S3, S4 — offset scoped lists): offset pagination for `businesses.listMine`,
   `media.listByOwner`, and `listByBusiness` across products, services, photos,
   work-entries, flyers. One commit per router. Route: teaching.
@@ -113,3 +115,7 @@ SOLID and CLEAN CODE mandatory.
   constraint did not fit the domain's `Date`). Discovered `list()` had two more
   consumers than scoped (carousel + visibility), now on `listAll`. 719 tests
   green, typecheck clean.
+- L6 (2026-11-12): T3 done — `flyers.list` keyset. Extracted `paginateKeyset`
+  (shared) from the duplicated InMemory sort/filter logic; `business.ts` now
+  uses it too. Applied the `listVisible` → `listAll` rename that was agreed in
+  T2 but had not landed in the T2 commit. 727 tests green, typecheck clean.
