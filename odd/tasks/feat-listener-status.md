@@ -27,10 +27,9 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
   harness rows per environment with `STREAM_BASE_URL`.
 - D2 (listener semantics): PARTIAL — `listeners` sums active sessions from the
   `listen_sessions` table (one row per listener session, `listeners` weight per
-  row) inside a 60s window. `FAKE_LISTENERS=1` (staging only) simulates the
-  heartbeat by refreshing one session per station before the same count query;
-  production without the flag reports `0`. A real provider or heartbeat writer
-  is still pending.
+  row) inside a 60s window. The simulated source was removed; the endpoint
+  reports `0` until the real heartbeat writer ships (see
+  `SPEC-live-listener-count.md`).
 - D3 (no data): when no provider is configured or it fails, return `0`, return
   the last known cached value, or hide the counter in the UI. A number shown to
   the listener must never be a fabricated constant.
@@ -75,8 +74,8 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
   RED → GREEN tests. DONE.
 - [x] T3 (S3, D2): provider stats adapter with cache, or the session-heartbeat
   implementation, depending on the decision. PARTIAL: `ListenSessionRepository`
-  (InMemory + D1) and the simulated heartbeat (`FAKE_LISTENERS`) ship; the real
-  provider/heartbeat writer is pending.
+  (InMemory + D1) ships; the simulated source was removed and the real
+  heartbeat writer is pending.
 - [x] T4 (S4): client fetcher over HTTP with schema validation; remove the client
   mock and its duplicate constant. DONE.
 - [ ] T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
@@ -140,3 +139,8 @@ catalog metadata. "Staging" is not a licensing exemption.
   and the three harness loops are five minutes long. The harness audio files are
   gitignored operator artifacts: they are included when deploying from this
   machine but are not part of the commit.
+- L8 (2026-11-13): Simulated listener source removed on
+  `chore/remove-fake-listeners`: `FAKE_LISTENERS`, its flag plumbing and the
+  fake generator are gone. `listener.getStatus` now only sums real
+  `listen_sessions`, so it reports `0` until the heartbeat writer from
+  `SPEC-live-listener-count.md` ships.

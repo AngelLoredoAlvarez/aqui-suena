@@ -192,7 +192,7 @@ Conventions: zod-validated inputs in tRPC, media errors mapped via `describeMedi
 - Persistence: player shell persists across all routes and sheets; opening a listing, carousel card, or owner link never pauses or unmounts audio. Dock position (`top` | `bottom`) is user-selectable and persisted.
 - UI: `PlayerCard` renders with Tamagui on web and native from the same code, themes/tokens apply, no web-only CSS leak.
 - Responsive: at 1440×900 the dock spans the canvas (24px side margins) and the station selector stays ≤480px at the dock's right edge; at 390 the mobile column is unchanged; no horizontal scroll at 390/768/1024/1440.
-- tRPC `listener.getStatus` resolves `stationId` against the station catalog and returns 200 with `{ station, activeUrl, listeners }`; an unknown station answers `NOT_FOUND`. `listeners` sums active `listen_sessions` inside a 60s window; staging enables simulated sessions through `FAKE_LISTENERS=1`, while production without the flag reports `0` until a real source exists.
+- tRPC `listener.getStatus` resolves `stationId` against the station catalog and returns 200 with `{ station, activeUrl, listeners }`; an unknown station answers `NOT_FOUND`. `listeners` sums active `listen_sessions` inside a 60s window; it reports `0` until clients send real heartbeats (see `SPEC-live-listener-count.md`).
 
 ## Open Questions
 

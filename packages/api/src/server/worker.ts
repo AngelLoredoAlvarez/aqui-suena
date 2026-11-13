@@ -49,8 +49,6 @@ export interface WorkerEnv {
    * written to a deployed database.
    */
   STREAM_BASE_URL?: string;
-  /** Enables simulated listener sessions; staging only, never production. */
-  FAKE_LISTENERS?: string;
   /**
    * R2 (S3-compatible) credentials for media storage. When all three are
    * absent media is reported as unconfigured; a partial set is a configuration
@@ -191,7 +189,6 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     subscriptionNotifier,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     listenSessionRepository: new D1ListenSessionRepository(env.aqui_suena_db),
-    fakeListeners: env.FAKE_LISTENERS === "1" || env.FAKE_LISTENERS === "true",
     logRequests: false,
   });
 

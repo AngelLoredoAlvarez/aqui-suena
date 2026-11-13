@@ -25,7 +25,6 @@ export function createAppRouter(
   directoryRepositories: DirectoryRepositories,
   stationRepository: StationRepository,
   listenSessions: ListenSessionRepository,
-  fakeListeners: boolean,
   ai: AiBinding | undefined,
   planCatalogRetriever: PlanCatalogRetriever | undefined,
   aiGatewayId: string | undefined,
@@ -51,7 +50,7 @@ export function createAppRouter(
       hour: directoryRepositories.hour,
       business: directoryRepositories.business,
     }),
-    listener: createListenerRouter(stationRepository, listenSessions, fakeListeners),
+    listener: createListenerRouter(stationRepository, listenSessions),
     media: createMediaRouter(directoryRepositories.media, mediaStorage),
     photos: createPhotosRouter({
       photo: directoryRepositories.photo,

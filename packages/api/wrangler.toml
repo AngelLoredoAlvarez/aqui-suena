@@ -43,8 +43,6 @@ AI_GATEWAY_ID = "aqui-suena"
 # Base URL used by POST /admin/seed-stations for the owned harness files.
 # Production intentionally omits it: the harness never ships to prod.
 STREAM_BASE_URL = "https://aqui-suena-web-staging.pages.dev"
-# Simulated listener sessions for staging demos. Production leaves it unset.
-FAKE_LISTENERS = "1"
 
 [[env.staging.d1_databases]]
 binding = "aqui_suena_db"

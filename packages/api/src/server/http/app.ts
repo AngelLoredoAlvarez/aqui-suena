@@ -40,7 +40,6 @@ export interface AppOptions {
   directoryRepositories?: DirectoryRepositories;
   stationRepository?: StationRepository;
   listenSessionRepository?: ListenSessionRepository;
-  fakeListeners?: boolean;
   mediaStorage?: ObjectStorage;
   subscriptionNotifier?: SubscriptionNotifier;
   logger?: RequestLogger;
@@ -60,7 +59,6 @@ export function createApp(options: AppOptions): Hono {
     directoryRepositories,
     stationRepository,
     listenSessionRepository,
-    options.fakeListeners ?? false,
     options.ai,
     options.planCatalogRetriever,
     options.aiGatewayId,
