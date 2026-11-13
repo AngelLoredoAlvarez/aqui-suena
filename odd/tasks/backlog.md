@@ -127,7 +127,7 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 
 - Android media notification (cosmetic, dev assets only): the system notification
   may show an inert "previous" button and a progress bar for finite dev assets
-  (test-pop.m4a, etc.). Root cause: expo-audio's `AudioLockScreenOptions`
+  (aqui-suena-pop.m4a, etc.). Root cause: expo-audio's `AudioLockScreenOptions`
   (`showPreviousTrack`, `showNextTrack`, `isLiveStream`) are already set to
   hide these, but Android's `MediaStyle` notification can still render default
   transport controls and a progress bar for media items with a known duration.

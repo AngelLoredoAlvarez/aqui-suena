@@ -219,4 +219,4 @@ when the app leaves the foreground. Lock screen controls are optional on iOS.
 After installing, open the app and press play. The station should reach the
 playing state and switch between Test Pop, Test Jingle, and Test Night. If it
 fails, check that the Worker `/health` responds and that the Pages
-`/test-streams/test-pop.m4a` URL returns `audio/mp4`.
+`/test-streams/aqui-suena-pop.m4a` URL returns `audio/mp4`.

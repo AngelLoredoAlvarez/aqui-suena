@@ -2,7 +2,7 @@
 
 ## Objective
 
-Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and native with autoplay on app open, play/pause, status indication, and basic metadata. The harness is exactly 3 self-hosted dev channels (test-pop, test-jingle, test-night; see Dev channels below) plus optional indie streams used only with prior written permission. The client connects directly to operator URLs: no proxying, re-serving, caching, or transcoding. A proof file tracks the harness itself (this table plus the generation approach); no license entries are needed while all channels are synthesized and owned. User: a listener who opens the app and hears audio without pressing play on first visit ("listen and discover shops"). Success = audio starts automatically with fallback if a mirror fails or autoplay is blocked.
+Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and native with autoplay on app open, play/pause, status indication, and basic metadata. The harness is exactly 3 self-hosted dev channels (aqui-suena-pop, aqui-suena-focus, aqui-suena-night; see Dev channels below) plus optional indie streams used only with prior written permission. The client connects directly to operator URLs: no proxying, re-serving, caching, or transcoding. A proof file tracks the harness itself (this table plus the generation approach); no license entries are needed while all channels are synthesized and owned. User: a listener who opens the app and hears audio without pressing play on first visit ("listen and discover shops"). Success = audio starts automatically with fallback if a mirror fails or autoplay is blocked.
 
 ## Tech Stack
 
@@ -111,11 +111,11 @@ Explicitly forbidden: embedding SomaFM, Radio Paradise, NCS, Nightride, or any c
 
 ### Dev channels (exactly 3)
 
-| id          | Content                                                                     | URL (dev)                     | License                                     |
-| ----------- | --------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------- |
-| test-pop    | Upbeat synthesized loop (major arpeggio motif, ffmpeg-only)                 | /test-streams/test-pop.m4a    | Owned (ffmpeg synthesis, no license needed) |
-| test-jingle | Synthesized station-ID jingle (three-tone 1-2-3 sine motif, ~2s, no speech) | /test-streams/test-jingle.m4a | Owned (ffmpeg synthesis, no license needed) |
-| test-night  | Chill synthesized loop (low major motif, ffmpeg-only)                       | /test-streams/test-night.m4a  | Owned (ffmpeg synthesis, no license needed) |
+| id               | Content                                                                     | URL (dev)                          | License                                     |
+| ---------------- | --------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------- |
+| aqui-suena-pop   | Upbeat synthesized loop (major arpeggio motif, ffmpeg-only)                 | /test-streams/aqui-suena-pop.m4a   | Owned (ffmpeg synthesis, no license needed) |
+| aqui-suena-focus | Synthesized station-ID jingle (three-tone 1-2-3 sine motif, ~2s, no speech) | /test-streams/aqui-suena-focus.m4a | Owned (ffmpeg synthesis, no license needed) |
+| aqui-suena-night | Chill synthesized loop (low major motif, ffmpeg-only)                       | /test-streams/aqui-suena-night.m4a | Owned (ffmpeg synthesis, no license needed) |
 
 Binary state: the M4A/AAC files are planned but gitignored — generated locally with ffmpeg only using the native AAC encoder (`-c:a aac`) (sine-motif synthesis for all three channels) and never committed. MP3 output is unsupported on minimal ffmpeg builds without libmp3lame (encoder not found), so AAC is required for browser + Expo compatibility. CC-track loops may replace pop/night later, with per-track license URLs recorded in the proof file. Only the generation approach and this table are versioned. No recording, no downloads, and no TTS engine required.
 Serving: dev serves the files from Next `public/` (`apps/web/public/test-streams/`), reachable at `http://localhost:3000/test-streams/<file>.m4a` on desktop and via the machine LAN IP from Expo devices (native base URL comes from `EXPO_PUBLIC_STREAM_BASE_URL`, never hardcoded). No deployment is needed in dev. Switching channels pauses the previous station before starting the new one, so two streams never overlap.
