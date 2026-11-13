@@ -1,6 +1,3 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
-
 export type Hour = {
   id: string;
   businessId: string;
@@ -23,7 +20,6 @@ export type UpdateHourInput = {
 };
 
 export interface HourRepository {
-  list(): Promise<Hour[]>;
   getById(id: string): Promise<Hour | null>;
   listByBusiness(businessId: string): Promise<Hour[]>;
   create(input: CreateHourInput): Promise<Hour>;
@@ -32,25 +28,16 @@ export interface HourRepository {
 }
 
 export class InMemoryHourRepository implements HourRepository {
-  constructor(
-    private readonly hours: Hour[],
-    private readonly businesses?: BusinessRepository,
-  ) {}
-
-  async list(): Promise<Hour[]> {
-    if (this.businesses === undefined) return this.hours;
-
-    const visible = await visibleBusinessIds(this.businesses);
-
-    return this.hours.filter((hour) => visible.has(hour.businessId));
-  }
+  constructor(private readonly hours: Hour[]) {}
 
   async getById(id: string): Promise<Hour | null> {
     return this.hours.find((hour) => hour.id === id) ?? null;
   }
 
   async listByBusiness(businessId: string): Promise<Hour[]> {
-    return this.hours.filter((hour) => hour.businessId === businessId);
+    return this.hours
+      .filter((hour) => hour.businessId === businessId)
+      .sort((a, b) => a.day - b.day);
   }
 
   async create(input: CreateHourInput): Promise<Hour> {

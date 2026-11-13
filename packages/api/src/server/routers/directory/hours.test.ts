@@ -1,6 +1,6 @@
 import type { Business } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { type Hour, InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
 import { describe, expect, it } from "vitest";
 
@@ -28,11 +28,11 @@ const business: Business = {
   updatedAt: new Date("2024-01-01T00:00:00Z"),
 };
 
-function setup(hours = [sample]) {
+function setup(hours: Hour[] = [sample], businesses: Business[] = [business]) {
   const repository = new InMemoryHourRepository(hours);
   const router = createHoursRouter({
     hour: repository,
-    business: new InMemoryBusinessRepository([business]),
+    business: new InMemoryBusinessRepository(businesses),
   });
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
@@ -40,12 +40,31 @@ function setup(hours = [sample]) {
 }
 
 describe("hours router", () => {
-  it("lists hours from the repository", async () => {
+  it("lists hours from the repository scoped to a business", async () => {
     const { caller } = setup();
-    const hours = await caller.list();
+    const hours = await caller.listByBusiness({ businessId: "biz-1" });
 
     expect(hours).toHaveLength(1);
     expect(hours[0]?.id).toBe("hr-1");
+  });
+
+  it("orders hours by day", async () => {
+    const { caller } = setup([
+      { ...sample, id: "hr-2", day: 3, openMinute: 540, closeMinute: 1080 },
+      sample,
+    ]);
+
+    const hours = await caller.listByBusiness({ businessId: "biz-1" });
+
+    expect(hours.map((hour) => hour.day)).toEqual([1, 3]);
+  });
+
+  it("rejects listing hours of a hidden business with NOT_FOUND", async () => {
+    const { caller } = setup([], [{ ...business, hiddenAt: new Date("2024-02-01T00:00:00Z") }]);
+
+    await expect(caller.listByBusiness({ businessId: "biz-1" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects getById with NOT_FOUND when nothing matches", async () => {

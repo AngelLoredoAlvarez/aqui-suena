@@ -6,7 +6,7 @@ import type { BusinessRepository } from "@aqui-suena/api/domain/directory/busine
  * in any public list.
  */
 export async function visibleBusinessIds(repository: BusinessRepository): Promise<Set<string>> {
-  const businesses = await repository.list();
+  const businesses = await repository.listAll();
 
   return new Set(businesses.map((business) => business.id));
 }

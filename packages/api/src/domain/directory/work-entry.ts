@@ -1,5 +1,6 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type WorkEntry = {
   id: string;
@@ -21,35 +22,35 @@ export type UpdateWorkEntryInput = {
   description?: string | null;
 };
 
+export type ListWorkEntriesByBusinessInput = {
+  businessId: string;
+  limit: number;
+  offset: number;
+};
+
+function toWorkEntryPoint(entry: WorkEntry): CursorPoint {
+  return { createdAt: toEpochSeconds(entry.createdAt), id: entry.id };
+}
+
 export interface WorkEntryRepository {
-  list(): Promise<WorkEntry[]>;
   getById(id: string): Promise<WorkEntry | null>;
-  listByBusiness(businessId: string): Promise<WorkEntry[]>;
+  listByBusiness(input: ListWorkEntriesByBusinessInput): Promise<OffsetPage<WorkEntry>>;
   create(input: CreateWorkEntryInput): Promise<WorkEntry>;
   update(id: string, input: UpdateWorkEntryInput): Promise<WorkEntry | null>;
   delete(id: string): Promise<boolean>;
 }
 
 export class InMemoryWorkEntryRepository implements WorkEntryRepository {
-  constructor(
-    private readonly workEntries: WorkEntry[],
-    private readonly businesses?: BusinessRepository,
-  ) {}
-
-  async list(): Promise<WorkEntry[]> {
-    if (this.businesses === undefined) return this.workEntries;
-
-    const visible = await visibleBusinessIds(this.businesses);
-
-    return this.workEntries.filter((entry) => visible.has(entry.businessId));
-  }
+  constructor(private readonly workEntries: WorkEntry[]) {}
 
   async getById(id: string): Promise<WorkEntry | null> {
     return this.workEntries.find((entry) => entry.id === id) ?? null;
   }
 
-  async listByBusiness(businessId: string): Promise<WorkEntry[]> {
-    return this.workEntries.filter((entry) => entry.businessId === businessId);
+  async listByBusiness(input: ListWorkEntriesByBusinessInput): Promise<OffsetPage<WorkEntry>> {
+    const owned = this.workEntries.filter((entry) => entry.businessId === input.businessId);
+
+    return paginateOffsetRows(owned, input, toWorkEntryPoint);
   }
 
   async create(input: CreateWorkEntryInput): Promise<WorkEntry> {

@@ -4,6 +4,7 @@ import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/ac
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
 import * as v from "valibot";
 
 const photoKind = v.picklist(["logo", "product", "work"]);
@@ -33,7 +34,18 @@ export function createPhotosRouter(deps: PhotosRouterDeps) {
   const { photo: repository, business } = deps;
 
   return router({
-    list: publicProcedure.query(async () => repository.list()),
+    listByBusiness: publicProcedure
+      .input(
+        v.object({
+          businessId: v.pipe(v.string(), v.minLength(1)),
+          ...offsetPageEntries,
+        }),
+      )
+      .query(async ({ input }) => {
+        requireFound(await business.getById(input.businessId), "Business not found");
+
+        return repository.listByBusiness(input);
+      }),
 
     getById: publicProcedure
       .input(requiredId("Photo id is required"))

@@ -5,30 +5,32 @@ describe("D1WorkEntryRepository", () => {
   it("maps D1 rows into work entries", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "we-1",
-              business_id: "biz-1",
-              title: "Reparación de laptop",
-              description: "Cambio de pantalla",
-              created_at: 1700000000,
-              updated_at: 1700000000,
-            },
-          ],
+        bind: () => ({
+          all: async () => ({
+            results: [
+              {
+                id: "we-1",
+                business_id: "biz-1",
+                title: "Reparación de laptop",
+                description: "Cambio de pantalla",
+                created_at: 1700000000,
+                updated_at: 1700000000,
+              },
+            ],
+          }),
         }),
       }),
     } as unknown as D1Database;
 
     const repository = new D1WorkEntryRepository(fakeDb);
-    const entries = await repository.list();
+    const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
-    expect(entries).toHaveLength(1);
-    expect(entries[0]?.id).toBe("we-1");
-    expect(entries[0]?.businessId).toBe("biz-1");
-    expect(entries[0]?.title).toBe("Reparación de laptop");
-    expect(entries[0]?.description).toBe("Cambio de pantalla");
-    expect(entries[0]?.createdAt).toBeInstanceOf(Date);
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("we-1");
+    expect(page.items[0]?.businessId).toBe("biz-1");
+    expect(page.items[0]?.title).toBe("Reparación de laptop");
+    expect(page.items[0]?.description).toBe("Cambio de pantalla");
+    expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
   });
 
   it("returns null when getById finds nothing", async () => {
@@ -66,10 +68,10 @@ describe("D1WorkEntryRepository", () => {
     } as unknown as D1Database;
 
     const repository = new D1WorkEntryRepository(fakeDb);
-    const entries = await repository.listByBusiness("biz-1");
+    const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
-    expect(entries).toHaveLength(1);
-    expect(entries[0]?.businessId).toBe("biz-1");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.businessId).toBe("biz-1");
   });
 
   it("creates a work entry and returns it with generated id and timestamps", async () => {

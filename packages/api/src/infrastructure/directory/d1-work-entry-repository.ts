@@ -1,10 +1,13 @@
 import type {
   CreateWorkEntryInput,
+  ListWorkEntriesByBusinessInput,
   UpdateWorkEntryInput,
   WorkEntry,
   WorkEntryRepository,
 } from "@aqui-suena/api/domain/directory/work-entry";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type WorkEntryRow = {
   id: string;
@@ -18,19 +21,6 @@ type WorkEntryRow = {
 export class D1WorkEntryRepository implements WorkEntryRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<WorkEntry[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT w.id, w.business_id, w.title, w.description, w.created_at, w.updated_at
-         FROM work_entries w
-         JOIN businesses b ON b.id = w.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
-
-    return results.results.map((row) => this.mapRow(row as WorkEntryRow));
-  }
-
   async getById(id: string): Promise<WorkEntry | null> {
     const row = await this.db
       .prepare(
@@ -42,15 +32,19 @@ export class D1WorkEntryRepository implements WorkEntryRepository {
     return row ? this.mapRow(row as WorkEntryRow) : null;
   }
 
-  async listByBusiness(businessId: string): Promise<WorkEntry[]> {
+  async listByBusiness(input: ListWorkEntriesByBusinessInput): Promise<OffsetPage<WorkEntry>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, title, description, created_at, updated_at FROM work_entries WHERE business_id = ?",
+        "SELECT id, business_id, title, description, created_at, updated_at FROM work_entries WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
       )
-      .bind(businessId)
+      .bind(input.businessId, input.limit, input.offset)
       .all();
 
-    return results.results.map((row) => this.mapRow(row as WorkEntryRow));
+    return paginateOffset(
+      results.results.map((row) => this.mapRow(row as WorkEntryRow)),
+      input.limit,
+      input.offset,
+    );
   }
 
   async create(input: CreateWorkEntryInput): Promise<WorkEntry> {

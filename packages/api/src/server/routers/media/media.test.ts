@@ -166,9 +166,45 @@ describe("media router", () => {
 
     await caller.confirm({ key, kind: "avatar", contentType: "image/png", sizeBytes: 512 });
 
-    const list = await caller.list();
+    const page = await caller.list();
 
-    expect(list).toHaveLength(1);
+    expect(page.items).toHaveLength(1);
+    expect(page).toMatchObject({ limit: 20, offset: 0, nextOffset: null });
+  });
+
+  it("pages the owner's media and rejects out-of-range values", async () => {
+    const { caller, repository } = setup();
+
+    await repository.create({
+      ownerId: "acc-1",
+      kind: "avatar",
+      r2Key: "k1",
+      mime: "image/png",
+      size: 1,
+    });
+    await repository.create({
+      ownerId: "acc-1",
+      kind: "avatar",
+      r2Key: "k2",
+      mime: "image/png",
+      size: 1,
+    });
+    await repository.create({
+      ownerId: "acc-2",
+      kind: "avatar",
+      r2Key: "k3",
+      mime: "image/png",
+      size: 1,
+    });
+
+    const page = await caller.list({ limit: 1 });
+
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.ownerId).toBe("acc-1");
+    expect(page.nextOffset).toBe(1);
+
+    await expect(caller.list({ limit: 101 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.list({ offset: -1 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("delete removes from repo and storage", async () => {

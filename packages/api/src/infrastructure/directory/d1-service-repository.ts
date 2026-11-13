@@ -1,10 +1,13 @@
 import type {
   CreateServiceInput,
+  ListServicesByBusinessInput,
   Service,
   ServiceRepository,
   UpdateServiceInput,
 } from "@aqui-suena/api/domain/directory/service";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type ServiceRow = {
   id: string;
@@ -19,19 +22,6 @@ type ServiceRow = {
 export class D1ServiceRepository implements ServiceRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Service[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT s.id, s.business_id, s.name, s.description, s.base_price, s.created_at, s.updated_at
-         FROM services s
-         JOIN businesses b ON b.id = s.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
-
-    return results.results.map((row) => this.mapRow(row as ServiceRow));
-  }
-
   async getById(id: string): Promise<Service | null> {
     const row = await this.db
       .prepare(
@@ -43,15 +33,19 @@ export class D1ServiceRepository implements ServiceRepository {
     return row ? this.mapRow(row as ServiceRow) : null;
   }
 
-  async listByBusiness(businessId: string): Promise<Service[]> {
+  async listByBusiness(input: ListServicesByBusinessInput): Promise<OffsetPage<Service>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, name, description, base_price, created_at, updated_at FROM services WHERE business_id = ?",
+        "SELECT id, business_id, name, description, base_price, created_at, updated_at FROM services WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
       )
-      .bind(businessId)
+      .bind(input.businessId, input.limit, input.offset)
       .all();
 
-    return results.results.map((row) => this.mapRow(row as ServiceRow));
+    return paginateOffset(
+      results.results.map((row) => this.mapRow(row as ServiceRow)),
+      input.limit,
+      input.offset,
+    );
   }
 
   async create(data: CreateServiceInput): Promise<Service> {

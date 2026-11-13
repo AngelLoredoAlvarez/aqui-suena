@@ -5,22 +5,24 @@ describe("D1HourRepository", () => {
   it("maps D1 rows into hours", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "hr-1",
-              business_id: "biz-1",
-              day: 1,
-              open_minute: 540,
-              close_minute: 1080,
-            },
-          ],
+        bind: () => ({
+          all: async () => ({
+            results: [
+              {
+                id: "hr-1",
+                business_id: "biz-1",
+                day: 1,
+                open_minute: 540,
+                close_minute: 1080,
+              },
+            ],
+          }),
         }),
       }),
     } as unknown as D1Database;
 
     const repository = new D1HourRepository(fakeDb);
-    const hours = await repository.list();
+    const hours = await repository.listByBusiness("biz-1");
 
     expect(hours).toHaveLength(1);
     expect(hours[0]?.id).toBe("hr-1");

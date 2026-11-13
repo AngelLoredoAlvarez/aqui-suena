@@ -159,7 +159,7 @@ export class SubscriptionService {
     const endsAt = addMonths(startedAt, PERIOD_MONTHS);
 
     if (this.businessRepo && visibleBusinessIds !== undefined) {
-      const businesses = await this.businessRepo.listByAccount(current.accountId);
+      const businesses = await this.businessRepo.listAllByAccount(current.accountId);
       const allIds = businesses.map((b) => b.id);
       const toHide = hiddenBusinessIds(allIds, visibleBusinessIds);
       const retainedUntil = retentionDeadline(now);
@@ -270,7 +270,7 @@ export class SubscriptionService {
 
       if (!selection.allowed) throw new ConflictError(`UPGRADE_REQUIRED: ${selection.hint}`);
 
-      const businesses = await this.businessRepo.listByAccount(current.accountId);
+      const businesses = await this.businessRepo.listAllByAccount(current.accountId);
 
       const toHide = hiddenBusinessIds(
         businesses.map((b) => b.id),

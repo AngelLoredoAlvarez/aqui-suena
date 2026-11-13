@@ -30,7 +30,7 @@ export function readConfig(env: NodeJS.ProcessEnv): ApiConfig {
   const rawPort = env.PORT;
   const port = rawPort === undefined || rawPort === "" ? DEFAULT_PORT : Number(rawPort);
 
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  if (!Number.isSafeInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be an integer between 1 and 65535, received "${rawPort}"`);
   }
 

@@ -1,5 +1,6 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type Service = {
   id: string;
@@ -24,35 +25,35 @@ export type UpdateServiceInput = {
   basePrice?: number | null;
 };
 
+export type ListServicesByBusinessInput = {
+  businessId: string;
+  limit: number;
+  offset: number;
+};
+
+function toServicePoint(service: Service): CursorPoint {
+  return { createdAt: toEpochSeconds(service.createdAt), id: service.id };
+}
+
 export interface ServiceRepository {
-  list(): Promise<Service[]>;
   getById(id: string): Promise<Service | null>;
-  listByBusiness(businessId: string): Promise<Service[]>;
+  listByBusiness(input: ListServicesByBusinessInput): Promise<OffsetPage<Service>>;
   create(input: CreateServiceInput): Promise<Service>;
   update(id: string, input: UpdateServiceInput): Promise<Service | null>;
   delete(id: string): Promise<boolean>;
 }
 
 export class InMemoryServiceRepository implements ServiceRepository {
-  constructor(
-    private readonly services: Service[],
-    private readonly businesses?: BusinessRepository,
-  ) {}
-
-  async list(): Promise<Service[]> {
-    if (this.businesses === undefined) return this.services;
-
-    const visible = await visibleBusinessIds(this.businesses);
-
-    return this.services.filter((service) => visible.has(service.businessId));
-  }
+  constructor(private readonly services: Service[]) {}
 
   async getById(id: string): Promise<Service | null> {
     return this.services.find((service) => service.id === id) ?? null;
   }
 
-  async listByBusiness(businessId: string): Promise<Service[]> {
-    return this.services.filter((service) => service.businessId === businessId);
+  async listByBusiness(input: ListServicesByBusinessInput): Promise<OffsetPage<Service>> {
+    const owned = this.services.filter((service) => service.businessId === input.businessId);
+
+    return paginateOffsetRows(owned, input, toServicePoint);
   }
 
   async create(input: CreateServiceInput): Promise<Service> {

@@ -2,10 +2,15 @@ import type {
   Business,
   BusinessRepository,
   CreateBusinessInput,
+  ListBusinessesByAccountInput,
+  ListBusinessesInput,
   UpdateBusinessInput,
 } from "@aqui-suena/api/domain/directory/business";
 import { parseBusinessCategory } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import { decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
+import type { CursorPage, OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateCursor, paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type BusinessRow = {
   id: string;
@@ -26,11 +31,65 @@ type BusinessRow = {
 export class D1BusinessRepository implements BusinessRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Business[]> {
+  async list(input: ListBusinessesInput): Promise<CursorPage<Business>> {
+    const point = input.cursor === null ? null : decodeCursor(input.cursor);
+
+    const base =
+      "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL";
+
+    const sql =
+      point === null
+        ? `${base} ORDER BY created_at, id LIMIT ?`
+        : `${base} AND (created_at, id) > (?, ?) ORDER BY created_at, id LIMIT ?`;
+
+    const limitPlusOne = input.limit + 1;
+
+    const statement = this.db.prepare(sql);
+
+    const result =
+      point === null
+        ? await statement.bind(limitPlusOne).all()
+        : await statement.bind(point.createdAt, point.id, limitPlusOne).all();
+
+    const businesses = result.results.map((row) => this.mapRow(row as BusinessRow));
+
+    return paginateCursor(businesses, input.limit, (business) => ({
+      createdAt: toEpoch(business.createdAt),
+      id: business.id,
+    }));
+  }
+
+  async listAll(): Promise<Business[]> {
     const result = await this.db
       .prepare(
         "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL",
       )
+      .all();
+
+    return result.results.map((row) => this.mapRow(row as BusinessRow));
+  }
+
+  async listByAccount(input: ListBusinessesByAccountInput): Promise<OffsetPage<Business>> {
+    const result = await this.db
+      .prepare(
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+      )
+      .bind(input.accountId, input.limit, input.offset)
+      .all();
+
+    return paginateOffset(
+      result.results.map((row) => this.mapRow(row as BusinessRow)),
+      input.limit,
+      input.offset,
+    );
+  }
+
+  async listAllByAccount(accountId: string): Promise<Business[]> {
+    const result = await this.db
+      .prepare(
+        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ?",
+      )
+      .bind(accountId)
       .all();
 
     return result.results.map((row) => this.mapRow(row as BusinessRow));
@@ -56,17 +115,6 @@ export class D1BusinessRepository implements BusinessRepository {
       .first();
 
     return row ? this.mapRow(row as BusinessRow) : null;
-  }
-
-  async listByAccount(accountId: string): Promise<Business[]> {
-    const result = await this.db
-      .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ?",
-      )
-      .bind(accountId)
-      .all();
-
-    return result.results.map((row) => this.mapRow(row as BusinessRow));
   }
 
   async create(input: CreateBusinessInput): Promise<Business> {

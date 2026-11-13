@@ -1,10 +1,13 @@
 import type {
   CreateProductInput,
+  ListProductsByBusinessInput,
   Product,
   ProductRepository,
   UpdateProductInput,
 } from "@aqui-suena/api/domain/directory/product";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type ProductRow = {
   id: string;
@@ -18,19 +21,6 @@ type ProductRow = {
 export class D1ProductRepository implements ProductRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Product[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT p.id, p.business_id, p.name, p.description, p.price, p.created_at
-         FROM products p
-         JOIN businesses b ON b.id = p.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
-
-    return results.results.map((row) => this.mapRow(row as ProductRow));
-  }
-
   async getById(id: string): Promise<Product | null> {
     const row = await this.db
       .prepare(
@@ -42,7 +32,22 @@ export class D1ProductRepository implements ProductRepository {
     return row ? this.mapRow(row as ProductRow) : null;
   }
 
-  async listByBusiness(businessId: string): Promise<Product[]> {
+  async listByBusiness(input: ListProductsByBusinessInput): Promise<OffsetPage<Product>> {
+    const results = await this.db
+      .prepare(
+        "SELECT id, business_id, name, description, price, created_at FROM products WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+      )
+      .bind(input.businessId, input.limit, input.offset)
+      .all();
+
+    return paginateOffset(
+      results.results.map((row) => this.mapRow(row as ProductRow)),
+      input.limit,
+      input.offset,
+    );
+  }
+
+  async listAllByBusiness(businessId: string): Promise<Product[]> {
     const results = await this.db
       .prepare(
         "SELECT id, business_id, name, description, price, created_at FROM products WHERE business_id = ?",

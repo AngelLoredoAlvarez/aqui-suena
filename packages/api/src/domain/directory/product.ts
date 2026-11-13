@@ -1,5 +1,6 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type Product = {
   id: string;
@@ -23,31 +24,36 @@ export type UpdateProductInput = {
   price?: number;
 };
 
+export type ListProductsByBusinessInput = {
+  businessId: string;
+  limit: number;
+  offset: number;
+};
+
+function toProductPoint(product: Product): CursorPoint {
+  return { createdAt: toEpochSeconds(product.createdAt), id: product.id };
+}
+
 export interface ProductRepository {
-  list(): Promise<Product[]>;
   getById(id: string): Promise<Product | null>;
-  listByBusiness(businessId: string): Promise<Product[]>;
+  listByBusiness(input: ListProductsByBusinessInput): Promise<OffsetPage<Product>>;
+  listAllByBusiness(businessId: string): Promise<Product[]>;
   create(input: CreateProductInput): Promise<Product>;
   update(id: string, input: UpdateProductInput): Promise<Product | null>;
   delete(id: string): Promise<boolean>;
 }
 
 export class InMemoryProductRepository implements ProductRepository {
-  constructor(
-    private readonly products: Product[],
-    private readonly businesses?: BusinessRepository,
-  ) {}
+  constructor(private readonly products: Product[]) {}
 
-  async list(): Promise<Product[]> {
-    if (this.businesses === undefined) return this.products;
+  async listByBusiness(input: ListProductsByBusinessInput): Promise<OffsetPage<Product>> {
+    const owned = this.products.filter((product) => product.businessId === input.businessId);
 
-    const visible = await visibleBusinessIds(this.businesses);
-
-    return this.products.filter((product) => visible.has(product.businessId));
+    return paginateOffsetRows(owned, input, toProductPoint);
   }
 
-  async listByBusiness(businessId: string): Promise<Product[]> {
-    return this.products.filter((p) => p.businessId === businessId);
+  async listAllByBusiness(businessId: string): Promise<Product[]> {
+    return this.products.filter((product) => product.businessId === businessId);
   }
 
   async getById(id: string): Promise<Product | null> {

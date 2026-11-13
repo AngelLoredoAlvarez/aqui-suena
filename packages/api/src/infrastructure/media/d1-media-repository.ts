@@ -1,5 +1,12 @@
-import type { CreateMediaInput, Media, MediaRepository } from "@aqui-suena/api/domain/media/media";
+import type {
+  CreateMediaInput,
+  ListMediaByOwnerInput,
+  Media,
+  MediaRepository,
+} from "@aqui-suena/api/domain/media/media";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type MediaRow = {
   id: string;
@@ -14,15 +21,19 @@ type MediaRow = {
 export class D1MediaRepository implements MediaRepository {
   constructor(private readonly db: D1Database) {}
 
-  async listByOwner(ownerId: string): Promise<Media[]> {
-    const results = await this.db
+  async listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>> {
+    const result = await this.db
       .prepare(
-        "SELECT id, owner_id, kind, r2_key, mime, size, created_at FROM media WHERE owner_id = ?",
+        "SELECT id, owner_id, kind, r2_key, mime, size, created_at FROM media WHERE owner_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
       )
-      .bind(ownerId)
+      .bind(input.ownerId, input.limit, input.offset)
       .all();
 
-    return results.results.map((row) => this.mapRow(row as MediaRow));
+    return paginateOffset(
+      result.results.map((row) => this.mapRow(row as MediaRow)),
+      input.limit,
+      input.offset,
+    );
   }
 
   async getById(id: string): Promise<Media | null> {
