@@ -66,9 +66,12 @@ branches. None of these blocks the product today.
   answers through a responder; the 13 repository/service test files that
   hand-rolled `prepare`/`bind`/`first`/`all`/`run` stubs now use it. The real
   `node:sqlite` adapter test keeps its own binding.
-- [ ] Worker observability (`chore/observability`). The Worker has no request or
-  error logging. Add structured logs (method, path, status, duration, error) and
-  a request id, without leaking secrets.
+- [x] Worker observability — DONE 2026-11-13 (`chore/observability`).
+  `requestLogging` (Hono) and `withRequestLogging` (Worker fetch) emit one JSON
+  line per request with request id, method, path, status and duration, and a
+  structured error line without stack traces. The Worker stamps `x-request-id`
+  on every response; query strings, headers and bodies are never logged.
+  Workers Logs/Logpush sink configuration is a separate infra change.
 - [ ] Api cleanups (`chore/api-cleanups`). Extract the `ADMIN_TOKEN` guard that
   `server/worker.ts` repeats for three admin endpoints; `defaultDirectoryRepositories`
   is shared mutable state between `app.ts` and `router.ts`; and
