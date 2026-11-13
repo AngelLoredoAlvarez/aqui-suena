@@ -2,11 +2,7 @@ import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscr
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
-import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
-import {
-  type DirectoryRepositories,
-  defaultDirectoryRepositories,
-} from "@aqui-suena/api/server/composition/repositories";
+import type { DirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
 import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carousel";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
@@ -80,13 +76,4 @@ export function createAppRouter(
   });
 }
 
-export const appRouter = createAppRouter(
-  defaultPlanRepository,
-  defaultDirectoryRepositories,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-);
-
-export type AppRouter = typeof appRouter;
+export type AppRouter = ReturnType<typeof createAppRouter>;

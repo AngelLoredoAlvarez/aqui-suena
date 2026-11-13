@@ -44,7 +44,7 @@ export interface DirectoryRepositories {
 
 /**
  * In-memory composition used by tests and the local Node process when no
- * driver is injected.
+ * driver is injected. Called per app so two apps never share mutable data.
  */
 export function createInMemoryRepositories(): DirectoryRepositories {
   const business = new InMemoryBusinessRepository([]);
@@ -81,5 +81,3 @@ export function createD1Repositories(db: D1Database): DirectoryRepositories {
     account: new D1AccountRepository(db),
   };
 }
-
-export const defaultDirectoryRepositories = createInMemoryRepositories();

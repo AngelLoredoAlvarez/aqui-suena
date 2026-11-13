@@ -1,7 +1,16 @@
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
-import { defaultDirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
-import { appRouter, createAppRouter } from "@aqui-suena/api/server/trpc/router";
+import { createInMemoryRepositories } from "@aqui-suena/api/server/composition/repositories";
+import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
 import { describe, expect, it } from "vitest";
+
+const appRouter = createAppRouter(
+  defaultPlanRepository,
+  createInMemoryRepositories(),
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+);
 
 describe("appRouter ads.carousel", () => {
   it("exposes ads.carousel and returns an array", async () => {
@@ -23,7 +32,7 @@ describe("createAppRouter media storage", () => {
   it("never substitutes a fake when storage is omitted", async () => {
     const router = createAppRouter(
       defaultPlanRepository,
-      defaultDirectoryRepositories,
+      createInMemoryRepositories(),
       undefined,
       undefined,
       undefined,

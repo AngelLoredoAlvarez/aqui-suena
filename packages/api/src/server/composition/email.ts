@@ -5,6 +5,8 @@ import { ResendEmailSender } from "@aqui-suena/api/infrastructure/email/resend-e
 
 const EMAIL_APP_URL = "https://aquisuena.mx";
 const EMAIL_SUPPORT_ADDRESS = "soporte@aquisuena.mx";
+const EMAIL_BILLING_PATH = "/cuenta/suscripcion";
+const EMAIL_OWNER_PORTAL_PATH = "/panel";
 const DEFAULT_EMAIL_FROM = "Aquí Suena <no-reply@aquisuena.mx>";
 
 export function createSubscriptionNotifier(
@@ -20,6 +22,8 @@ export function createSubscriptionNotifier(
   const renderer = createEmailTemplateRenderer({
     appUrl: EMAIL_APP_URL,
     supportEmail: EMAIL_SUPPORT_ADDRESS,
+    billingPath: EMAIL_BILLING_PATH,
+    ownerPortalPath: EMAIL_OWNER_PORTAL_PATH,
   });
 
   return new TemplateSubscriptionNotifier(sender, renderer);

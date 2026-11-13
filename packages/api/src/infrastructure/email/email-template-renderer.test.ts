@@ -27,6 +27,8 @@ const baseVars: EmailTemplateVars = {
 const renderer = createEmailTemplateRenderer({
   appUrl: "https://aquisuena.mx",
   supportEmail: "soporte@aquisuena.mx",
+  billingPath: "/cuenta/suscripcion",
+  ownerPortalPath: "/panel",
 });
 
 describe("createEmailTemplateRenderer", () => {

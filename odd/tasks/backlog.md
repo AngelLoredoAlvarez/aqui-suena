@@ -72,10 +72,12 @@ branches. None of these blocks the product today.
   structured error line without stack traces. The Worker stamps `x-request-id`
   on every response; query strings, headers and bodies are never logged.
   Workers Logs/Logpush sink configuration is a separate infra change.
-- [ ] Api cleanups (`chore/api-cleanups`). Extract the `ADMIN_TOKEN` guard that
-  `server/worker.ts` repeats for three admin endpoints; `defaultDirectoryRepositories`
-  is shared mutable state between `app.ts` and `router.ts`; and
-  `email-template-renderer.ts` hardcodes `/cuenta/suscripcion` and `/panel`.
+- [x] Api cleanups — DONE 2026-11-13 (`chore/api-cleanups`). Extracted
+  `isAdminAuthorized` so the three admin endpoints share one guard; removed the
+  `defaultDirectoryRepositories` singleton and the eager `appRouter` (fresh
+  in-memory repositories per app, `AppRouter` stays as a type); the email
+  renderer now receives `billingPath` and `ownerPortalPath` instead of
+  hardcoding frontend routes.
 
 ## Persistence validation and error codes (closed 2026-11-10)
 

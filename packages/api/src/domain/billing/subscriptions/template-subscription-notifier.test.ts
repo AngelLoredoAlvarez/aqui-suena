@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 const renderer = createEmailTemplateRenderer({
   appUrl: "https://aquisuena.mx",
   supportEmail: "soporte@aquisuena.mx",
+  billingPath: "/cuenta/suscripcion",
+  ownerPortalPath: "/panel",
 });
 
 function setup() {
