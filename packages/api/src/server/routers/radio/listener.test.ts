@@ -1,21 +1,23 @@
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
-import { InMemoryListenSessionRepository } from "@aqui-suena/api/domain/radio/listen-session";
+import {
+  InMemoryListenSessionRepository,
+  type ListenSessionRepository,
+} from "@aqui-suena/api/domain/radio/listen-session";
 import { InMemoryStationRepository } from "@aqui-suena/api/domain/radio/station";
 import { createListenerRouter } from "@aqui-suena/api/server/routers/radio/listener";
 import { describe, expect, it } from "vitest";
 
-function makeCaller(fakeListeners = false) {
+function makeCaller(sessions: ListenSessionRepository = new InMemoryListenSessionRepository()) {
   const router = createListenerRouter(
     new InMemoryStationRepository([...HARNESS_STATIONS]),
-    new InMemoryListenSessionRepository(),
-    fakeListeners,
+    sessions,
   );
 
   return router.createCaller({ user: null });
 }
 
 describe("listener.getStatus", () => {
-  it("returns the station from the catalog with no listener source", async () => {
+  it("returns the station from the catalog with no active sessions", async () => {
     const caller = makeCaller();
 
     const status = await caller.getStatus({ stationId: "aqui-suena-pop" });
@@ -25,12 +27,19 @@ describe("listener.getStatus", () => {
     expect(status.listeners).toBe(0);
   });
 
-  it("simulates listeners through the session repository when enabled", async () => {
-    const caller = makeCaller(true);
+  it("counts active sessions through the repository", async () => {
+    const sessions = new InMemoryListenSessionRepository();
+    await sessions.upsertActive({
+      id: "live:test-session",
+      stationId: "aqui-suena-pop",
+      startedAt: new Date(),
+      listeners: 1,
+    });
+    const caller = makeCaller(sessions);
 
     const status = await caller.getStatus({ stationId: "aqui-suena-pop" });
 
-    expect(status.listeners).toBeGreaterThan(0);
+    expect(status.listeners).toBe(1);
   });
 
   it("answers NOT_FOUND for an unknown station", async () => {

@@ -1,3 +1,5 @@
+export const ACTIVE_LISTENER_WINDOW_MS = 60_000;
+
 export type ActiveListenSessionInput = {
   id: string;
   stationId: string;

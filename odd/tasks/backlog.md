@@ -33,9 +33,9 @@ Documented state, not fixed yet. Nothing below changes behavior today.
   `POST /admin/seed-stations`) or the in-memory harness for local Node,
   answers `NOT_FOUND` for unknown ids, returns the real `streamUrl`, and the
   client fetches over HTTP; the mock (`listeners: 42`, fixed URL) is gone.
-  Listeners now sum active `listen_sessions`; staging simulates them with
-  `FAKE_LISTENERS=1` and production reports `0` until a real source exists.
-  Remaining: real provider/heartbeat writer and the UI no-data state. Staging
+  Listeners sum active `listen_sessions`; the simulated source was removed and
+  the endpoint reports `0` until real heartbeats exist. Remaining: the heartbeat
+  writer, cleanup, and the UI no-data state. Staging
   must run the station seed once. See `odd/tasks/feat-listener-status.md`.
 - [x] Listings from the database — CLOSED 2026-11-10 by removing the surface
   instead of implementing it. `directory.listings.list`, `.get`,
