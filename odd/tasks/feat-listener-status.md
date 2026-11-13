@@ -127,3 +127,9 @@ catalog metadata. "Staging" is not a licensing exemption.
   reading the same count query. Local Node enables the flag; production leaves
   it unset and reports 0. The client refetches every 30s. UI no-data state (D3)
   remains open.
+- L6 (2026-11-13): Mobile base-URL regression fixed on
+  `fix/mobile-api-base-url`. `resolveApiBaseUrl` now reads
+  `NEXT_PUBLIC_API_BASE_URL` / `EXPO_PUBLIC_API_BASE_URL` first and keeps the
+  legacy `*_API_URL` names as fallbacks, matching the documented client
+  contract and `eas.json`. The mobile bundle must be rebuilt because Expo
+  inlines `EXPO_PUBLIC_*` at build time.
