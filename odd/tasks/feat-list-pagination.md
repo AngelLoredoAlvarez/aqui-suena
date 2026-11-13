@@ -119,3 +119,6 @@ SOLID and CLEAN CODE mandatory.
   (shared) from the duplicated InMemory sort/filter logic; `business.ts` now
   uses it too. Applied the `listVisible` → `listAll` rename that was agreed in
   T2 but had not landed in the T2 commit. 727 tests green, typecheck clean.
+- L7 (2026-11-12): Session ended. T1–T3 committed (ec79ce2, e639817, 865ac6a,
+  95039f0), working tree clean. Resume at T4 (offset for scoped lists). Full
+  session summary in Engram.
