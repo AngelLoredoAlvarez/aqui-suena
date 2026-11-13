@@ -14,6 +14,7 @@ import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/e
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { createApp } from "@aqui-suena/api/server/http/app";
+import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
@@ -52,114 +53,110 @@ export interface WorkerEnv {
 }
 
 export default {
-  async fetch(request: Request, env: WorkerEnv): Promise<Response> {
-    const ai = env.AI as unknown as AiBinding;
-    const gatewayId = env.AI_GATEWAY_ID;
-    const embeddingModel =
-      env.AI && env.PLAN_VECTORS
-        ? new WorkersAiEmbeddingModel(env.AI as never, EMBEDDING_MODEL, gatewayId)
-        : undefined;
-    const vectorIndex = env.PLAN_VECTORS
-      ? new VectorizePlanVectorIndex(env.PLAN_VECTORS)
+  fetch: withRequestLogging(handleFetch),
+};
+
+async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> {
+  const ai = env.AI as unknown as AiBinding;
+
+  const gatewayId = env.AI_GATEWAY_ID;
+
+  const embeddingModel =
+    env.AI && env.PLAN_VECTORS
+      ? new WorkersAiEmbeddingModel(env.AI as never, EMBEDDING_MODEL, gatewayId)
       : undefined;
 
-    const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
-    const directoryRepositories = createD1Repositories(env.aqui_suena_db);
+  const vectorIndex = env.PLAN_VECTORS ? new VectorizePlanVectorIndex(env.PLAN_VECTORS) : undefined;
 
-    const r2Credentials = {
-      accountId: env.R2_ACCOUNT_ID,
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-    };
+  const planRepository: PlanRepository = new D1PlanRepository(env.aqui_suena_db);
 
-    let mediaStorage: R2ObjectStorage | undefined;
-    if (r2Credentials.accountId && r2Credentials.accessKeyId && r2Credentials.secretAccessKey) {
-      mediaStorage = new R2ObjectStorage({
-        accountId: r2Credentials.accountId,
-        accessKeyId: r2Credentials.accessKeyId,
-        secretAccessKey: r2Credentials.secretAccessKey,
-        bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
-        endpoint: env.R2_ENDPOINT,
-      });
-    } else if (Object.values(r2Credentials).some((value) => value !== undefined && value !== "")) {
-      console.error(
-        "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
-      );
-    }
+  const directoryRepositories = createD1Repositories(env.aqui_suena_db);
 
-    // One-off seeding endpoint for the Vectorize plan index. Returns 404
-    // unless ADMIN_TOKEN is configured; requires it to match.
-    if (embeddingModel && vectorIndex && new URL(request.url).pathname === "/admin/seed-vectors") {
-      if (
-        !env.ADMIN_TOKEN ||
-        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
-      ) {
-        return new Response("Not found", { status: 404 });
-      }
-      const result = await seedPlanVectors({
-        planRepository,
-        embeddingModel,
-        vectorIndex,
-      });
-      return Response.json(result);
-    }
+  const r2Credentials = {
+    accountId: env.R2_ACCOUNT_ID,
+    accessKeyId: env.R2_ACCESS_KEY_ID,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+  };
 
-    // One-off cleanup endpoint for businesses past their 90-day retention.
-    // Returns 404 unless ADMIN_TOKEN is configured; requires it to match.
-    if (new URL(request.url).pathname === "/admin/purge-expired-businesses") {
-      if (
-        !env.ADMIN_TOKEN ||
-        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
-      ) {
-        return new Response("Not found", { status: 404 });
-      }
-      const deleted = await directoryRepositories.business.deleteExpired(new Date());
-      return Response.json({ deleted });
-    }
-
-    // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
-    // configured; requires it to match.
-    if (new URL(request.url).pathname === "/admin/seed-plans") {
-      if (
-        !env.ADMIN_TOKEN ||
-        request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`
-      ) {
-        return new Response("Not found", { status: 404 });
-      }
-      const seeded = await seedPlans(
-        new D1PlanCatalogWriter(env.aqui_suena_db),
-        DEFAULT_PLAN_CATALOG,
-      );
-      return Response.json({ seeded });
-    }
-
-    const retriever =
-      embeddingModel && vectorIndex
-        ? new VectorPlanCatalogRetriever({
-            planRepository,
-            embeddingModel,
-            vectorIndex,
-            topK: RETRIEVAL_TOP_K,
-          })
-        : new FullCatalogRetriever(planRepository);
-
-    const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
-
-    const app = createApp({
-      allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
-      supabaseUrl: env.SUPABASE_URL,
-      supabaseAnonKey: env.SUPABASE_ANON_KEY ?? env.SUPABASE_PUBLISHABLE_KEY,
-      supabaseSecretKey: env.SUPABASE_SECRET_KEY,
-      supabaseJwksUrl: env.SUPABASE_JWKS_URL,
-      planRepository,
-      directoryRepositories,
-      ai,
-      planCatalogRetriever: retriever,
-      aiGatewayId: gatewayId,
-      mediaStorage,
-      subscriptionNotifier,
+  let mediaStorage: R2ObjectStorage | undefined;
+  if (r2Credentials.accountId && r2Credentials.accessKeyId && r2Credentials.secretAccessKey) {
+    mediaStorage = new R2ObjectStorage({
+      accountId: r2Credentials.accountId,
+      accessKeyId: r2Credentials.accessKeyId,
+      secretAccessKey: r2Credentials.secretAccessKey,
+      bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
+      endpoint: env.R2_ENDPOINT,
     });
+  } else if (Object.values(r2Credentials).some((value) => value !== undefined && value !== "")) {
+    console.error(
+      "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
+    );
+  }
 
-    return app.fetch(request, env);
-  },
-};
+  // One-off seeding endpoint for the Vectorize plan index. Returns 404
+  // unless ADMIN_TOKEN is configured; requires it to match.
+  if (embeddingModel && vectorIndex && new URL(request.url).pathname === "/admin/seed-vectors") {
+    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+      return new Response("Not found", { status: 404 });
+    }
+    const result = await seedPlanVectors({
+      planRepository,
+      embeddingModel,
+      vectorIndex,
+    });
+    return Response.json(result);
+  }
+
+  // One-off cleanup endpoint for businesses past their 90-day retention.
+  // Returns 404 unless ADMIN_TOKEN is configured; requires it to match.
+  if (new URL(request.url).pathname === "/admin/purge-expired-businesses") {
+    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+      return new Response("Not found", { status: 404 });
+    }
+    const deleted = await directoryRepositories.business.deleteExpired(new Date());
+    return Response.json({ deleted });
+  }
+
+  // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
+  // configured; requires it to match.
+  if (new URL(request.url).pathname === "/admin/seed-plans") {
+    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+      return new Response("Not found", { status: 404 });
+    }
+    const seeded = await seedPlans(
+      new D1PlanCatalogWriter(env.aqui_suena_db),
+      DEFAULT_PLAN_CATALOG,
+    );
+    return Response.json({ seeded });
+  }
+
+  const retriever =
+    embeddingModel && vectorIndex
+      ? new VectorPlanCatalogRetriever({
+          planRepository,
+          embeddingModel,
+          vectorIndex,
+          topK: RETRIEVAL_TOP_K,
+        })
+      : new FullCatalogRetriever(planRepository);
+
+  const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
+
+  const app = createApp({
+    allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
+    supabaseUrl: env.SUPABASE_URL,
+    supabaseAnonKey: env.SUPABASE_ANON_KEY ?? env.SUPABASE_PUBLISHABLE_KEY,
+    supabaseSecretKey: env.SUPABASE_SECRET_KEY,
+    supabaseJwksUrl: env.SUPABASE_JWKS_URL,
+    planRepository,
+    directoryRepositories,
+    ai,
+    planCatalogRetriever: retriever,
+    aiGatewayId: gatewayId,
+    mediaStorage,
+    subscriptionNotifier,
+    logRequests: false,
+  });
+
+  return app.fetch(request, env);
+}
