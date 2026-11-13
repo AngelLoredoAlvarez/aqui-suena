@@ -61,9 +61,11 @@ branches. None of these blocks the product today.
   `.listByBusiness`), and none for `hours.listByBusiness` (max 7 rows) and
   `ads.carousel`. Public child lists are now scoped per business with a single
   router-level visibility guard. Details: `odd/tasks/feat-list-pagination.md`.
-- [ ] Shared D1 test double (`chore/d1-test-support`). 17 test files
-  reimplement `as unknown as D1Database` with the same prepare/bind/first/all/run
-  stubs. Extract one helper in `src/testing/` and migrate them.
+- [x] Shared D1 test double — DONE 2026-11-13 (`chore/d1-test-support`).
+  `FakeD1Database` in `src/testing/d1.ts` records executed statements and
+  answers through a responder; the 13 repository/service test files that
+  hand-rolled `prepare`/`bind`/`first`/`all`/`run` stubs now use it. The real
+  `node:sqlite` adapter test keeps its own binding.
 - [ ] Worker observability (`chore/observability`). The Worker has no request or
   error logging. Add structured logs (method, path, status, duration, error) and
   a request id, without leaking secrets.
