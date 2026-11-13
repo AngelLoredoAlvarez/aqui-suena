@@ -151,6 +151,9 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 - [ ] Tamagui `ZStack` cleanup for the overlay: overlays are still positioned
   with `position="absolute"` on `YStack` (`player-landing.tsx`), the
   non-idiomatic shape found during the overlay work.
+- [ ] Android player safe area: on a physical device the bottom player renders
+  underneath the system navigation bar. See
+  `odd/tasks/fix-android-player-safe-area.md`.
 
 ## Platforms
 
