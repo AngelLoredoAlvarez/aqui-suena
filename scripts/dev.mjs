@@ -319,7 +319,7 @@ export function createLineForwarder(
 }
 
 async function main() {
-  maybeReexecUnderInfisical();
+  await maybeReexecUnderInfisical();
 
   const { launchApp, mobileOnly, startEmulator } = parseFlags(process.argv);
   const children = new Set();
