@@ -8,10 +8,12 @@ export const paginationLimitSchema = v.pipe(
   v.maxValue(100),
 );
 
-export const offsetInputSchema = v.object({
+export const offsetPageEntries = {
   limit: v.optional(paginationLimitSchema, 20),
   offset: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0),
-});
+} as const;
+
+export const offsetInputSchema = v.object(offsetPageEntries);
 
 export const cursorInputSchema = v.object({
   limit: v.optional(paginationLimitSchema, 20),

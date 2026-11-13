@@ -1,6 +1,6 @@
 import type { Business } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/service";
+import { InMemoryServiceRepository, type Service } from "@aqui-suena/api/domain/directory/service";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { describe, expect, it } from "vitest";
 
@@ -30,11 +30,11 @@ const business: Business = {
   updatedAt: new Date("2024-01-01T00:00:00Z"),
 };
 
-function setup(services = [sample]) {
+function setup(services: Service[] = [sample], businesses: Business[] = [business]) {
   const repository = new InMemoryServiceRepository(services);
   const router = createServicesRouter({
     service: repository,
-    business: new InMemoryBusinessRepository([business]),
+    business: new InMemoryBusinessRepository(businesses),
   });
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
@@ -42,12 +42,35 @@ function setup(services = [sample]) {
 }
 
 describe("services router", () => {
-  it("lists services from the repository", async () => {
+  it("lists services from the repository scoped to a business", async () => {
     const { caller } = setup();
-    const services = await caller.list();
+    const page = await caller.listByBusiness({ businessId: "biz-1" });
 
-    expect(services).toHaveLength(1);
-    expect(services[0]?.id).toBe("svc-1");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("svc-1");
+  });
+
+  it("pages services by business and rejects out-of-range values", async () => {
+    const { caller } = setup([
+      sample,
+      { ...sample, id: "svc-2", createdAt: new Date("2024-01-02T00:00:00Z") },
+    ]);
+    const first = await caller.listByBusiness({ businessId: "biz-1", limit: 1 });
+
+    expect(first.items).toHaveLength(1);
+    expect(first.nextOffset).toBe(1);
+
+    await expect(caller.listByBusiness({ businessId: "biz-1", limit: 101 })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+
+  it("rejects listing services of a hidden business with NOT_FOUND", async () => {
+    const { caller } = setup([], [{ ...business, hiddenAt: new Date("2024-02-01T00:00:00Z") }]);
+
+    await expect(caller.listByBusiness({ businessId: "biz-1" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects getById with NOT_FOUND when nothing matches", async () => {

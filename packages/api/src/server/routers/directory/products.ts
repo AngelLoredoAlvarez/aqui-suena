@@ -12,6 +12,7 @@ import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/ac
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -39,7 +40,18 @@ export function createProductsRouter(deps: ProductsRouterDeps) {
   const { product: repository, business, subscription: subscriptionRepository } = deps;
 
   return router({
-    list: publicProcedure.query(async () => repository.list()),
+    listByBusiness: publicProcedure
+      .input(
+        v.object({
+          businessId: v.pipe(v.string(), v.minLength(1)),
+          ...offsetPageEntries,
+        }),
+      )
+      .query(async ({ input }) => {
+        requireFound(await business.getById(input.businessId), "Business not found");
+
+        return repository.listByBusiness(input);
+      }),
 
     getById: publicProcedure
       .input(requiredId("Product id is required"))
@@ -64,7 +76,7 @@ export function createProductsRouter(deps: ProductsRouterDeps) {
         throw error;
       }
 
-      const used = (await repository.listByBusiness(input.businessId)).length;
+      const used = (await repository.listAllByBusiness(input.businessId)).length;
 
       if (!isWithinProductQuota(plan, used)) {
         throw new TRPCError({

@@ -16,19 +16,6 @@ type HourRow = {
 export class D1HourRepository implements HourRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Hour[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT h.id, h.business_id, h.day, h.open_minute, h.close_minute
-         FROM hours h
-         JOIN businesses b ON b.id = h.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
-
-    return results.results.map((row) => this.mapRow(row as HourRow));
-  }
-
   async getById(id: string): Promise<Hour | null> {
     const row = await this.db
       .prepare("SELECT id, business_id, day, open_minute, close_minute FROM hours WHERE id = ?")
@@ -41,7 +28,7 @@ export class D1HourRepository implements HourRepository {
   async listByBusiness(businessId: string): Promise<Hour[]> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, day, open_minute, close_minute FROM hours WHERE business_id = ?",
+        "SELECT id, business_id, day, open_minute, close_minute FROM hours WHERE business_id = ? ORDER BY day",
       )
       .bind(businessId)
       .all();

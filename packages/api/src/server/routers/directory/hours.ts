@@ -29,7 +29,13 @@ export function createHoursRouter(deps: HoursRouterDeps) {
   const { hour: repository, business } = deps;
 
   return router({
-    list: publicProcedure.query(async () => repository.list()),
+    listByBusiness: publicProcedure
+      .input(v.object({ businessId: v.pipe(v.string(), v.minLength(1)) }))
+      .query(async ({ input }) => {
+        requireFound(await business.getById(input.businessId), "Business not found");
+
+        return repository.listByBusiness(input.businessId);
+      }),
 
     getById: publicProcedure
       .input(requiredId("Hour id is required"))

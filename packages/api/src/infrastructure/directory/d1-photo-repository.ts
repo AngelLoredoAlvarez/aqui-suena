@@ -1,10 +1,13 @@
 import type {
   CreatePhotoInput,
+  ListPhotosByBusinessInput,
   Photo,
   PhotoRepository,
   UpdatePhotoInput,
 } from "@aqui-suena/api/domain/directory/photo";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 type PhotoRow = {
   id: string;
@@ -19,19 +22,6 @@ type PhotoRow = {
 export class D1PhotoRepository implements PhotoRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Photo[]> {
-    const results = await this.db
-      .prepare(
-        `SELECT p.id, p.business_id, p.work_entry_id, p.product_id, p.kind, p.url, p.created_at
-         FROM photos p
-         JOIN businesses b ON b.id = p.business_id
-         WHERE b.hidden_at IS NULL`,
-      )
-      .all();
-
-    return results.results.map((row) => this.mapRow(row as PhotoRow));
-  }
-
   async getById(id: string): Promise<Photo | null> {
     const row = await this.db
       .prepare(
@@ -43,15 +33,19 @@ export class D1PhotoRepository implements PhotoRepository {
     return row ? this.mapRow(row as PhotoRow) : null;
   }
 
-  async listByBusiness(businessId: string): Promise<Photo[]> {
+  async listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, work_entry_id, product_id, kind, url, created_at FROM photos WHERE business_id = ?",
+        "SELECT id, business_id, work_entry_id, product_id, kind, url, created_at FROM photos WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
       )
-      .bind(businessId)
+      .bind(input.businessId, input.limit, input.offset)
       .all();
 
-    return results.results.map((row) => this.mapRow(row as PhotoRow));
+    return paginateOffset(
+      results.results.map((row) => this.mapRow(row as PhotoRow)),
+      input.limit,
+      input.offset,
+    );
   }
 
   async create(input: CreatePhotoInput): Promise<Photo> {

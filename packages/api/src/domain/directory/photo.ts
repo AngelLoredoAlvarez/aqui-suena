@@ -1,5 +1,6 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { visibleBusinessIds } from "@aqui-suena/api/domain/directory/visibility";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type PhotoKind = "logo" | "product" | "work";
 
@@ -28,35 +29,35 @@ export type UpdatePhotoInput = {
   url?: string;
 };
 
+export type ListPhotosByBusinessInput = {
+  businessId: string;
+  limit: number;
+  offset: number;
+};
+
+function toPhotoPoint(photo: Photo): CursorPoint {
+  return { createdAt: toEpochSeconds(photo.createdAt), id: photo.id };
+}
+
 export interface PhotoRepository {
-  list(): Promise<Photo[]>;
   getById(id: string): Promise<Photo | null>;
-  listByBusiness(businessId: string): Promise<Photo[]>;
+  listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>>;
   create(input: CreatePhotoInput): Promise<Photo>;
   update(id: string, input: UpdatePhotoInput): Promise<Photo | null>;
   delete(id: string): Promise<boolean>;
 }
 
 export class InMemoryPhotoRepository implements PhotoRepository {
-  constructor(
-    private readonly photos: Photo[],
-    private readonly businesses?: BusinessRepository,
-  ) {}
-
-  async list(): Promise<Photo[]> {
-    if (this.businesses === undefined) return this.photos;
-
-    const visible = await visibleBusinessIds(this.businesses);
-
-    return this.photos.filter((photo) => visible.has(photo.businessId));
-  }
+  constructor(private readonly photos: Photo[]) {}
 
   async getById(id: string): Promise<Photo | null> {
     return this.photos.find((photo) => photo.id === id) ?? null;
   }
 
-  async listByBusiness(businessId: string): Promise<Photo[]> {
-    return this.photos.filter((photo) => photo.businessId === businessId);
+  async listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>> {
+    const owned = this.photos.filter((photo) => photo.businessId === input.businessId);
+
+    return paginateOffsetRows(owned, input, toPhotoPoint);
   }
 
   async create(input: CreatePhotoInput): Promise<Photo> {

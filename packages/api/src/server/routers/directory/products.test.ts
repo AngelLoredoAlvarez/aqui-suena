@@ -48,12 +48,13 @@ const commerceSubscription: Subscription = {
 function setup(
   products: Product[] = [sample],
   subscriptions: readonly Subscription[] = [commerceSubscription],
+  businesses: Business[] = [business],
 ) {
   const repository = new InMemoryProductRepository(products);
 
   const router = createProductsRouter({
     product: repository,
-    business: new InMemoryBusinessRepository([business]),
+    business: new InMemoryBusinessRepository(businesses),
     subscription: new InMemorySubscriptionRepository([...subscriptions]),
   });
 
@@ -74,12 +75,38 @@ function makeProducts(count: number) {
 }
 
 describe("products router", () => {
-  it("lists products from the repository", async () => {
+  it("lists products from the repository scoped to a business", async () => {
     const { caller } = setup();
-    const products = await caller.list();
+    const page = await caller.listByBusiness({ businessId: "biz-1" });
 
-    expect(products).toHaveLength(1);
-    expect(products[0]?.id).toBe("pdct-1");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("pdct-1");
+  });
+
+  it("pages products by business and rejects out-of-range values", async () => {
+    const { caller } = setup(makeProducts(2));
+    const first = await caller.listByBusiness({ businessId: "biz-1", limit: 1 });
+
+    expect(first.items).toHaveLength(1);
+    expect(first.nextOffset).toBe(1);
+
+    await expect(caller.listByBusiness({ businessId: "biz-1", limit: 101 })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    await expect(caller.listByBusiness({ businessId: "biz-1", offset: -1 })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+
+  it("rejects listing products of a hidden or missing business with NOT_FOUND", async () => {
+    const { caller } = setup([], [], [{ ...business, hiddenAt: new Date("2024-02-01T00:00:00Z") }]);
+
+    await expect(caller.listByBusiness({ businessId: "biz-1" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    await expect(caller.listByBusiness({ businessId: "missing" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects getById with NOT_FOUND when nothing matches", async () => {

@@ -51,12 +51,12 @@ export function createInMemoryRepositories(): DirectoryRepositories {
 
   return {
     business,
-    service: new InMemoryServiceRepository([], business),
-    product: new InMemoryProductRepository([], business),
-    photo: new InMemoryPhotoRepository([], business),
-    workEntry: new InMemoryWorkEntryRepository([], business),
+    service: new InMemoryServiceRepository([]),
+    product: new InMemoryProductRepository([]),
+    photo: new InMemoryPhotoRepository([]),
+    workEntry: new InMemoryWorkEntryRepository([]),
     flyer: new InMemoryFlyerRepository([], business),
-    hour: new InMemoryHourRepository([], business),
+    hour: new InMemoryHourRepository([]),
     subscription: new InMemorySubscriptionRepository([]),
     media: new InMemoryMediaRepository([]),
     account: new InMemoryAccountRepository([]),

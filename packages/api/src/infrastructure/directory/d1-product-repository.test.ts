@@ -5,51 +5,6 @@ describe("D1ProductRepository", () => {
   it("maps D1 rows into products", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "pdct-1",
-              business_id: "biz-1",
-              name: "SSD Samsung 990 Pro 1TB",
-              description: "Disco duro solido de alta velocidad",
-              price: 10000,
-              created_at: 1700000000,
-            },
-          ],
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1ProductRepository(fakeDb);
-    const products = await repository.list();
-
-    expect(products).toHaveLength(1);
-    expect(products[0]?.id).toBe("pdct-1");
-    expect(products[0]?.businessId).toBe("biz-1");
-    expect(products[0]?.name).toBe("SSD Samsung 990 Pro 1TB");
-    expect(products[0]?.description).toBe("Disco duro solido de alta velocidad");
-    expect(products[0]?.price).toBe(10000);
-    expect(products[0]?.createdAt).toBeInstanceOf(Date);
-  });
-
-  it("returns null when getById finds nothing", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1ProductRepository(fakeDb);
-    const product = await repository.getById("nonexistent");
-
-    expect(product).toBeNull();
-  });
-
-  it("lists only products belonging to the given business", async () => {
-    const fakeDb = {
-      prepare: () => ({
         bind: () => ({
           all: async () => ({
             results: [
@@ -68,10 +23,71 @@ describe("D1ProductRepository", () => {
     } as unknown as D1Database;
 
     const repository = new D1ProductRepository(fakeDb);
-    const products = await repository.listByBusiness("biz-1");
+    const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
-    expect(products).toHaveLength(1);
-    expect(products[0]?.businessId).toBe("biz-1");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("pdct-1");
+    expect(page.items[0]?.businessId).toBe("biz-1");
+    expect(page.items[0]?.name).toBe("SSD Samsung 990 Pro 1TB");
+    expect(page.items[0]?.description).toBe("Disco duro solido de alta velocidad");
+    expect(page.items[0]?.price).toBe(10000);
+    expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
+  });
+
+  it("returns null when getById finds nothing", async () => {
+    const fakeDb = {
+      prepare: () => ({
+        bind: () => ({
+          first: async () => null,
+        }),
+      }),
+    } as unknown as D1Database;
+
+    const repository = new D1ProductRepository(fakeDb);
+    const product = await repository.getById("nonexistent");
+
+    expect(product).toBeNull();
+  });
+
+  it("pages products by business with deterministic order, LIMIT and OFFSET", async () => {
+    const statements: Array<{ sql: string; params: unknown[] }> = [];
+    const fakeDb = {
+      prepare: (sql: string) => ({
+        bind: (...params: unknown[]) => {
+          statements.push({ sql, params });
+
+          return { all: async () => ({ results: [] }) };
+        },
+      }),
+    } as unknown as D1Database;
+
+    const repository = new D1ProductRepository(fakeDb);
+
+    await repository.listByBusiness({ businessId: "biz-1", limit: 5, offset: 10 });
+
+    expect(statements[0]?.sql).toMatch(
+      /WHERE business_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
+    );
+    expect(statements[0]?.params).toEqual(["biz-1", 5, 10]);
+  });
+
+  it("lists every product of a business without paging", async () => {
+    const statements: string[] = [];
+    const fakeDb = {
+      prepare: (sql: string) => {
+        statements.push(sql);
+
+        return {
+          bind: () => ({ all: async () => ({ results: [] }) }),
+        };
+      },
+    } as unknown as D1Database;
+
+    const repository = new D1ProductRepository(fakeDb);
+
+    expect(await repository.listAllByBusiness("biz-1")).toEqual([]);
+    expect(statements[0]).toMatch(/WHERE business_id = \?/);
+    expect(statements[0]).not.toMatch(/LIMIT/);
   });
 
   it("creates a product and returns it with generated id and timestamps", async () => {
