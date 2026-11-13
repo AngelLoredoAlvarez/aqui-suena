@@ -170,7 +170,9 @@ describe("hidden business visibility", () => {
     const { business } = makeRepositories();
 
     expect(await business.getByIdForOwner("biz-hidden")).not.toBeNull();
-    expect((await business.listByAccount("acc-1")).map((item) => item.id)).toContain("biz-hidden");
+    expect((await business.listAllByAccount("acc-1")).map((item) => item.id)).toContain(
+      "biz-hidden",
+    );
   });
 
   it("filters hidden parents out of every public child list", async () => {

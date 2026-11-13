@@ -7,7 +7,7 @@ import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/ac
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
-import { cursorInputSchema } from "@aqui-suena/api/shared/pagination/input";
+import { cursorInputSchema, offsetInputSchema } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -48,9 +48,15 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
         return repository.list({ limit: input.limit, cursor: input.cursor ?? null });
       }),
 
-    listMine: protectedProcedure.query(async ({ ctx }) => {
-      return repository.listByAccount(ctx.user.accountId);
-    }),
+    listMine: protectedProcedure
+      .input(v.optional(offsetInputSchema, { limit: 20, offset: 0 }))
+      .query(async ({ input, ctx }) => {
+        return repository.listByAccount({
+          accountId: ctx.user.accountId,
+          limit: input.limit,
+          offset: input.offset,
+        });
+      }),
 
     getMine: protectedProcedure
       .input(requiredId("Business id is required"))
@@ -77,7 +83,7 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
       const subscription = await subscriptionRepository.getActive(accountId);
       const plan = resolvePlan(subscription);
 
-      const existing = await repository.listByAccount(accountId);
+      const existing = await repository.listAllByAccount(accountId);
 
       try {
         assertCanCreateBusiness(plan, existing.length);

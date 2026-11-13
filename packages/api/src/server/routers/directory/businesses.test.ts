@@ -164,7 +164,7 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    expect((await caller.listMine()).map((item) => item.id)).toEqual(["biz-hidden"]);
+    expect((await caller.listMine()).items.map((item) => item.id)).toEqual(["biz-hidden"]);
     expect((await caller.getMine("biz-hidden"))?.id).toBe("biz-hidden");
   });
 
@@ -215,5 +215,50 @@ describe("businesses router", () => {
         delivery: false,
       }),
     ).rejects.toThrow(/UPGRADE_REQUIRED/);
+  });
+
+  it("paginates the owner's businesses with offset", async () => {
+    const repository = new InMemoryBusinessRepository([
+      { ...sampleBusiness, id: "biz-late", createdAt: new Date("2024-01-02T00:00:00Z") },
+      { ...sampleBusiness, id: "biz-early", createdAt: new Date("2024-01-01T00:00:00Z") },
+      { ...sampleBusiness, id: "biz-foreign", accountId: "acc-2" },
+    ]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    const first = await caller.listMine({ limit: 1 });
+
+    expect(first.items.map((item) => item.id)).toEqual(["biz-early"]);
+    expect(first).toMatchObject({ limit: 1, offset: 0, nextOffset: 1 });
+
+    const second = await caller.listMine({ limit: 1, offset: 1 });
+
+    expect(second.items.map((item) => item.id)).toEqual(["biz-late"]);
+    expect(second.nextOffset).toBe(2);
+
+    const third = await caller.listMine({ limit: 1, offset: 2 });
+
+    expect(third.items).toEqual([]);
+    expect(third.nextOffset).toBeNull();
+  });
+
+  it("applies the pagination defaults and rejects out-of-range values", async () => {
+    const repository = new InMemoryBusinessRepository([sampleBusiness]);
+    const router = createBusinessesRouter({
+      business: repository,
+      subscription: new InMemorySubscriptionRepository([]),
+    });
+    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+
+    await expect(caller.listMine()).resolves.toMatchObject({
+      limit: 20,
+      offset: 0,
+      nextOffset: null,
+    });
+    await expect(caller.listMine({ limit: 101 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.listMine({ offset: -1 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

@@ -46,7 +46,7 @@ describe("D1 public visibility queries", () => {
     const repository = new D1BusinessRepository(db);
 
     await repository.getByIdForOwner("biz-1");
-    await repository.listByAccount("acc-1");
+    await repository.listAllByAccount("acc-1");
 
     for (const sql of statements) {
       expect(sql).not.toMatch(/hidden_at IS NULL/);

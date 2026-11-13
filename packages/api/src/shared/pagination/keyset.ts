@@ -1,15 +1,9 @@
-import { type CursorPoint, decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
+import {
+  type CursorPoint,
+  compareCursorPoints,
+  decodeCursor,
+} from "@aqui-suena/api/shared/pagination/cursor";
 import { type CursorPage, paginateCursor } from "@aqui-suena/api/shared/pagination/page";
-
-function compareCursorPoints(a: CursorPoint, b: CursorPoint): number {
-  if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
-
-  if (a.id < b.id) return -1;
-
-  if (a.id > b.id) return 1;
-
-  return 0;
-}
 
 function isAfterCursorPoint(point: CursorPoint, cursor: CursorPoint): boolean {
   if (point.createdAt !== cursor.createdAt) return point.createdAt > cursor.createdAt;

@@ -1,7 +1,9 @@
 import type { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { isRetentionExpired } from "@aqui-suena/api/domain/directory/retention";
+import type { CursorPoint } from "@aqui-suena/api/shared/pagination/cursor";
 import { paginateKeyset } from "@aqui-suena/api/shared/pagination/keyset";
-import type { CursorPage } from "@aqui-suena/api/shared/pagination/page";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { CursorPage, OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 import type * as v from "valibot";
 
 export type Business = {
@@ -25,8 +27,18 @@ export type ListBusinessesInput = {
   cursor: string | null;
 };
 
+export type ListBusinessesByAccountInput = {
+  accountId: string;
+  limit: number;
+  offset: number;
+};
+
 function toEpochSeconds(date: Date): number {
   return Math.floor(date.getTime() / 1000);
+}
+
+function toBusinessPoint(business: Business): CursorPoint {
+  return { createdAt: toEpochSeconds(business.createdAt), id: business.id };
 }
 
 export type CreateBusinessInput = {
@@ -55,9 +67,10 @@ export type UpdateBusinessInput = {
 export interface BusinessRepository {
   list(input: ListBusinessesInput): Promise<CursorPage<Business>>;
   listAll(): Promise<Business[]>;
+  listByAccount(input: ListBusinessesByAccountInput): Promise<OffsetPage<Business>>;
+  listAllByAccount(accountId: string): Promise<Business[]>;
   getById(id: string): Promise<Business | null>;
   getByIdForOwner(id: string): Promise<Business | null>;
-  listByAccount(accountId: string): Promise<Business[]>;
   create(input: CreateBusinessInput): Promise<Business>;
   update(id: string, input: UpdateBusinessInput): Promise<Business | null>;
   delete(id: string): Promise<boolean | null>;
@@ -70,14 +83,21 @@ export class InMemoryBusinessRepository implements BusinessRepository {
   async list(input: ListBusinessesInput): Promise<CursorPage<Business>> {
     const visible = this.businesses.filter((business) => business.hiddenAt === null);
 
-    return paginateKeyset(visible, input, (business) => ({
-      createdAt: toEpochSeconds(business.createdAt),
-      id: business.id,
-    }));
+    return paginateKeyset(visible, input, toBusinessPoint);
   }
 
   async listAll(): Promise<Business[]> {
     return this.businesses.filter((business) => business.hiddenAt === null);
+  }
+
+  async listByAccount(input: ListBusinessesByAccountInput): Promise<OffsetPage<Business>> {
+    const owned = this.businesses.filter((business) => business.accountId === input.accountId);
+
+    return paginateOffsetRows(owned, input, toBusinessPoint);
+  }
+
+  async listAllByAccount(accountId: string): Promise<Business[]> {
+    return this.businesses.filter((business) => business.accountId === accountId);
   }
 
   async getById(id: string): Promise<Business | null> {
@@ -88,10 +108,6 @@ export class InMemoryBusinessRepository implements BusinessRepository {
 
   async getByIdForOwner(id: string): Promise<Business | null> {
     return this.businesses.find((business) => business.id === id) ?? null;
-  }
-
-  async listByAccount(accountId: string): Promise<Business[]> {
-    return this.businesses.filter((business) => business.accountId === accountId);
   }
 
   async create(input: CreateBusinessInput): Promise<Business> {

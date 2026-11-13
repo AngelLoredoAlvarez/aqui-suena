@@ -40,3 +40,13 @@ export function decodeCursor(cursor: string): CursorPoint | null {
 
   return { createdAt, id };
 }
+
+export function compareCursorPoints(a: CursorPoint, b: CursorPoint): number {
+  if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
+
+  if (a.id < b.id) return -1;
+
+  if (a.id > b.id) return 1;
+
+  return 0;
+}
