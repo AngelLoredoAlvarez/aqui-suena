@@ -102,7 +102,10 @@ SOLID and CLEAN CODE mandatory.
   Hidden or missing parent answers NOT_FOUND. Removed the now-dead unscoped
   `list()` methods from the five domain and D1 repositories, and the
   `JOIN businesses` visibility filtering they carried.
-- T8 (S6 — clients/docs): client type propagation check; update SPEC + README.
+- [x] T8 (S6 — clients/docs): no client references the replaced procedures
+  (`grep` over apps and packages found none), so the type change propagates
+  without app edits. SPEC-business-directory updated with the scoped child-list
+  contract; README requires no change.
 
 ## Log
 
@@ -164,3 +167,7 @@ SOLID and CLEAN CODE mandatory.
   methods and their tests were removed. `products.create` keeps its complete
   quota count through `listAllByBusiness`. 744 tests green, typecheck clean.
   Review decision: no owner-scoped child list until the owner portal exists.
+- L12 (2026-11-13): T8 done. No app or package referenced the replaced
+  procedures, so no client type change was needed; SPEC-business-directory
+  carries the new contract and README needed no edit. Feature complete:
+  T1-T8 closed, every work unit verified, no pending check.
