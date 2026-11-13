@@ -66,29 +66,52 @@ describe("client entry (non-server safe)", () => {
 
 describe("resolveApiBaseUrl", () => {
   const originalEnv = { ...process.env };
+  const names = [
+    "NEXT_PUBLIC_API_BASE_URL",
+    "NEXT_PUBLIC_API_URL",
+    "EXPO_PUBLIC_API_BASE_URL",
+    "EXPO_PUBLIC_API_URL",
+  ] as const;
+
+  function clearApiEnv() {
+    for (const name of names) delete process.env[name];
+  }
 
   afterEach(() => {
     process.env = { ...originalEnv };
   });
 
-  it("returns NEXT_PUBLIC_API_URL when set", () => {
-    process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
+  it("prefers NEXT_PUBLIC_API_BASE_URL", () => {
+    clearApiEnv();
+    process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.example.com";
+    process.env.NEXT_PUBLIC_API_URL = "https://legacy.example.com";
 
     expect(resolveApiBaseUrl()).toBe("https://api.example.com");
   });
 
-  it("falls back to EXPO_PUBLIC_API_URL when NEXT is unset", () => {
-    delete process.env.NEXT_PUBLIC_API_URL;
+  it("falls back to the legacy NEXT_PUBLIC_API_URL", () => {
+    clearApiEnv();
+    process.env.NEXT_PUBLIC_API_URL = "https://legacy.example.com";
 
-    process.env.EXPO_PUBLIC_API_URL = "https://expo.example.com";
+    expect(resolveApiBaseUrl()).toBe("https://legacy.example.com");
+  });
+
+  it("falls back to EXPO_PUBLIC_API_BASE_URL for native bundles", () => {
+    clearApiEnv();
+    process.env.EXPO_PUBLIC_API_BASE_URL = "https://expo.example.com";
 
     expect(resolveApiBaseUrl()).toBe("https://expo.example.com");
   });
 
-  it("returns empty string when neither is set", () => {
-    delete process.env.NEXT_PUBLIC_API_URL;
+  it("falls back to the legacy EXPO_PUBLIC_API_URL", () => {
+    clearApiEnv();
+    process.env.EXPO_PUBLIC_API_URL = "https://expo-legacy.example.com";
 
-    delete process.env.EXPO_PUBLIC_API_URL;
+    expect(resolveApiBaseUrl()).toBe("https://expo-legacy.example.com");
+  });
+
+  it("returns empty string when no client base is set", () => {
+    clearApiEnv();
 
     expect(resolveApiBaseUrl()).toBe("");
   });
