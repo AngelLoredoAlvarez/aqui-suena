@@ -25,17 +25,39 @@ describe("D1MediaRepository", () => {
 
     const repository = new D1MediaRepository(fakeDb);
 
-    const list = await repository.listByOwner("acc-1");
+    const page = await repository.listByOwner({ ownerId: "acc-1", limit: 20, offset: 0 });
 
-    expect(list).toHaveLength(1);
-    expect(list[0]?.id).toBe("m-1");
-    expect(list[0]?.ownerId).toBe("acc-1");
-    expect(list[0]?.kind).toBe("avatar");
-    expect(list[0]?.r2Key).toBe("avatar/acc-1/1");
-    expect(list[0]?.mime).toBe("image/png");
-    expect(list[0]?.size).toBe(512);
-    expect(list[0]?.createdAt).toBeInstanceOf(Date);
-    expect(list[0]?.createdAt.getTime()).toBe(1700000000 * 1000);
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("m-1");
+    expect(page.items[0]?.ownerId).toBe("acc-1");
+    expect(page.items[0]?.kind).toBe("avatar");
+    expect(page.items[0]?.r2Key).toBe("avatar/acc-1/1");
+    expect(page.items[0]?.mime).toBe("image/png");
+    expect(page.items[0]?.size).toBe(512);
+    expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
+    expect(page.items[0]?.createdAt.getTime()).toBe(1700000000 * 1000);
+  });
+
+  it("pages by owner with deterministic order, LIMIT and OFFSET", async () => {
+    const statements: Array<{ sql: string; params: unknown[] }> = [];
+    const fakeDb = {
+      prepare: (sql: string) => ({
+        bind: (...params: unknown[]) => {
+          statements.push({ sql, params });
+
+          return { all: async () => ({ results: [] }) };
+        },
+      }),
+    } as unknown as D1Database;
+
+    const repository = new D1MediaRepository(fakeDb);
+
+    await repository.listByOwner({ ownerId: "acc-1", limit: 5, offset: 10 });
+
+    expect(statements[0]?.sql).toMatch(
+      /WHERE owner_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
+    );
+    expect(statements[0]?.params).toEqual(["acc-1", 5, 10]);
   });
 
   it("returns null when getById finds nothing", async () => {

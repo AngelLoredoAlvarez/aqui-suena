@@ -4,6 +4,7 @@ import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domai
 import { requiredId } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { offsetInputSchema } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -99,9 +100,15 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
       });
     }),
 
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return repository.listByOwner(ctx.user.accountId);
-    }),
+    list: protectedProcedure
+      .input(v.optional(offsetInputSchema, { limit: 20, offset: 0 }))
+      .query(async ({ input, ctx }) => {
+        return repository.listByOwner({
+          ownerId: ctx.user.accountId,
+          limit: input.limit,
+          offset: input.offset,
+        });
+      }),
 
     delete: protectedProcedure
       .input(requiredId("Media id is required"))

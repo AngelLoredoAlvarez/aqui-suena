@@ -3,6 +3,10 @@ export type CursorPoint = {
   id: string;
 };
 
+export function toEpochSeconds(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}
+
 export function encodeCursor(point: CursorPoint): string {
   return btoa(JSON.stringify([point.createdAt, point.id]));
 }

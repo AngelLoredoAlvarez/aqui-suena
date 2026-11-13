@@ -1,6 +1,6 @@
 import type { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { isRetentionExpired } from "@aqui-suena/api/domain/directory/retention";
-import type { CursorPoint } from "@aqui-suena/api/shared/pagination/cursor";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
 import { paginateKeyset } from "@aqui-suena/api/shared/pagination/keyset";
 import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
 import type { CursorPage, OffsetPage } from "@aqui-suena/api/shared/pagination/page";
@@ -32,10 +32,6 @@ export type ListBusinessesByAccountInput = {
   limit: number;
   offset: number;
 };
-
-function toEpochSeconds(date: Date): number {
-  return Math.floor(date.getTime() / 1000);
-}
 
 function toBusinessPoint(business: Business): CursorPoint {
   return { createdAt: toEpochSeconds(business.createdAt), id: business.id };

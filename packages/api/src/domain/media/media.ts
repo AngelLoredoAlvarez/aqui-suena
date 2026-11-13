@@ -1,4 +1,7 @@
 import type { MediaKind } from "@aqui-suena/api/domain/media/storage";
+import { type CursorPoint, toEpochSeconds } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateOffsetRows } from "@aqui-suena/api/shared/pagination/offset";
+import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 
 export type Media = {
   id: string;
@@ -18,8 +21,18 @@ export type CreateMediaInput = {
   size: number;
 };
 
+export type ListMediaByOwnerInput = {
+  ownerId: string;
+  limit: number;
+  offset: number;
+};
+
+function toMediaPoint(media: Media): CursorPoint {
+  return { createdAt: toEpochSeconds(media.createdAt), id: media.id };
+}
+
 export interface MediaRepository {
-  listByOwner(ownerId: string): Promise<Media[]>;
+  listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>>;
   getById(id: string): Promise<Media | null>;
   create(input: CreateMediaInput): Promise<Media>;
   delete(id: string): Promise<boolean>;
@@ -28,8 +41,10 @@ export interface MediaRepository {
 export class InMemoryMediaRepository implements MediaRepository {
   constructor(private readonly items: Media[]) {}
 
-  async listByOwner(ownerId: string): Promise<Media[]> {
-    return this.items.filter((media) => media.ownerId === ownerId);
+  async listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>> {
+    const owned = this.items.filter((media) => media.ownerId === input.ownerId);
+
+    return paginateOffsetRows(owned, input, toMediaPoint);
   }
 
   async getById(id: string): Promise<Media | null> {
