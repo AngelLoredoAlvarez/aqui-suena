@@ -10,8 +10,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://aqui-suena-api.angel-loredo-alvarez.workers.dev",
-        "EXPO_PUBLIC_STREAM_BASE_URL": "https://aqui-suena-web.pages.dev"
+        "EXPO_PUBLIC_API_BASE_URL": "https://aqui-suena-api-staging.angel-loredo-alvarez.workers.dev",
+        "EXPO_PUBLIC_STREAM_BASE_URL": "https://aqui-suena-web-staging.pages.dev"
       }
     }
   }
