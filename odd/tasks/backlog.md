@@ -151,9 +151,10 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 - [ ] Tamagui `ZStack` cleanup for the overlay: overlays are still positioned
   with `position="absolute"` on `YStack` (`player-landing.tsx`), the
   non-idiomatic shape found during the overlay work.
-- [ ] Android system bars: on a physical device the bottom player renders
-  underneath the navigation bar and the top content can sit under the status
-  bar. See `odd/tasks/fix-android-player-safe-area.md`.
+- [ ] Native system bars (Android + iOS): on a physical Android device the
+  bottom player renders underneath the navigation bar and the top content can
+  sit under the status bar; iOS has the equivalent notch/home-indicator risk.
+  See `odd/tasks/fix-android-player-safe-area.md`.
 
 ## Platforms
 
