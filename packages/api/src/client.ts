@@ -34,12 +34,22 @@ export async function getListenerStatus(
   return v.parse(listenerStatusOutput, json?.result?.data);
 }
 
-// Resolves the API base URL from environment variables. Returns "" when
-// neither is set, which makes the fetch same-origin (web default).
+// BASE_URL is the documented name for every client; the legacy *_API_URL names
+// stay as fallbacks so existing deployments keep working.
 export function resolveApiBaseUrl(): string {
-  if (typeof process !== "undefined" && process.env) {
-    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-    if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+  if (typeof process === "undefined" || !process.env) {
+    return "";
+  }
+
+  const candidates = [
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    process.env.NEXT_PUBLIC_API_URL,
+    process.env.EXPO_PUBLIC_API_BASE_URL,
+    process.env.EXPO_PUBLIC_API_URL,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate) return candidate;
   }
 
   return "";

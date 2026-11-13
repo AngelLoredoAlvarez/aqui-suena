@@ -1,5 +1,6 @@
 import { request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
+import { getListenerStatus } from "@aqui-suena/api/client";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
 import { createApiServer } from "@aqui-suena/api/server/server";
@@ -166,6 +167,15 @@ describe("/trpc", () => {
     const client = createTRPCClient<AppRouter>({ links: [httpLink({ url: `${url}/trpc` })] });
 
     const status = await client.listener.getStatus.query({ stationId: "test-pop" });
+
+    expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
+    expect(status.listeners).toBe(0);
+  });
+
+  it("serves listener status to the shared client fetcher", async () => {
+    const { url } = await startServer();
+
+    const status = await getListenerStatus("test-pop", url);
 
     expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
     expect(status.listeners).toBe(0);
