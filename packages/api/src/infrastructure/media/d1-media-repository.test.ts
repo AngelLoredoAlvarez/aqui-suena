@@ -1,29 +1,21 @@
 import { D1MediaRepository } from "@aqui-suena/api/infrastructure/media/d1-media-repository";
+import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
+
+const sampleRow = {
+  id: "m-1",
+  owner_id: "acc-1",
+  kind: "avatar",
+  r2_key: "avatar/acc-1/1",
+  mime: "image/png",
+  size: 512,
+  created_at: 1700000000,
+};
 
 describe("D1MediaRepository", () => {
   it("maps D1 rows into media (listByOwner)", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          all: async () => ({
-            results: [
-              {
-                id: "m-1",
-                owner_id: "acc-1",
-                kind: "avatar",
-                r2_key: "avatar/acc-1/1",
-                mime: "image/png",
-                size: 512,
-                created_at: 1700000000,
-              },
-            ],
-          }),
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repository = new D1MediaRepository(fake.db);
 
     const page = await repository.listByOwner({ ownerId: "acc-1", limit: 20, offset: 0 });
 
@@ -39,51 +31,27 @@ describe("D1MediaRepository", () => {
   });
 
   it("pages by owner with deterministic order, LIMIT and OFFSET", async () => {
-    const statements: Array<{ sql: string; params: unknown[] }> = [];
-    const fakeDb = {
-      prepare: (sql: string) => ({
-        bind: (...params: unknown[]) => {
-          statements.push({ sql, params });
-
-          return { all: async () => ({ results: [] }) };
-        },
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database();
+    const repository = new D1MediaRepository(fake.db);
 
     await repository.listByOwner({ ownerId: "acc-1", limit: 5, offset: 10 });
 
-    expect(statements[0]?.sql).toMatch(
+    expect(fake.statements[0]?.sql).toMatch(
       /WHERE owner_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
     );
-    expect(statements[0]?.params).toEqual(["acc-1", 5, 10]);
+    expect(fake.statements[0]?.params).toEqual(["acc-1", 5, 10]);
   });
 
   it("returns null when getById finds nothing", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database(() => ({ first: null }));
+    const repository = new D1MediaRepository(fake.db);
 
     expect(await repository.getById("nonexistent")).toBeNull();
   });
 
   it("creates a media record and returns it with generated id and timestamp", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true }),
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repository = new D1MediaRepository(fake.db);
 
     const media = await repository.create({
       ownerId: "acc-1",
@@ -104,29 +72,15 @@ describe("D1MediaRepository", () => {
   });
 
   it("deletes an existing media and returns true", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 1 } }),
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+    const repository = new D1MediaRepository(fake.db);
 
     expect(await repository.delete("m-1")).toBe(true);
   });
 
   it("returns false when deleting a non-existent media", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 0 } }),
-        }),
-      }),
-    } as unknown as D1Database;
-
-    const repository = new D1MediaRepository(fakeDb);
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 0 } }));
+    const repository = new D1MediaRepository(fake.db);
 
     expect(await repository.delete("nonexistent")).toBe(false);
   });
