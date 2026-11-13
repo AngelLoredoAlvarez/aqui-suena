@@ -4,8 +4,8 @@ import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import {
+  createInMemoryRepositories,
   type DirectoryRepositories,
-  defaultDirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
 import { type RequestLogger, requestLogging } from "@aqui-suena/api/server/http/observability";
@@ -38,7 +38,7 @@ export interface AppOptions {
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
-  const directoryRepositories = options.directoryRepositories ?? defaultDirectoryRepositories;
+  const directoryRepositories = options.directoryRepositories ?? createInMemoryRepositories();
   const appRouter = createAppRouter(
     planRepository,
     directoryRepositories,
