@@ -7,7 +7,7 @@ export type StationRef = {
 
 export type PlayerCardProps = {
   stationName: string;
-  listeners: number;
+  listeners: number | null;
   status: PlayerCardStatus;
   onResume: () => void;
   onPause: () => void;

@@ -25,7 +25,7 @@ export function StationPlayer({
 }: {
   channel: TestChannel;
   stationName: string;
-  listeners: number;
+  listeners: number | null;
   onSelectStation: (stationId: string) => void;
   trayBridge: TrayBridge;
   onPositionChange?: (position: PlayerCardPosition) => void;
