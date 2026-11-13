@@ -87,6 +87,11 @@ SOLID and CLEAN CODE mandatory.
   router, `paginateOffsetRows` extracted to shared, `listByAccount` paged plus
   the `listAllByAccount` escape hatch for quota and downgrade consumers;
   `listAll` kept for global visibility consumers.
+  DONE slice 2: `media.list` (c271bb5) — `listByOwner` takes
+  `{ ownerId, limit, offset }` and returns `OffsetPage<Media>` on both repos;
+  `ORDER BY created_at, id LIMIT ? OFFSET ?`. No escape hatch: the router is
+  the only consumer. `toEpochSeconds` centralized in `shared/pagination/cursor`.
+  Next: `products.listByBusiness`.
 - T5 (S5 — quota count audit): audit `listByBusiness().length` call sites and
   replace with `countByBusiness` or an explicit large limit.
 - T6 (S6 — no-pagination confirmation): verify `hours.listByBusiness` and
@@ -133,3 +138,9 @@ SOLID and CLEAN CODE mandatory.
   stays for the global visibility consumers. 730 tests green, typecheck clean.
   Correction from review: a paginated method never replaces a whole-list
   method; both coexist with distinct semantics. Next: `media.listByOwner`.
+- L9 (2026-11-13): T4 slice 2 done — `media.list` offset (c271bb5). No escape
+  hatch because the router is the only consumer; `toEpochSeconds` moved to
+  `shared/pagination/cursor` and `business.ts` now reuses it. 734 tests green,
+  typecheck clean. User authorized the agent to apply code directly from this
+  point on (review-on-delivery instead of transcription). Next:
+  `products.listByBusiness`, auditing its quota `.length` consumer first.
