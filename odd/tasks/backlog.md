@@ -54,10 +54,13 @@ Documented state, not fixed yet. Nothing below changes behavior today.
 Detected during the api structure and security reviews, deferred to their own
 branches. None of these blocks the product today.
 
-- [ ] Pagination for list endpoints (`feat/list-pagination`). Every `list()`
-  returns the full table (`businesses`, `products`, `services`, `photos`,
-  `hours`, `flyers`, `media`). Add `limit`/`offset` with defaults and caps
-  across routers and repositories; this is a contract change.
+- [x] Pagination for list endpoints — DONE 2026-11-13 (PR #16,
+  `feat/list-pagination`). Keyset cursor for the public feeds
+  (`businesses.list`, `flyers.list`), offset for owner/business-scoped lists
+  (`businesses.listMine`, `media.list`, `products/services/photos/work-entries`
+  `.listByBusiness`), and none for `hours.listByBusiness` (max 7 rows) and
+  `ads.carousel`. Public child lists are now scoped per business with a single
+  router-level visibility guard. Details: `odd/tasks/feat-list-pagination.md`.
 - [ ] Shared D1 test double (`chore/d1-test-support`). 17 test files
   reimplement `as unknown as D1Database` with the same prepare/bind/first/all/run
   stubs. Extract one helper in `src/testing/` and migrate them.
