@@ -160,7 +160,9 @@ describe("hidden business visibility", () => {
   it("hides hidden businesses from the public list and getById", async () => {
     const { business } = makeRepositories();
 
-    expect((await business.list()).map((item) => item.id)).toEqual(["biz-visible"]);
+    expect((await business.list({ limit: 20, cursor: null })).items.map((item) => item.id)).toEqual(
+      ["biz-visible"],
+    );
     expect(await business.getById("biz-hidden")).toBeNull();
   });
 

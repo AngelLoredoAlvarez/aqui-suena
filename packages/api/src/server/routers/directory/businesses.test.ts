@@ -27,11 +27,11 @@ describe("businesses router", () => {
       subscription: new InMemorySubscriptionRepository([]),
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
-    const businesses = await caller.list();
+    const page = await caller.list();
 
-    expect(businesses).toHaveLength(1);
-    expect(businesses[0]?.id).toBe("biz-1");
-    expect(businesses[0]?.name).toBe("Tacos El Güero");
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("biz-1");
+    expect(page.items[0]?.name).toBe("Tacos El Güero");
   });
 
   it("rejects getById with NOT_FOUND when nothing matches", async () => {
@@ -147,7 +147,7 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    expect(await caller.list()).toEqual([]);
+    expect((await caller.list()).items).toEqual([]);
     await expect(caller.getById("biz-hidden")).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 

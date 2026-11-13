@@ -71,8 +71,11 @@ SOLID and CLEAN CODE mandatory.
   `CursorPage` types, `nextOffset`/`nextCursor` derivation helpers, with
   RED → GREEN tests. DONE: `shared/pagination/{cursor,input,page}.ts` + tests,
   714 tests green, typecheck clean. No barrel (repo uses flat imports).
-- T2 (S3, S4 — `businesses.list` keyset): `BusinessRepository.list` gains a
-  cursor param; D1 + in-memory impls; router input; tests. Route: teaching.
+- [x] T2 (S3, S4 — `businesses.list` keyset): `BusinessRepository.list` gains a
+  cursor param; D1 + in-memory impls; router input; tests. DONE: keyset
+  `list(input)` + `listAll()` escape hatch for internal consumers (carousel,
+  visibility); `paginateCursor` refactored to a `toPoint` extractor. 719 tests
+  green, typecheck clean.
 - T3 (S3, S4 — `flyers.list` keyset): same shape for `FlyerRepository.list`,
   keeping the visibility filter. Route: teaching.
 - T4 (S3, S4 — offset scoped lists): offset pagination for `businesses.listMine`,
@@ -104,3 +107,9 @@ SOLID and CLEAN CODE mandatory.
   is flat imports via the `@aqui-suena/api/*` alias (e.g. `d1-epoch`), with
   `index.ts` only at package entry points; a per-folder barrel would break
   consistency. 714 tests green, typecheck clean.
+- L5 (2026-11-12): T2 done — `businesses.list` keyset. Renamed the internal
+  escape hatch `listVisible` → `listAll` (clearer: paginated vs all). Changed
+  `paginateCursor` to take a `toPoint` extractor (T1's `createdAt: number`
+  constraint did not fit the domain's `Date`). Discovered `list()` had two more
+  consumers than scoped (carousel + visibility), now on `listAll`. 719 tests
+  green, typecheck clean.

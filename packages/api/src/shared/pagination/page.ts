@@ -1,3 +1,4 @@
+import type { CursorPoint } from "@aqui-suena/api/shared/pagination/cursor";
 import { encodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
 
 export type OffsetPage<T> = {
@@ -21,9 +22,10 @@ export function paginateOffset<T>(items: T[], limit: number, offset: number): Of
   };
 }
 
-export function paginateCursor<T extends { id: string; createdAt: number }>(
+export function paginateCursor<T>(
   rows: T[],
   limit: number,
+  toPoint: (item: T) => CursorPoint,
 ): CursorPage<T> {
   const items = rows.slice(0, limit);
   const last = rows[limit - 1];
@@ -34,6 +36,6 @@ export function paginateCursor<T extends { id: string; createdAt: number }>(
 
   return {
     items,
-    nextCursor: encodeCursor({ createdAt: last.createdAt, id: last.id }),
+    nextCursor: encodeCursor(toPoint(last)),
   };
 }

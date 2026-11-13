@@ -6,66 +6,73 @@ describe("D1BusinessRepository", () => {
   it("maps D1 rows into businesses", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "biz-1",
-              account_id: "acc-1",
-              name: "Tacos El Güero",
-              category: "food",
-              phone: "+521234567890",
-              email: "tacos@example.com",
-              address: "Calle Falsa 123",
-              timezone: "America/Mexico_City",
-              delivery: 1,
-              created_at: 1700000000,
-              updated_at: 1700000000,
-            },
-          ],
+        bind: () => ({
+          all: async () => ({
+            results: [
+              {
+                id: "biz-1",
+                account_id: "acc-1",
+                name: "Tacos El Güero",
+                category: "food",
+                phone: "+521234567890",
+                email: "tacos@example.com",
+                address: "Calle Falsa 123",
+                timezone: "America/Mexico_City",
+                delivery: 1,
+                created_at: 1700000000,
+                updated_at: 1700000000,
+              },
+            ],
+          }),
         }),
       }),
     } as unknown as D1Database;
 
     const repository = new D1BusinessRepository(fakeDb);
-    const businesses = await repository.list();
 
-    expect(businesses).toHaveLength(1);
-    expect(businesses[0]?.id).toBe("biz-1");
-    expect(businesses[0]?.accountId).toBe("acc-1");
-    expect(businesses[0]?.name).toBe("Tacos El Güero");
-    expect(businesses[0]?.category).toBe("food");
-    expect(businesses[0]?.delivery).toBe(true);
-    expect(businesses[0]?.createdAt).toBeInstanceOf(Date);
+    const page = await repository.list({ limit: 20, cursor: null });
+
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.id).toBe("biz-1");
+    expect(page.items[0]?.accountId).toBe("acc-1");
+    expect(page.items[0]?.name).toBe("Tacos El Güero");
+    expect(page.items[0]?.category).toBe("food");
+    expect(page.items[0]?.delivery).toBe(true);
+    expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
   });
 
   it("throws DataIntegrityError when a stored category is unknown", async () => {
     const fakeDb = {
       prepare: () => ({
-        all: async () => ({
-          results: [
-            {
-              id: "biz-1",
-              account_id: "acc-1",
-              name: "Tacos El Güero",
-              category: "restaurant",
-              phone: null,
-              email: null,
-              address: null,
-              timezone: "America/Mexico_City",
-              delivery: 1,
-              hidden_at: null,
-              retained_until: null,
-              created_at: 1700000000,
-              updated_at: 1700000000,
-            },
-          ],
+        bind: () => ({
+          all: async () => ({
+            results: [
+              {
+                id: "biz-1",
+                account_id: "acc-1",
+                name: "Tacos El Güero",
+                category: "restaurant",
+                phone: null,
+                email: null,
+                address: null,
+                timezone: "America/Mexico_City",
+                delivery: 1,
+                hidden_at: null,
+                retained_until: null,
+                created_at: 1700000000,
+                updated_at: 1700000000,
+              },
+            ],
+          }),
         }),
       }),
     } as unknown as D1Database;
 
     const repository = new D1BusinessRepository(fakeDb);
 
-    await expect(repository.list()).rejects.toBeInstanceOf(DataIntegrityError);
+    await expect(repository.list({ limit: 20, cursor: null })).rejects.toBeInstanceOf(
+      DataIntegrityError,
+    );
   });
 
   it("returns null when getById finds nothing", async () => {

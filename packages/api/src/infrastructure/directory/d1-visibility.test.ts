@@ -32,7 +32,7 @@ describe("D1 public visibility queries", () => {
     const { db, statements } = makeFakeDb();
     const repository = new D1BusinessRepository(db);
 
-    await repository.list();
+    await repository.list({ limit: 20, cursor: null });
     await repository.getById("biz-1");
 
     expect(statements).toHaveLength(2);

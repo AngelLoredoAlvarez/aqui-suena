@@ -7,6 +7,7 @@ import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/ac
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { cursorInputSchema } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
@@ -41,9 +42,11 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
   const { business: repository, subscription: subscriptionRepository } = deps;
 
   return router({
-    list: publicProcedure.query(async () => {
-      return repository.list();
-    }),
+    list: publicProcedure
+      .input(v.optional(cursorInputSchema, { limit: 20 }))
+      .query(async ({ input }) => {
+        return repository.list({ limit: input.limit, cursor: input.cursor ?? null });
+      }),
 
     listMine: protectedProcedure.query(async ({ ctx }) => {
       return repository.listByAccount(ctx.user.accountId);

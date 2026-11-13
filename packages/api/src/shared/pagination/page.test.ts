@@ -1,3 +1,4 @@
+import type { CursorPoint } from "@aqui-suena/api/shared/pagination/cursor";
 import { encodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
 import { paginateCursor, paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 import { describe, expect, it } from "vitest";
@@ -49,15 +50,20 @@ describe("paginateOffset", () => {
 });
 
 describe("paginateCursor", () => {
+  const toPoint = (row: Row): CursorPoint => ({
+    createdAt: row.createdAt,
+    id: row.id,
+  });
+
   it("returns all rows and nextCursor null when there is no next page", () => {
     const rows = [makeRow("a", 1), makeRow("b", 2)];
 
-    expect(paginateCursor(rows, 20)).toEqual({ items: rows, nextCursor: null });
+    expect(paginateCursor(rows, 20, toPoint)).toEqual({ items: rows, nextCursor: null });
   });
 
   it("slices to limit and returns a cursor when there is a next page", () => {
     const rows = Array.from({ length: 21 }, (_, i) => makeRow(`r${i}`, i));
-    const page = paginateCursor(rows, 20);
+    const page = paginateCursor(rows, 20, toPoint);
 
     expect(page.items).toEqual(rows.slice(0, 20));
     expect(page.items).toHaveLength(20);
@@ -67,6 +73,6 @@ describe("paginateCursor", () => {
   it("returns a null cursor exactly at the boundary", () => {
     const rows = Array.from({ length: 20 }, (_, i) => makeRow(`r${i}`, i));
 
-    expect(paginateCursor(rows, 20)).toEqual({ items: rows, nextCursor: null });
+    expect(paginateCursor(rows, 20, toPoint)).toEqual({ items: rows, nextCursor: null });
   });
 });
