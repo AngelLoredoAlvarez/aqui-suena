@@ -1,28 +1,21 @@
 import { D1WorkEntryRepository } from "@aqui-suena/api/infrastructure/directory/d1-work-entry-repository";
+import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
+
+const sampleRow = {
+  id: "we-1",
+  business_id: "biz-1",
+  title: "Reparación de laptop",
+  description: "Cambio de pantalla",
+  created_at: 1700000000,
+  updated_at: 1700000000,
+};
 
 describe("D1WorkEntryRepository", () => {
   it("maps D1 rows into work entries", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          all: async () => ({
-            results: [
-              {
-                id: "we-1",
-                business_id: "biz-1",
-                title: "Reparación de laptop",
-                description: "Cambio de pantalla",
-                created_at: 1700000000,
-                updated_at: 1700000000,
-              },
-            ],
-          }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
     const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
     expect(page.items).toHaveLength(1);
@@ -34,40 +27,16 @@ describe("D1WorkEntryRepository", () => {
   });
 
   it("returns null when getById finds nothing", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ first: null }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const entry = await repository.getById("nonexistent");
-    expect(entry).toBeNull();
+    expect(await repository.getById("nonexistent")).toBeNull();
   });
 
   it("lists only work entries belonging to the given business", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          all: async () => ({
-            results: [
-              {
-                id: "we-1",
-                business_id: "biz-1",
-                title: "Reparación de laptop",
-                description: null,
-                created_at: 1700000000,
-                updated_at: 1700000000,
-              },
-            ],
-          }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ all: [{ ...sampleRow, description: null }] }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
     const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
     expect(page.items).toHaveLength(1);
@@ -75,15 +44,9 @@ describe("D1WorkEntryRepository", () => {
   });
 
   it("creates a work entry and returns it with generated id and timestamps", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
     const entry = await repository.create({
       businessId: "biz-1",
       title: "Reparación de laptop",
@@ -100,44 +63,14 @@ describe("D1WorkEntryRepository", () => {
   });
 
   it("updates only the provided fields and preserves the rest", async () => {
-    const existingRow = {
-      id: "we-1",
-      business_id: "biz-1",
-      title: "Reparación de laptop",
-      description: "Cambio de pantalla",
-      created_at: 1700000000,
-      updated_at: 1700000000,
-    };
+    const fake = new FakeD1Database(({ sql }) => {
+      if (sql.includes("WHERE id = ?")) return { first: sampleRow };
 
-    const fakeDb = {
-      prepare: (sql: string) => {
-        if (sql.includes("SELECT") && sql.includes("WHERE id = ?")) {
-          return {
-            bind: () => ({
-              first: async () => existingRow,
-            }),
-          };
-        }
-
-        if (sql.includes("UPDATE")) {
-          return {
-            bind: () => ({
-              run: async () => ({ success: true }),
-            }),
-          };
-        }
-
-        return {
-          all: async () => ({ results: [] }),
-          bind: () => ({ all: async () => ({ results: [] }), first: async () => null }),
-        };
-      },
-    } as unknown as D1Database;
-
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const updated = await repository.update("we-1", {
-      title: "Reparación de PC",
+      return { run: { success: true } };
     });
+    const repository = new D1WorkEntryRepository(fake.db);
+
+    const updated = await repository.update("we-1", { title: "Reparación de PC" });
 
     expect(updated).not.toBeNull();
     expect(updated?.title).toBe("Reparación de PC");
@@ -147,85 +80,34 @@ describe("D1WorkEntryRepository", () => {
   });
 
   it("returns null when updating a non-existent work entry", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ first: null }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const result = await repository.update("nonexistent", { title: "X" });
-    expect(result).toBeNull();
+    expect(await repository.update("nonexistent", { title: "X" })).toBeNull();
   });
 
   it("allows setting description to null explicitly", async () => {
-    const existingRow = {
-      id: "we-1",
-      business_id: "biz-1",
-      title: "Reparación de laptop",
-      description: "Cambio de pantalla",
-      created_at: 1700000000,
-      updated_at: 1700000000,
-    };
+    const fake = new FakeD1Database(({ sql }) => {
+      if (sql.includes("WHERE id = ?")) return { first: sampleRow };
 
-    const fakeDb = {
-      prepare: (sql: string) => {
-        if (sql.includes("SELECT") && sql.includes("WHERE id = ?")) {
-          return {
-            bind: () => ({
-              first: async () => existingRow,
-            }),
-          };
-        }
+      return { run: { success: true } };
+    });
+    const repository = new D1WorkEntryRepository(fake.db);
 
-        if (sql.includes("UPDATE")) {
-          return {
-            bind: () => ({
-              run: async () => ({ success: true }),
-            }),
-          };
-        }
-
-        return {
-          all: async () => ({ results: [] }),
-          bind: () => ({ all: async () => ({ results: [] }), first: async () => null }),
-        };
-      },
-    } as unknown as D1Database;
-
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const updated = await repository.update("we-1", { description: null });
-
-    expect(updated?.description).toBeNull();
+    expect((await repository.update("we-1", { description: null }))?.description).toBeNull();
   });
 
   it("deletes an existing work entry and returns true", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 1 } }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const deleted = await repository.delete("we-1");
-    expect(deleted).toBe(true);
+    expect(await repository.delete("we-1")).toBe(true);
   });
 
   it("returns false when deleting a non-existent work entry", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 0 } }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 0 } }));
+    const repository = new D1WorkEntryRepository(fake.db);
 
-    const repository = new D1WorkEntryRepository(fakeDb);
-    const deleted = await repository.delete("nonexistent");
-    expect(deleted).toBe(false);
+    expect(await repository.delete("nonexistent")).toBe(false);
   });
 });

@@ -1,26 +1,12 @@
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import worker, { type WorkerEnv } from "@aqui-suena/api/server/worker";
+import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it, vi } from "vitest";
 
 function makeDb() {
-  const calls: { sql: string; params: unknown[] }[] = [];
+  const fake = new FakeD1Database(() => ({ run: { success: true } }));
 
-  const db = {
-    prepare: (sql: string) => ({
-      bind: (...params: unknown[]) => ({
-        run: async () => {
-          calls.push({ sql, params });
-          return { success: true };
-        },
-        all: async () => ({ results: [] }),
-        first: async () => null,
-      }),
-      all: async () => ({ results: [] }),
-      first: async () => null,
-    }),
-  } as unknown as D1Database;
-
-  return { db, calls };
+  return { db: fake.db, statements: fake.statements };
 }
 
 function seedRequest(token?: string): Request {
@@ -32,28 +18,28 @@ function seedRequest(token?: string): Request {
 
 describe("POST /admin/seed-plans", () => {
   it("answers 404 when the admin token is not configured", async () => {
-    const { db, calls } = makeDb();
+    const { db, statements } = makeDb();
     const response = await worker.fetch(seedRequest("secret"), {
       aqui_suena_db: db,
     } as unknown as WorkerEnv);
 
     expect(response.status).toBe(404);
-    expect(calls).toHaveLength(0);
+    expect(statements).toHaveLength(0);
   });
 
   it("answers 404 when the token does not match", async () => {
-    const { db, calls } = makeDb();
+    const { db, statements } = makeDb();
     const response = await worker.fetch(seedRequest("wrong"), {
       aqui_suena_db: db,
       ADMIN_TOKEN: "secret",
     } as unknown as WorkerEnv);
 
     expect(response.status).toBe(404);
-    expect(calls).toHaveLength(0);
+    expect(statements).toHaveLength(0);
   });
 
   it("seeds every plan with the matching token", async () => {
-    const { db, calls } = makeDb();
+    const { db, statements } = makeDb();
     const response = await worker.fetch(seedRequest("secret"), {
       aqui_suena_db: db,
       ADMIN_TOKEN: "secret",
@@ -61,8 +47,8 @@ describe("POST /admin/seed-plans", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ seeded: DEFAULT_PLAN_CATALOG.length });
-    expect(calls).toHaveLength(DEFAULT_PLAN_CATALOG.length);
-    expect(calls[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(statements).toHaveLength(DEFAULT_PLAN_CATALOG.length);
+    expect(statements[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
   });
 });
 
