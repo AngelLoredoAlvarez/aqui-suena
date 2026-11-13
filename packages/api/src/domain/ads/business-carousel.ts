@@ -19,7 +19,7 @@ export async function getBusinessCarousel(
   deps: BusinessCarouselDeps,
   now: Date,
 ): Promise<AdsCarouselItem[]> {
-  const businesses = await deps.businessRepository.listVisible();
+  const businesses = await deps.businessRepository.listAll();
 
   const sponsors: CarouselSlotInput[] = [];
   const itemsById = new Map<string, AdsCarouselItem>();

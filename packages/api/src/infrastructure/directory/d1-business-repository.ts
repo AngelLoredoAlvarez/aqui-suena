@@ -58,7 +58,7 @@ export class D1BusinessRepository implements BusinessRepository {
     }));
   }
 
-  async listVisible(): Promise<Business[]> {
+  async listAll(): Promise<Business[]> {
     const result = await this.db
       .prepare(
         "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL",

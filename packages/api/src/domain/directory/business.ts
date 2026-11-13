@@ -1,9 +1,7 @@
 import type { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { isRetentionExpired } from "@aqui-suena/api/domain/directory/retention";
-import type { CursorPoint } from "@aqui-suena/api/shared/pagination/cursor";
-import { decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
+import { paginateKeyset } from "@aqui-suena/api/shared/pagination/keyset";
 import type { CursorPage } from "@aqui-suena/api/shared/pagination/page";
-import { paginateCursor } from "@aqui-suena/api/shared/pagination/page";
 import type * as v from "valibot";
 
 export type Business = {
@@ -31,26 +29,6 @@ function toEpochSeconds(date: Date): number {
   return Math.floor(date.getTime() / 1000);
 }
 
-function compareByCursorKey(a: Business, b: Business): number {
-  const byTime = toEpochSeconds(a.createdAt) - toEpochSeconds(b.createdAt);
-
-  if (byTime !== 0) return byTime;
-
-  if (a.id < b.id) return -1;
-
-  if (a.id > b.id) return 1;
-
-  return 0;
-}
-
-function isAfterCursor(business: Business, point: CursorPoint): boolean {
-  const epoch = toEpochSeconds(business.createdAt);
-
-  if (epoch !== point.createdAt) return epoch > point.createdAt;
-
-  return business.id > point.id;
-}
-
 export type CreateBusinessInput = {
   accountId: string;
   name: string;
@@ -76,7 +54,7 @@ export type UpdateBusinessInput = {
 
 export interface BusinessRepository {
   list(input: ListBusinessesInput): Promise<CursorPage<Business>>;
-  listVisible(): Promise<Business[]>;
+  listAll(): Promise<Business[]>;
   getById(id: string): Promise<Business | null>;
   getByIdForOwner(id: string): Promise<Business | null>;
   listByAccount(accountId: string): Promise<Business[]>;
@@ -92,22 +70,13 @@ export class InMemoryBusinessRepository implements BusinessRepository {
   async list(input: ListBusinessesInput): Promise<CursorPage<Business>> {
     const visible = this.businesses.filter((business) => business.hiddenAt === null);
 
-    const sorted = [...visible].sort(compareByCursorKey);
-
-    const point = input.cursor === null ? null : decodeCursor(input.cursor);
-
-    const after =
-      point === null ? sorted : sorted.filter((business) => isAfterCursor(business, point));
-
-    const rows = after.slice(0, input.limit + 1);
-
-    return paginateCursor(rows, input.limit, (business) => ({
+    return paginateKeyset(visible, input, (business) => ({
       createdAt: toEpochSeconds(business.createdAt),
       id: business.id,
     }));
   }
 
-  async listVisible(): Promise<Business[]> {
+  async listAll(): Promise<Business[]> {
     return this.businesses.filter((business) => business.hiddenAt === null);
   }
 
