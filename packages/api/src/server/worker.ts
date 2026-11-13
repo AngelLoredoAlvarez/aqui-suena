@@ -13,6 +13,7 @@ import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/
 import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
+import { isAdminAuthorized } from "@aqui-suena/api/server/http/admin-auth";
 import { createApp } from "@aqui-suena/api/server/http/app";
 import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
@@ -96,7 +97,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
   // One-off seeding endpoint for the Vectorize plan index. Returns 404
   // unless ADMIN_TOKEN is configured; requires it to match.
   if (embeddingModel && vectorIndex && new URL(request.url).pathname === "/admin/seed-vectors") {
-    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+    if (!isAdminAuthorized(request, env.ADMIN_TOKEN)) {
       return new Response("Not found", { status: 404 });
     }
     const result = await seedPlanVectors({
@@ -110,7 +111,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
   // One-off cleanup endpoint for businesses past their 90-day retention.
   // Returns 404 unless ADMIN_TOKEN is configured; requires it to match.
   if (new URL(request.url).pathname === "/admin/purge-expired-businesses") {
-    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+    if (!isAdminAuthorized(request, env.ADMIN_TOKEN)) {
       return new Response("Not found", { status: 404 });
     }
     const deleted = await directoryRepositories.business.deleteExpired(new Date());
@@ -120,7 +121,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
   // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
   // configured; requires it to match.
   if (new URL(request.url).pathname === "/admin/seed-plans") {
-    if (!env.ADMIN_TOKEN || request.headers.get("authorization") !== `Bearer ${env.ADMIN_TOKEN}`) {
+    if (!isAdminAuthorized(request, env.ADMIN_TOKEN)) {
       return new Response("Not found", { status: 404 });
     }
     const seeded = await seedPlans(
