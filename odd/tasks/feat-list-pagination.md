@@ -36,9 +36,13 @@ SOLID and CLEAN CODE mandatory.
   | `flyers.list` (public feed)                                   | keyset | same growth and mutability as businesses                 |
   | `businesses.listMine`                                         | offset | owner-scoped, page-number navigation                     |
   | `media.list` (`listByOwner`)                                  | offset | owner-scoped gallery                                     |
-  | `products/services/photos/work-entries/flyers.listByBusiness` | offset | business-scoped                                          |
   | `hours.listByBusiness`                                        | none   | at most 7 rows (one per day)                             |
   | `ads.carousel`                                                | none   | already ranked to bounded slots                          |
+
+  Correction (2026-11-13): the `listByBusiness` rows for products,
+  services, photos, work-entries and flyers were repository methods, **not
+  endpoints**; no public router procedure lists children per business. They
+  stay unpaginated until such an endpoint exists (see T7).
 
 - S4 (repositories): Repository `list()`/`listByBusiness()`/`listByOwner()`/
   `listMine()` methods gain a pagination parameter normalized by the router.
@@ -80,22 +84,17 @@ SOLID and CLEAN CODE mandatory.
   keeping the visibility filter. DONE: keyset `list(input)` on InMemory + D1
   (JOIN + `(f.created_at, f.id)`); extracted `paginateKeyset` to shared and
   refactored `business.ts` onto it. 727 tests green, typecheck clean.
-- T4 (S3, S4 — offset scoped lists): offset pagination for `businesses.listMine`,
-  `media.listByOwner`, and `listByBusiness` across products, services, photos,
-  work-entries, flyers. One commit per router. Route: teaching.
-  DONE slice 1: `businesses.listMine` (a978c68) — `offsetInputSchema` on the
-  router, `paginateOffsetRows` extracted to shared, `listByAccount` paged plus
-  the `listAllByAccount` escape hatch for quota and downgrade consumers;
-  `listAll` kept for global visibility consumers.
-  DONE slice 2: `media.list` (c271bb5) — `listByOwner` takes
-  `{ ownerId, limit, offset }` and returns `OffsetPage<Media>` on both repos;
-  `ORDER BY created_at, id LIMIT ? OFFSET ?`. No escape hatch: the router is
-  the only consumer. `toEpochSeconds` centralized in `shared/pagination/cursor`.
-  Next: `products.listByBusiness`.
-- T5 (S5 — quota count audit): audit `listByBusiness().length` call sites and
-  replace with `countByBusiness` or an explicit large limit.
-- T6 (S6 — no-pagination confirmation): verify `hours.listByBusiness` and
-  `ads.carousel` remain untouched; no accidental pagination.
+- [x] T4 (S3, S4 — offset scoped lists): DONE. Slice 1 `businesses.listMine`
+  (a978c68); slice 2 `media.list` (c271bb5). The remaining rows named
+  `listByBusiness` were repository methods with no endpoint; nothing to
+  paginate (corrected in S3).
+- [x] T5 (S5 — quota count audit): no change needed. The only count consumer
+  is `products.create` via `listByBusiness().length`; since that method stays
+  unpaginated, the count is complete. `countByBusiness` would be a performance
+  optimization, not a correctness fix, and is out of scope here.
+- [x] T6 (S6 — no-pagination confirmation): verified `hours.listByBusiness` and
+  `ads.carousel` untouched by this feature; the only carousel change is the T2
+  `list()` → `listAll()` call.
 - T7 (S7 — global public child lists): resolve the pending decision with the
   user; if removed/scoped, land as its own PR (contract change).
 - T8 (S6 — clients/docs): client type propagation check; update SPEC + README.
@@ -144,3 +143,11 @@ SOLID and CLEAN CODE mandatory.
   typecheck clean. User authorized the agent to apply code directly from this
   point on (review-on-delivery instead of transcription). Next:
   `products.listByBusiness`, auditing its quota `.length` consumer first.
+- L10 (2026-11-13): Scope correction. A consumer audit showed no router exposes
+  `listByBusiness`; those rows in S3 described repository methods, not public
+  endpoints. T4 is therefore complete with the two real slices, T5 needs no
+  change (the method stays unpaginated, so `.length` is complete), and T6 is
+  confirmed untouched. The open decision is T7: the global public child lists
+  (`products/services/photos/hours/work-entries.list`) return every row and
+  nothing consumes them yet; the business detail sheet needs a scoped,
+  paginated child list instead.
