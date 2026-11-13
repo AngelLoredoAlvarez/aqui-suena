@@ -1,7 +1,7 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
 import { adsCarouselOutput } from "@aqui-suena/api/domain/ads/contract";
 import type { ListenerStatus } from "@aqui-suena/api/domain/radio/listener";
-import { getMockListenerStatus, listenerStatusInput } from "@aqui-suena/api/domain/radio/listener";
+import { listenerStatusInput, listenerStatusOutput } from "@aqui-suena/api/domain/radio/listener";
 import * as v from "valibot";
 
 export type { ListenerStatus } from "@aqui-suena/api/domain/radio/listener";
@@ -13,13 +13,25 @@ export { listenerStatusInput, listenerStatusOutput } from "@aqui-suena/api/domai
 // guard) while satisfying the client-never-imports-server-entry rule.
 export { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";
 
-// Client-safe fetcher for TanStack Query: validates the mock through the
-// same valibot schemas the server router enforces, with no @trpc/server import
+// Client-safe fetcher for TanStack Query: calls the tRPC endpoint over HTTP and
+// validates the response with the shared schema, with no @trpc/server import
 // anywhere in this module graph (see client.test.ts guard).
-export async function getListenerStatus(stationId: string): Promise<ListenerStatus> {
+export async function getListenerStatus(
+  stationId: string,
+  baseUrl?: string,
+): Promise<ListenerStatus> {
   const { stationId: validId } = v.parse(listenerStatusInput, { stationId });
+  const base = baseUrl ?? resolveApiBaseUrl();
+  const input = encodeURIComponent(JSON.stringify({ stationId: validId }));
+  const response = await fetch(`${base}/trpc/listener.getStatus?input=${input}`);
 
-  return getMockListenerStatus(validId);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const json = (await response.json()) as { result?: { data?: unknown } };
+
+  return v.parse(listenerStatusOutput, json?.result?.data);
 }
 
 // Resolves the API base URL from environment variables. Returns "" when

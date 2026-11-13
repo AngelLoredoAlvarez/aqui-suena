@@ -1,11 +1,21 @@
+import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
+import { InMemoryListenSessionRepository } from "@aqui-suena/api/domain/radio/listen-session";
+import { InMemoryStationRepository } from "@aqui-suena/api/domain/radio/station";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import { createInMemoryRepositories } from "@aqui-suena/api/server/composition/repositories";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
 import { describe, expect, it } from "vitest";
 
+function makeStationRepository() {
+  return new InMemoryStationRepository([...HARNESS_STATIONS]);
+}
+
 const appRouter = createAppRouter(
   defaultPlanRepository,
   createInMemoryRepositories(),
+  makeStationRepository(),
+  new InMemoryListenSessionRepository(),
+  false,
   undefined,
   undefined,
   undefined,
@@ -33,6 +43,9 @@ describe("createAppRouter media storage", () => {
     const router = createAppRouter(
       defaultPlanRepository,
       createInMemoryRepositories(),
+      makeStationRepository(),
+      new InMemoryListenSessionRepository(),
+      false,
       undefined,
       undefined,
       undefined,

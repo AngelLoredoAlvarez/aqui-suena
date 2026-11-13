@@ -165,10 +165,10 @@ describe("/trpc", () => {
 
     const client = createTRPCClient<AppRouter>({ links: [httpLink({ url: `${url}/trpc` })] });
 
-    const status = await client.listener.getStatus.query({ stationId: "station-1" });
+    const status = await client.listener.getStatus.query({ stationId: "test-pop" });
 
-    expect(status.station).toEqual({ id: "station-1", name: "Aquí Suena" });
-    expect(status.listeners).toBe(42);
+    expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
+    expect(status.listeners).toBe(0);
   });
 
   it("applies the origin policy to tRPC as well", async () => {

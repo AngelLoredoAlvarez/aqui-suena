@@ -1,6 +1,15 @@
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
+import {
+  InMemoryListenSessionRepository,
+  type ListenSessionRepository,
+} from "@aqui-suena/api/domain/radio/listen-session";
+import {
+  InMemoryStationRepository,
+  type StationRepository,
+} from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import {
@@ -29,6 +38,9 @@ export interface AppOptions {
   aiGatewayId?: string;
   planRepository?: PlanRepository;
   directoryRepositories?: DirectoryRepositories;
+  stationRepository?: StationRepository;
+  listenSessionRepository?: ListenSessionRepository;
+  fakeListeners?: boolean;
   mediaStorage?: ObjectStorage;
   subscriptionNotifier?: SubscriptionNotifier;
   logger?: RequestLogger;
@@ -39,9 +51,16 @@ export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
   const planRepository = options.planRepository ?? defaultPlanRepository;
   const directoryRepositories = options.directoryRepositories ?? createInMemoryRepositories();
+  const stationRepository =
+    options.stationRepository ?? new InMemoryStationRepository([...HARNESS_STATIONS]);
+  const listenSessionRepository =
+    options.listenSessionRepository ?? new InMemoryListenSessionRepository();
   const appRouter = createAppRouter(
     planRepository,
     directoryRepositories,
+    stationRepository,
+    listenSessionRepository,
+    options.fakeListeners ?? false,
     options.ai,
     options.planCatalogRetriever,
     options.aiGatewayId,
