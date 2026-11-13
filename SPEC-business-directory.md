@@ -33,9 +33,9 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
 apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
 packages/db/src/schema.ts                   → businesses, services, products, photos, work_entries, flyers, hours
-packages/api/src/server/routers/directory/   → business.list / business.get + directory CRUD routers
+packages/api/src/server/routers/directory/   → directory CRUD routers (public child lists scoped per business, offset paginated)
 packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos + authorization/visibility guards
-packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD, hidden-parent filtering)
+packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD, deterministic created_at/id ordering)
 packages/ui/src/business-card.tsx            → shared card + sheet
 ```
 
@@ -86,6 +86,7 @@ Conventions: valibot schemas shared between API and forms; hours stored as weekl
 
 - Always: validate listing inputs with valibot, derive `open` from hours, show delivery only when applicable, enforce auth and business ownership on mutations (short-lived JWT in Authorization Bearer, verified server-side; a missing or foreign resource answers `NOT_FOUND` and a malformed id answers `BAD_REQUEST`), run `typecheck + lint + test` before commit.
 - Always: public reads (`list`, `getById`) and public child lists exclude businesses with `hidden_at` set; the owner still sees and edits them through the owner-scoped endpoints.
+- Always: public child lists (`products`, `services`, `photos`, `work-entries`, `hours`) are scoped to one `businessId`; the paginated ones accept `{ limit 1..100 default 20, offset >= 0 default 0 }` and return `{ items, limit, offset, nextOffset }` with no `total`; a hidden or missing parent answers `NOT_FOUND`; `hours` is unpaginated because it has at most seven rows.
 - Ask first: add a listing field, change hours model, add image hosting provider (now R2 — see SPEC-media-storage).
 - Never: expose owner emails/phones to scrapers without rate limits, hardcode categories in UI (use shared enum), stop audio when opening a listing.
 

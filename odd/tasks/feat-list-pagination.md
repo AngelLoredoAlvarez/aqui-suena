@@ -61,12 +61,13 @@ SOLID and CLEAN CODE mandatory.
   client consumes a paginated list, the query passes no input by default
   (server defaults apply) and the type change propagates.
 
-- S7 (global public child lists — pending decision): the global public
-  `products.list`, `services.list`, `photos.list`, `hours.list`,
-  `work-entries.list` return every row across every visible business. They are
-  not real product feeds (products/photos/hours are browsed inside a business
-  detail page via `listByBusiness`). Resolution is a separate contract change
-  (scope or remove them); until then they are out of scope for pagination.
+- S7 (global public child lists — resolved): the unscoped `products/services/
+  photos/hours/work-entries.list` procedures were replaced by
+  `listByBusiness({ businessId })`, offset-paginated where the row count can
+  grow and unpaginated for hours (at most seven rows). A hidden or missing
+  parent answers `NOT_FOUND`; visibility is enforced once at the router instead
+  of joining `businesses` in every child query. Owner-scoped child lists for
+  hidden businesses are deferred until the owner portal needs them.
 
 ## Tasks
 
@@ -95,8 +96,12 @@ SOLID and CLEAN CODE mandatory.
 - [x] T6 (S6 — no-pagination confirmation): verified `hours.listByBusiness` and
   `ads.carousel` untouched by this feature; the only carousel change is the T2
   `list()` → `listAll()` call.
-- T7 (S7 — global public child lists): resolve the pending decision with the
-  user; if removed/scoped, land as its own PR (contract change).
+- [x] T7 (S7 — global public child lists): DONE. Replaced the five unscoped
+  lists with `listByBusiness({ businessId })`; offset pagination for products,
+  services, photos and work-entries; hours unpaginated and ordered by day.
+  Hidden or missing parent answers NOT_FOUND. Removed the now-dead unscoped
+  `list()` methods from the five domain and D1 repositories, and the
+  `JOIN businesses` visibility filtering they carried.
 - T8 (S6 — clients/docs): client type propagation check; update SPEC + README.
 
 ## Log
@@ -151,3 +156,11 @@ SOLID and CLEAN CODE mandatory.
   (`products/services/photos/hours/work-entries.list`) return every row and
   nothing consumes them yet; the business detail sheet needs a scoped,
   paginated child list instead.
+- L11 (2026-11-13): T7 done. `products/services/photos/work-entries.list`
+  became `listByBusiness({ businessId, limit?, offset? })` (offset) and
+  `hours.listByBusiness({ businessId })` (unpaginated, ordered by day).
+  Visibility is enforced once at the router via `business.getById`, so the
+  scoped child queries no longer join `businesses`; the unscoped `list()`
+  methods and their tests were removed. `products.create` keeps its complete
+  quota count through `listAllByBusiness`. 744 tests green, typecheck clean.
+  Review decision: no owner-scoped child list until the owner portal exists.
