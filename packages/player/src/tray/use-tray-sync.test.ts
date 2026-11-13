@@ -22,8 +22,8 @@ const labels: TrayLabels = {
 };
 
 const stations: readonly TrayStation[] = [
-  { id: "test-pop", name: "Test Pop" },
-  { id: "test-jingle", name: "Test Jingle" },
+  { id: "aqui-suena-pop", name: "Test Pop" },
+  { id: "aqui-suena-focus", name: "Test Jingle" },
 ];
 
 function createFakeBridge(initialCloseToTray = false) {
@@ -96,7 +96,7 @@ function renderTraySync(overrides: Partial<UseTraySyncInput> = {}) {
     status: "playing",
     labels,
     stations,
-    activeStationId: "test-pop",
+    activeStationId: "aqui-suena-pop",
     onTogglePlayback,
     onSelectStation,
     ...overrides,
@@ -149,10 +149,10 @@ describe("useTraySync", () => {
     const { triggerSelect, onSelectStation } = renderTraySync();
 
     act(() => {
-      triggerSelect("test-jingle");
+      triggerSelect("aqui-suena-focus");
     });
 
-    expect(onSelectStation).toHaveBeenCalledWith("test-jingle");
+    expect(onSelectStation).toHaveBeenCalledWith("aqui-suena-focus");
   });
 
   it("restores the stored close behaviour in the first model", () => {
@@ -202,7 +202,7 @@ describe("useTraySync", () => {
 
     unmount();
     triggerToggle();
-    triggerSelect("test-jingle");
+    triggerSelect("aqui-suena-focus");
 
     expect(onTogglePlayback).not.toHaveBeenCalled();
     expect(onSelectStation).not.toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe("useTraySync", () => {
   it("republishes when the active station changes", () => {
     const { rerender, published, input } = renderTraySync();
 
-    rerender({ ...input, activeStationId: "test-jingle" });
+    rerender({ ...input, activeStationId: "aqui-suena-focus" });
 
     expect(published).toHaveLength(2);
     expect(published[1]?.stations.items[1]?.active).toBe(true);

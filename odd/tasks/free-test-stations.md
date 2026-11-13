@@ -2,7 +2,7 @@
 
 ## Objective
 
-Give the in-place station selector three playable dev channels for testing without legal risk: exactly 3 self-hosted test loops (test-pop, test-jingle, test-night; see Dev channels below) plus optional indie streams used only with prior written permission.
+Give the in-place station selector three playable dev channels for testing without legal risk: exactly 3 self-hosted test loops (aqui-suena-pop, aqui-suena-focus, aqui-suena-night; see Dev channels below) plus optional indie streams used only with prior written permission.
 
 ## Why
 
@@ -24,11 +24,11 @@ Local FM streams were removed by user order (2026-10-13): no permissions, lawsui
 
 ## Dev channels (exactly 3)
 
-| id          | Content                                                                     | URL (dev)                     | License                                     |
-| ----------- | --------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------- |
-| test-pop    | Upbeat synthesized loop (major arpeggio motif, ffmpeg-only)                 | /test-streams/test-pop.m4a    | Owned (ffmpeg synthesis, no license needed) |
-| test-jingle | Synthesized station-ID jingle (three-tone 1-2-3 sine motif, ~2s, no speech) | /test-streams/test-jingle.m4a | Owned (ffmpeg synthesis, no license needed) |
-| test-night  | Chill synthesized loop (low major motif, ffmpeg-only)                       | /test-streams/test-night.m4a  | Owned (ffmpeg synthesis, no license needed) |
+| id               | Content                                                                     | URL (dev)                          | License                                     |
+| ---------------- | --------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------- |
+| aqui-suena-pop   | Upbeat synthesized loop (major arpeggio motif, ffmpeg-only)                 | /test-streams/aqui-suena-pop.m4a   | Owned (ffmpeg synthesis, no license needed) |
+| aqui-suena-focus | Synthesized station-ID jingle (three-tone 1-2-3 sine motif, ~2s, no speech) | /test-streams/aqui-suena-focus.m4a | Owned (ffmpeg synthesis, no license needed) |
+| aqui-suena-night | Chill synthesized loop (low major motif, ffmpeg-only)                       | /test-streams/aqui-suena-night.m4a | Owned (ffmpeg synthesis, no license needed) |
 
 Generation: ffmpeg only using the native AAC encoder (`-c:a aac`) — sine-motif synthesis for all three channels, zero downloads. Exact commands live with the developer, not in this doc. MP3 output is unsupported on minimal ffmpeg builds without libmp3lame (encoder not found), so AAC is required. M4A binaries are gitignored (`public/test-streams/*.m4a`, `.gitkeep` kept) and never committed. No recording, no downloads, and no TTS engine required.
 Serving: Next `public/` in dev (`localhost:3000/test-streams/...`, LAN IP for Expo devices); no deployment needed.
@@ -63,5 +63,5 @@ CLOSED 2026-10-23. All FS1-FS4 items verified done:
 - FS1: SPEC cleaned of local-only references.
 - FS2: Catalog schema (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes) + seed rule + explicit forbids + 3-channel table already in SPEC-radio-playback.md "Catalog (safe test-stations harness)".
 - FS3: Proof-file process and generation approach (ffmpeg, `-c:a aac`, zero downloads) documented in SPEC + feature doc; `.gitignore` rule active for `public/test-streams/*.m4a`.
-- FS4: Implementation live — 3 channels (test-pop, test-jingle, test-night) in `packages/ui/src/player-landing/player-landing.tsx` (TEST_CHANNELS), .m4a binaries present in `apps/web/public/test-streams/` (gitignored), selector switches in place, no station screens.
+- FS4: Implementation live — 3 channels (aqui-suena-pop, aqui-suena-focus, aqui-suena-night) in `packages/ui/src/player-landing/player-landing.tsx` (TEST_CHANNELS), .m4a binaries present in `apps/web/public/test-streams/` (gitignored), selector switches in place, no station screens.
   Build order by reference: Phase 1 player restyle per `SPEC-radio-playback.md` → Phase 2 Supabase Auth per `SPEC-owner-portal.md` → registration → plans/Conekta → downgrade → directory/spots/stats/feedback → ads-tiers. Designs may change, so each phase re-verifies against the SPECs before coding.

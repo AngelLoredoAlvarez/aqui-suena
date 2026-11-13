@@ -80,7 +80,7 @@ describe("POST /admin/seed-stations", () => {
     expect(await response.json()).toEqual({ seeded: 3 });
     expect(statements).toHaveLength(3);
     expect(statements[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
-    expect(statements[0]?.params[2]).toBe("https://web.test/test-streams/test-pop.m4a");
+    expect(statements[0]?.params[2]).toBe("https://web.test/test-streams/aqui-suena-pop.m4a");
   });
 });
 

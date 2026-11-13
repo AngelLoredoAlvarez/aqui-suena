@@ -52,14 +52,14 @@ export function PlayerLanding({
     <StationPlayer
       channel={channel}
       stationName={channel.name}
-      listeners={listenerState.status === "success" ? listenerState.data.listeners : 0}
+      listeners={listenerState.status === "success" ? listenerState.data.listeners : null}
       onSelectStation={setSelectedStationId}
       trayBridge={trayBridge}
       onPositionChange={onPositionChange}
     />
   );
 
-  if (!mounted || listenerState.status !== "success") {
+  if (!mounted) {
     return (
       <YStack
         flex={1}

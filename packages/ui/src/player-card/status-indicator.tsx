@@ -50,13 +50,15 @@ export function StatusRow({
   dictionary,
 }: {
   status: PlayerCardStatus;
-  listeners: number;
+  listeners: number | null;
   dictionary: StatusDictionary;
 }) {
   const dot = statusDotColor(status);
   const label = statusLabel(status, dictionary);
   const statusText =
-    status === "playing" ? `${dictionary.playing} · ${dictionary.listening(listeners)}` : label;
+    status === "playing" && listeners !== null
+      ? `${dictionary.playing} · ${dictionary.listening(listeners)}`
+      : label;
 
   return (
     <XStack items="center" gap={2} minW={0}>

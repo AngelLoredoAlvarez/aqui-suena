@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 function renderCard(props: {
   status: "idle" | "playing" | "paused" | "loading" | "error" | "blocked";
   locale?: SupportedLocale;
+  listeners?: number | null;
   onResume?: () => void;
   onPause?: () => void;
   onOpenSheet?: () => void;
@@ -22,7 +23,7 @@ function renderCard(props: {
   return renderWithProviders(
     <PlayerCard
       stationName="Aquí Suena"
-      listeners={42}
+      listeners={props.listeners === undefined ? 42 : props.listeners}
       onResume={props.onResume ?? (() => {})}
       onPause={props.onPause ?? (() => {})}
       onOpenSheet={props.onOpenSheet}
@@ -61,6 +62,13 @@ describe("PlayerCard", () => {
 
     expect(screen.getByText(/Playing · 42 listening/)).toBeTruthy();
     expect(screen.queryByText("Tap to enable sound")).toBeNull();
+  });
+
+  it("keeps playing without a listener count when the count is unavailable", () => {
+    renderCard({ status: "playing", listeners: null });
+
+    expect(screen.getByText("Playing")).toBeTruthy();
+    expect(screen.queryByText(/listening/)).toBeNull();
   });
 
   it("shows the blocked tap alongside the station name opener when blocked", () => {

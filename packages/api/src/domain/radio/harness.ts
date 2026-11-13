@@ -5,19 +5,19 @@ import type { Station } from "@aqui-suena/api/domain/radio/station";
 export function harnessStations(streamBaseUrl: string): Station[] {
   return [
     {
-      id: "test-pop",
-      name: "Test Pop",
-      streamUrl: `${streamBaseUrl}/test-streams/test-pop.m4a`,
+      id: "aqui-suena-pop",
+      name: "Aquí Suena Pop",
+      streamUrl: `${streamBaseUrl}/test-streams/aqui-suena-pop.m4a`,
     },
     {
-      id: "test-jingle",
-      name: "Test Jingle",
-      streamUrl: `${streamBaseUrl}/test-streams/test-jingle.m4a`,
+      id: "aqui-suena-focus",
+      name: "Aquí Suena Focus",
+      streamUrl: `${streamBaseUrl}/test-streams/aqui-suena-focus.m4a`,
     },
     {
-      id: "test-night",
-      name: "Test Night",
-      streamUrl: `${streamBaseUrl}/test-streams/test-night.m4a`,
+      id: "aqui-suena-night",
+      name: "Aquí Suena Night",
+      streamUrl: `${streamBaseUrl}/test-streams/aqui-suena-night.m4a`,
     },
   ];
 }

@@ -14,8 +14,8 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
   tRPC endpoint, so the card always shows 42 listeners.
 - The `stations` and `listen_sessions` tables exist in the Drizzle schema but
   have no repository, seed, or writer.
-- UI station ids live in `test-channels.ts` (`test-pop`, `test-jingle`,
-  `test-night`), while the landing asks for `placeholder-station` from
+- UI station ids live in `test-channels.ts` (`aqui-suena-pop`, `aqui-suena-focus`,
+  `aqui-suena-night`), while the landing asks for `placeholder-station` from
   `@aqui-suena/config`.
 - The player plays hardcoded channel URLs; `activeUrl` from the status is not
   used for playback.
@@ -110,7 +110,7 @@ catalog metadata. "Staging" is not a licensing exemption.
 - L3 (2026-11-13): T1 (harness part), T2 and T4 implemented. `listener.getStatus`
   resolves the station from `InMemoryStationRepository` seeded with the harness
   and answers `NOT_FOUND` for unknown ids; the client fetches over HTTP and the
-  duplicate mock is gone. `defaultStationId` is now `test-pop`. `listeners` is
+  duplicate mock is gone. `defaultStationId` is now `aqui-suena-pop`. `listeners` is
   `0` (honest unavailable value) until D2 is decided; the UI still renders the
   counter, so D3 remains open. The D1 station repository is deferred until real
   stations are seeded.
@@ -133,3 +133,10 @@ catalog metadata. "Staging" is not a licensing exemption.
   legacy `*_API_URL` names as fallbacks, matching the documented client
   contract and `eas.json`. The mobile bundle must be rebuilt because Expo
   inlines `EXPO_PUBLIC_*` at build time.
+- L7 (2026-11-13): Staging demo polish on `feat/staging-demo-realism`. Stations
+  are branded (Aquí Suena Pop/Focus/Night), the simulated count now drifts with
+  a slow wave plus small jitter instead of jumping randomly, the player renders
+  even when the listener query fails (the counter is hidden while unavailable),
+  and the three harness loops are five minutes long. The harness audio files are
+  gitignored operator artifacts: they are included when deploying from this
+  machine but are not part of the commit.
