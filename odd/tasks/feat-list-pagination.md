@@ -30,14 +30,14 @@ SOLID and CLEAN CODE mandatory.
 
 - S3 (mapping — definitive assignment):
 
-  | Endpoint                                                      | Method | Reason                                                   |
-  | ------------------------------------------------------------- | ------ | -------------------------------------------------------- |
-  | `businesses.list` (public directory)                          | keyset | public feed, mutable (hidden/retained), unbounded growth |
-  | `flyers.list` (public feed)                                   | keyset | same growth and mutability as businesses                 |
-  | `businesses.listMine`                                         | offset | owner-scoped, page-number navigation                     |
-  | `media.list` (`listByOwner`)                                  | offset | owner-scoped gallery                                     |
-  | `hours.listByBusiness`                                        | none   | at most 7 rows (one per day)                             |
-  | `ads.carousel`                                                | none   | already ranked to bounded slots                          |
+  | Endpoint                             | Method | Reason                                                   |
+  | ------------------------------------ | ------ | -------------------------------------------------------- |
+  | `businesses.list` (public directory) | keyset | public feed, mutable (hidden/retained), unbounded growth |
+  | `flyers.list` (public feed)          | keyset | same growth and mutability as businesses                 |
+  | `businesses.listMine`                | offset | owner-scoped, page-number navigation                     |
+  | `media.list` (`listByOwner`)         | offset | owner-scoped gallery                                     |
+  | `hours.listByBusiness`               | none   | at most 7 rows (one per day)                             |
+  | `ads.carousel`                       | none   | already ranked to bounded slots                          |
 
   Correction (2026-11-13): the `listByBusiness` rows for products,
   services, photos, work-entries and flyers were repository methods, **not
