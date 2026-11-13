@@ -1,29 +1,22 @@
 import { D1PhotoRepository } from "@aqui-suena/api/infrastructure/directory/d1-photo-repository";
+import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
+
+const sampleRow = {
+  id: "ph-1",
+  business_id: "biz-1",
+  work_entry_id: "we-1",
+  product_id: "pdct-1",
+  kind: "product",
+  url: "https://example.com/photo.jpg",
+  created_at: 1700000000,
+};
 
 describe("D1PhotoRepository", () => {
   it("maps D1 rows into photos", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          all: async () => ({
-            results: [
-              {
-                id: "ph-1",
-                business_id: "biz-1",
-                work_entry_id: "we-1",
-                product_id: "pdct-1",
-                kind: "product",
-                url: "https://example.com/photo.jpg",
-                created_at: 1700000000,
-              },
-            ],
-          }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
     const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
     expect(page.items).toHaveLength(1);
@@ -37,41 +30,18 @@ describe("D1PhotoRepository", () => {
   });
 
   it("returns null when getById finds nothing", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ first: null }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
-    const photo = await repository.getById("nonexistent");
-    expect(photo).toBeNull();
+    expect(await repository.getById("nonexistent")).toBeNull();
   });
 
   it("lists only photos belonging to the given business", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          all: async () => ({
-            results: [
-              {
-                id: "ph-1",
-                business_id: "biz-1",
-                work_entry_id: null,
-                product_id: null,
-                kind: "logo",
-                url: "https://example.com/logo.jpg",
-                created_at: 1700000000,
-              },
-            ],
-          }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({
+      all: [{ ...sampleRow, work_entry_id: null, product_id: null, kind: "logo" }],
+    }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
     const page = await repository.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
 
     expect(page.items).toHaveLength(1);
@@ -79,15 +49,9 @@ describe("D1PhotoRepository", () => {
   });
 
   it("creates a photo and returns it with generated id and timestamp", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
     const photo = await repository.create({
       businessId: "biz-1",
       workEntryId: null,
@@ -107,42 +71,13 @@ describe("D1PhotoRepository", () => {
   });
 
   it("updates only the provided fields and preserves the rest", async () => {
-    const existingRow = {
-      id: "ph-1",
-      business_id: "biz-1",
-      work_entry_id: "we-1",
-      product_id: "pdct-1",
-      kind: "product",
-      url: "https://example.com/old.jpg",
-      created_at: 1700000000,
-    };
+    const fake = new FakeD1Database(({ sql }) => {
+      if (sql.includes("WHERE id = ?")) return { first: sampleRow };
 
-    const fakeDb = {
-      prepare: (sql: string) => {
-        if (sql.includes("SELECT") && sql.includes("WHERE id = ?")) {
-          return {
-            bind: () => ({
-              first: async () => existingRow,
-            }),
-          };
-        }
+      return { run: { success: true } };
+    });
+    const repository = new D1PhotoRepository(fake.db);
 
-        if (sql.includes("UPDATE")) {
-          return {
-            bind: () => ({
-              run: async () => ({ success: true }),
-            }),
-          };
-        }
-
-        return {
-          all: async () => ({ results: [] }),
-          bind: () => ({ all: async () => ({ results: [] }), first: async () => null }),
-        };
-      },
-    } as unknown as D1Database;
-
-    const repository = new D1PhotoRepository(fakeDb);
     const updated = await repository.update("ph-1", {
       url: "https://example.com/new.jpg",
       kind: "logo",
@@ -157,90 +92,37 @@ describe("D1PhotoRepository", () => {
   });
 
   it("allows setting nullable FKs to null explicitly", async () => {
-    const existingRow = {
-      id: "ph-1",
-      business_id: "biz-1",
-      work_entry_id: "we-1",
-      product_id: "pdct-1",
-      kind: "product",
-      url: "https://example.com/photo.jpg",
-      created_at: 1700000000,
-    };
+    const fake = new FakeD1Database(({ sql }) => {
+      if (sql.includes("WHERE id = ?")) return { first: sampleRow };
 
-    const fakeDb = {
-      prepare: (sql: string) => {
-        if (sql.includes("SELECT") && sql.includes("WHERE id = ?")) {
-          return {
-            bind: () => ({
-              first: async () => existingRow,
-            }),
-          };
-        }
-
-        if (sql.includes("UPDATE")) {
-          return {
-            bind: () => ({
-              run: async () => ({ success: true }),
-            }),
-          };
-        }
-
-        return {
-          all: async () => ({ results: [] }),
-          bind: () => ({ all: async () => ({ results: [] }), first: async () => null }),
-        };
-      },
-    } as unknown as D1Database;
-
-    const repository = new D1PhotoRepository(fakeDb);
-    const updated = await repository.update("ph-1", {
-      workEntryId: null,
-      productId: null,
+      return { run: { success: true } };
     });
+    const repository = new D1PhotoRepository(fake.db);
+
+    const updated = await repository.update("ph-1", { workEntryId: null, productId: null });
 
     expect(updated?.workEntryId).toBeNull();
     expect(updated?.productId).toBeNull();
   });
 
   it("returns null when updating a non-existent photo", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          first: async () => null,
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ first: null }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
-    const result = await repository.update("nonexistent", { url: "https://example.com/x.jpg" });
-    expect(result).toBeNull();
+    expect(await repository.update("nonexistent", { url: "https://example.com/x.jpg" })).toBeNull();
   });
 
   it("deletes an existing photo and returns true", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 1 } }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
-    const deleted = await repository.delete("ph-1");
-    expect(deleted).toBe(true);
+    expect(await repository.delete("ph-1")).toBe(true);
   });
 
   it("returns false when deleting a non-existent photo", async () => {
-    const fakeDb = {
-      prepare: () => ({
-        bind: () => ({
-          run: async () => ({ success: true, meta: { changes: 0 } }),
-        }),
-      }),
-    } as unknown as D1Database;
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 0 } }));
+    const repository = new D1PhotoRepository(fake.db);
 
-    const repository = new D1PhotoRepository(fakeDb);
-    const deleted = await repository.delete("nonexistent");
-    expect(deleted).toBe(false);
+    expect(await repository.delete("nonexistent")).toBe(false);
   });
 });
