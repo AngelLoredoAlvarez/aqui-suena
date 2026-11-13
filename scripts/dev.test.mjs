@@ -20,16 +20,19 @@ import {
   parseFlags,
   resolveAvds,
   resolveBin,
+  resolveMobileApiBase,
   selectReusable,
 } from "./dev.mjs";
 
 const STREAM_BASE = "http://192.168.0.21:3000";
+const API_BASE = "http://192.168.0.21:3001";
 
 function build(overrides = {}) {
   return buildTasks({
     launchApp: false,
     mobileOnly: false,
     streamBase: STREAM_BASE,
+    apiBase: API_BASE,
     tauriConfig: "{}",
     ...overrides,
   });
@@ -89,8 +92,25 @@ test("mobile carries the injected stream base and web pins its own port", () => 
     tasks.find((task) => task.name === "mobile").env.EXPO_PUBLIC_STREAM_BASE_URL,
     STREAM_BASE,
   );
+  assert.equal(tasks.find((task) => task.name === "mobile").env.EXPO_PUBLIC_API_BASE_URL, API_BASE);
   assert.equal(tasks.find((task) => task.name === "web").env.PORT, "3000");
   assert.equal(tasks.find((task) => task.name === "desktop").port, null);
+});
+
+test("resolveMobileApiBase replaces localhost with the LAN address", () => {
+  assert.equal(resolveMobileApiBase(undefined, "192.168.0.21"), "http://192.168.0.21:3001");
+  assert.equal(
+    resolveMobileApiBase("http://localhost:3001", "192.168.0.21"),
+    "http://192.168.0.21:3001",
+  );
+  assert.equal(
+    resolveMobileApiBase("http://127.0.0.1:3001", "192.168.0.21"),
+    "http://192.168.0.21:3001",
+  );
+  assert.equal(
+    resolveMobileApiBase("https://api.example.com", "192.168.0.21"),
+    "https://api.example.com",
+  );
 });
 
 test("--mobile-only keeps Metro alone", () => {

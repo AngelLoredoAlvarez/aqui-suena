@@ -109,6 +109,18 @@ export function lanAddress(interfaces = networkInterfaces()) {
   return "localhost";
 }
 
+// Expo inlines EXPO_PUBLIC_* at bundle time. Native cannot reach the host's
+// localhost, so a localhost value is replaced with the LAN address; any
+// non-local value (e.g. staging) is respected.
+export function resolveMobileApiBase(explicit, lan) {
+  const fallback = `http://${lan}:3001`;
+
+  if (!explicit) return fallback;
+  if (/^(https?:\/\/)?(localhost|127\.0\.0\.1)([:/]|$)/.test(explicit)) return fallback;
+
+  return explicit;
+}
+
 // A usable device is a serial followed by the word `device`; `offline` and
 // `unauthorized` leave nothing to open the app on.
 export function parseAdbDevices(output) {
@@ -173,7 +185,7 @@ export function openAppOnEmulator({ deviceAttached, run, log = console, deviceSe
   }
 }
 
-export function buildTasks({ launchApp, mobileOnly, streamBase, tauriConfig }) {
+export function buildTasks({ launchApp, mobileOnly, streamBase, apiBase, tauriConfig }) {
   return [
     {
       name: "api",
@@ -199,7 +211,7 @@ export function buildTasks({ launchApp, mobileOnly, streamBase, tauriConfig }) {
       cmd: "expo",
       args: ["start", ...(launchApp ? ["--android"] : [])],
       cwd: "apps/mobile",
-      env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase },
+      env: { EXPO_PUBLIC_STREAM_BASE_URL: streamBase, EXPO_PUBLIC_API_BASE_URL: apiBase },
     },
     {
       name: "desktop",
@@ -314,7 +326,9 @@ async function main() {
 
   // Native plays the fixture URLs directly, so they must be absolute and reachable
   // from the emulator or the phone: the host's LAN address, not localhost.
-  const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lanAddress()}:3000`;
+  const lan = lanAddress();
+  const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lan}:3000`;
+  const apiBase = resolveMobileApiBase(process.env.EXPO_PUBLIC_API_BASE_URL, lan);
 
   // Shared by the emulator bootstrap and by opening the app on an emulator that
   // was already running, which is the case whenever Metro gets reused.
@@ -408,6 +422,7 @@ async function main() {
     launchApp,
     mobileOnly,
     streamBase,
+    apiBase,
     // The desktop window loads the web dev server that this script already owns.
     // Leaving beforeDevCommand in place would try to bind :3000 a second time.
     tauriConfig: JSON.stringify({ build: { beforeDevCommand: "" } }),
