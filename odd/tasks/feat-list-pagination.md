@@ -83,6 +83,10 @@ SOLID and CLEAN CODE mandatory.
 - T4 (S3, S4 — offset scoped lists): offset pagination for `businesses.listMine`,
   `media.listByOwner`, and `listByBusiness` across products, services, photos,
   work-entries, flyers. One commit per router. Route: teaching.
+  DONE slice 1: `businesses.listMine` (a978c68) — `offsetInputSchema` on the
+  router, `paginateOffsetRows` extracted to shared, `listByAccount` paged plus
+  the `listAllByAccount` escape hatch for quota and downgrade consumers;
+  `listAll` kept for global visibility consumers.
 - T5 (S5 — quota count audit): audit `listByBusiness().length` call sites and
   replace with `countByBusiness` or an explicit large limit.
 - T6 (S6 — no-pagination confirmation): verify `hours.listByBusiness` and
@@ -122,3 +126,10 @@ SOLID and CLEAN CODE mandatory.
 - L7 (2026-11-12): Session ended. T1–T3 committed (ec79ce2, e639817, 865ac6a,
   95039f0), working tree clean. Resume at T4 (offset for scoped lists). Full
   session summary in Engram.
+- L8 (2026-11-13): T4 slice 1 done — `businesses.listMine` offset (a978c68).
+  Added `paginateOffsetRows` + exported `compareCursorPoints`; `listByAccount`
+  takes `{ accountId, limit, offset }` and returns `OffsetPage`; new
+  `listAllByAccount` keeps quota/downgrade consumers whole, while `listAll`
+  stays for the global visibility consumers. 730 tests green, typecheck clean.
+  Correction from review: a paginated method never replaces a whole-list
+  method; both coexist with distinct semantics. Next: `media.listByOwner`.
