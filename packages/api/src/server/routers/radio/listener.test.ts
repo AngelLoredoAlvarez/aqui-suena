@@ -18,17 +18,17 @@ describe("listener.getStatus", () => {
   it("returns the station from the catalog with no listener source", async () => {
     const caller = makeCaller();
 
-    const status = await caller.getStatus({ stationId: "test-pop" });
+    const status = await caller.getStatus({ stationId: "aqui-suena-pop" });
 
-    expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
-    expect(status.activeUrl).toBe("http://localhost:3000/test-streams/test-pop.m4a");
+    expect(status.station).toEqual({ id: "aqui-suena-pop", name: "Aquí Suena Pop" });
+    expect(status.activeUrl).toBe("http://localhost:3000/test-streams/aqui-suena-pop.m4a");
     expect(status.listeners).toBe(0);
   });
 
   it("simulates listeners through the session repository when enabled", async () => {
     const caller = makeCaller(true);
 
-    const status = await caller.getStatus({ stationId: "test-pop" });
+    const status = await caller.getStatus({ stationId: "aqui-suena-pop" });
 
     expect(status.listeners).toBeGreaterThan(0);
   });

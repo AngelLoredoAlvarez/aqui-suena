@@ -13,15 +13,15 @@ function channelUrls(file: string): string[] {
 }
 
 const DEFAULT_CHANNEL: TestChannel = {
-  id: "test-pop",
-  name: "Test Pop",
-  urls: channelUrls("test-pop.m4a"),
+  id: "aqui-suena-pop",
+  name: "Aquí Suena Pop",
+  urls: channelUrls("aqui-suena-pop.m4a"),
 };
 
 export const TEST_CHANNELS: readonly TestChannel[] = [
   DEFAULT_CHANNEL,
-  { id: "test-jingle", name: "Test Jingle", urls: channelUrls("test-jingle.m4a") },
-  { id: "test-night", name: "Test Night", urls: channelUrls("test-night.m4a") },
+  { id: "aqui-suena-focus", name: "Aquí Suena Focus", urls: channelUrls("aqui-suena-focus.m4a") },
+  { id: "aqui-suena-night", name: "Aquí Suena Night", urls: channelUrls("aqui-suena-night.m4a") },
 ];
 
 export const STATIONS = TEST_CHANNELS.map(({ id, name }) => ({ id, name, live: true }));

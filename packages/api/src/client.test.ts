@@ -38,16 +38,16 @@ describe("client entry (non-server safe)", () => {
   it("loads and fetches status without the server module", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       makeTrpcResponse({
-        station: { id: "test-pop", name: "Test Pop" },
-        activeUrl: "http://localhost:3000/test-streams/test-pop.m4a",
+        station: { id: "aqui-suena-pop", name: "Aquí Suena Pop" },
+        activeUrl: "http://localhost:3000/test-streams/aqui-suena-pop.m4a",
         listeners: 0,
       }),
     ) as typeof fetch;
 
     const { getListenerStatus } = await import("@aqui-suena/api/client");
-    const status = await getListenerStatus("test-pop", "https://api.example.com");
+    const status = await getListenerStatus("aqui-suena-pop", "https://api.example.com");
 
-    expect(status.station.id).toBe("test-pop");
+    expect(status.station.id).toBe("aqui-suena-pop");
     expect(status.listeners).toBe(0);
   });
 
@@ -58,7 +58,7 @@ describe("client entry (non-server safe)", () => {
 
     const { getListenerStatus } = await import("@aqui-suena/api/client");
 
-    await expect(getListenerStatus("test-pop", "https://api.example.com")).rejects.toThrow(
+    await expect(getListenerStatus("aqui-suena-pop", "https://api.example.com")).rejects.toThrow(
       /HTTP 404/,
     );
   });

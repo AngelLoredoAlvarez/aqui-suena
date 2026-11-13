@@ -166,18 +166,18 @@ describe("/trpc", () => {
 
     const client = createTRPCClient<AppRouter>({ links: [httpLink({ url: `${url}/trpc` })] });
 
-    const status = await client.listener.getStatus.query({ stationId: "test-pop" });
+    const status = await client.listener.getStatus.query({ stationId: "aqui-suena-pop" });
 
-    expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
+    expect(status.station).toEqual({ id: "aqui-suena-pop", name: "Aquí Suena Pop" });
     expect(status.listeners).toBe(0);
   });
 
   it("serves listener status to the shared client fetcher", async () => {
     const { url } = await startServer();
 
-    const status = await getListenerStatus("test-pop", url);
+    const status = await getListenerStatus("aqui-suena-pop", url);
 
-    expect(status.station).toEqual({ id: "test-pop", name: "Test Pop" });
+    expect(status.station).toEqual({ id: "aqui-suena-pop", name: "Aquí Suena Pop" });
     expect(status.listeners).toBe(0);
   });
 

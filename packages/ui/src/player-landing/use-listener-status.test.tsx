@@ -39,8 +39,8 @@ beforeEach(() => {
         JSON.stringify({
           result: {
             data: {
-              station: { id: "test-pop", name: "Test Pop" },
-              activeUrl: "http://localhost:3000/test-streams/test-pop.m4a",
+              station: { id: "aqui-suena-pop", name: "Test Pop" },
+              activeUrl: "http://localhost:3000/test-streams/aqui-suena-pop.m4a",
               listeners: 0,
             },
           },
@@ -120,6 +120,18 @@ describe("PlayerLanding listener status", () => {
     expect(screen.getByText("Loading station status…")).toBeTruthy();
     expect(screen.queryByText(/listening/)).toBeNull();
     expect(await screen.findByText(/listening/)).toBeTruthy();
+  });
+
+  it("renders the player even when the listener status request fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("upstream down", { status: 500 })),
+    );
+    renderLanding();
+
+    expect(await screen.findByTestId("player-dock")).toBeTruthy();
+    expect(await screen.findByText("Playing")).toBeTruthy();
+    expect(screen.queryByText(/listening/)).toBeNull();
   });
 
   it("shows an error state when the status fails", async () => {

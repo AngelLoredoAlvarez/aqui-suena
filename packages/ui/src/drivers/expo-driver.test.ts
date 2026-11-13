@@ -76,10 +76,10 @@ describe("useExpoAudioDriver (web)", () => {
     const { result } = renderHook(() => useExpoAudioDriver());
 
     await act(async () => {
-      await result.current.play("/test-streams/test-pop.m4a");
+      await result.current.play("/test-streams/aqui-suena-pop.m4a");
     });
 
-    expect(playedUrls).toEqual(["/test-streams/test-pop.m4a"]);
+    expect(playedUrls).toEqual(["/test-streams/aqui-suena-pop.m4a"]);
   });
 
   it("surfaces autoplay blocks as NotAllowedError failures", async () => {
@@ -126,16 +126,19 @@ describe("useExpoAudioDriver (web)", () => {
     const { result } = renderHook(() => useExpoAudioDriver());
 
     await act(async () => {
-      await result.current.play("/test-streams/test-pop.m4a");
+      await result.current.play("/test-streams/aqui-suena-pop.m4a");
     });
     expect(pauseTargets).toHaveLength(0);
 
     await act(async () => {
-      await result.current.play("/test-streams/test-night.m4a");
+      await result.current.play("/test-streams/aqui-suena-night.m4a");
     });
 
     expect(pauseTargets).toHaveLength(1);
-    expect(pauseTargets[0]?.src).toBe("/test-streams/test-pop.m4a");
-    expect(playedUrls).toEqual(["/test-streams/test-pop.m4a", "/test-streams/test-night.m4a"]);
+    expect(pauseTargets[0]?.src).toBe("/test-streams/aqui-suena-pop.m4a");
+    expect(playedUrls).toEqual([
+      "/test-streams/aqui-suena-pop.m4a",
+      "/test-streams/aqui-suena-night.m4a",
+    ]);
   });
 });

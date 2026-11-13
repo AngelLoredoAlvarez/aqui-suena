@@ -2,7 +2,7 @@ import { selectListenerStatus } from "@aqui-suena/ui/player-landing/select-liste
 import { describe, expect, it } from "vitest";
 
 const data = {
-  station: { id: "test-pop", name: "Aquí Suena" },
+  station: { id: "aqui-suena-pop", name: "Aquí Suena" },
   activeUrl: "https://stream.example.com/live",
   listeners: 42,
 };

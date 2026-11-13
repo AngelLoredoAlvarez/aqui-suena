@@ -16,14 +16,14 @@ const labels: TrayLabels = {
 };
 
 const stations: readonly TrayStation[] = [
-  { id: "test-pop", name: "Test Pop" },
-  { id: "test-jingle", name: "Test Jingle" },
+  { id: "aqui-suena-pop", name: "Test Pop" },
+  { id: "aqui-suena-focus", name: "Test Jingle" },
 ];
 
 const baseInput = {
   labels,
   stations,
-  activeStationId: "test-pop",
+  activeStationId: "aqui-suena-pop",
   closeToTray: false,
 };
 
@@ -55,8 +55,8 @@ describe("buildTrayMenuModel", () => {
     const model = buildTrayMenuModel({ ...baseInput, status: "playing" });
 
     expect(model.stations.items).toEqual([
-      { id: "test-pop", name: "Test Pop", active: true },
-      { id: "test-jingle", name: "Test Jingle", active: false },
+      { id: "aqui-suena-pop", name: "Test Pop", active: true },
+      { id: "aqui-suena-focus", name: "Test Jingle", active: false },
     ]);
   });
 
@@ -80,19 +80,23 @@ describe("buildTrayMenuModel", () => {
   });
 
   it("drops station fields the tray contract does not define", () => {
-    const noisy = [{ id: "test-pop", name: "Test Pop", live: true }] as unknown as TrayStation[];
+    const noisy = [
+      { id: "aqui-suena-pop", name: "Test Pop", live: true },
+    ] as unknown as TrayStation[];
 
     const model = buildTrayMenuModel({ ...baseInput, stations: noisy, status: "playing" });
 
-    expect(model.stations.items).toEqual([{ id: "test-pop", name: "Test Pop", active: true }]);
+    expect(model.stations.items).toEqual([
+      { id: "aqui-suena-pop", name: "Test Pop", active: true },
+    ]);
   });
 
   it("does not mutate the stations it receives", () => {
     buildTrayMenuModel({ ...baseInput, status: "playing" });
 
     expect(stations).toEqual([
-      { id: "test-pop", name: "Test Pop" },
-      { id: "test-jingle", name: "Test Jingle" },
+      { id: "aqui-suena-pop", name: "Test Pop" },
+      { id: "aqui-suena-focus", name: "Test Jingle" },
     ]);
   });
 });

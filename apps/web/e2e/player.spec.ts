@@ -174,7 +174,7 @@ test("a failed primary stream falls back to its mirror and keeps playing", async
   await expect(page.getByText(copy.playing)).toBeVisible({ timeout: 20_000 });
 
   expect(
-    requested.some((url) => url.endsWith("/test-streams/test-pop.m4a")),
+    requested.some((url) => url.endsWith("/test-streams/aqui-suena-pop.m4a")),
     "primary stream requested",
   ).toBe(true);
   expect(
@@ -184,7 +184,7 @@ test("a failed primary stream falls back to its mirror and keeps playing", async
   expect(
     requested.findIndex((url) => url.includes(MIRROR_QUERY)),
     "mirror requested after the primary failed",
-  ).toBeGreaterThan(requested.findIndex((url) => url.endsWith("/test-streams/test-pop.m4a")));
+  ).toBeGreaterThan(requested.findIndex((url) => url.endsWith("/test-streams/aqui-suena-pop.m4a")));
 
   // The aborted primary surfaces one Chromium network-layer report
   // ("Failed to load resource: net::ERR_FAILED") without a URL; it is the

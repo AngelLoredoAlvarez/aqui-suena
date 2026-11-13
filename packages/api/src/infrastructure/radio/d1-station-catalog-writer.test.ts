@@ -8,9 +8,9 @@ describe("D1StationCatalogWriter", () => {
     const writer = new D1StationCatalogWriter(fake.db);
 
     await writer.upsert({
-      id: "test-pop",
-      name: "Test Pop",
-      streamUrl: "https://web.test/test-streams/test-pop.m4a",
+      id: "aqui-suena-pop",
+      name: "Aquí Suena Pop",
+      streamUrl: "https://web.test/test-streams/aqui-suena-pop.m4a",
     });
 
     const statement = fake.statements[0];
@@ -19,9 +19,9 @@ describe("D1StationCatalogWriter", () => {
     expect(statement?.sql).toContain("ON CONFLICT(id) DO UPDATE");
     expect(statement?.sql).toContain("stream_url = excluded.stream_url");
     expect(statement?.params).toEqual([
-      "test-pop",
-      "Test Pop",
-      "https://web.test/test-streams/test-pop.m4a",
+      "aqui-suena-pop",
+      "Aquí Suena Pop",
+      "https://web.test/test-streams/aqui-suena-pop.m4a",
       expect.any(Number),
     ]);
   });
