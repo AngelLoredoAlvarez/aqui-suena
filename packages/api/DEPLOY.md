@@ -104,8 +104,8 @@ entitlements resolved from D1) sees an empty catalog. Run the seed once per
 environment after migrating D1; it is idempotent and safe to repeat.
 `POST /admin/seed-stations` has not been run either; until it is,
 `listener.getStatus` answers `NOT_FOUND` in staging because the Worker reads
-stations from D1. `listener.getStatus` reports `0` until clients send real
-heartbeats (see `SPEC-live-listener-count.md`).
+stations from D1. `listener.getStatus` returns a deterministic simulated count
+until a real listener source exists.
 
 ## Wiring the clients afterward
 

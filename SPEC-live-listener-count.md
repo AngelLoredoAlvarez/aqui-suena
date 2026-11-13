@@ -1,5 +1,10 @@
 # Spec: live-listener-count — Aquí Suena (by 17Labs)
 
+> Status: SUPERSEDED (2026-11-13). The heartbeat was discarded because the D1
+> writes could add cost. `listener.getStatus` now returns a deterministic
+> simulated count computed in the endpoint, with no writes and no feature flag.
+> This document stays as the decision record for why the heartbeat was not used.
+
 ## Objective
 
 Replace the simulated listener count (`FAKE_LISTENERS`) with a real count of

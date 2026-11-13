@@ -26,10 +26,9 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
   local Node keeps the in-memory harness. `POST /admin/seed-stations` seeds the
   harness rows per environment with `STREAM_BASE_URL`.
 - D2 (listener semantics): PARTIAL — `listeners` sums active sessions from the
-  `listen_sessions` table (one row per listener session, `listeners` weight per
-  row) inside a 60s window. The simulated source was removed; the endpoint
-  reports `0` until the real heartbeat writer ships (see
-  `SPEC-live-listener-count.md`).
+  endpoint. The count is deterministic, smooth, has no feature flag and performs
+  no database writes; the real source remains pending. The heartbeat design was
+  discarded for D1 write cost.
 - D3 (no data): when no provider is configured or it fails, return `0`, return
   the last known cached value, or hide the counter in the UI. A number shown to
   the listener must never be a fabricated constant.
@@ -73,9 +72,9 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
 - [x] T2 (S1, S2): query handler reads the catalog; unknown id answers NOT_FOUND;
   RED → GREEN tests. DONE.
 - [x] T3 (S3, D2): provider stats adapter with cache, or the session-heartbeat
-  implementation, depending on the decision. PARTIAL: `ListenSessionRepository`
-  (InMemory + D1) ships; the simulated source was removed and the real
-  heartbeat writer is pending.
+  implementation, depending on the decision. PARTIAL: the endpoint now computes a
+  deterministic simulated count directly; the real provider/heartbeat source is
+  pending. The heartbeat was discarded for D1 write cost.
 - [x] T4 (S4): client fetcher over HTTP with schema validation; remove the client
   mock and its duplicate constant. DONE.
 - [ ] T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
@@ -142,5 +141,9 @@ catalog metadata. "Staging" is not a licensing exemption.
 - L8 (2026-11-13): Simulated listener source removed on
   `chore/remove-fake-listeners`: `FAKE_LISTENERS`, its flag plumbing and the
   fake generator are gone. `listener.getStatus` now only sums real
-  `listen_sessions`, so it reports `0` until the heartbeat writer from
-  `SPEC-live-listener-count.md` ships.
+  `listen_sessions`, so it reported `0` until the direct simulation returned.
+- L9 (2026-11-13): Heartbeat discarded for cost. `SPEC-live-listener-count.md` is
+  superseded: real heartbeats would add D1 writes per client per interval. The
+  listener router now returns `simulatedListenerCount` directly (deterministic,
+  smooth, no feature flag, zero writes). The `ListenSessionRepository` and its D1
+  adapter were removed; the `listen_sessions` table stays in the schema unused.
