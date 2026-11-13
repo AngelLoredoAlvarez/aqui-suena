@@ -29,12 +29,38 @@ function makeTrpcResponse(data: unknown, ok = true, status = 200) {
 }
 
 describe("client entry (non-server safe)", () => {
-  it("loads and serves status without the server module", async () => {
-    const { getListenerStatus } = await import("@aqui-suena/api/client");
-    const status = await getListenerStatus("placeholder-station");
+  const originalFetch = globalThis.fetch;
 
-    expect(status.station.id).toBe("placeholder-station");
-    expect(status.listeners).toBeGreaterThanOrEqual(0);
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("loads and fetches status without the server module", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      makeTrpcResponse({
+        station: { id: "test-pop", name: "Test Pop" },
+        activeUrl: "http://localhost:3000/test-streams/test-pop.m4a",
+        listeners: 0,
+      }),
+    ) as typeof fetch;
+
+    const { getListenerStatus } = await import("@aqui-suena/api/client");
+    const status = await getListenerStatus("test-pop", "https://api.example.com");
+
+    expect(status.station.id).toBe("test-pop");
+    expect(status.listeners).toBe(0);
+  });
+
+  it("throws on an HTTP error", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(makeTrpcResponse(null, false, 404)) as typeof fetch;
+
+    const { getListenerStatus } = await import("@aqui-suena/api/client");
+
+    await expect(getListenerStatus("test-pop", "https://api.example.com")).rejects.toThrow(
+      /HTTP 404/,
+    );
   });
 });
 

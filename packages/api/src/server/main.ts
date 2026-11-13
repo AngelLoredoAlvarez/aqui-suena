@@ -20,6 +20,8 @@ const server = createApiServer({
   supabaseJwksUrl: process.env.SUPABASE_JWKS_URL,
   mediaStorage: new InMemoryObjectStorage(),
   subscriptionNotifier,
+  // Local Node has no real listener source: simulate the heartbeat path.
+  fakeListeners: true,
 });
 
 server.listen(config.port, config.host, () => {

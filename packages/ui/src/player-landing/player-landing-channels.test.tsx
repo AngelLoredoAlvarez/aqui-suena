@@ -32,6 +32,28 @@ vi.mock("@aqui-suena/ui/drivers", async (importOriginal) => {
 
 beforeEach(() => {
   vi.stubGlobal("Audio", FakeAudio);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (!url.includes("listener.getStatus")) {
+        return new Response("not found", { status: 404 });
+      }
+
+      return new Response(
+        JSON.stringify({
+          result: {
+            data: {
+              station: { id: "test-pop", name: "Test Pop" },
+              activeUrl: "http://localhost:3000/test-streams/test-pop.m4a",
+              listeners: 0,
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }),
+  );
   playSpy.mockClear();
   pauseSpy.mockClear();
 });

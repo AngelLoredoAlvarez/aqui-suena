@@ -4,7 +4,6 @@
 // ./server, ./cors, ./env or ./main from here.
 export type { ListenerStatus } from "@aqui-suena/api/domain/radio/listener";
 export {
-  getMockListenerStatus,
   listenerStatusInput,
   listenerStatusOutput,
 } from "@aqui-suena/api/domain/radio/listener";

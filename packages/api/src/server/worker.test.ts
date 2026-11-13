@@ -27,6 +27,63 @@ function seedRequest(token?: string): Request {
   return new Request("https://worker.test/admin/seed-plans", { method: "POST", headers });
 }
 
+function seedStationsRequest(token?: string): Request {
+  const headers: Record<string, string> = {};
+
+  if (token !== undefined) headers.authorization = `Bearer ${token}`;
+
+  return new Request("https://worker.test/admin/seed-stations", { method: "POST", headers });
+}
+
+describe("POST /admin/seed-stations", () => {
+  it("answers 404 when the admin token is not configured", async () => {
+    const { db, statements } = makeDb();
+    const response = await worker.fetch(seedStationsRequest("secret"), {
+      aqui_suena_db: db,
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(404);
+    expect(statements).toHaveLength(0);
+  });
+
+  it("answers 404 when the token does not match", async () => {
+    const { db, statements } = makeDb();
+    const response = await worker.fetch(seedStationsRequest("wrong"), {
+      aqui_suena_db: db,
+      ADMIN_TOKEN: "secret",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(404);
+    expect(statements).toHaveLength(0);
+  });
+
+  it("refuses to seed without STREAM_BASE_URL", async () => {
+    const { db, statements } = makeDb();
+    const response = await worker.fetch(seedStationsRequest("secret"), {
+      aqui_suena_db: db,
+      ADMIN_TOKEN: "secret",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(400);
+    expect(statements).toHaveLength(0);
+  });
+
+  it("upserts the three harness stations with the configured base URL", async () => {
+    const { db, statements } = makeDb();
+    const response = await worker.fetch(seedStationsRequest("secret"), {
+      aqui_suena_db: db,
+      ADMIN_TOKEN: "secret",
+      STREAM_BASE_URL: "https://web.test",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ seeded: 3 });
+    expect(statements).toHaveLength(3);
+    expect(statements[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(statements[0]?.params[2]).toBe("https://web.test/test-streams/test-pop.m4a");
+  });
+});
+
 describe("POST /admin/seed-plans", () => {
   it("answers 404 when the admin token is not configured", async () => {
     const { db, statements } = makeDb();

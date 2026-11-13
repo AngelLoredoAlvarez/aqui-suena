@@ -1,5 +1,6 @@
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { harnessStations } from "@aqui-suena/api/domain/radio/harness";
 import {
   FullCatalogRetriever,
   seedPlanVectors,
@@ -8,6 +9,9 @@ import {
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
+import { D1ListenSessionRepository } from "@aqui-suena/api/infrastructure/radio/d1-listen-session-repository";
+import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";
+import { D1StationRepository } from "@aqui-suena/api/infrastructure/radio/d1-station-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
@@ -39,6 +43,14 @@ export interface WorkerEnv {
   AI_GATEWAY_ID?: string;
   /** Required to call POST /admin/seed-vectors. */
   ADMIN_TOKEN?: string;
+  /**
+   * Base URL that serves the owned harness files (`/test-streams/*.m4a`).
+   * Required by POST /admin/seed-stations so a dev localhost URL is never
+   * written to a deployed database.
+   */
+  STREAM_BASE_URL?: string;
+  /** Enables simulated listener sessions; staging only, never production. */
+  FAKE_LISTENERS?: string;
   /**
    * R2 (S3-compatible) credentials for media storage. When all three are
    * absent media is reported as unconfigured; a partial set is a configuration
@@ -118,6 +130,27 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     return Response.json({ deleted });
   }
 
+  // Idempotent station seed for the owned harness. Refuses to run without
+  // STREAM_BASE_URL so a localhost URL never reaches a deployed database.
+  if (new URL(request.url).pathname === "/admin/seed-stations") {
+    if (!isAdminAuthorized(request, env.ADMIN_TOKEN)) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    if (!env.STREAM_BASE_URL) {
+      return new Response("STREAM_BASE_URL is not configured", { status: 400 });
+    }
+
+    const stations = harnessStations(env.STREAM_BASE_URL);
+    const writer = new D1StationCatalogWriter(env.aqui_suena_db);
+
+    for (const station of stations) {
+      await writer.upsert(station);
+    }
+
+    return Response.json({ seeded: stations.length });
+  }
+
   // Idempotent plan-catalog seed. Returns 404 unless ADMIN_TOKEN is
   // configured; requires it to match.
   if (new URL(request.url).pathname === "/admin/seed-plans") {
@@ -156,6 +189,9 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     aiGatewayId: gatewayId,
     mediaStorage,
     subscriptionNotifier,
+    stationRepository: new D1StationRepository(env.aqui_suena_db),
+    listenSessionRepository: new D1ListenSessionRepository(env.aqui_suena_db),
+    fakeListeners: env.FAKE_LISTENERS === "1" || env.FAKE_LISTENERS === "true",
     logRequests: false,
   });
 

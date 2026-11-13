@@ -7,5 +7,6 @@ export function useListenerStatus(stationId: string) {
   return useQuery({
     queryKey: ["listener-status", stationId],
     queryFn: () => getListenerStatus(stationId),
+    refetchInterval: 30_000,
   });
 }

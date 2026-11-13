@@ -18,17 +18,3 @@ export const listenerStatusOutput = v.object({
 });
 
 export type ListenerStatus = v.InferOutput<typeof listenerStatusOutput>;
-
-// Mock-first source: no live DB, no HTTP transport yet. Returns a fixed
-// station with the requested id so the landing can render real states.
-const MOCK_STATION_NAME = "Aquí Suena";
-const MOCK_ACTIVE_URL = "https://stream.example.com/live";
-const MOCK_LISTENERS = 42;
-
-export function getMockListenerStatus(stationId: string): ListenerStatus {
-  return v.parse(listenerStatusOutput, {
-    station: { id: stationId, name: MOCK_STATION_NAME },
-    activeUrl: MOCK_ACTIVE_URL,
-    listeners: MOCK_LISTENERS,
-  });
-}
