@@ -9,7 +9,6 @@ import {
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
-import { D1ListenSessionRepository } from "@aqui-suena/api/infrastructure/radio/d1-listen-session-repository";
 import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";
 import { D1StationRepository } from "@aqui-suena/api/infrastructure/radio/d1-station-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
@@ -188,7 +187,6 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     mediaStorage,
     subscriptionNotifier,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
-    listenSessionRepository: new D1ListenSessionRepository(env.aqui_suena_db),
     logRequests: false,
   });
 

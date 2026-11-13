@@ -1,5 +1,4 @@
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
-import { InMemoryListenSessionRepository } from "@aqui-suena/api/domain/radio/listen-session";
 import { InMemoryStationRepository } from "@aqui-suena/api/domain/radio/station";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import { createInMemoryRepositories } from "@aqui-suena/api/server/composition/repositories";
@@ -14,7 +13,6 @@ const appRouter = createAppRouter(
   defaultPlanRepository,
   createInMemoryRepositories(),
   makeStationRepository(),
-  new InMemoryListenSessionRepository(),
   undefined,
   undefined,
   undefined,
@@ -43,7 +41,6 @@ describe("createAppRouter media storage", () => {
       defaultPlanRepository,
       createInMemoryRepositories(),
       makeStationRepository(),
-      new InMemoryListenSessionRepository(),
       undefined,
       undefined,
       undefined,

@@ -3,10 +3,6 @@ import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
 import {
-  InMemoryListenSessionRepository,
-  type ListenSessionRepository,
-} from "@aqui-suena/api/domain/radio/listen-session";
-import {
   InMemoryStationRepository,
   type StationRepository,
 } from "@aqui-suena/api/domain/radio/station";
@@ -39,7 +35,6 @@ export interface AppOptions {
   planRepository?: PlanRepository;
   directoryRepositories?: DirectoryRepositories;
   stationRepository?: StationRepository;
-  listenSessionRepository?: ListenSessionRepository;
   mediaStorage?: ObjectStorage;
   subscriptionNotifier?: SubscriptionNotifier;
   logger?: RequestLogger;
@@ -52,13 +47,10 @@ export function createApp(options: AppOptions): Hono {
   const directoryRepositories = options.directoryRepositories ?? createInMemoryRepositories();
   const stationRepository =
     options.stationRepository ?? new InMemoryStationRepository([...HARNESS_STATIONS]);
-  const listenSessionRepository =
-    options.listenSessionRepository ?? new InMemoryListenSessionRepository();
   const appRouter = createAppRouter(
     planRepository,
     directoryRepositories,
     stationRepository,
-    listenSessionRepository,
     options.ai,
     options.planCatalogRetriever,
     options.aiGatewayId,

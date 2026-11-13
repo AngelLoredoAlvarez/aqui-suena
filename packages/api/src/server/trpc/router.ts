@@ -1,7 +1,6 @@
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import type { ListenSessionRepository } from "@aqui-suena/api/domain/radio/listen-session";
 import type { StationRepository } from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { DirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
@@ -24,7 +23,6 @@ export function createAppRouter(
   planRepository: PlanRepository,
   directoryRepositories: DirectoryRepositories,
   stationRepository: StationRepository,
-  listenSessions: ListenSessionRepository,
   ai: AiBinding | undefined,
   planCatalogRetriever: PlanCatalogRetriever | undefined,
   aiGatewayId: string | undefined,
@@ -50,7 +48,7 @@ export function createAppRouter(
       hour: directoryRepositories.hour,
       business: directoryRepositories.business,
     }),
-    listener: createListenerRouter(stationRepository, listenSessions),
+    listener: createListenerRouter(stationRepository),
     media: createMediaRouter(directoryRepositories.media, mediaStorage),
     photos: createPhotosRouter({
       photo: directoryRepositories.photo,
