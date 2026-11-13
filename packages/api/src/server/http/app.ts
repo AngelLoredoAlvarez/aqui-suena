@@ -8,6 +8,7 @@ import {
   defaultDirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
+import { type RequestLogger, requestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
@@ -30,6 +31,8 @@ export interface AppOptions {
   directoryRepositories?: DirectoryRepositories;
   mediaStorage?: ObjectStorage;
   subscriptionNotifier?: SubscriptionNotifier;
+  logger?: RequestLogger;
+  logRequests?: boolean;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -48,6 +51,11 @@ export function createApp(options: AppOptions): Hono {
   const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);
 
   const app = new Hono();
+
+  // Logging runs before CORS so refused origins and preflights are observable.
+  if (options.logRequests !== false) {
+    app.use("*", requestLogging(options.logger));
+  }
 
   // Origin policy: refuse unknown origins before anything runs, answer
   // preflight, and stamp CORS headers on the final response of every route.

@@ -28,14 +28,20 @@ async function startServer(
     allowedOrigins: DEFAULT_ALLOWED_ORIGINS,
     upstreamFetch,
     mediaStorage,
+    logger: { log: () => {}, error: () => {} },
   });
+
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+
   const address = server.address() as AddressInfo;
+
   const close = () =>
     new Promise<void>((resolve, reject) => {
       server.close((error) => (error ? reject(error) : resolve()));
     });
+
   running.push(close);
+
   return { url: `http://127.0.0.1:${address.port}`, close };
 }
 
@@ -62,7 +68,9 @@ function rawRequest(
         });
       },
     );
+
     request.on("error", reject);
+
     request.end();
   });
 }
@@ -74,6 +82,7 @@ afterEach(async () => {
 describe("GET /health", () => {
   it("reports ok and unconfigured media for a deploy probe without storage", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/health`);
 
     expect(response.status).toBe(200);
@@ -82,6 +91,7 @@ describe("GET /health", () => {
 
   it("reports configured media when storage is injected", async () => {
     const { url } = await startServer(undefined, new InMemoryObjectStorage());
+
     const response = await rawRequest(`${url}/health`);
 
     expect(response.status).toBe(200);
@@ -90,6 +100,7 @@ describe("GET /health", () => {
 
   it("accepts a call without an Origin header, which is how mobile calls the API", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/health`);
 
     expect(response.status).toBe(200);
@@ -100,6 +111,7 @@ describe("GET /health", () => {
     "echoes the allowed platform origin %s",
     async (origin) => {
       const { url } = await startServer();
+
       const response = await rawRequest(`${url}/health`, { origin });
 
       expect(response.status).toBe(200);
@@ -110,6 +122,7 @@ describe("GET /health", () => {
 
   it("refuses an origin that is not on the allowlist", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/health`, { origin: "http://evil.example" });
 
     expect(response.status).toBe(403);
@@ -120,6 +133,7 @@ describe("GET /health", () => {
 describe("OPTIONS preflight", () => {
   it("answers an allowed origin with the methods and headers a browser needs", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/trpc/listener.getStatus`, {
       method: "OPTIONS",
       origin: "http://tauri.localhost",
@@ -134,6 +148,7 @@ describe("OPTIONS preflight", () => {
 
   it("refuses a preflight from a foreign origin", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/trpc/listener.getStatus`, {
       method: "OPTIONS",
       origin: "http://evil.example",
@@ -147,6 +162,7 @@ describe("OPTIONS preflight", () => {
 describe("/trpc", () => {
   it("serves the shared appRouter to a real tRPC client", async () => {
     const { url } = await startServer();
+
     const client = createTRPCClient<AppRouter>({ links: [httpLink({ url: `${url}/trpc` })] });
 
     const status = await client.listener.getStatus.query({ stationId: "station-1" });
@@ -157,6 +173,7 @@ describe("/trpc", () => {
 
   it("applies the origin policy to tRPC as well", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/trpc/listener.getStatus`, {
       origin: "http://evil.example",
     });
@@ -168,6 +185,7 @@ describe("/trpc", () => {
 describe("GET /stream", () => {
   it("rejects a request without a url", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/stream`);
 
     expect(response.status).toBe(400);
@@ -175,7 +193,9 @@ describe("GET /stream", () => {
 
   it("rejects a host outside the allowlist", async () => {
     const upstreamFetch = () => Promise.reject(new Error("upstream must not be called"));
+
     const { url } = await startServer(upstreamFetch);
+
     const response = await rawRequest(
       `${url}/stream?url=${encodeURIComponent("https://evil.example/live")}`,
     );
@@ -191,7 +211,9 @@ describe("GET /stream", () => {
           headers: { "content-type": "audio/mpeg" },
         }),
       );
+
     const { url } = await startServer(upstreamFetch);
+
     const response = await rawRequest(
       `${url}/stream?url=${encodeURIComponent("https://ice1.somafm.com/groovesalad-128-mp3")}`,
       { origin: "tauri://localhost" },
@@ -206,7 +228,9 @@ describe("GET /stream", () => {
 
   it("refuses a foreign origin before proxying anything", async () => {
     const upstreamFetch = () => Promise.reject(new Error("upstream must not be called"));
+
     const { url } = await startServer(upstreamFetch);
+
     const response = await rawRequest(
       `${url}/stream?url=${encodeURIComponent("https://ice1.somafm.com/groovesalad-128-mp3")}`,
       { origin: "http://evil.example" },
@@ -219,6 +243,7 @@ describe("GET /stream", () => {
 describe("unknown paths", () => {
   it("returns 404", async () => {
     const { url } = await startServer();
+
     const response = await rawRequest(`${url}/nope`);
 
     expect(response.status).toBe(404);
