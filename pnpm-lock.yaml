@@ -480,6 +480,9 @@ importers:
       jotai:
         specifier: 'catalog:'
         version: 3.0.1(@types/react@19.3.0)(react@19.3.1)
+      react-native-safe-area-context:
+        specifier: 'catalog:'
+        version: 5.11.1(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1)
       tamagui:
         specifier: 'catalog:'
         version: 3.3.1(3ba781b7d1e9bebe8c627fed83efa47b)
