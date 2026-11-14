@@ -1,7 +1,7 @@
 # fix/android-player-safe-area
 
-Status: open. Reported 2026-11-13 after installing the staging APK on a physical
-Android device.
+Status: implemented, pending device verification. Reported 2026-11-13 after
+installing the staging APK on a physical Android device.
 
 Objective: keep the landing clear of native system bars on Android (status and
 navigation) and iOS (notch/Dynamic Island and home indicator), without changing
@@ -28,6 +28,14 @@ untested today.
 - The screen background may extend behind the system bar; only the interactive
   content is padded.
 - Web and desktop keep their current spacing; no extra gap is introduced there.
+
+## Library clarification
+
+`react-native-safe-area-context` reports the native safe-area insets, including
+the iOS notch/Dynamic Island and the Android system bars. It does **not** apply
+them automatically: a layout must consume `useSafeAreaInsets` (or a safe-area
+component) and read `top`/`bottom`. The bug exists because the landing never
+consumed the context, not because the library cannot detect the notch.
 
 ## Evidence and context
 
@@ -67,12 +75,15 @@ Out of scope:
 
 ## Tasks
 
-- T1: inspect `SafeAreaProvider` coverage in the mobile root and the player
-  layout tree; document the inset source.
-- T2: apply the top inset to the landing content and the bottom inset to the
-  player dock (padding or margin), skipping both on web/desktop.
-- T3: add a test with mocked insets proving the top and bottom spacing include
-  the insets and stay unchanged on web.
+- [x] T1: inspect `SafeAreaProvider` coverage in the mobile root and the player
+  layout tree; document the inset source. DONE: the mobile root now wraps the
+  app in `SafeAreaProvider`.
+- [x] T2: apply the top inset to the landing content and the bottom inset to the
+  player dock (padding or margin), skipping both on web/desktop. DONE: a
+  native-only hook reads the insets; web resolves to zero.
+- [x] T3: add a test with mocked insets proving the top and bottom spacing
+  include the insets and stay unchanged on web. DONE:
+  `player-spacing.test.ts`.
 - T4: verify Android on the physical device (gesture and 3-button navigation)
   and iOS on a simulator or device (notch/Dynamic Island and home indicator);
   attach screenshots.
@@ -100,3 +111,10 @@ Out of scope:
   cross-platform; iOS has the notch/Dynamic Island and home indicator instead of
   Android system bars. iOS verification is added; the bug was reported on
   Android only.
+- L4 (2026-11-13): Implemented on this branch. Added a native-only
+  `usePlayerInsets` hook backed by `useSafeAreaInsets`, a zero-inset web
+  fallback, a pure `playerSpacing` helper with tests, and `SafeAreaProvider` in
+  the mobile root. `packages/ui` now declares
+  `react-native-safe-area-context`. Pending: install a new APK on the physical
+  Android device and verify gesture/3-button modes; iOS simulator verification
+  remains.
