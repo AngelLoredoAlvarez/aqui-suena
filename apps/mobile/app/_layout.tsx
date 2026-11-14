@@ -18,6 +18,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { Stack } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const queryClient = new QueryClient();
 
@@ -65,20 +66,22 @@ export default function RootLayout() {
   }
 
   return (
-    <UiProvider>
-      <LocaleProvider locale={locale} onChange={handleChange}>
-        <QueryClientProvider client={queryClient}>
-          {/* Screen backdrop mirrors $nocheBg, same as web body style. The
-              header stays hidden: the landing is the whole screen, and
-              expo-router 58 shows it by default. */}
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#0F1720" },
-            }}
-          />
-        </QueryClientProvider>
-      </LocaleProvider>
-    </UiProvider>
+    <SafeAreaProvider>
+      <UiProvider>
+        <LocaleProvider locale={locale} onChange={handleChange}>
+          <QueryClientProvider client={queryClient}>
+            {/* Screen backdrop mirrors $nocheBg, same as web body style. The
+                header stays hidden: the landing is the whole screen, and
+                expo-router 58 shows it by default. */}
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "#0F1720" },
+              }}
+            />
+          </QueryClientProvider>
+        </LocaleProvider>
+      </UiProvider>
+    </SafeAreaProvider>
   );
 }

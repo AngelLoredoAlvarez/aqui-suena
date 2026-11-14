@@ -2,6 +2,8 @@ import { defaultStationId } from "@aqui-suena/config";
 import { noopTrayBridge, type TrayBridge } from "@aqui-suena/player";
 import { AdsCarousel, useAdsCarousel } from "@aqui-suena/ui/ads-carousel";
 import { LocaleSwitcher, useLocale } from "@aqui-suena/ui/i18n";
+import { usePlayerInsets } from "@aqui-suena/ui/player-landing/player-insets";
+import { playerSpacing } from "@aqui-suena/ui/player-landing/player-spacing";
 import { getResponsiveMaxW } from "@aqui-suena/ui/player-landing/responsive";
 import { selectListenerStatus } from "@aqui-suena/ui/player-landing/select-listener-status";
 import { StationPlayer } from "@aqui-suena/ui/player-landing/station-player";
@@ -40,6 +42,8 @@ export function PlayerLanding({
   const media = useMedia();
   const isWide = media.md;
   const responsiveMaxW = getResponsiveMaxW(media);
+  const insets = usePlayerInsets();
+  const spacing = playerSpacing(isWide, insets);
 
   const listenerState = selectListenerStatus(listenerQuery);
   const channel = channelById(selectedStationId);
@@ -69,7 +73,9 @@ export function PlayerLanding({
         items={isWide ? "stretch" : "center"}
         justify="center"
         gap={20}
-        p={isWide ? 24 : 20}
+        px={isWide ? 24 : 20}
+        pt={spacing.paddingTop}
+        pb={(isWide ? 24 : 20) + insets.bottom}
         bg="bg"
       >
         <H1 color="brandCream">{dictionary.appTitle}</H1>
@@ -94,8 +100,8 @@ export function PlayerLanding({
         justify="flex-start"
         gap={isWide ? 16 : 20}
         px={isWide ? 24 : 20}
-        pt={isWide ? 24 : 20}
-        pb={isWide ? 24 : 8}
+        pt={spacing.paddingTop}
+        pb={spacing.paddingBottom}
         bg="bg"
       >
         {isWide ? (
