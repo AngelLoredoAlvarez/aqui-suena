@@ -18,9 +18,16 @@ unchanged.
 
 ## Status
 
-The schema change is committed and unit-tested, and it was applied to **staging**
-(`aqui-suena-db-staging`) on 2026-11-10. Production has **not** been migrated.
-Any production push still requires explicit user authorization.
+The schema change is committed and unit-tested, and it was applied to staging
+(`aqui-suena-db-staging`) on 2026-11-10.
+
+A separate production database, `aqui-suena-db`
+(`fba61331-c2d8-4e26-96b3-c732ff99dcd0`, region WNAM), was created on
+2026-11-16 and the full schema was applied to it from the same
+`drizzle-kit generate` output: 15 tables and the eight directory foreign keys
+report `CASCADE`. No Worker deploys to it yet; production still needs its
+Supabase project and Worker secrets. Seeding its plan catalog and stations is
+the first step once it is deployed.
 
 ## Pre-flight (read-only, run before asking for authorization)
 

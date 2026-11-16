@@ -25,7 +25,7 @@ Test runner: `pnpm --filter @aqui-suena/api test` and `pnpm --filter @aqui-suena
 - T2: `fix(api): hide hidden businesses from public directory reads` — `2a30465`.
 - T3: `fix(db): cascade directory children on business deletion` — `01a45a8`.
 - Closing gates: `pnpm -r typecheck` pass, `pnpm -r test` pass (api 538, db 14, ui 143, player 66, config 10), `pnpm arch` no violations, Biome clean on touched source.
-- D1: staging migrated on 2026-11-10 (`Changes applied`); the eight staging FKs report `CASCADE`, row counts unchanged at zero. Production migration remains pending. Evidence and rollback bookmarks: `packages/db/MIGRATION-cascade-delete.md`.
+- D1: the cascade migration was applied on 2026-11-10 (`Changes applied`); the eight staging FKs report `CASCADE` and row counts stayed at zero. A separate production database (`aqui-suena-db`) was created on 2026-11-16 with the full schema applied, but no Worker deploys to it yet. Evidence and rollback bookmarks: `packages/db/MIGRATION-cascade-delete.md`.
 
 ### L1 — 2026-11-10 — original request (verbatim)
 

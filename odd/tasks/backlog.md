@@ -122,7 +122,9 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 - [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`
       for foreign/missing resources), hidden businesses excluded from public reads
       and child lists, and cascade delete for the 90-day retention cleanup.
-      Branch `fix/p0-directory-security`; staging D1 migrated, production pending.
+      Branch `fix/p0-directory-security`; the cascade migration was applied to the
+      staging D1, and the production D1 (`aqui-suena-db`) was created with the
+      full schema on 2026-11-16.
       Details: `odd/tasks/fix-p0-directory-security.md`.
 
 ## Known limitations (platform)
