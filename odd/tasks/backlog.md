@@ -242,7 +242,7 @@ through `createApp`/`createAppRouter` when `RESEND_API_KEY` is set.
 - [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
 - [x] Cancellation: `subscriptions.cancel` is live and passes the account `recipientEmail` and `locale` into `SubscriptionService.cancel` (2026-11-11).
 - [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral below).
-- [ ] CFDI email: blocked on a PAC integration and CFDI file hosting (see `email-templates/TEMPLATES.md`). Fiscal data is only requested from accounts with paid time (resolved plan, not `accounts.plan_id`); storing it stays open to any authenticated account and issuing a CFDI requires a paid plan (`UPGRADE_REQUIRED` otherwise).
+- [ ] CFDI email: blocked on a PAC integration and CFDI file hosting (see `email-templates/TEMPLATES.md`). Fiscal data is only requested from accounts with paid time (resolved plan, not `accounts.plan_id`); storing it stays open to any authenticated account and issuing a CFDI requires a paid plan (`UPGRADE_REQUIRED` otherwise). The `invoices` table was dropped (2026-11-16) because nothing consumed it and it duplicated `payments`; the CFDI document gets its own table next, and `payments` needs a `plan_id` snapshot before Conekta is wired.
 
 ## Deferred (account preferences — revisit on the third preference)
 

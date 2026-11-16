@@ -78,7 +78,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 - Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
-- DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `invoices`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table. Public business and child lists filter `hidden_at IS NULL`; owner-scoped reads keep hidden businesses visible. Deleting a business cascades to its directory children.
+- DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table. Public business and child lists filter `hidden_at IS NULL`; owner-scoped reads keep hidden businesses visible. Deleting a business cascades to its directory children.
 - Email: Resend (transactional email, free tier) for grace-period, renewal, downgrade, cancellation, verification, welcome and receipt emails; wired through an `EmailSender` port so the provider stays swappable. Templates (11, es-MX/en) are rendered by `packages/api/src/infrastructure/email/renderer.ts`; the design artifacts live in `packages/api/design/email-templates/`. The rendered templates and the domain notifiers exist, and `ResendEmailSender` plus the subscription notifier are instantiated in `packages/api/src/server/composition/email.ts` and wired through `createApp`/`createAppRouter`; `subscriptions.cancel` is the first live trigger. The account, payment, renewal-reminder and downgrade call sites are still pending (blocked on auth, a payment provider and a Worker cron), so those emails are not sent today (see `odd/tasks/backlog.md`, "Production wiring pending"). The CFDI email is rendered but has no send site yet (see `TEMPLATES.md`).
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
@@ -97,7 +97,7 @@ DB push (dev): pnpm --filter @aqui-suena/db db:push
 ## Project Structure
 
 ```
-packages/db/src/schema.ts                 → plans, subscriptions, payments, invoices tables
+packages/db/src/schema.ts                 → plans, subscriptions, payments tables
 packages/api/src/server/routers/plans/plans.ts  → plans.list (tRPC)
 packages/api/src/domain/plans/            → plan catalog and entitlements (shared kernel)
 packages/api/src/domain/billing/          → subscriptions, grace window, payments domain logic

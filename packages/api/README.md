@@ -111,7 +111,7 @@ anything other than the client-safe entries.
   entitlements. It imports no other domain module, so billing, directory, ads
   and support can all depend on it without coupling to each other.
 - `src/domain/billing/` subdivides into `subscriptions/` (lifecycle, grace,
-  reminders, notifiers) and `payments/` (payments, invoices, receipt notifier).
+  reminders, notifiers) and `payments/` (payments and the receipt notifier).
   Billing may depend on directory (a downgrade hides businesses), never the
   reverse; `directory/retention.ts` owns the hiding and retention helpers.
 - `src/infrastructure/<context>/` mirrors the domain module it implements. One
