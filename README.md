@@ -87,30 +87,30 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Docs and planning
 
-| Doc                              | Purpose                                                     |
-| -------------------------------- | ----------------------------------------------------------- |
-| `SPEC-admin-panel.md`            | Staff admin panel (planned, not started)                    |
-| `SPEC-ads-display.md`            | Sponsor carousel during listening                           |
-| `SPEC-business-directory.md`     | Listings: products, services, photos, hours, flyers         |
-| `SPEC-live-listener-count.md`    | Superseded decision record for the heartbeat                |
-| `SPEC-media-storage.md`          | Media storage: R2 upload + image optimization (free tier)   |
-| `SPEC-memberships.md`            | Three business plans, entitlements, and carousel priority   |
-| `SPEC-notifications.md`          | Push notifications: web + mobile + desktop (free tier)      |
-| `SPEC-offline.md`                | Offline/no-connection handling                              |
-| `SPEC-owner-portal.md`           | Owner portal for listings and billing                       |
-| `SPEC-radio-playback.md`         | MVP spec: autoplay, fallback, status, test-stations harness |
-| `SPEC-radio-spots.md`            | Audio spots, disabled behind a feature flag                 |
-| `SPEC-support-chatbot.md`        | Support chatbot scope and constraints                       |
-| `CAPABILITY-MAP.md`              | Module map                                                  |
-| `odd/tasks/`                     | Per-task execution trackers                                 |
-| `odd/tasks/backlog.md`           | Cross-feature TODO list                                     |
-| `tasks/plan.md`, `tasks/todo.md` | Historical radio-playback MVP plan (closed)                 |
+| Doc                                | Purpose                                                       |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `SPEC-ads-display.md`              | Sponsor carousel during listening                             |
+| `SPEC-business-directory.md`       | Listings: products, services, photos, hours, flyers           |
+| `SPEC-live-listener-count.md`      | Superseded decision record for the heartbeat                  |
+| `SPEC-media-storage.md`            | Media storage: R2 upload + image optimization (free tier)     |
+| `SPEC-memberships.md`              | Three business plans, entitlements, and carousel priority     |
+| `SPEC-notifications.md`            | Push notifications: web + mobile + desktop (free tier)        |
+| `SPEC-offline.md`                  | Offline/no-connection handling                                |
+| `SPEC-owner-portal.md`             | Owner portal for listings and billing                         |
+| `SPEC-radio-playback.md`           | MVP spec: autoplay, fallback, status, test-stations harness   |
+| `SPEC-radio-spots.md`              | Audio spots: Comercios & Catálogo only, flag off until launch |
+| `SPEC-support-chatbot.md`          | Support chatbot scope and constraints                         |
+| `CAPABILITY-MAP.md`                | Module map                                                    |
+| `odd/tasks/`                       | Per-task execution trackers                                   |
+| `odd/tasks/backlog.md`             | Cross-feature TODO list                                       |
+| `docs/archive/SPEC-admin-panel.md` | Retired staff-panel spec (no admin panel by product decision) |
+| `tasks/plan.md`, `tasks/todo.md`   | Historical radio-playback MVP plan (closed)                   |
 
 ## Status
 
 The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features tracked with their specs:
 
-- Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, free tier — pending.
+- Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, delivery on free tiers with manual campaigns gated to Comercios & Catálogo — pending.
 - Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker — pending.
 - Cloudflare media storage (SPEC-media-storage.md): R2 upload, D1 media repository, `media` tRPC router — DONE.
 - Chatbot with Cloudflare Workers AI: support domain, Vectorize index and AI Gateway wiring — DONE.

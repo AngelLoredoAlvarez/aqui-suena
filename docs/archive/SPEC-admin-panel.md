@@ -1,6 +1,12 @@
 # Spec: admin-panel — Aquí Suena (by 17Labs)
 
-> **Status: planned — not started (2026-11-16).** No admin app or admin UI exists yet; only the token-guarded `/admin/*` maintenance endpoints in `packages/api` are live.
+> **Status: retired (2026-11-16).** Product decision: there is no 17 Labs admin
+> panel. The design specification states it explicitly and marks the old admin
+> screens as obsolete. Operational needs are covered by the token-guarded
+> `/admin/*` endpoints in `packages/api` (`seed-plans`, `seed-stations`,
+> `seed-vectors`, `purge-expired-businesses`). This document is kept as the
+> reference for the roles, audit and safety analysis it already contains, in case
+> an internal tool is ever built as a separate product.
 
 ## Objective
 
