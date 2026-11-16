@@ -100,11 +100,12 @@ curl -fsS -X POST https://<worker>/admin/purge-expired-businesses \
 
 **Staging state (2026-11-10):** `POST /admin/seed-plans` ran successfully and
 returned `{"seeded":3}`; D1 holds the three plans and `plans.list` serves them.
-`POST /admin/seed-stations` has no recorded run in staging: run it once per
-environment after migrating D1 (it is idempotent), then confirm with
-`listener.getStatus`, which answers `NOT_FOUND` for stations that are not in D1.
-`listener.getStatus` returns a deterministic simulated count until a real
-listener source exists.
+`POST /admin/seed-stations` was verified on 2026-11-16: `listener.getStatus`
+resolves all three harness stations (`aqui-suena-pop`, `aqui-suena-focus`,
+`aqui-suena-night`) with their `STREAM_BASE_URL` stream URLs and answers
+`NOT_FOUND` for an unknown id. Run the seed once per new environment after
+migrating D1; it is idempotent. `listener.getStatus` returns a deterministic
+simulated count until a real listener source exists.
 
 ## Wiring the clients afterward
 

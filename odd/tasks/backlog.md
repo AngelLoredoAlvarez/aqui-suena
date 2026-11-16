@@ -28,16 +28,17 @@ Documented state, not fixed yet. Nothing below changes behavior today.
       payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
       payment provider, and a Worker cron). Until those exist, only the
       cancellation email can actually be sent.
-- [ ] Real listener status — PARTIAL 2026-11-13. `listener.getStatus` now
+- [ ] Real listener status — PARTIAL 2026-11-16. `listener.getStatus` now
       resolves the station from D1 (`D1StationRepository`, seeded by
       `POST /admin/seed-stations`) or the in-memory harness for local Node,
       answers `NOT_FOUND` for unknown ids, returns the real `streamUrl`, and the
       client fetches over HTTP; the mock (`listeners: 42`, fixed URL) is gone.
       Listeners use a deterministic simulated count computed in the endpoint (no
-      writes, no feature flag) until a real source exists. A heartbeat/providor
-      source and the UI no-data state remain open; the heartbeat was discarded for
-      D1 write cost. Staging
-      must run the station seed once. See `odd/tasks/feat-listener-status.md`.
+      writes, no feature flag) until a real source exists. Staging verified
+      2026-11-16: all three harness stations resolve and an unknown id answers
+      `NOT_FOUND`. Still open: a real listener source (the heartbeat was
+      discarded for D1 write cost) and the UI no-data state. See
+      `odd/tasks/feat-listener-status.md`.
 - [x] Listings from the database — CLOSED 2026-11-10 by removing the surface
       instead of implementing it. `directory.listings.list`, `.get`,
       `.createProduct`, `.addPhoto` and `.create` echoed the request body, returned
