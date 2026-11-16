@@ -1,5 +1,11 @@
 # Implementation Plan: radio-playback (MVP)
 
+> **Status: historical (2026-10).** This document records how the radio-playback
+> MVP was planned; some choices changed later (the database moved to SQLite/D1,
+> Solito was never adopted, and `listener.getStatus` no longer serves a mock).
+> Current state lives in `README.md` (Status), the `SPEC-*.md` files and
+> `odd/tasks/backlog.md`.
+
 ## Overview
 
 Build the first vertical slice of aqui-suena: open the app and hear the temporary open stream with autoplay from the landing `/` (player + ads carousel, shared Tamagui UI, no station screens by product decision), tRPC status, and automatic mirror fallback. Later modules (business-directory, ads-display) reuse this shell.
@@ -10,7 +16,7 @@ Build the first vertical slice of aqui-suena: open the app and hear the temporar
 - No navigation package exists by product decision: the player switches stations in place on the landing `/`, with no station screens. Navigation (and the reserved `packages/navigation`) is deferred until a future module needs route screens; Solito is not installed.
 - Tamagui as the only shared UI system (primitives + tokens + themes); `tamagui.config` canonical in `packages/config`.
 - Playback core isolated in `packages/player`: fallback picker, error mapper (incl. `NotAllowedError` → `blocked`), `usePlayer({ autoplay: true })` with an injected `AudioDriver`. Driver implementation is `expo-audio` (cross-platform web + native, replaces deprecated `expo-av`); the hook never touches audio APIs directly.
-- tRPC + TanStack Query for `listener.getStatus` mock; Drizzle + PostgreSQL for `stations` / `listen_sessions` metadata only.
+- tRPC + TanStack Query for `listener.getStatus` (later replaced by a real station lookup and a deterministic simulated count); Drizzle + SQLite/D1 for `stations` / `listen_sessions` metadata only.
 
 ## Task List
 

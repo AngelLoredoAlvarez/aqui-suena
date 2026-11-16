@@ -1,5 +1,9 @@
 # Todo: radio-playback (MVP)
 
+> **Status: historical (closed).** The MVP shipped; this checklist is kept as a
+> record. Current state lives in `README.md` (Status), the `SPEC-*.md` files and
+> `odd/tasks/backlog.md`.
+
 ## Task 1: Monorepo scaffold
 
 **Description:** Create pnpm workspaces with `apps/web` (Next.js App Router + React Native Web), `apps/mobile` (Expo Router), and `packages/*` with shared TypeScript strict config.

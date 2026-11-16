@@ -1,5 +1,7 @@
 # Spec: radio-playback (MVP) — Aquí Suena by 17Labs
 
+> **Status: implemented (2026-11-16).** Autoplay, fallback, status, the three-channel harness and the responsive composition ship on web, mobile and desktop; see `README.md` (Status).
+
 ## Objective
 
 Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and native with autoplay on app open, play/pause, status indication, and basic metadata. The harness is exactly 3 self-hosted dev channels (aqui-suena-pop, aqui-suena-focus, aqui-suena-night; see Dev channels below) plus optional indie streams used only with prior written permission. The client connects directly to operator URLs: no proxying, re-serving, caching, or transcoding. A proof file tracks the harness itself (this table plus the generation approach); no license entries are needed while all channels are synthesized and owned. User: a listener who opens the app and hears audio without pressing play on first visit ("listen and discover shops"). Success = audio starts automatically with fallback if a mirror fails or autoplay is blocked.
@@ -11,7 +13,7 @@ Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and 
 - Navigation: none today — no station screens by product decision; the player switches stations in place on the landing `/`. Navigation (and any reserved `packages/navigation`) is deferred until a future module needs route screens.
 - UI: Tamagui (universal components, styling, tokens + themes for Next.js + Expo + React Native Web)
 - Data: tRPC + TanStack Query (server state, cache, retry)
-- DB: Drizzle + PostgreSQL (metadata / listen sessions only in this module, no audio)
+- DB: Drizzle + SQLite/D1 (metadata / listen sessions only in this module, no audio)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 

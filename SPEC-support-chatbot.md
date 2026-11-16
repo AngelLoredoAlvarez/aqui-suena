@@ -2,9 +2,14 @@
 
 ## Status
 
-Scope defined on 2026-11-04. Implementation deferred; a task plan will be created
-before any code change. This document records the agreed product scope and the
-architectural constraints that follow from it.
+Scope defined on 2026-11-04. Partially implemented: `support.chat` ships the
+read-only plan-catalog path (bilingual es/en, prompt-injection guard, optional
+Vectorize RAG seeded by `POST /admin/seed-vectors`, optional AI Gateway), and the
+router is live for unauthenticated listeners. Still pending before it can cover
+the authenticated scope: Supabase Auth identities, per-account and global daily
+caps, and the sanitization rules for account, payment and invoice data. This
+document remains the source for the agreed scope and its architectural
+constraints.
 
 ## Goal
 

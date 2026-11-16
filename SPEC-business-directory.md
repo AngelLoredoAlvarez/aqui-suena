@@ -1,5 +1,7 @@
 # Spec: business-directory — Aquí Suena (by 17Labs)
 
+> **Status: partial (2026-11-16).** Backend complete: directory routers, D1 repositories, ownership guards, visibility and pagination ship in `packages/api`. No listing route or directory UI is built in `apps/web` or `apps/mobile`.
+
 ## Objective
 
 Single source of truth for Aquí Suena small-business listings (restaurants, clothing shops, etc.): name, category (food, computing, etc.), products with prices, product photos (when applicable), phone numbers, emails (when applicable), address, working hours, open/closed state, and home-delivery flag (when applicable). Users: owners edit via owner-portal; listeners read via ads-display sheets. Success = every paid listing renders complete, correct info without stopping audio.

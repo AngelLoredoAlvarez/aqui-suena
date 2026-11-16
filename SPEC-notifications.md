@@ -1,5 +1,7 @@
 # Spec: notifications — Aquí Suena (by 17Labs)
 
+> **Status: not started (2026-11-16).** There is no `notification_tokens` table, dispatch code or service worker in the repository yet.
+
 ## Objective
 
 Push notifications across web, mobile and desktop so listeners hear about new stations, sponsor updates and spot airings without opening the app. Free-tier only: Expo Push Service (free), Web Push API (free, VAPID), Tauri native notifications (free). Users: listeners (receive) and owners (trigger on publish). Success = a listener receives a notification on their device and tapping it opens the relevant screen, audio state preserved.

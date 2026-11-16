@@ -1,5 +1,7 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
+> **Status: partial (2026-11-16).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured. Missing: the shared upload picker and responsive image variants (WebP/AVIF, `srcset`).
+
 ## Objective
 
 Centralize all media (product photos, sponsor flyers, spot audio, owner avatars) on Cloudflare R2 with free-tier limits, and optimize image delivery to the listener and owner apps without interrupting playback. Users: owners upload via owner-portal; listeners read via ads-display and business-directory. Success = fast, cheap, secure media across web and native with no third-party provider dependency.
@@ -26,11 +28,11 @@ Typecheck: pnpm -r typecheck
 ## Project Structure
 
 ```
-packages/api/src/routers/media.ts   → media.presignUpload / media.confirm / media.list / media.delete
-packages/api/src/r2-client.ts      → R2 S3-compatible client (presigned URLs, head, delete)
+packages/api/src/server/routers/media/media.ts → media.presignUpload / media.confirm / media.list / media.delete
+packages/api/src/infrastructure/media/r2-client.ts → R2 S3-compatible client (presigned URLs, head, delete)
 packages/db/src/schema.ts          → media table (id, ownerId, type, r2Key, mime, size, createdAt)
-packages/ui/src/media-picker.tsx    → shared upload + preview component (Tamagui)
-packages/ui/src/optimized-image.tsx → shared image with lazy loading + blur placeholder + responsive sizes
+packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy loading + blur placeholder
+packages/ui/src/media-picker.tsx   → shared upload + preview component (Tamagui) — not built yet
 apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 ```
 
@@ -89,7 +91,7 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for upload flows.
-- Locations: `packages/api/src/r2-client.test.ts`, `packages/ui/src/media-picker.test.tsx`, `packages/ui/src/optimized-image.test.tsx`.
+- Locations: `packages/api/src/infrastructure/media/r2-client.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
 - Coverage: 100% on presign validation (type/size limits) and image state machine.
 - Levels: unit (presign validation, size limits) → integration (presign → upload → confirm → metadata stored) → e2e (owner uploads photo, listener sees it optimized).
 

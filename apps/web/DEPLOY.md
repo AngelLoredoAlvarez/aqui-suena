@@ -1,9 +1,10 @@
 # Deploying the web app to Cloudflare Pages
 
 The web app is a single static landing: it has no server routes and does its
-data work in the browser. It is built as a static export (`output: "export"`)
-and served by Cloudflare Pages. The listener card is mock-first, so the only
-network call the page makes is the audio `/stream` request to the API Worker.
+data work in the browser. It is built as a static export (`output: "export"`,
+enabled with `STATIC_EXPORT=1`) and served by Cloudflare Pages. The page calls
+the API Worker over tRPC (`listener.getStatus`, `ads.carousel`) and fetches audio
+through the `/stream` proxy, so the Worker URL must be baked in at build time.
 
 ## Prerequisites
 
@@ -26,6 +27,15 @@ This builds the static export with the Worker URL baked in and uploads
 `apps/web/out` to the Pages project `aqui-suena-web`. Override the project name
 with `PAGES_PROJECT=<name>`. The deploy forces a production deployment so the
 URL is stable: `https://aqui-suena-web.pages.dev`.
+
+Staging is a separate Pages project. Deploy it with the variable set, so the
+build and the `ALLOWED_ORIGINS` entry in `packages/api/wrangler.toml` agree:
+
+```bash
+PAGES_PROJECT=aqui-suena-web-staging \
+NEXT_PUBLIC_API_BASE_URL=https://aqui-suena-api-staging.angel-loredo-alvarez.workers.dev \
+pnpm deploy:web
+```
 
 ## CORS
 

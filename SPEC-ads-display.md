@@ -1,5 +1,7 @@
 # Spec: ads-display — Aquí Suena (by 17Labs)
 
+> **Status: partial (2026-11-16).** `ads.carousel` and the shared carousel component ship and serve ranked inventory with the designed empty state. The tappable card → listing sheet (`packages/ui/src/business-sheet.tsx`) is still TBD.
+
 ## Objective
 
 "Listen and discover shops" in Aquí Suena: a sponsor carousel visible during listening that links to full listings without ever stopping audio. Comercios & Catálogo receives maximum priority, Oficios & Servicios receives elevated priority, and Comunidad uses standard community rotation. Users: listeners. Success = discovery without interrupting playback.
@@ -53,7 +55,7 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library + headed Playwright.
-- Locations: `packages/api/src/ranking.test.ts`, e2e `apps/web/e2e/ads.spec.ts`.
+- Locations: `packages/api/src/domain/ads/ranking.test.ts`, e2e `apps/web/e2e/ads.spec.ts`.
 - Coverage: 100% on ranking + sheet-open audio continuity.
 - Levels: unit (ranking) → integration (carousel query) → e2e (tap card → sheet with full info, audio uninterrupted).
 

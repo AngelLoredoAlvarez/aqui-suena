@@ -1,5 +1,7 @@
 # Spec: owner-portal — Aquí Suena for Business (by 17Labs)
 
+> **Status: partial (2026-11-16).** The directory and billing procedures the portal consumes are implemented in `packages/api`; no `/owner` route, form or billing view exists in `apps/web` yet.
+
 ## Objective
 
 Aquí Suena for Business (by 17Labs): web-first portal where business owners create and maintain everything listeners see in Aquí Suena: products + prices, product photos (when applicable), working hours, phones, emails (when applicable), home-delivery flag (when applicable), and category. Gated by memberships. Users: verified owners. Success = an owner can go from signup to live listing without support.
