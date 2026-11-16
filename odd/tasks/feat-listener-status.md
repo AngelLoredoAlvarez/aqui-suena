@@ -66,21 +66,21 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
 ## Tasks
 
 - [x] T1 (S1, D1, D5): station repository (InMemory + D1) and dev seed; align the
-  landing station id. DONE: `D1StationRepository`, `D1StationCatalogWriter` and
-  `POST /admin/seed-stations`; local Node uses the in-memory harness, the Worker
-  reads D1. Staging needs the seed run once (see `packages/api/DEPLOY.md`).
+      landing station id. DONE: `D1StationRepository`, `D1StationCatalogWriter` and
+      `POST /admin/seed-stations`; local Node uses the in-memory harness, the Worker
+      reads D1. Staging needs the seed run once (see `packages/api/DEPLOY.md`).
 - [x] T2 (S1, S2): query handler reads the catalog; unknown id answers NOT_FOUND;
-  RED → GREEN tests. DONE.
+      RED → GREEN tests. DONE.
 - [x] T3 (S3, D2): provider stats adapter with cache, or the session-heartbeat
-  implementation, depending on the decision. PARTIAL: the endpoint now computes a
-  deterministic simulated count directly; the real provider/heartbeat source is
-  pending. The heartbeat was discarded for D1 write cost.
+      implementation, depending on the decision. PARTIAL: the endpoint now computes a
+      deterministic simulated count directly; the real provider/heartbeat source is
+      pending. The heartbeat was discarded for D1 write cost.
 - [x] T4 (S4): client fetcher over HTTP with schema validation; remove the client
-  mock and its duplicate constant. DONE.
+      mock and its duplicate constant. DONE.
 - [ ] T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
-  that is the decision.
+      that is the decision.
 - [ ] T6 (S7): update `SPEC-radio-playback.md` (remove the mock success criterion)
-  and close the backlog item. SPEC updated; backlog pending.
+      and close the backlog item. SPEC updated; backlog pending.
 
 ## Licensing prerequisite
 

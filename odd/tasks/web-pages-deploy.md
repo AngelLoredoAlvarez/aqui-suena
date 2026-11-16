@@ -21,11 +21,11 @@ Worker and the Pages deploy).
 - [x] T1 — Generalize `DESKTOP_BUILD` → `STATIC_EXPORT` (S2). Commit `d46999f`.
 - [x] T2 — Move `wrangler` to the root devDependencies (S5). Commit `d46999f`.
 - [x] T3 — Add `scripts/deploy-web-pages.mjs` and the root `deploy:web` script
-  (S1, S3). Commit `d46999f`.
+      (S1, S3). Commit `d46999f`.
 - [x] T4 — Set `ALLOWED_ORIGINS` to the defaults plus the Pages origin (S4).
-  Commit `d46999f`.
+      Commit `d46999f`.
 - [x] T5 — Add `apps/web/DEPLOY.md` and cross-link it from
-  `packages/api/DEPLOY.md` (S3, S4). Commit `d46999f`.
+      `packages/api/DEPLOY.md` (S3, S4). Commit `d46999f`.
 - [x] T6 — Verify (all). Evidence in L4.
 
 ## Log
