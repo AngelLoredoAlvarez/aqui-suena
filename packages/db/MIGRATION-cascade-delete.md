@@ -64,22 +64,14 @@ npx wrangler d1 execute aqui-suena-db-staging --env staging --remote --command "
 Record the bookmark and the row counts in the approval request. Push is only
 allowed after the user approves that exact bookmark and target.
 
-## Apply (requires explicit authorization)
+## Apply (historical)
 
-`drizzle-kit` reads the D1 HTTP credentials from the environment. In this repo
-the staging values live in Infisical, so the applied command was:
-
-```bash
-pnpm exec infisical run --env=staging --silent -- \
-  pnpm --filter @aqui-suena/db db:push --force
-```
-
-`--force` skips the interactive confirmation. To review the statements without
-applying anything, run the same command with `--verbose --strict` in a
-non-interactive shell: it prints the SQL and then exits for lack of a TTY.
-
-SQLite cannot alter a foreign key in place; Drizzle rebuilds the child tables
-with `__new_*` + `INSERT ... SELECT` + `DROP` + `RENAME`.
+This migration predates the versioned workflow and was applied with
+`drizzle-kit push`, which is now retired; the whole schema is captured in
+`migrations/0000_baseline.sql`. Use `MIGRATIONS.md` for any new change: generate
+the SQL, commit it, and apply it with `wrangler d1 migrations apply`. Applying
+anything to a remote database still requires explicit authorization and the
+pre-flight bookmark above.
 
 ## Applied record (staging, 2026-11-10)
 
