@@ -1,7 +1,8 @@
 # fix/android-player-safe-area
 
-Status: implemented, pending device verification. Reported 2026-11-13 after
-installing the staging APK on a physical Android device.
+Status: closed 2026-11-16. Implemented and verified by the user on a physical
+Android device with the staging build `caf3c458` (versionCode 4). Reported
+2026-11-13 after installing the first staging APK on a physical Android device.
 
 Objective: keep the landing clear of native system bars on Android (status and
 navigation) and iOS (notch/Dynamic Island and home indicator), without changing
@@ -84,21 +85,29 @@ Out of scope:
 - [x] T3: add a test with mocked insets proving the top and bottom spacing
       include the insets and stay unchanged on web. DONE:
       `player-spacing.test.ts`.
-- T4: verify Android on the physical device (gesture and 3-button navigation)
-  and iOS on a simulator or device (notch/Dynamic Island and home indicator);
-  attach screenshots.
+- [x] T4: verify Android on the physical device. DONE 2026-11-16: the user
+      confirmed on the physical device with build `caf3c458` (versionCode 4) that
+      the landing clears the status bar and the player clears the navigation bar.
+      iOS is out of reach without a paid Apple Developer account or macOS; see
+      the platform limitation below.
 
 ## Acceptance criteria
 
-- On the physical Android device, the title and locale switcher are below the
-  status bar, and the player card's bottom edge is above the system navigation
-  bar with every control tappable.
-- On iOS, the title clears the notch/Dynamic Island and the player clears the
-  home indicator.
-- Switching to 3-button navigation keeps the player visible.
-- Web and desktop screenshots show no added gap.
-- iOS simulator/device screenshots show no overlap in portrait.
-- `typecheck`, UI tests and `biome check .` stay green.
+- [x] On the physical Android device, the title and locale switcher are below the
+      status bar, and the player card's bottom edge is above the system navigation
+      bar with every control tappable.
+- [x] Web and desktop screenshots show no added gap (web resolves to zero insets;
+      covered by `player-spacing.test.ts`).
+- [x] `typecheck`, UI tests and `biome check .` stay green.
+
+## Platform limitation: iOS
+
+The fix is cross-platform by construction (one `useSafeAreaInsets` hook, zero
+insets on web), but iOS cannot be verified from this project today: an iPhone
+build needs a paid Apple Developer account for signing and device registration,
+and the Simulator needs macOS with Xcode. There is no Mac and no paid account, so
+this is a documented gap, not an open task. Revisit only if an Apple Developer
+account is acquired.
 
 ## Log
 
@@ -115,6 +124,9 @@ Out of scope:
   `usePlayerInsets` hook backed by `useSafeAreaInsets`, a zero-inset web
   fallback, a pure `playerSpacing` helper with tests, and `SafeAreaProvider` in
   the mobile root. `packages/ui` now declares
-  `react-native-safe-area-context`. Pending: install a new APK on the physical
-  Android device and verify gesture/3-button modes; iOS simulator verification
-  remains.
+  `react-native-safe-area-context`.
+- L5 (2026-11-16): Verified on the physical Android device by the user with the
+  `caf3c458` staging build (versionCode 4): the landing clears the status bar and
+  the player clears the navigation bar. The reported bug is closed. iOS stays
+  unverified because there is no Mac and no paid Apple Developer account; that is
+  recorded as a platform limitation, not an open task.

@@ -131,7 +131,7 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 - Listener status is real (2026-11-13): `listener.getStatus` resolves the station and stream URL from D1 (or the in-memory harness locally), answers `NOT_FOUND` for unknown ids and serves a deterministic simulated count computed in the endpoint. A heartbeat was evaluated and discarded for D1 write cost; `SPEC-live-listener-count.md` records the decision.
 - API hygiene tracks closed (2026-11-13): keyset/offset pagination across the list endpoints, structured request logs with `x-request-id`, one shared admin guard, no repository singleton, and a shared `FakeD1Database` test double.
 - Mobile staging is demo-ready (2026-11-13): the app points at the staging Worker and Pages origins, Infisical session failures explain themselves, and EAS internal builds produce an installable Android APK. The iOS flow is documented in `apps/mobile/STAGING.md` but has not been built yet (it needs a paid Apple Developer account).
-- Native safe areas fixed (2026-11-14): the landing and player dock respect the Android system bars and the iOS notch/home indicator through a native-only insets hook; the web resolves to zero.
+- Native safe areas fixed and verified (2026-11-16): the landing and player dock respect the Android system bars through a native-only insets hook, and the web resolves to zero. The user confirmed it on a physical Android device with the `caf3c458` staging build. The same hook covers iOS, which cannot be verified without a Mac or a paid Apple Developer account.
 - Ads empty/countdown states, system-following themes, `ZStack` overlay cleanup.
 - Windows/macOS signing and publishing (desktop stays dev-only until then).
 
