@@ -19,10 +19,13 @@ ALLOWED_ORIGINS = "http://localhost:3000,tauri://localhost,http://tauri.localhos
 # (AI -> AI Gateway) and put its id here. Leave empty to call Workers AI directly.
 AI_GATEWAY_ID = "aqui-suena"
 
+# Production database. The default environment is still not deployed: it needs
+# the Supabase project and the Worker secrets first (see README, "Environment
+# variables"). Keep this id separate from the staging one.
 [[d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db"
-database_id = "8737a12b-6bff-4fd2-bed0-34a48d6cddd7"
+database_id = "fba61331-c2d8-4e26-96b3-c732ff99dcd0"
 
 [ai]
 binding = "AI"
