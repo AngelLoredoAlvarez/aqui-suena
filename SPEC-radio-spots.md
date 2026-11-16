@@ -1,10 +1,15 @@
 # Spec: radio-spots — Aquí Suena (by 17Labs)
 
-> **Disabled behind a feature flag as of 2026-11-02.** The current three business plans monetize visibility only through the visual carousel and business directory. Audio spots are not removed: the feature and this spec remain for future reactivation, but no current plan entitlement enables them. The flag must default to off in every environment until the product separately approves its return. See SPEC-memberships.md.
+> **Status: Comercios & Catálogo only, flag off until launch (2026-11-16).** The
+> entitlement belongs to the top tier: Comunidad and Oficios & Servicios never
+> enable spots, and the design shows the blocked state for them. The feature flag
+> stays off in every environment until that tier is live with real payments;
+> `ENTITLEMENTS.commerce.spotEligible` stays `false` until then so code and spec
+> agree. See `SPEC-memberships.md`.
 
 ## Objective
 
-V1: recorded sponsor spots for Aquí Suena Premium members rotated automatically every 4 songs (backend-tunable). The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
+V1: recorded sponsor spots for Comercios & Catálogo members rotated automatically every 4 songs (backend-tunable). The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
 
 Future (V2, no design): announcer console with Premium request queue for live mentions.
 

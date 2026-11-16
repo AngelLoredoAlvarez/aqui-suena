@@ -66,6 +66,8 @@ Includes:
 - Featured product/dish.
 - Social-media links.
 - Icons for accepted payment methods.
+- Push campaigns: compose and send a message to listeners (`SPEC-notifications.md`).
+- Audio spots: the only tier eligible for recorded spots (`SPEC-radio-spots.md`), switched on when the plan launches.
 
 Carousel behavior: 3 appearances per cycle, focused on visual impact and category-based catalog exploration.
 
@@ -172,7 +174,8 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - The previous Premium plan at $159 MXN/month is discontinued; its price is not grandfathered into the new three-plan model. No account migration is required because no accounts are registered yet.
 - Plan screens show all three cards with i18n copy. Onboarding asks for `businessProfile` and preselects the corresponding recommendation: local community business → Comunidad, home services/trades → Oficios & Servicios, catalog-based commerce → Comercios & Catálogo. The user can change plans before confirming; an unanswered profile defaults to Comunidad.
 - Plan metadata, pricing and entitlements are stored in D1 and exposed through `plans.list()` / `plans.getById()`; `ENTITLEMENTS` remains the technical source of plan limits.
-- Audio radio spots are not included in any current plan. The feature remains in the codebase/specs for future use but is disabled behind a feature flag; no current entitlement enables it.
+- Audio radio spots belong to Comercios & Catálogo only. Comunidad and Oficios & Servicios never enable them; the flag stays off in every environment until the top tier is live, so `ENTITLEMENTS.commerce.spotEligible` remains `false` until then. Push campaigns follow the same rule: receiving notifications is universal, composing and sending them is a Comercios & Catálogo entitlement (`SPEC-notifications.md`).
+- There is no 17 Labs admin panel: operational changes run through the token-guarded `/admin/*` endpoints in `packages/api`. The retired panel analysis lives in `docs/archive/SPEC-admin-panel.md`.
 - Support is plan-tiered: Comunidad uses self-service help plus standard email support; Oficios & Servicios gets prioritized email support; Comercios & Catálogo gets a dedicated support channel for catalog, payment, and operational issues.
 - Stats availability by tier: Comunidad sees ad impressions, business visits, and basic contact clicks; Oficios & Servicios adds action clicks, gallery views, and service conversions; Comercios & Catálogo adds product views, product clicks, top product, category views, and date-range exports.
 - Flyer ownership is business-scoped: every business has exactly one flyer, even when multiple businesses share the same account. The account controls permissions and billing only; public data always belongs to the business.

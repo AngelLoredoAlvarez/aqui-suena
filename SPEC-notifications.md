@@ -4,7 +4,14 @@
 
 ## Objective
 
-Push notifications across web, mobile and desktop so listeners hear about new stations, sponsor updates and spot airings without opening the app. Free-tier only: Expo Push Service (free), Web Push API (free, VAPID), Tauri native notifications (free). Users: listeners (receive) and owners (trigger on publish). Success = a listener receives a notification on their device and tapping it opens the relevant screen, audio state preserved.
+Push notifications across web, mobile and desktop so listeners hear about new stations, sponsor updates and spot airings without opening the app. Delivery runs on free-tier infrastructure: Expo Push Service (free), Web Push API (free, VAPID), Tauri native notifications (free). Users: listeners (receive), owners (trigger on publish) and Comercios & Catálogo owners (compose manual campaigns). Success = a listener receives a notification on their device and tapping it opens the relevant screen, audio state preserved.
+
+## Plan entitlement
+
+- Receiving notifications is universal: every listener can grant permission and get them, on any plan.
+- Automatic triggers stay free for every owner: publishing a business, a flyer or a spot notifies that owner's followers under the existing rules.
+- **Manual campaigns** — composing a message and sending it to the listeners, which is the flow the design shows in "Notificaciones · redactar y enviar" — are a **Comercios & Catálogo** entitlement only. Lower tiers see the upgrade prompt from `SPEC-memberships.md`.
+- Infrastructure cost is unchanged by this split: the provider is free on every tier, so the gate is a product entitlement, not a billing requirement.
 
 ## Tech Stack
 
