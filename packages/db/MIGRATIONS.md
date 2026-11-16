@@ -68,6 +68,10 @@ Migrate before deploying the Worker. The Worker queries the new columns as soon 
 it is live, so a deploy against an unmigrated database is a runtime error, not a
 warning.
 
+`scripts/deploy-api.mjs` enforces that order: it captures the bookmark, applies
+pending migrations and only then deploys. CI runs it through
+`.github/workflows/deploy-api.yml`.
+
 ## Rollback
 
 D1 keeps time travel. Capture the bookmark before applying anything:

@@ -29,6 +29,60 @@ imports) with esbuild and uploads the Worker. Note the URL it prints, e.g.
 built-ins the `@trpc/server` bundle references; it can be removed later if the
 first deploy proves it is not needed.
 
+## CI deploy (bookmark, migrate, deploy)
+
+`.github/workflows/deploy-api.yml` runs `scripts/deploy-api.mjs`, which does three
+things in order and stops if any of them fails:
+
+1. Captures a D1 time-travel bookmark (the rollback point).
+2. Applies pending migrations with `wrangler d1 migrations apply`.
+3. Deploys the Worker.
+
+Staging runs on every push to `main`; production only from a manual dispatch,
+behind the `production` GitHub environment. Locally:
+
+```bash
+pnpm deploy:api                 # staging
+pnpm deploy:api --env production --yes
+```
+
+Production refuses to run without `--yes`, so a local invocation cannot reach it
+by accident.
+
+Required repository secrets: `CLOUDFLARE_API_TOKEN` (D1 edit + Workers Scripts
+edit, scoped to the account) and `CLOUDFLARE_ACCOUNT_ID`. Create the `staging` and
+`production` environments in GitHub; add a required reviewer to `production` so
+the job waits for approval.
+
+## CI cost control
+
+The repository is public today, and standard GitHub-hosted runners are free and
+unlimited on public repositories. When it becomes private, Actions bills against a
+monthly included compute amount: $12 on GitHub Free, which is roughly 2,000
+standard Linux minutes at $0.006/minute. Each job rounds up to a whole minute, and
+a private repository gets half the machine a public one does.
+
+Two workflows spend that allowance: `quality` on every pull request and push, and
+`deploy-api` on pushes that touch the API, the database package, the script or the
+lockfile. Three switches, from softest to hardest:
+
+1. **Stop push deploys.** Create the repository variable
+   `DEPLOY_API_ON_PUSH` with the value `false` (Settings → Secrets and variables →
+   Actions → Variables). Pushes stop deploying; manual dispatches in the Actions
+   tab still work, and they are the only remaining consumer.
+2. **Disable the workflow.** Actions → `deploy-api` → "…" → Disable workflow. It
+   spends zero minutes until re-enabled.
+3. **Cap the spend.** Settings → Billing → Actions spending limit = $0. Once the
+   included amount is used, jobs fail instead of charging.
+
+`quality` is a required check in branch protection, so disabling it would block
+merges. If minutes ever get tight, reduce how often it runs (draft pull requests,
+no intermediate pushes) instead of turning it off.
+
+Cloudflare billing is not affected by repository visibility: deploys, D1 migrations
+and Time Travel stay on the free plan regardless of whether the repository is
+public or private.
+
 ## Smoke test (in this order)
 
 Replace `<worker>` with the deployed URL.
