@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-11-10 against `main` (email templates track merged; media storage, ranked ads carousel and Workers AI chatbot shipped; account preferences deferred).
+Last synced 2026-11-16 against `main` (dependency bump merged; listener status, pagination, observability, api cleanups and the native safe-area fix shipped; email sender wired with `subscriptions.cancel` as its first trigger).
 
 ## Production wiring (closed 2026-11-10)
 
@@ -229,12 +229,13 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 
 ## Email integration follow-ups (2026-11-10)
 
-Templates, renderer and notifiers are merged; the notifiers still have no production
-call site.
+Templates, renderer and notifiers are merged. `packages/api/src/server/composition/email.ts`
+instantiates `ResendEmailSender` and the subscription notifier and wires them
+through `createApp`/`createAppRouter` when `RESEND_API_KEY` is set.
 
 - [ ] Account flows: call `AccountNotifier.emailVerificationRequested` and `.welcome` from signup and email verification once auth exists (only the null-safe Supabase seam exists today).
 - [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
-- [ ] Cancellation: expose an endpoint that passes `recipientEmail` and `locale` into `SubscriptionService.cancel`.
+- [x] Cancellation: `subscriptions.cancel` is live and passes the account `recipientEmail` and `locale` into `SubscriptionService.cancel` (2026-11-11).
 - [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral below).
 - [ ] CFDI email: blocked on fiscal data on `accounts`, a PAC integration and CFDI file hosting (see `email-templates/TEMPLATES.md`).
 

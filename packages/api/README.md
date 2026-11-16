@@ -23,12 +23,12 @@ gate that proves the types, exactly like the other packages.
 
 ## Environment
 
-| Variable          | Default    | Purpose                                                                                                 |
-| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
-| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                       |
-| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                 |
-| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                 |
-| `RESEND_API_KEY`  | (optional) | Reserved for transactional email. No email call site is wired yet, so setting it changes nothing today. |
+| Variable          | Default    | Purpose                                                                                                                                                            |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                                                                                  |
+| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                                                                            |
+| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                                                                            |
+| `RESEND_API_KEY`  | (optional) | Enables transactional email. When unset, `createSubscriptionNotifier` returns `undefined`, so the composition wires no notifier and no message leaves the process. |
 
 ## Routes
 
@@ -38,6 +38,7 @@ gate that proves the types, exactly like the other packages.
 | `/trpc/*`                         | `GET,POST`                    | The shared `appRouter` from `./router`.                     |
 | `/stream?url=`                    | `GET`                         | Proxies an allowlisted radio mirror, streamed.              |
 | `/admin/seed-plans`               | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the plan catalog into D1.              |
+| `/admin/seed-stations`            | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the owned harness stations into D1.    |
 | `/admin/seed-vectors`             | any (Bearer `ADMIN_TOKEN`)    | Embeds active plans into the Vectorize index.               |
 | `/admin/purge-expired-businesses` | `POST` (Bearer `ADMIN_TOKEN`) | Permanently deletes businesses past their 90-day retention. |
 
@@ -49,31 +50,32 @@ Only the local Node entry (`server/main.ts`) injects that adapter, on purpose.
 
 ## Email (transactional)
 
-The email stack is implemented but **not wired to production**. What exists:
+The email stack is implemented and wired through the composition root. What exists:
 
-- The 10 template definitions, runtime renderer (`renderEmail`) and copy files
+- The 11 template definitions, runtime renderer (`renderEmail`) and copy files
   in `src/infrastructure/email/`.
 - `ResendEmailSender` (`src/infrastructure/email/resend-email-sender.ts`), an
   adapter for the `EmailSender` port.
 - `TemplateSubscriptionNotifier`, `TemplateAccountNotifier` and
   `TemplatePaymentNotifier`, each covered by tests.
+- `src/server/composition/email.ts`, which builds the sender and the
+  subscription notifier when `RESEND_API_KEY` is set and passes it through
+  `createApp`/`createAppRouter`.
 
-What is missing: `ResendEmailSender` is never instantiated in a composition
-root (`server/worker.ts`, `server/main.ts`, `server/http/app.ts`), no notifier
-is constructed outside tests, and no domain flow calls one. No email leaves the
-system, whether or not `RESEND_API_KEY` is set. Wiring the sender into the
-composition and adding the trigger call sites is tracked in
-`odd/tasks/backlog.md`.
+What is missing: the remaining trigger call sites. `subscriptions.cancel` is the
+only flow that notifies today; signup/verification, payment receipts, renewal
+reminders and downgrades are blocked on auth, a payment provider and a Worker
+cron. Without `RESEND_API_KEY` no notifier is constructed, so cancelling sends
+nothing. Wiring the rest is tracked in `odd/tasks/backlog.md`.
 
-## Known placeholders
+## Listener status
 
-This endpoint is reachable in production but serves mock data. It is kept for
-client integration and is covered by tests; it is not an implementation of its
-eventual behavior.
-
-| Endpoint             | Returns today                                                                  | Missing                                                        |
-| -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| `listener.getStatus` | A fixed station (`MOCK_ACTIVE_URL`) with `listeners: 42` for any requested id. | Real listener counts and the live stream URL from persistence. |
+`listener.getStatus` resolves the requested station from D1 (or the in-memory
+station repository in the Node harness), answers `NOT_FOUND` for unknown ids and
+returns the persisted `streamUrl`. `listeners` is a deterministic simulated
+count computed in the endpoint (`domain/radio/simulated-listeners.ts`): no D1
+writes, no feature flag. A heartbeat was evaluated and discarded for cost; see
+`SPEC-live-listener-count.md`.
 
 ## Layout, and the one rule that keeps it safe
 
@@ -202,7 +204,8 @@ implementations:
    `npx wrangler vectorize create aqui-suena-plan-catalog --dimensions 1024 --metric cosine`
    (1024 = `@cf/baai/bge-m3` output dimensions; free tier: 30M queried
    dims/month, 5M stored dims, 100 indexes — ample for the plan catalog).
-2. Uncomment the `[[vectorize]]` block in `wrangler.toml`.
+2. The `[[vectorize]]` block is already active in `wrangler.toml` for both the
+   default and `staging` environments; change `index_name` if you used another.
 3. Deploy, then seed once: `curl -X POST <worker-url>/admin/seed-vectors -H "Authorization: Bearer $ADMIN_TOKEN"`.
    The route requires the `ADMIN_TOKEN` var/secret and returns 404 without
    it. It embeds every active plan from D1 and upserts the vectors.

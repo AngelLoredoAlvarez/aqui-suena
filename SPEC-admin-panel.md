@@ -1,5 +1,7 @@
 # Spec: admin-panel — Aquí Suena (by 17Labs)
 
+> **Status: planned — not started (2026-11-16).** No admin app or admin UI exists yet; only the token-guarded `/admin/*` maintenance endpoints in `packages/api` are live.
+
 ## Objective
 
 Web-first admin panel for Aquí Suena, used by 17Labs staff to manage business plans, accounts, businesses, flyers, moderation, billing and support. The panel must allow controlled live changes with complete auditability. Success = staff can operate the platform without direct database access or deploys for commercial changes.

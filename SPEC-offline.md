@@ -1,5 +1,7 @@
 # Spec: offline — Aquí Suena (by 17Labs)
 
+> **Status: not started (2026-11-16).** `apps/web` has no service worker and the player has no offline retry state yet.
+
 ## Objective
 
 Keep Aquí Suena usable when there is no network: the player shows an offline state instead of crashing, cached data (station list, last status) remains visible, and the app recovers gracefully when connectivity returns. Users: listeners on flaky mobile networks. Success = no crash, no silent failure, and automatic recovery on reconnect.
