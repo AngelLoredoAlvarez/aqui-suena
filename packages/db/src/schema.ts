@@ -101,27 +101,6 @@ export const payments = sqliteTable("payments", {
     .$defaultFn(() => new Date()),
 });
 
-export const invoices = sqliteTable("invoices", {
-  id: text("id").primaryKey(),
-  paymentId: text("payment_id")
-    .notNull()
-    .references(() => payments.id),
-  accountId: text("account_id")
-    .notNull()
-    .references(() => accounts.id),
-  planId: text("plan_id")
-    .notNull()
-    .references(() => plans.id),
-  amount: integer("amount").notNull(),
-  currency: text("currency").notNull().default("MXN"),
-  issuedAt: integer("issued_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
-
 export const businesses = sqliteTable("businesses", {
   id: text("id").primaryKey(),
   accountId: text("account_id")
