@@ -35,6 +35,15 @@ jobs:
       - name: Architecture boundaries
         run: pnpm arch
 
+      - name: Migration drift
+        run: |
+          pnpm --filter @aqui-suena/db db:generate
+          if [ -n "$(git status --porcelain -- packages/db/migrations)" ]; then
+            echo "::error::The schema changed without a committed migration. Run 'pnpm --filter @aqui-suena/db db:generate' and commit packages/db/migrations."
+            git status --short -- packages/db/migrations
+            exit 1
+          fi
+
       - name: Typecheck
         run: pnpm -r typecheck
 

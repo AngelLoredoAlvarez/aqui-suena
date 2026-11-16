@@ -91,7 +91,7 @@ Build: pnpm -r build
 Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
-DB push (dev): pnpm --filter @aqui-suena/db db:push
+DB migrations: pnpm --filter @aqui-suena/db db:generate, then pnpm --filter @aqui-suena/api exec wrangler d1 migrations apply <db> --remote
 ```
 
 ## Project Structure

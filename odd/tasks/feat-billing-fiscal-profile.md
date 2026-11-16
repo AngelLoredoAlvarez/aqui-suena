@@ -53,8 +53,8 @@ table shape, fiscal data verification against SAT, and any UI.
       `.updateFiscalProfile` in the in-memory and D1 adapters, with tests.
 - [x] T4 (S4, S5) — `billing` tRPC router, wired in `createAppRouter`, with tests.
 - [x] T5 — update `SPEC-memberships.md` (CFDI section) and the backlog.
-- [ ] T6 (S7) — apply the migration to staging and production D1 and verify the
-      columns exist with no row changes.
+- [x] T6 (S7) — apply the migration to staging and production D1 and verify the
+      columns exist with no row changes. DONE 2026-11-16.
 - [x] T7 (S8) — document the request/issuance split and pin it with a test that a
       Comunidad account can still store its profile.
 
@@ -70,3 +70,14 @@ table shape, fiscal data verification against SAT, and any UI.
 - L2 (2026-11-16): Facturama sandbox chosen for the later integration because it is
   free, does not expire and does not consume folios in sandbox; SW Sapien is the
   fallback. Recorded here so the adapter slice does not re-litigate the choice.
+
+- L4 (2026-11-16): Migration applied to both databases from `packages/api`.
+  Pre-flight bookmarks: staging `0000001f-00000000-00005125-9a3a6e828eadda241767b8e1d8129a03`,
+  production `00000001-00000002-00005125-aed108d3ed85184defaa06b42255f84b`.
+  Row counts stayed identical (staging 3 stations / 3 plans / 0 accounts,
+  production all zero). `pragma_table_info('accounts')` reports the seven new
+  columns in both. Post-migration bookmarks: staging
+  `0000001f-00000006-00005125-cd1507eeba25c96409a6990e3ddd7dd2`, production
+  `00000001-00000008-00005125-2b802ebe6c11aae670a05603598ec014`.
+  The `DROP TABLE invoices` from the follow-up branch also ran on both databases
+  (15 → 14 tables), with the same bookmarks capturing it.

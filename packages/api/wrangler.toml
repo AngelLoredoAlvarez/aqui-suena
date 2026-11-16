@@ -26,6 +26,7 @@ AI_GATEWAY_ID = "aqui-suena"
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db"
 database_id = "fba61331-c2d8-4e26-96b3-c732ff99dcd0"
+migrations_dir = "../db/migrations"
 
 [ai]
 binding = "AI"
@@ -51,6 +52,7 @@ STREAM_BASE_URL = "https://aqui-suena-web-staging.pages.dev"
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db-staging"
 database_id = "8737a12b-6bff-4fd2-bed0-34a48d6cddd7"
+migrations_dir = "../db/migrations"
 
 [env.staging.ai]
 binding = "AI"
