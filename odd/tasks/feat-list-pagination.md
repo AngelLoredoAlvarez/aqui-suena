@@ -72,40 +72,40 @@ SOLID and CLEAN CODE mandatory.
 ## Tasks
 
 - [x] T1 (S1, S2 — shared primitives, teaching pilot, user writes): cursor codec
-  (encode/decode), offset and cursor input schemas, `OffsetPage` and
-  `CursorPage` types, `nextOffset`/`nextCursor` derivation helpers, with
-  RED → GREEN tests. DONE: `shared/pagination/{cursor,input,page}.ts` + tests,
-  714 tests green, typecheck clean. No barrel (repo uses flat imports).
+      (encode/decode), offset and cursor input schemas, `OffsetPage` and
+      `CursorPage` types, `nextOffset`/`nextCursor` derivation helpers, with
+      RED → GREEN tests. DONE: `shared/pagination/{cursor,input,page}.ts` + tests,
+      714 tests green, typecheck clean. No barrel (repo uses flat imports).
 - [x] T2 (S3, S4 — `businesses.list` keyset): `BusinessRepository.list` gains a
-  cursor param; D1 + in-memory impls; router input; tests. DONE: keyset
-  `list(input)` + `listAll()` escape hatch for internal consumers (carousel,
-  visibility); `paginateCursor` refactored to a `toPoint` extractor. 719 tests
-  green, typecheck clean.
+      cursor param; D1 + in-memory impls; router input; tests. DONE: keyset
+      `list(input)` + `listAll()` escape hatch for internal consumers (carousel,
+      visibility); `paginateCursor` refactored to a `toPoint` extractor. 719 tests
+      green, typecheck clean.
 - [x] T3 (S3, S4 — `flyers.list` keyset): same shape for `FlyerRepository.list`,
-  keeping the visibility filter. DONE: keyset `list(input)` on InMemory + D1
-  (JOIN + `(f.created_at, f.id)`); extracted `paginateKeyset` to shared and
-  refactored `business.ts` onto it. 727 tests green, typecheck clean.
+      keeping the visibility filter. DONE: keyset `list(input)` on InMemory + D1
+      (JOIN + `(f.created_at, f.id)`); extracted `paginateKeyset` to shared and
+      refactored `business.ts` onto it. 727 tests green, typecheck clean.
 - [x] T4 (S3, S4 — offset scoped lists): DONE. Slice 1 `businesses.listMine`
-  (a978c68); slice 2 `media.list` (c271bb5). The remaining rows named
-  `listByBusiness` were repository methods with no endpoint; nothing to
-  paginate (corrected in S3).
+      (a978c68); slice 2 `media.list` (c271bb5). The remaining rows named
+      `listByBusiness` were repository methods with no endpoint; nothing to
+      paginate (corrected in S3).
 - [x] T5 (S5 — quota count audit): no change needed. The only count consumer
-  is `products.create` via `listByBusiness().length`; since that method stays
-  unpaginated, the count is complete. `countByBusiness` would be a performance
-  optimization, not a correctness fix, and is out of scope here.
+      is `products.create` via `listByBusiness().length`; since that method stays
+      unpaginated, the count is complete. `countByBusiness` would be a performance
+      optimization, not a correctness fix, and is out of scope here.
 - [x] T6 (S6 — no-pagination confirmation): verified `hours.listByBusiness` and
-  `ads.carousel` untouched by this feature; the only carousel change is the T2
-  `list()` → `listAll()` call.
+      `ads.carousel` untouched by this feature; the only carousel change is the T2
+      `list()` → `listAll()` call.
 - [x] T7 (S7 — global public child lists): DONE. Replaced the five unscoped
-  lists with `listByBusiness({ businessId })`; offset pagination for products,
-  services, photos and work-entries; hours unpaginated and ordered by day.
-  Hidden or missing parent answers NOT_FOUND. Removed the now-dead unscoped
-  `list()` methods from the five domain and D1 repositories, and the
-  `JOIN businesses` visibility filtering they carried.
+      lists with `listByBusiness({ businessId })`; offset pagination for products,
+      services, photos and work-entries; hours unpaginated and ordered by day.
+      Hidden or missing parent answers NOT_FOUND. Removed the now-dead unscoped
+      `list()` methods from the five domain and D1 repositories, and the
+      `JOIN businesses` visibility filtering they carried.
 - [x] T8 (S6 — clients/docs): no client references the replaced procedures
-  (`grep` over apps and packages found none), so the type change propagates
-  without app edits. SPEC-business-directory updated with the scoped child-list
-  contract; README requires no change.
+      (`grep` over apps and packages found none), so the type change propagates
+      without app edits. SPEC-business-directory updated with the scoped child-list
+      contract; README requires no change.
 
 ## Log
 

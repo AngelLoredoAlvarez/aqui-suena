@@ -8,52 +8,52 @@ Last synced 2026-11-10 against `main` (email templates track merged; media stora
 ## Production wiring (closed 2026-11-10)
 
 - [x] D1 plan catalog is seedable: `DEFAULT_PLAN_CATALOG` is the single source,
-  `POST /admin/seed-plans` (guarded by `ADMIN_TOKEN`) upserts it idempotently,
-  and the in-memory repository is built from the same constant. Media storage
-  is explicit: the Worker never falls back to `InMemoryObjectStorage`, `/health`
-  reports `media: configured|unconfigured`, and missing/partial R2 credentials
-  make media mutations answer `503 SERVICE_UNAVAILABLE`. Branch
-  `feat/production-wiring`; details in `odd/tasks/feat-production-wiring.md`.
-  Staging seed command prepared but not executed.
+      `POST /admin/seed-plans` (guarded by `ADMIN_TOKEN`) upserts it idempotently,
+      and the in-memory repository is built from the same constant. Media storage
+      is explicit: the Worker never falls back to `InMemoryObjectStorage`, `/health`
+      reports `media: configured|unconfigured`, and missing/partial R2 credentials
+      make media mutations answer `503 SERVICE_UNAVAILABLE`. Branch
+      `feat/production-wiring`; details in `odd/tasks/feat-production-wiring.md`.
+      Staging seed command prepared but not executed.
 
 ## Production wiring pending
 
 Documented state, not fixed yet. Nothing below changes behavior today.
 
 - [ ] Email sender and triggers (partially done 2026-11-11): `ResendEmailSender`
-  and the `SubscriptionNotifier` are now instantiated in the composition root
-  (`feat/email-sender-wiring`) and wired through `createApp`/`createAppRouter`;
-  the first call site `subscriptions.cancel` is live. Remaining: wire the
-  `AccountNotifier` and `PaymentNotifier`, and add the signup/verification,
-  payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
-  payment provider, and a Worker cron). Until those exist, only the
-  cancellation email can actually be sent.
+      and the `SubscriptionNotifier` are now instantiated in the composition root
+      (`feat/email-sender-wiring`) and wired through `createApp`/`createAppRouter`;
+      the first call site `subscriptions.cancel` is live. Remaining: wire the
+      `AccountNotifier` and `PaymentNotifier`, and add the signup/verification,
+      payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
+      payment provider, and a Worker cron). Until those exist, only the
+      cancellation email can actually be sent.
 - [ ] Real listener status — PARTIAL 2026-11-13. `listener.getStatus` now
-  resolves the station from D1 (`D1StationRepository`, seeded by
-  `POST /admin/seed-stations`) or the in-memory harness for local Node,
-  answers `NOT_FOUND` for unknown ids, returns the real `streamUrl`, and the
-  client fetches over HTTP; the mock (`listeners: 42`, fixed URL) is gone.
-  Listeners use a deterministic simulated count computed in the endpoint (no
-  writes, no feature flag) until a real source exists. A heartbeat/providor
-  source and the UI no-data state remain open; the heartbeat was discarded for
-  D1 write cost. Staging
-  must run the station seed once. See `odd/tasks/feat-listener-status.md`.
+      resolves the station from D1 (`D1StationRepository`, seeded by
+      `POST /admin/seed-stations`) or the in-memory harness for local Node,
+      answers `NOT_FOUND` for unknown ids, returns the real `streamUrl`, and the
+      client fetches over HTTP; the mock (`listeners: 42`, fixed URL) is gone.
+      Listeners use a deterministic simulated count computed in the endpoint (no
+      writes, no feature flag) until a real source exists. A heartbeat/providor
+      source and the UI no-data state remain open; the heartbeat was discarded for
+      D1 write cost. Staging
+      must run the station seed once. See `odd/tasks/feat-listener-status.md`.
 - [x] Listings from the database — CLOSED 2026-11-10 by removing the surface
-  instead of implementing it. `directory.listings.list`, `.get`,
-  `.createProduct`, `.addPhoto` and `.create` echoed the request body, returned
-  fabricated ids and derived the plan from client input, duplicating the real
-  `products`/`businesses`/`flyers`/`photos`/`hours`/`services`/`workEntries`
-  routers, which already persist D1 data, enforce ownership and answer
-  `NOT_FOUND`. Nothing consumed them; the `business` router and its tests were
-  deleted (public surface 51 → 46 procedures). What actually remains open is
-  narrower: `products.create` does not enforce the plan product quota, and the
-  plan is not yet read from `ctx.account` — see the pagination and context items
-  below.
+      instead of implementing it. `directory.listings.list`, `.get`,
+      `.createProduct`, `.addPhoto` and `.create` echoed the request body, returned
+      fabricated ids and derived the plan from client input, duplicating the real
+      `products`/`businesses`/`flyers`/`photos`/`hours`/`services`/`workEntries`
+      routers, which already persist D1 data, enforce ownership and answer
+      `NOT_FOUND`. Nothing consumed them; the `business` router and its tests were
+      deleted (public surface 51 → 46 procedures). What actually remains open is
+      narrower: `products.create` does not enforce the plan product quota, and the
+      plan is not yet read from `ctx.account` — see the pagination and context items
+      below.
 - [x] Seed plans in staging — DONE 2026-11-10: `POST /admin/seed-plans`
-  returned `{"seeded":3}` (idempotent), `plans.list` serves community, trades
-  and commerce, and D1 holds 3 rows.
+      returned `{"seeded":3}` (idempotent), `plans.list` serves community, trades
+      and commerce, and D1 holds 3 rows.
 - [x] R2 secrets in staging — DONE 2026-11-10: the five `R2_*` secrets were
-  uploaded and the Worker redeployed; `/health` reports `media: "configured"`.
+      uploaded and the Worker redeployed; `/health` reports `media: "configured"`.
 
 ## Pending engineering (post api tracks)
 
@@ -61,68 +61,68 @@ Detected during the api structure and security reviews, deferred to their own
 branches. None of these blocks the product today.
 
 - [x] Pagination for list endpoints — DONE 2026-11-13 (PR #16,
-  `feat/list-pagination`). Keyset cursor for the public feeds
-  (`businesses.list`, `flyers.list`), offset for owner/business-scoped lists
-  (`businesses.listMine`, `media.list`, `products/services/photos/work-entries`
-  `.listByBusiness`), and none for `hours.listByBusiness` (max 7 rows) and
-  `ads.carousel`. Public child lists are now scoped per business with a single
-  router-level visibility guard. Details: `odd/tasks/feat-list-pagination.md`.
+      `feat/list-pagination`). Keyset cursor for the public feeds
+      (`businesses.list`, `flyers.list`), offset for owner/business-scoped lists
+      (`businesses.listMine`, `media.list`, `products/services/photos/work-entries`
+      `.listByBusiness`), and none for `hours.listByBusiness` (max 7 rows) and
+      `ads.carousel`. Public child lists are now scoped per business with a single
+      router-level visibility guard. Details: `odd/tasks/feat-list-pagination.md`.
 - [x] Shared D1 test double — DONE 2026-11-13 (`chore/d1-test-support`).
-  `FakeD1Database` in `src/testing/d1.ts` records executed statements and
-  answers through a responder; the 13 repository/service test files that
-  hand-rolled `prepare`/`bind`/`first`/`all`/`run` stubs now use it. The real
-  `node:sqlite` adapter test keeps its own binding.
+      `FakeD1Database` in `src/testing/d1.ts` records executed statements and
+      answers through a responder; the 13 repository/service test files that
+      hand-rolled `prepare`/`bind`/`first`/`all`/`run` stubs now use it. The real
+      `node:sqlite` adapter test keeps its own binding.
 - [x] Worker observability — DONE 2026-11-13 (`chore/observability`).
-  `requestLogging` (Hono) and `withRequestLogging` (Worker fetch) emit one JSON
-  line per request with request id, method, path, status and duration, and a
-  structured error line without stack traces. The Worker stamps `x-request-id`
-  on every response; query strings, headers and bodies are never logged.
-  Workers Logs/Logpush sink configuration is a separate infra change.
+      `requestLogging` (Hono) and `withRequestLogging` (Worker fetch) emit one JSON
+      line per request with request id, method, path, status and duration, and a
+      structured error line without stack traces. The Worker stamps `x-request-id`
+      on every response; query strings, headers and bodies are never logged.
+      Workers Logs/Logpush sink configuration is a separate infra change.
 - [x] Api cleanups — DONE 2026-11-13 (`chore/api-cleanups`). Extracted
-  `isAdminAuthorized` so the three admin endpoints share one guard; removed the
-  `defaultDirectoryRepositories` singleton and the eager `appRouter` (fresh
-  in-memory repositories per app, `AppRouter` stays as a type); the email
-  renderer now receives `billingPath` and `ownerPortalPath` instead of
-  hardcoding frontend routes.
+      `isAdminAuthorized` so the three admin endpoints share one guard; removed the
+      `defaultDirectoryRepositories` singleton and the eager `appRouter` (fresh
+      in-memory repositories per app, `AppRouter` stays as a type); the email
+      renderer now receives `billingPath` and `ownerPortalPath` instead of
+      hardcoding frontend routes.
 
 ## Persistence validation and error codes (closed 2026-11-10)
 
 - [x] Persisted enums (`plan_id`, `category`, subscription/payment `status`) are
-  parsed on read and an unknown value raises `DataIntegrityError` instead of
-  flowing into the domain; `media.confirm` verifies the key prefix and the real
-  object metadata before persisting; client-caused failures map to
-  `BAD_REQUEST`/`NOT_FOUND`/`CONFLICT` and missing entities no longer return
-  `null`/`false`. Branch `fix/persistence-validation`; details in
-  `odd/tasks/fix-persistence-validation.md`.
+      parsed on read and an unknown value raises `DataIntegrityError` instead of
+      flowing into the domain; `media.confirm` verifies the key prefix and the real
+      object metadata before persisting; client-caused failures map to
+      `BAD_REQUEST`/`NOT_FOUND`/`CONFLICT` and missing entities no longer return
+      `null`/`false`. Branch `fix/persistence-validation`; details in
+      `odd/tasks/fix-persistence-validation.md`.
 
 ## Billing correctness (closed 2026-11-10)
 
 - [x] Subscription periods clamp to the target month's last day in UTC, and
-  renewal reminders count UTC calendar days instead of elapsed 24-hour blocks.
-  Branch `fix/billing-period-math`; details in
-  `odd/tasks/fix-billing-period-math.md`.
+      renewal reminders count UTC calendar days instead of elapsed 24-hour blocks.
+      Branch `fix/billing-period-math`; details in
+      `odd/tasks/fix-billing-period-math.md`.
 
 ## Billing follow-ups (opened 2026-11-10)
 
 Detected while fixing `resolvePlan`. Neither blocks anything today.
 
 - [x] `SubscriptionService.cancel` is now idempotent — DONE 2026-11-11
-  (`fix/cancel-idempotent`): a second cancel on an already-cancelled
-  subscription is a no-op (no throw, no re-notify). The `changePlan` half was
-  done earlier in `fix/paid-time-chaining`.
+      (`fix/cancel-idempotent`): a second cancel on an already-cancelled
+      subscription is a no-op (no throw, no re-notify). The `changePlan` half was
+      done earlier in `fix/paid-time-chaining`.
 - [x] `failRenewal` now enters grace in a single atomic write — DONE 2026-11-11
-  (`fix/fail-renewal-atomic`): the new `enterGrace` repository method sets
-  `status = 'grace'` and `graceEnd` in one operation, eliminating the transient
-  `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
-  removed.
+      (`fix/fail-renewal-atomic`): the new `enterGrace` repository method sets
+      `status = 'grace'` and `graceEnd` in one operation, eliminating the transient
+      `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
+      removed.
 
 ## Security (closed 2026-11-10)
 
 - [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`
-  for foreign/missing resources), hidden businesses excluded from public reads
-  and child lists, and cascade delete for the 90-day retention cleanup.
-  Branch `fix/p0-directory-security`; staging D1 migrated, production pending.
-  Details: `odd/tasks/fix-p0-directory-security.md`.
+      for foreign/missing resources), hidden businesses excluded from public reads
+      and child lists, and cascade delete for the 90-day retention cleanup.
+      Branch `fix/p0-directory-security`; staging D1 migrated, production pending.
+      Details: `odd/tasks/fix-p0-directory-security.md`.
 
 ## Known limitations (platform)
 
@@ -142,68 +142,82 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 
 - [x] Wide desktop composition (1440): DONE 2026-10-23. From `md` up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector is a 480px popover at the dock's right edge. The same horizontal dock is used on mobile, tablet and web. Verified with unit tests, Playwright e2e at 1440×900, and Chrome DevTools at 390/768/1024/1440. Feature: odd/tasks/wide-desktop-composition.md. The two-column business directory (380px list + 480px flyer/detail) remains `business-directory` scope.
 - [x] Empty state → ads carousel. DONE: the carousel serves real ranked inventory
-  and renders the designed empty state when no sponsor is eligible.
+      and renders the designed empty state when no sponsor is eligible.
 - [ ] Ad countdown state → ads-display. PENDING: there is no expiring banner or
-  time-boxed spot in the data model yet, so the countdown has no trigger.
+      time-boxed spot in the data model yet, so the countdown has no trigger.
 - [ ] System-following themes (`useColorScheme` → noche/brasa) + brasa headed
-  verification. The noche/brasa token sets exist; no `useColorScheme` call
-  does.
+      verification. The noche/brasa token sets exist; no `useColorScheme` call
+      does.
 - [ ] Tamagui `ZStack` cleanup for the overlay: overlays are still positioned
-  with `position="absolute"` on `YStack` (`player-landing.tsx`), the
-  non-idiomatic shape found during the overlay work.
+      with `position="absolute"` on `YStack` (`player-landing.tsx`), the
+      non-idiomatic shape found during the overlay work.
 - [ ] Native system bars (Android + iOS): on a physical Android device the
-  bottom player renders underneath the navigation bar and the top content can
-  sit under the status bar; iOS has the equivalent notch/home-indicator risk.
-  See `odd/tasks/fix-android-player-safe-area.md`.
+      bottom player renders underneath the navigation bar and the top content can
+      sit under the status bar; iOS has the equivalent notch/home-indicator risk.
+      See `odd/tasks/fix-android-player-safe-area.md`.
 
 ## Platforms
 
 - [ ] Windows/macOS signing and publishing. The desktop stays dev-only until
-  then. Packaging stopped being the gap: `pnpm build` produces deb, rpm
-  and AppImage from `apps/web` (verified 2026-10-21). The rpm needs an
-  ASCII `productName` because Tauri writes the package in Rust and rejects
-  accented names. Feature history: `odd/tasks/desktop-build.md`; tray
-  runtime requirements: Engram topic `desktop/tray-runtime-requirements`.
+      then. Packaging stopped being the gap: `pnpm build` produces deb, rpm
+      and AppImage from `apps/web` (verified 2026-10-21). The rpm needs an
+      ASCII `productName` because Tauri writes the package in Rust and rejects
+      accented names. Feature history: `odd/tasks/desktop-build.md`; tray
+      runtime requirements: Engram topic `desktop/tray-runtime-requirements`.
 
 ## Verification gaps
 
 - [x] Metro vs react-native question — RESOLVED benign 2026-10-22: the peer
-  warning comes from `@react-native/community-cli-plugin@0.88.0`
-  (transitive via `react-native@0.88.0`) declaring a peer on
-  `@react-native/metro-config@0.88.0`, while `@expo/metro@58.0.0` pins
-  `metro@0.87.1`. Expo uses its own CLI (`@expo/cli`), not the community
-  CLI, so the plugin is dead code and the mismatch is harmless. Forcing
-  `@react-native/metro-config@0.88.0` would break Expo's bundler. Leave
-  as-is.
+      warning comes from `@react-native/community-cli-plugin@0.88.0`
+      (transitive via `react-native@0.88.0`) declaring a peer on
+      `@react-native/metro-config@0.88.0`, while `@expo/metro@58.0.0` pins
+      `metro@0.87.1`. Expo uses its own CLI (`@expo/cli`), not the community
+      CLI, so the plugin is dead code and the mismatch is harmless. Forcing
+      `@react-native/metro-config@0.88.0` would break Expo's bundler. Leave
+      as-is.
 
 ## Dependencies (scheduled slices, not bedtime)
 
 - [x] TypeScript migration — DONE 2026-10-22: 5.9.3 → 7.0.2 (the native Go
-  compiler). Deliberately ahead of `expo install --check` (SDK 58 expects
-  `~6.0.3`); `tsconfig.base.json` dropped `baseUrl`, so it is TS7-ready.
-  Feature: `odd/tasks/deps-typescript.md`.
-- Patch/minor bumps applied 2026-10-22 (`chore/deps-typescript`):
-  `@tanstack/react-query` 5.104.5, `@tauri-apps/api`/`@tauri-apps/cli`
-  2.12.4, `turbo` 2.11.10, `dependency-cruiser` 18.7.0, `tamagui` +
-  `@tamagui/config` 3.1.2. `react`/`react-dom` were bumped to 19.3.1 then
-  REVERTED to 19.3.0 to match Expo SDK 58. `@types/node` stays at 24.19.2
-  (the 26 line is ahead of Node 24). Rust side: nothing pending.
+      compiler). Deliberately ahead of `expo install --check` (SDK 58 expects
+      `~6.0.3`); `tsconfig.base.json` dropped `baseUrl`, so it is TS7-ready.
+      Feature: `odd/tasks/deps-typescript.md`.
+- Patch/minor bumps applied 2026-11-16 (`chore/deps-update`): `@biomejs/biome`
+  2.6.8, `@infisical/cli` 0.45.8, `turbo` 2.11.11, `varlock` 1.25.0,
+  `wrangler` 4.162.0, `expo` 58.0.25, `expo-audio` 58.0.12, `expo-font`
+  58.0.12, `expo-router` 58.0.31, `expo-status-bar` 58.0.5,
+  `babel-preset-expo` 58.0.25, `next` 16.4.6, `@playwright/test` 1.65.1,
+  `@trpc/server`/`@trpc/client` 11.28.2, `hono` 4.13.18, `@hono/node-server`
+  2.1.8, `@cloudflare/workers-types` 5.20261115.1, `tamagui` and
+  `@tamagui/config` 3.3.3, `jotai` 3.0.2, `jsdom` 31.0.1.
+  `biome.json` schema migrated to 2.6.8 and that release's Markdown formatter
+  re-indented list continuations in seven `odd/tasks/*.md` documents
+  (whitespace only). `typecheck`, tests, `biome check`, `pnpm arch` and
+  `pnpm check:singletons` stay green.
+- Pinned ahead of `expo install --check` (SDK 58), all deliberate: `typescript`
+  7.0.2 (expected `~6.0.3`), `react`/`react-dom` 19.3.1 (expected 19.3.0),
+  `@react-native-async-storage/async-storage` 3.1.1 (expected 2.2.0; the
+  Expo Go block is obsolete now that mobile runs development/release builds),
+  `react-native-gesture-handler` 3.5.0 (expected `~3.3.0`). `@types/node` is
+  26.6.6. Rust side: nothing pending.
 
 ## Deferred (T4 parity — webpack-only, revisit if Turbopack-compatible)
 
 - [ ] Million.js — React compiler. DEFERRED: webpack-only, incompatible with
-  Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-compatible
-  compiler or a new maintained option emerges.
+      Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-compatible
+      compiler or a new maintained option emerges.
 - [ ] PattyCake — zero-runtime ts-pattern compiler. DEFERRED: same webpack/
-  Turbopack concern. Revisit alongside Million.js.
+      Turbopack concern. Revisit alongside Million.js.
 
-## Blocked (Expo Go — decided, not changing)
+## Expo Go block (resolved 2026-10-26)
 
-- `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major, mobile only).
-  BLOCKED while on Expo Go: SDK 58's `bundledNativeModules.json` pins 2.2.0, so
-  a 3.x JS bump desyncs the native module and breaks Expo Go (same class as the
-  expo-audio playback service). Decided: keep 2.2.0 while on Expo Go. Revisit
-  only when moving to a dev/release build or a future SDK that bundles 3.x.
+- [x] `@react-native-async-storage/async-storage` 2.2.0 → 3.1.1 (major, mobile
+      only) merged in `3310b2e`. The block only applied while the app ran on
+      Expo Go: SDK 58's `bundledNativeModules.json` pins 2.2.0, so a 3.x JS bump
+      would desync the native module. `apps/mobile` now ships a prebuilt
+      `android/` project plus EAS internal builds, so the pin no longer binds.
+      `expo install --check` still reports 2.2.0 as expected; that warning is
+      accepted.
 
 ## New features (planned — docs/specs created 2026-10-23)
 

@@ -41,9 +41,9 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
 - [x] T4 — Responsive helpers 390/768/1024/1440 + flyer width (S7). Route: inline.
 - [x] T5 — `composeMeta` pure function (S5). Route: inline.
 - [x] T6 — Card component rewrite: badge + dots overlay + name + meta + CTA +
-  empty state (S2/S3/S4/S6). Route: inline.
+      empty state (S2/S3/S4/S6). Route: inline.
 - [x] T7 — Tests: card anatomy, composeMeta, responsive, empty state (RED →
-  GREEN), plus updated api seed assertions (S1–S8). Route: inline.
+      GREEN), plus updated api seed assertions (S1–S8). Route: inline.
 
 ## Log
 

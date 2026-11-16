@@ -76,14 +76,14 @@ Out of scope:
 ## Tasks
 
 - [x] T1: inspect `SafeAreaProvider` coverage in the mobile root and the player
-  layout tree; document the inset source. DONE: the mobile root now wraps the
-  app in `SafeAreaProvider`.
+      layout tree; document the inset source. DONE: the mobile root now wraps the
+      app in `SafeAreaProvider`.
 - [x] T2: apply the top inset to the landing content and the bottom inset to the
-  player dock (padding or margin), skipping both on web/desktop. DONE: a
-  native-only hook reads the insets; web resolves to zero.
+      player dock (padding or margin), skipping both on web/desktop. DONE: a
+      native-only hook reads the insets; web resolves to zero.
 - [x] T3: add a test with mocked insets proving the top and bottom spacing
-  include the insets and stay unchanged on web. DONE:
-  `player-spacing.test.ts`.
+      include the insets and stay unchanged on web. DONE:
+      `player-spacing.test.ts`.
 - T4: verify Android on the physical device (gesture and 3-button navigation)
   and iOS on a simulator or device (notch/Dynamic Island and home indicator);
   attach screenshots.
