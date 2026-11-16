@@ -7,6 +7,7 @@
     "build": "turbo run build",
     "build:desktop:web": "node scripts/build-desktop-web.mjs",
     "deploy:web": "node scripts/deploy-web-pages.mjs",
+    "deploy:api": "node scripts/deploy-api.mjs",
     "dev": "node scripts/dev.mjs",
     "test": "node --test \"scripts/*.test.mjs\" && turbo run test -- --run",
     "lint": "biome check --write .",
