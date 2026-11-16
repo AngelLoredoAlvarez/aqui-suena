@@ -5,6 +5,7 @@ import type { StationRepository } from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { DirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
 import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carousel";
+import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
@@ -36,6 +37,7 @@ export function createAppRouter(
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
     }),
+    billing: createBillingRouter({ account: directoryRepositories.account }),
     businesses: createBusinessesRouter({
       business: directoryRepositories.business,
       subscription: directoryRepositories.subscription,
