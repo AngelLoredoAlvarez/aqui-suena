@@ -32,6 +32,18 @@ S8. Writing fiscal data stays open to any authenticated account (checkout fills 
 
 Route for every task: inline, teaching mode. The user transcribes the code; the agent hands exact code, target file and line reference, then waits for doubts before moving on.
 
+## Commits
+
+| Task | Commit |
+| --- | --- |
+| T1 | `1c6c937` refactor(api): map UpgradeRequired once in the transport |
+| T2, T3 | `df9e9a0` feat(billing): issue CFDI invoices through Facturama |
+| T4, T6 | `8db8b35` feat(db): add cfdi_invoices and snapshot the plan on payments |
+| T5 | `49f4a8f` feat(billing): expose billing.requestInvoice |
+| T7 | `a58a386` docs: document CFDI invoicing and drop user attribution from task logs |
+
+T4 and T6 share one commit because both edit `packages/db/src/schema.ts`; splitting them would have needed hunk staging and left a commit that does not build. The attribution rule itself landed separately in `57ef9e3 docs(agents): forbid user attribution in artifacts`.
+
 ## Log
 
 L1 (2026-11-16): Authorized the CFDI slice and asked to run it in teaching mode, working together as in previous slices.
@@ -57,3 +69,5 @@ L10 (2026-11-16): T5-A done: `presignR2ObjectUrl` helper and `R2CfdiXmlStore`. U
 L11 (2026-11-16): T5 done (S1, S4, S6, S8): `billing.requestInvoice` with `PRECONDITION_FAILED` when unconfigured, `createIssueInvoice` composition (all-or-nothing, VAT rate validated as a fraction), `router.ts`/`app.ts`/`worker.ts` wiring, staging `[vars]` and `.env.schema` entries. T6 done (S6): `payments.plan_id` snapshot, `NewPayment` write contract, migration `0002`. T7 docs: `SPEC-memberships.md`, `packages/api/DEPLOY.md` and `odd/tasks/backlog.md` updated.
 
 L12 (2026-11-16): Remaining before the slice closes: apply migrations `0001`/`0002` to staging, upload the Facturama secrets, replace `FACTURAMA_EXPEDITION_PLACE`, deploy, and run one authenticated `billing.requestInvoice` against the sandbox to validate the payload. Every one of those is a remote mutation and waits for an explicit go-ahead.
+
+L13 (2026-11-16): Implementation committed in six work-unit commits (`1c6c937`, `df9e9a0`, `8db8b35`, `49f4a8f`, `57ef9e3`, `a58a386`) on `feat/billing-cfdi`. Each passed the pre-commit gates: gitleaks, lint-staged, singleton guard, typecheck across eight packages and the full suite (97 files, 822 tests). Nothing pushed.
