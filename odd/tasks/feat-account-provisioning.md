@@ -66,7 +66,8 @@ to move behind that step.
 - T6 — Docs: close the backlog item, record provisioning in
   `SPEC-owner-portal`. Done.
 - T7 — Staging verification: a fresh session with no `accounts` row must persist
-  an owned resource without manual inserts. Pending.
+  an owned resource without manual inserts. Done: 10/10 checks against the
+  deployed staging Worker after CI deployed `6b1d162`.
 
 ## Log
 
@@ -102,3 +103,14 @@ to move behind that step.
   the unused `email` field from the error, merged duplicate imports and removed
   an unrelated blank line. The two remaining comments (email canonicalization
   and the constraint-text classifier) state why, not what, so they stay.
+- L8 — Staging evidence (2026-11-17), against `aqui-suena-api-staging` deployed
+  from merge commit `6b1d162`, 10/10 checks: an email already owned by another id
+  answers 500 and the row is never adopted; a fresh confirmed session has no row,
+  and its first authenticated call creates it with `community`/`es-MX`; a media
+  upload round trip then persists with the real 70-byte size and no manual
+  insert; after changing the session email in Supabase, D1 holds the new email
+  and `billing_email` stays at the value the owner chose. Cleanup verified: zero
+  media rows, zero probe accounts, every test user deleted. `/health/deep`
+  reported `unreachable` once and `configured` on the next three calls: it costs
+  a real R2 read, so a transient network error shows up there, and this slice
+  does not touch that path.
