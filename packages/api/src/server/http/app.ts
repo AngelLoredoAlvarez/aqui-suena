@@ -14,6 +14,7 @@ import {
   type DirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
+import { probeMediaStorage } from "@aqui-suena/api/server/http/health";
 import { type RequestLogger, requestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
@@ -105,6 +106,11 @@ export function createApp(options: AppOptions): Hono {
       status: "ok",
       media: options.mediaStorage === undefined ? "unconfigured" : "configured",
     }),
+  );
+
+  // Costs one read, so it stays out of the cheap probe: presence is not access.
+  app.get("/health/deep", async (c) =>
+    c.json({ status: "ok", media: await probeMediaStorage(options.mediaStorage) }),
   );
 
   app.get("/stream", async (c) => {

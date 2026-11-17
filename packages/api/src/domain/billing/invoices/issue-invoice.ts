@@ -26,6 +26,8 @@ export type IssueInvoiceDependencies = {
   readonly invoices: CfdiInvoiceRepository;
   readonly xml: CfdiXmlStore;
   readonly now?: () => Date;
+  /** Reports a failed XML archive so the loss stays diagnosable. */
+  readonly onArchiveError?: (error: unknown, accountId: string) => void;
 };
 
 export class IssueInvoice {
@@ -103,7 +105,9 @@ export class IssueInvoice {
   private async tryArchiveXml(accountId: string, xml: string): Promise<string | null> {
     try {
       return await this.deps.xml.save({ accountId, xml });
-    } catch {
+    } catch (error) {
+      this.deps.onArchiveError?.(error, accountId);
+
       return null;
     }
   }

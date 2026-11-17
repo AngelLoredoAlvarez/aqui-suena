@@ -128,5 +128,11 @@ export function createIssueInvoice(
     invoices: new D1CfdiInvoiceRepository(options.db),
     xml: new R2CfdiXmlStore({ r2: r2Options, fetch: fetchFn }),
     now: options.now,
+    onArchiveError: (error, accountId) => {
+      console.error("billing: CFDI XML archive failed", {
+        accountId,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
   });
 }

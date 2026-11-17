@@ -91,6 +91,7 @@ function setup(
     subscription?: Subscription | null;
     issuerResult?: Error | IssuedCfdi;
     xmlSaveFails?: boolean;
+    onArchiveError?: (error: unknown, accountId: string) => void;
   } = {},
 ) {
   const issuer = new FakeInvoiceIssuer(
@@ -121,6 +122,7 @@ function setup(
     invoices,
     xml,
     now: () => NOW,
+    onArchiveError: options.onArchiveError,
   });
 
   return { issueInvoice, issuer, invoices, xml };
@@ -213,12 +215,17 @@ describe("IssueInvoice", () => {
     expect(invoices.rows).toHaveLength(0);
   });
 
-  it("still records the stamp when the XML archive fails", async () => {
-    const { issueInvoice, invoices } = setup({ xmlSaveFails: true });
+  it("reports the archive failure while still recording the stamp", async () => {
+    const reported: string[] = [];
+    const { issueInvoice, invoices } = setup({
+      xmlSaveFails: true,
+      onArchiveError: (_error, accountId) => reported.push(accountId),
+    });
 
     const invoice = await issueInvoice.execute("acc-1");
 
     expect(invoice).toMatchObject({ status: "issued", xmlKey: null });
     expect(invoices.rows).toHaveLength(1);
+    expect(reported).toEqual(["acc-1"]);
   });
 });
