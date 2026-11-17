@@ -4,13 +4,16 @@ import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let infoLog: ReturnType<typeof vi.spyOn>;
+let errorLog: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
   infoLog = vi.spyOn(console, "log").mockImplementation(() => {});
+  errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 afterEach(() => {
   infoLog.mockRestore();
+  errorLog.mockRestore();
 });
 
 function makeDb() {
