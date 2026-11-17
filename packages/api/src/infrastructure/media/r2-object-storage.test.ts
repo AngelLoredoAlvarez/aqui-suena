@@ -1,4 +1,4 @@
-import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
+import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { describe, expect, it } from "vitest";
 
 describe("R2ObjectStorage", () => {

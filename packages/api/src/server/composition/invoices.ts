@@ -5,7 +5,7 @@ import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
 import { R2CfdiXmlStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-xml-store";
-import type { R2ObjectStorageOptions } from "@aqui-suena/api/infrastructure/media/r2-client";
+import type { R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
 const DEFAULT_IVA_RATE = 0.16;
 // SAT: 01010101 = no match in the catalog; replace with the real service code.
@@ -112,7 +112,7 @@ export function createIssueInvoice(
     fetch: fetchFn,
   });
 
-  const r2Options: R2ObjectStorageOptions = {
+  const r2Options: R2StorageOptions = {
     accountId: r2.accountId,
     accessKeyId: r2.accessKeyId,
     secretAccessKey: r2.secretAccessKey,

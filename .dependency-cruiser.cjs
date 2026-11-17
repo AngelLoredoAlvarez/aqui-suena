@@ -79,11 +79,22 @@ module.exports = {
       from: { path: "^packages/api/src/infrastructure" },
       to: { path: "^packages/api/src/server" },
     },
+    {
+      name: "billing-infrastructure-must-not-depend-on-media-infrastructure",
+      severity: "error",
+      comment:
+        "Sibling-context infrastructure imports hide ownership: a shared adapter belongs in a neutral context (infrastructure/r2), never inside another bounded context.",
+      from: { path: "^packages/api/src/infrastructure/billing" },
+      to: { path: "^packages/api/src/infrastructure/media" },
+    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },
     exclude: "node_modules|\\.next|\\.turbo|\\.expo|/dist/|/build/|/out/",
     // dependency-cruiser can't parse typescript >= 7, so swc keeps the layer rules working.
     parser: "swc",
+    // Without this, `@aqui-suena/*` imports stay unresolved and every layer rule
+    // silently skips them; the alias is how the whole codebase imports.
+    tsConfig: { fileName: "tsconfig.base.json" },
   },
 };
