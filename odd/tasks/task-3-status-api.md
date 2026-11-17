@@ -10,7 +10,7 @@ Implement Task 3 (DB + tRPC status API) adjusted to the landing `/`: Drizzle sch
 
 ## Why
 
-User ordered: start Task 3 adjusted to the landing, sweep and fix everything not updated after the player-landing change, on a new git branch. Scope question answered: mock-first (no live Postgres, no HTTP transport yet).
+Scope: start Task 3 adjusted to the landing, sweep and fix everything not updated after the player-landing change, on a new git branch. Scope decision: mock-first (no live Postgres, no HTTP transport yet).
 
 ## Scope
 
@@ -25,18 +25,18 @@ Out of scope: HTTP tRPC handler, live Postgres + verified `db:push`, native remo
 ## Constraints
 
 - Stack: pnpm 12.4.1, turbo 2.11.7, TS strict, Vitest 5, Tamagui primitives only in `packages/ui`, no `next/link` in shared code.
-- Branch `feat/task-3-status-api`; local commits only, no push without explicit order.
+- Branch `feat/task-3-status-api`; local commits only, no push.
 - New packages follow existing conventions: `build`/`typecheck` = `tsc --noEmit`, `test` = `vitest run`, tsconfig extending `tsconfig.base.json`.
 - dependency-cruiser layer rules must keep passing (`packages/*` never import `apps/*`).
 - Stale-sweep result (2026-10-08): no `/player` route in code (good); `SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `tasks/plan.md`, `tasks/todo.md`.
 
 ## Authorized scope
 
-User: authorized Task 3 adjusted to the landing, with corrections on a new branch, plus the mock-first scope answer. Covers branch work listed in Scope. No push, no PR.
+Approved: Task 3 adjusted to the landing, with corrections on a new branch, plus the mock-first scope answer. Covers branch work listed in Scope. No push, no PR.
 
 ## TDD mode
 
-- Mode: ON. Source: explicit user request + test-driven-development skill. Runner: `vitest run` via turbo.
+- Mode: ON. Source: explicit requirement + test-driven-development skill. Runner: `vitest run` via turbo.
 - Genuine RED first: `packages/db` and `packages/api` do not exist yet, so failing tests come before implementation. UI states tested with Testing Library + jsdom if Tamagui cooperates; otherwise test the hook/fetcher boundary and report honestly.
 
 ## Delivery strategy
@@ -77,12 +77,12 @@ User: authorized Task 3 adjusted to the landing, with corrections on a new branc
 - TDD RED observed: db test failed pre-schema; api test failed pre-router; ui status test failed pre-hook (`window.matchMedia is not a function` at Tamagui import).
 - Gotchas fixed: pnpm installed TS 7 in new packages (repo pins 5.9.3; TS7 dropped `baseUrl`) → pinned `typescript@5.9.3`; tRPC v11.19 root exports no `createCallerFactory` → used `appRouter.createCaller({})`; Tamagui needs `matchMedia` (+ legacy `addListener`) stub in a Vitest `setupFiles` (test-file body runs too late); RTL matchers absent → plain truthy assertions, no new dep.
 - Delivery note: running count ~480 authored lines (over the ~400 heuristic). Per ODD the heuristic is advisory, not a stop: the overage is two new packages' config scaffolding + the RTL/jsdom test bed, kept as one coherent mock-first slice. Chain strategy (`ask-on-risk`) applies at delivery time if/when a PR is requested.
-- Deferred (mock-first, explicit): HTTP tRPC transport, live Postgres + verified `db:push` (script + `drizzle.config.ts` present, needs `DATABASE_URL`), native remote-URL config, E2E, manual landing check by user.
-- Bugfix (reported by user, same branch): `@trpc/server` threw "non-server environment" in client bundles because `ui → @aqui-suena/api` root evaluated `initTRPC.create()`. Fixed by splitting a client-safe entry (`listener.ts` schemas+mock, `client.ts` fetcher, `exports` map with `./client` subpath); UI imports `@aqui-suena/api/client`. Regression guard `client.test.ts` fails if server code ever enters the client graph. Proven: `next build` passes and no browser chunk contains the server error string.
+- Deferred (mock-first, explicit): HTTP tRPC transport, live Postgres + verified `db:push` (script + `drizzle.config.ts` present, needs `DATABASE_URL`), native remote-URL config, E2E, manual landing check.
+- Bugfix (same branch): `@trpc/server` threw "non-server environment" in client bundles because `ui → @aqui-suena/api` root evaluated `initTRPC.create()`. Fixed by splitting a client-safe entry (`listener.ts` schemas+mock, `client.ts` fetcher, `exports` map with `./client` subpath); UI imports `@aqui-suena/api/client`. Regression guard `client.test.ts` fails if server code ever enters the client graph. Proven: `next build` passes and no browser chunk contains the server error string.
 
 ## Next step
 
-- Done 2026-10-08: user verified compile + green tests + mock status on the landing; Foundation checkpoint approved. Task 4 (player core) is next, not started.
+- Done 2026-10-08: compile + green tests + mock status on the landing verified; Foundation checkpoint approved. Task 4 (player core) is next, not started.
 
 ## Commits
 

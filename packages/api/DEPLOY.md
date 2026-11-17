@@ -83,6 +83,33 @@ Cloudflare billing is not affected by repository visibility: deploys, D1 migrati
 and Time Travel stay on the free plan regardless of whether the repository is
 public or private.
 
+## Facturama (CFDI issuing)
+
+`billing.requestInvoice` stamps through Facturama. Issuing stays disabled — and
+the endpoint answers `PRECONDITION_FAILED` — until **both** halves are configured:
+the PAC credentials and the R2 credentials used to archive the XML.
+
+Worker secrets (never in `wrangler.toml`):
+
+```bash
+npx wrangler secret put FACTURAMA_USER --env staging
+npx wrangler secret put FACTURAMA_PASSWORD --env staging
+```
+
+Non-secret emitter settings live in `[env.staging.vars]` of `wrangler.toml`:
+`FACTURAMA_BASE_URL`, `FACTURAMA_IVA_RATE` (fraction, `0.16`; an out-of-range
+value disables issuing), `FACTURAMA_PRODUCT_CODE` and `FACTURAMA_UNIT_CODE`.
+`FACTURAMA_EXPEDITION_PLACE` ships commented out on purpose: while unset,
+issuing stays disabled instead of stamping with a placeholder zip. Uncomment it
+and set the emisor fiscal zip code from the CSD before any real call. The
+sandbox base URL is `https://apisandbox.facturama.mx`; sandbox CFDIs have no
+fiscal validity.
+
+Locally the same variables come from Infisical through `.env.schema`. The
+`0001` and `0002` migrations must be applied with
+`wrangler d1 migrations apply` before the first call, since `cfdi_invoices` and
+`payments.plan_id` do not exist otherwise.
+
 ## Smoke test (in this order)
 
 Replace `<worker>` with the deployed URL.

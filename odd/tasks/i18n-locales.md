@@ -10,7 +10,7 @@ All UI copy is hardcoded English in two layers: `packages/player/src/errors.ts` 
 
 ## Why
 
-User requirement: platform must be multi-language (es + en now, more later). Doing it now (~10 strings) is cheap; every new screen (ads, directory) without the contract multiplies migration cost. e2e (todo Task 8) asserts on copy, so the contract must exist before e2e locks wording.
+Requirement: the platform must be multi-language (es + en now, more later). Doing it now (~10 strings) is cheap; every new screen (ads, directory) without the contract multiplies migration cost. e2e (todo Task 8) asserts on copy, so the contract must exist before e2e locks wording.
 
 ## Scope
 
@@ -24,13 +24,13 @@ Out of scope: third language, ICU plural rules beyond a count function, URL-base
 
 ## Constraints
 
-- TDD strict; user implements by default, agent on request (this run: user ordered agent implementation).
+- TDD strict; implementation is manual by default, agent on request (this run: agent implementation).
 - No `next-intl` (breaks shared-code no-router invariant); no `i18next` until 100+ strings justify it — contract must allow the swap without touching components.
-- Branch `feat/i18n-locales`; local commits only, no push without explicit order.
+- Branch `feat/i18n-locales`; local commits only, no push.
 
 ## Authorized scope
 
-User: confirmed the Auto pace with manual phase switches after the workflow choice. Covers implementation. No push, no PR.
+Approved: the Auto pace with manual phase switches. Covers implementation. No push, no PR.
 
 ## TDD mode
 
@@ -45,7 +45,7 @@ User: confirmed the Auto pace with manual phase switches after the workflow choi
 - [x] T1 Contract + dictionaries es/en + tests (key parity, fallback chain, getDictionary)
 - [x] T2 LocaleProvider + useLocale + switcher + persistence + tests
 - [x] T3 Migrate Card/Landing/player errors to dictionary + update tests
-- [x] T4 Verification (gates + user check web es/en + native es/en) + close
+- [x] T4 Verification (gates + web es/en + native es/en checks) + close
 
 ## Acceptance criteria
 
@@ -73,11 +73,11 @@ User: confirmed the Auto pace with manual phase switches after the workflow choi
 - `pnpm exec turbo run test -- --run`: 8 successful, 8 total (3 cached = unrelated packages).
 - RED observed before each GREEN: T1 6 failing on stub, T2 11 failing on stubs, errors 4 failing on key expectations.
 - 2026-10-09 (agent, T4-fix): native reload lost the manual choice (session Map store in `_layout.tsx`). RED (3 failing on missing async helpers) -> GREEN. Installed `@react-native-async-storage/async-storage@2.2.0` in apps/native only via `npx expo install`; added `AsyncLocaleStore` + `load/savePersistedLocaleAsync` in `locale-env.ts` (addition only, sync web path untouched); `_layout.tsx` now persists to AsyncStorage (default = detected, effect restores persisted, fire-and-forget save, never throws). Prove-it reload test with fake async store in `locale.test.tsx`. ui 53/53, player 23/23, native typecheck clean, biome clean. Needs a native rebuild (new native dep).
-- 2026-10-09 (user, T4 close): verified web es/en switch + reload persists, and native persistence after rebuild. Task closed.
+- 2026-10-09 (T4 close): web es/en switch + reload persistence verified, and native persistence after rebuild. Task closed.
 
 ## Next step
 
-- Done. Closed 2026-10-09 after user verified web es/en + native persistence.
+- Done. Closed 2026-10-09 after web es/en + native persistence were verified.
 
 ## Commits
 

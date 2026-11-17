@@ -6,7 +6,7 @@ Rename the package scope from the legacy short scope to `@aqui-suena/*` across c
 
 ## Problem / Why
 
-The legacy short scope was terse but opaque to outsiders. The user chose the explicit `@aqui-suena` scope for consistency with the app slug (`aqui-suena`).
+The legacy short scope was terse but opaque to outsiders. Decision: the explicit `@aqui-suena` scope, for consistency with the app slug (`aqui-suena`).
 
 ## Scope
 
@@ -32,7 +32,7 @@ The legacy short scope was terse but opaque to outsiders. The user chose the exp
 
 ## Authorized scope
 
-User authorized the rename to `@aqui-suena` and the commits. Only the rename above.
+Scope: the rename to `@aqui-suena` and the commits. Only the rename above.
 
 ## Acceptance criteria
 

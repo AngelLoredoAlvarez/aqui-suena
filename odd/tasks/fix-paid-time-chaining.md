@@ -42,11 +42,11 @@ All four live in `packages/api/src/domain/billing/subscriptions/subscription-ser
 
 ### L2 — 2026-11-10 — decision recorded, no code yet
 
-- The rule was agreed after the user rejected an earlier proposal that let an upgrade during a paid cancellation forfeit the remaining days. That proposal is void; the rule is chaining.
+- The rule was agreed after an earlier proposal was rejected: it let an upgrade during a paid cancellation forfeit the remaining days. That proposal is void; the rule is chaining.
 - Documentation: `SPEC-memberships.md` gained the "Paid time is never lost" success criterion.
 - Two existing gaps were re-confirmed and stay in `odd/tasks/backlog.md` under _Billing follow-ups_: `cancel`/`changePlan` requiring `active` (this tracker fixes the `changePlan` half), and `failRenewal`'s two-statement write.
 - On resume: read this file, then `SubscriptionService.changePlan`/`subscribe`, then run the baseline before writing any test.
 
-### L1 — 2026-11-10 — request summary (paraphrased, not verbatim)
+### L1 — 2026-11-10 — requirement summary
 
-The user confirmed that a client must be able to cancel at any time and come back at any time without friction, and rejected the idea that the days already paid during a cancellation are lost, because the client would perceive it as theft. They asked for the agreed rule to be recorded so the work can resume in another session.
+Requirement: a client must be able to cancel at any time and come back at any time without friction; the days already paid during a cancellation are not lost, because the client would perceive it as theft. The rule is recorded so the work can resume in another session.

@@ -2,39 +2,39 @@
 
 ## Objective
 
-Implement Task 4 (player core: mirror fallback picker, media-error mapper, `usePlayer` autoplay hook) in `packages/player`, pair-programmed with the user via TDD ping-pong: the agent writes RED tests, the user writes GREEN implementations.
+Implement Task 4 (player core: mirror fallback picker, media-error mapper, `usePlayer` autoplay hook) in `packages/player`, developed through a TDD ping-pong: the agent writes RED tests, GREEN implementations are written manually.
 
 ## Problem
 
-No `packages/player` exists. Task 4 demands 100% coverage on the fallback picker + error mapper — pure logic, ideal for strict RED-GREEN-REFACTOR with the user driving implementations.
+No `packages/player` exists. Task 4 demands 100% coverage on the fallback picker + error mapper — pure logic, ideal for strict RED-GREEN-REFACTOR with implementations driven manually.
 
 ## Why
 
-User ordered: start Task 4 collaboratively instead of agent-only. Agreed model: agent owns RED tests, user owns GREEN code, reviewer-style feedback with technical WHY, work-unit commits each with own authorship.
+Scope: start Task 4 collaboratively instead of agent-only. Agreed model: the agent owns RED tests, GREEN code is written manually, reviewer-style feedback with technical WHY, work-unit commits each with own authorship.
 
 ## Scope
 
-- Slices: (a) fallback picker `pickFallbackUrl` — user implements first; (b) error mapper `describeMediaError` — TBD owner; (c) `usePlayer` hook — TBD (together or agent).
+- Slices: (a) fallback picker `pickFallbackUrl` — manual implementation first; (b) error mapper `describeMediaError` — TBD owner; (c) `usePlayer` hook — TBD (together or agent).
 - Agent prepares per slice: branch, package scaffold, RED test, handoff with exact commands.
-- User implements slice code, runs gates, commits own work.
-- Agent reviews user code (no silent rewrites), fixes only on explicit request.
+- Slice code is implemented manually, gates run, work committed.
+- Agent reviews the manual code (no silent rewrites), fixes only on explicit request.
 
 Out of scope: Task 5+ UI, E2E, push/PR/merge.
 
 ## Constraints
 
 - Stack: pnpm 12.4.1, turbo 2.11.7, TS strict 5.9.3 (pin exact in new packages — pnpm latest is TS7, which dropped `baseUrl`), Vitest 5.
-- Branch `feat/task-4-player-core`; local commits only, no push without explicit order.
+- Branch `feat/task-4-player-core`; local commits only, no push.
 - New package follows conventions: `build`/`typecheck` = `tsc --noEmit`, `test` = `vitest run`, tsconfig extending `tsconfig.base.json`.
 - Pure logic first: no audio elements, no DOM, no platform APIs in slices (a) and (b).
 
 ## Authorized scope
 
-User: approved the ping-pong model and requested the exact commands to run (handoff request). Covers scaffold + RED tests by agent, implementation by user. No push, no PR.
+Approved: the ping-pong model, with the exact commands to run handed off. Covers scaffold + RED tests by agent, implementation written manually. No push, no PR.
 
 ## TDD mode
 
-- Mode: ON (strict). Source: explicit user request + test-driven-development skill. Runner: `vitest run` via turbo; watch mode via `vitest` (no `run`) for the tight loop.
+- Mode: ON (strict). Source: explicit requirement + test-driven-development skill. Runner: `vitest run` via turbo; watch mode via `vitest` (no `run`) for the tight loop.
 - Contract under test for slice (a): `pickFallbackUrl(triedUrls, candidates) => first untried candidate or null`.
 
 ## Delivery strategy
@@ -44,9 +44,9 @@ User: approved the ping-pong model and requested the exact commands to run (hand
 ## Tasks
 
 - [x] T1 Scaffold `packages/player` + RED tests for slice (a) fallback picker (agent)
-- [x] T2 GREEN implementation of slice (a) (user)
-- [x] T3 Slice (b) error mapper: RED (agent) + GREEN (user)
-- [x] T4 Slice (c) `usePlayer`: RED (agent) + GREEN (user) + senior hardening (agent on user request: run generations, asMediaFailure narrowing, stable play/resume, rotation test for non-object rejections)
+- [x] T2 GREEN implementation of slice (a)
+- [x] T3 Slice (b) error mapper: RED (agent) + GREEN
+- [x] T4 Slice (c) `usePlayer`: RED (agent) + GREEN + senior hardening (agent, on request: run generations, asMediaFailure narrowing, stable play/resume, rotation test for non-object rejections)
 - [x] T5 Full verification + close
 
 ## Acceptance criteria

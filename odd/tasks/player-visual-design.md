@@ -23,13 +23,13 @@ Out of scope: artwork/cover images, animations, dark/light toggle, ads carousel 
 
 ## Constraints
 
-- TDD: behavior tests first/green throughout; visual choices verified by user headed (agent cannot see).
+- TDD: behavior tests first/green throughout; visual choices verified headed (the agent cannot see).
 - No hardcoded copy; no router imports in shared code; no existing-token edits.
-- Branch `feat/player-visual-design`; local commits only, no push without explicit order.
+- Branch `feat/player-visual-design`; local commits only, no push.
 
 ## Authorized scope
 
-User: requested a functional visual component for the landing. Covers design + implementation. No push, no PR.
+Requirement: a functional visual component for the landing. Covers design + implementation. No push, no PR.
 
 ## TDD mode
 
@@ -43,12 +43,12 @@ User: requested a functional visual component for the landing. Covers design + i
 
 - [x] T1 Brand tokens (additive) + token tests
 - [x] T2 PlayerCard restyle (all states) + affordance tests, behavior green
-- [x] T3 Landing composition + headed user review + close (2026-10-12: user approved headed web + native)
+- [x] T3 Landing composition + headed review + close (2026-10-12: headed web + native approved)
 
 ## Acceptance criteria
 
 - Card shows distinct visual language per status; pause/resume/blocked/error/loading all reachable and bilingual.
-- `turbo run test -- --run` 8/8, typecheck + biome clean; user approves headed look on web + native.
+- `turbo run test -- --run` 8/8, typecheck + biome clean; headed look approved on web + native.
 
 ## Applicable checks
 
@@ -94,11 +94,11 @@ User: requested a functional visual component for the landing. Covers design + i
 - `pnpm turbo run test -- --run`: 8 successful, 8 total.
 - `pnpm turbo run typecheck`: 8 successful, 8 total.
 - `biome check` on all 6 touched paths: clean, no errors.
-- Headed look (web + native): DONE 2026-10-12 — user approved, T3 closed.
+- Headed look (web + native): DONE 2026-10-12 — approved, T3 closed.
 
 ## Next step
 
-- Closed 2026-10-12: user approved headed web + native, T3 + Task 9 ticked.
+- Closed 2026-10-12: headed web + native approved, T3 + Task 9 ticked.
 
 ## Commits
 

@@ -6,7 +6,7 @@ Give the in-place station selector three playable dev channels for testing witho
 
 ## Why
 
-Local FM streams were removed by user order (2026-10-13): no permissions, lawsuit risk unwanted. Known free-culture options are not usable as in-app embeds without a grant: SomaFM TOS forbids new third-party apps/embeds, Radio Paradise pays royalties with no app redistribution grant, NCS usage is UGC-only (not for streaming apps), Nightride FM is personal non-commercial only. Technical accessibility of a stream URL is not a license. The harness replaces all of that with streams we fully control plus permission-backed exceptions.
+Local FM streams were removed (2026-10-13) because there were no permissions and the lawsuit risk was unwanted. Known free-culture options are not usable as in-app embeds without a grant: SomaFM TOS forbids new third-party apps/embeds, Radio Paradise pays royalties with no app redistribution grant, NCS usage is UGC-only (not for streaming apps), Nightride FM is personal non-commercial only. Technical accessibility of a stream URL is not a license. The harness replaces all of that with streams we fully control plus permission-backed exceptions.
 
 ## Scope
 

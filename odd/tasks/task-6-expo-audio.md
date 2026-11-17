@@ -10,7 +10,7 @@ The landing shows a playing card with no audio behind it (noop driver). `expo-au
 
 ## Why
 
-User ordered Task 6 start with expo-audio after closing Task 5.
+Scope: Task 6 start with expo-audio after closing Task 5.
 
 ## Scope
 
@@ -24,13 +24,13 @@ Out of scope: background modes / silent-switch handling (Task 7), coverage thres
 
 ## Constraints
 
-- `expo-audio` declared only in `packages/ui` (single importer). Expo Go inclusion assumed (core SDK successor of expo-av) — user verifies on emulator; dev-build fallback documented if Go lacks it.
+- `expo-audio` declared only in `packages/ui` (single importer). Expo Go inclusion assumed (core SDK successor of expo-av) — verified on the emulator; dev-build fallback documented if Go lacks it.
 - No floating promises: bridge settles or stays documented; `attempt()` totality invariant from Task 4 still holds (mapper total).
-- Branch `feat/task-6-expo-audio`; local commits only, no push without explicit order.
+- Branch `feat/task-6-expo-audio`; local commits only, no push.
 
 ## Authorized scope
 
-User: requested the Task 5 close and the Task 6 start with the expo-audio implementation. Covers research + implementation. No push, no PR.
+Scope: the Task 5 close and the Task 6 start with the expo-audio implementation. Covers research + implementation. No push, no PR.
 
 ## TDD mode
 
@@ -46,13 +46,13 @@ User: requested the Task 5 close and the Task 6 start with the expo-audio implem
 - [x] T2 Test seam (alias + double) + landing wiring + stream chain
 - [x] T3 Pivoted to platform drivers (evidence: expo-modules-core main is TS source importing TurboModuleRegistry, absent on web): `expo-driver.ts` (web HTMLAudio) + `expo-driver.native.ts` (expo-audio bridge), shared `narrowFailure` in player, dead helper + seam removed
 - [x] T4 SomaFM hotlink 403 fixed with same-origin proxy: `referrerpolicy` proven ineffective on media elements (not in spec/TS DOM lib), so web plays via `/api/stream` (allowlisted, tested core) instead
-- [x] T5 Verification + close: audible on web AND native (user-confirmed 2026-10-08) — expo-audio IS in Expo Go, no dev build needed
+- [x] T5 Verification + close: audible on web AND native (confirmed 2026-10-08) — expo-audio IS in Expo Go, no dev build needed
 
 ## Verification evidence
 
 - `pnpm --filter ui test` → green incl. real HTMLAudio-element tests (stubbed Audio) and native bridge tests (mocked module). `turbo test` 8/8, typecheck 8/8, `biome check .` clean, `pnpm arch` clean.
 - `pnpm --filter web build` compiles: no expo native code in the web graph (proven by build, not by assertion).
-- Audible autoplay + Expo Go presence of expo-audio: pending user verification on emulator/browser.
+- Audible autoplay + Expo Go presence of expo-audio: pending verification on emulator/browser.
 
 ## Acceptance criteria
 

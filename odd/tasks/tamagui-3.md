@@ -25,10 +25,10 @@ Objective: upgrade `tamagui` and `@tamagui/config` from 2.7.7 to 3.0.18, keep th
 
 ## Log
 
-- **L1 — 2026-10-19, user request (verbatim):**
-  > User authorized committing, merging to main, pushing, and proceeding with the Tamagui 3 upgrade.
+- **L1 — 2026-10-19:**
+  > Commit, merge to main, push, and proceed with the Tamagui 3 upgrade.
 
-  The commit/merge/push half of the message was completed before this slice (`06a260a`). The remaining authorized outcome is the Tamagui 3 upgrade listed in `odd/tasks/backlog.md`.
+  The commit/merge/push half was completed before this slice (`06a260a`). The remaining scope is the Tamagui 3 upgrade listed in `odd/tasks/backlog.md`.
 - **L2 — 2026-10-19, exploration (read-only).**
   - Latest v3 is `tamagui@3.0.18` / `@tamagui/config@3.0.18`. Peers: React `>=19` and `react-native-safe-area-context`; the repo already runs React 19.3 / RN 0.88 / TypeScript 5.9.3.
   - The v3 upgrade guide recommends a first checkpoint that keeps the existing config values. `@tamagui/config/v5` is retained as a frozen static compatibility pack, so the canonical config stays on v5 and config v6 is a separate design migration.

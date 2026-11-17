@@ -2,7 +2,7 @@
 
 ## Objective
 
-Build the shared Tamagui `PlayerCard` (Task 5): station status text, `blocked` one-tap resume, and an in-place station selector. No station screens and no router imports in shared code by product decision. Ping-pong: agent RED tests, user GREEN implementation (plus agent-built slices on explicit user request).
+Build the shared Tamagui `PlayerCard` (Task 5): station status text, `blocked` one-tap resume, and an in-place station selector. No station screens and no router imports in shared code by product decision. Ping-pong: agent RED tests, GREEN implementation written manually (plus agent-built slices on explicit request).
 
 ## Problem
 
@@ -10,7 +10,7 @@ Build the shared Tamagui `PlayerCard` (Task 5): station status text, `blocked` o
 
 ## Why
 
-User ordered Task 5 start under the established ping-pong model, then decided: no station pages (player switches in place), selector mechanism inside the player.
+Scope: Task 5 start under the established ping-pong model. Decision: no station pages (player switches in place), selector mechanism inside the player.
 
 ## Scope
 
@@ -25,11 +25,11 @@ Out of scope: wiring multi-station data into the landing (awaits the stations ca
 
 - Tamagui primitives + tokens only.
 - Status/message strings mirror the error-mapper contract (`Tap to enable sound`, `Signal unavailable, trying mirror…`).
-- Branch `feat/task-5-player-card`; local commits only, no push without explicit order.
+- Branch `feat/task-5-player-card`; local commits only, no push.
 
 ## Authorized scope
 
-User: Task 5 start + onOpen direction + no-station-pages decision + selector mechanism answer. Covers implementation and doc updates. No push, no PR.
+Approved: Task 5 start + onOpen direction + no-station-pages decision + selector mechanism. Covers implementation and doc updates. No push, no PR.
 
 ## TDD mode
 
@@ -42,11 +42,11 @@ User: Task 5 start + onOpen direction + no-station-pages decision + selector mec
 ## Tasks
 
 - [x] T1 Deps + RED tests for PlayerCard (agent)
-- [x] T2 GREEN implementation (agent on user request; user attempted raw-HTML version first — logic correct, rewritten to Tamagui + Solito per conventions)
-- [x] T3 Landing wiring with temporary noop driver (agent on user request to preview; expo-audio replaces it in Tasks 6-7)
-- [x] T4 Solito Link replaced with onOpen callback (user chose fight-then-callback; Expo Router 57 vendors forked navigation contexts — proven unwinnable — plus dead nav deps pruned, docs updated)
+- [x] T2 GREEN implementation (agent on request; a raw-HTML version was attempted first — logic correct, rewritten to Tamagui + Solito per conventions)
+- [x] T3 Landing wiring with temporary noop driver (agent, on request, to preview; expo-audio replaces it in Tasks 6-7)
+- [x] T4 Solito Link replaced with onOpen callback (fight-then-callback chosen; Expo Router 57 vendors forked navigation contexts — proven unwinnable — plus dead nav deps pruned, docs updated)
 - [x] T5 No-station-pages decision: onOpen removed, in-place selector added to card, player route contract removed from navigation, living docs updated
-- [x] T6 Native navigation redbox fixed, then Solito fully replaced; user confirmed web + native working 2026-10-08
+- [x] T6 Native navigation redbox fixed, then Solito fully replaced; web + native confirmed working 2026-10-08
 
 ## Verification evidence
 
@@ -65,7 +65,7 @@ User: Task 5 start + onOpen direction + no-station-pages decision + selector mec
 
 ## Progress
 
-- 2026-10-08: branch from main (f132f0f). Slices implemented with work-unit commits; hook gates green on every commit. Closed: user-verified web + native.
+- 2026-10-08: branch from main (f132f0f). Slices implemented with work-unit commits; hook gates green on every commit. Closed: web + native verified.
 
 ## Next step
 

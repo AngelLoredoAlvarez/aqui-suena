@@ -66,37 +66,37 @@ canvas and the selector stays ≤480px, plus Chrome DevTools measurements at
 
 ## Log
 
-L1 (2026-10-23, user): "User chose option 1: start wide desktop composition at 1440px."
+L1 (2026-10-23): Scope: wide desktop composition starting at a 1440px baseline.
 
 L2 (2026-10-23, first implementation): applied `maxW` breakpoints only
 (390/768/1024/1280 landing, 480/640/720 card, 390/768/1024 carousel). This
 stretched the mobile column and blew up the station sheet to the landing
 width; it did not compose the wide layout.
 
-L3 (2026-10-23, user): "User rejected the stretched column; it does not match the designs (screenshot attached)."
+L3 (2026-10-23): the stretched column was rejected as off-design (screenshot attached).
 
-L4 (2026-10-23, user): "User authorized the fix."
+L4 (2026-10-23): the composition fix was approved.
 
 Correction rationale: responsive is a composition change, not a width change.
 The design's wide layout is a dock bar plus a popover selector; the two-column
 business directory (380px list + 480px flyer/detail) belongs to the
 `business-directory` feature and is not invented here.
 
-L5 (2026-10-23, user): "Bug report: clicking outside the sheet on web broke; the ads shifted up when the sheet opened; the sheet must render above everything." — fixed: the popover is now absolutely
+L5 (2026-10-23): Bug: clicking outside the sheet on web broke; the ads shifted up when the sheet opened; the sheet must render above everything. — fixed: the popover is now absolutely
 positioned above the dock (it no longer consumes layout space) and the wide
 backdrop is a transparent click-catcher instead of being removed.
 
-L6 (2026-10-23, user): "Bug report: with the sheet open, side margins block clicking outside to close it on web." — fixed:
+L6 (2026-10-23): Bug: with the sheet open, side margins block clicking outside to close it on web. — fixed:
 the absolutely positioned popover container was interactive across its full
 width, intercepting outside clicks before the backdrop could receive them. The
 container is now pointer-transparent and only the card handles presses.
 
-L7 (2026-10-23, user): "Requirement: the same view and player card must be used for both layouts; check the designs." — fixed: the mobile design also uses the same
+L7 (2026-10-23): Requirement: the same view and player card for both layouts, per the designs. — fixed: the mobile design also uses the same
 horizontal bottom dock, so `PlayerCard` now renders one horizontal dock at
 every breakpoint instead of a separate vertical mobile card. The responsive
 card width helper and its tests were removed.
 
-L8 (2026-10-23, user): "User insisted on fixing it now." — fixed: the dock's
+L8 (2026-10-23): fixed in this slice — the dock's
 playback action now matches the design's 64px circular `.pb` button with a
 24px icon (pause/play/loading), implemented cross-platform with Tamagui
 primitives instead of raw SVG or a native dependency. The button now uses

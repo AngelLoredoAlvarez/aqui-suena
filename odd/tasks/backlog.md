@@ -117,6 +117,39 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
       removed.
 
+## CFDI invoicing (opened 2026-11-16)
+
+Issuing shipped in `feat/billing-cfdi`; these follow-ups are out of that slice.
+
+- [ ] Validate the Facturama payload against the real sandbox before merge: the
+      mapping (`toFacturamaCfdiPayload`) and the response shape
+      (`Id`, `Complement.TaxStamp.Uuid`, `ContentBase64`) are pinned by unit tests
+      but were written without access to the provider docs. One authenticated call
+      with the test CSD confirms or corrects both, tests included.
+- [ ] Apply migrations `0001` (`cfdi_invoices`) and `0002` (`payments.plan_id`) to
+      staging, upload `FACTURAMA_USER`/`FACTURAMA_PASSWORD` as Worker secrets, and
+      set the real `FACTURAMA_EXPEDITION_PLACE`. Nothing above should be applied
+      without an explicit go-ahead.
+- [ ] Decide the real SAT product code: `01010101` ("no match in the catalog") is
+      valid but generic. Replace it with the subscription service code agreed with
+      the accountant.
+- [ ] CFDI cancellation slice: the emitter requests cancellation with a motive and
+      the receiver accepts or rejects within 72 hours, so it needs
+      `issued` → `cancellation_pending` → `cancelled` | `cancellation_rejected`,
+      a reconciliation job and motive `01` substitution support.
+- [ ] Send the CFDI by email: template 8 is rendered but has no send site. It needs
+      the PDF/XML download (`GET /3/cfdis/{id}?format=pdf|xml` in Facturama) and a
+      link strategy; the XML is already archived in R2.
+- [ ] Recover missing XML archives: when the R2 upload fails, the row is recorded
+      as `issued` with `xmlKey: null`. A job can re-fetch the XML by `providerId`.
+- [ ] Hono logs every unhandled error twice: its built-in handler calls
+      `console.error(err)` with the full stack, and `requestLogging` adds the
+      structured line. Add `app.onError` returning a bare 500 so
+      `requestLogging` stays the only logger, and assert it with a test.
+- [ ] Move the R2 client from `infrastructure/media/` to `infrastructure/r2/`:
+      billing imports it for CFDI XML, which is a cross-context infrastructure
+      dependency. `pnpm arch` allows it today; the file name lies about ownership.
+
 ## Security (closed 2026-11-10)
 
 - [x] Directory P0s: ownership guard on every directory mutation (`NOT_FOUND`

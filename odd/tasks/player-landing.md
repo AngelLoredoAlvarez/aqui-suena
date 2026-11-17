@@ -6,7 +6,7 @@ Make `/` the player + ads-carousel view on web and native. Remove the separate `
 
 ## Problem / Why
 
-The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate screen behind a navigation step. The product decision (user, 2026-10-08) is that the landing IS the player plus the ads carousel.
+The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate screen behind a navigation step. The product decision (2026-10-08) is that the landing IS the player plus the ads carousel.
 
 ## Scope
 
@@ -38,7 +38,7 @@ The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate s
 
 ## Authorized scope
 
-User authorized the product change, the new branch, and the commits. Only the files above plus minimal wiring.
+Scope: the product change, the new branch, and the commits. Only the files above plus minimal wiring.
 
 ## Acceptance criteria
 
@@ -73,5 +73,5 @@ User authorized the product change, the new branch, and the commits. Only the fi
 ## Progress
 
 - 2026-10-08: document created. Next: create branch, delegate writer for L1-L5.
-- 2026-10-08: L1-L5 implemented on `feature/player-landing` (4de008a ui, cfac568 web, 1ea1ee8 native, 778f1ff docs). Parent: README de-staled (5067ace), spot check `biome check .` 34 files exit 0. Native review: medium/under_budget, no lifecycle. Manual `/` check pending user.
+- 2026-10-08: L1-L5 implemented on `feature/player-landing` (4de008a ui, cfac568 web, 1ea1ee8 native, 778f1ff docs). Parent: README de-staled (5067ace), spot check `biome check .` 34 files exit 0. Native review: medium/under_budget, no lifecycle. Manual `/` check pending.
 - 2026-10-23: CLOSED. All acceptance criteria met (ticked). Feature shipped and later evolved by `player-landing` (landing `/` is the player; `/player` route removed by product decision).

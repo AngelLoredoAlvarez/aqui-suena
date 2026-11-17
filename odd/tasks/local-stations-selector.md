@@ -1,6 +1,6 @@
 # Feature: local-stations-selector — Local-only station catalog
 
-> SUPERSEDED — 2026-10-13. Reason: no permissions for local FM streams, lawsuit risk unwanted; removed by direct user order (2026-10-13). Replaced by `odd/tasks/free-test-stations.md` (safe test-stations harness). History below is preserved unchanged; all LS items are cancelled.
+> SUPERSEDED — 2026-10-13. Reason: no permissions for local FM streams, lawsuit risk unwanted; removed 2026-10-13. Replaced by `odd/tasks/free-test-stations.md` (safe test-stations harness). History below is preserved unchanged; all LS items are cancelled.
 
 ## Objective
 
@@ -23,7 +23,7 @@ Product decision (Engram id 157): the selector lists ONLY local stations. Mechan
 ## Constraints
 
 - In-place selector only; no station screens, no router imports in shared code.
-- No invented station names, frequencies, or stream URLs. Real catalog entries are TBD pending the user-provided list.
+- No invented station names, frequencies, or stream URLs. Real catalog entries are TBD pending the provided list.
 - Catalog structure only: `stations` seed shape is `(id, name, locality, streamUrl TBD)`; `StationRef` gains `locality`.
 - Docs only in this change; no code changes.
 
@@ -34,11 +34,11 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 ## Tasks
 
 - [x] LS1 ~~SPEC updated (objective, DB line, StationRef snippet, success criteria, open questions)~~ — CANCELLED (superseded 2026-10-13: local-stations scope removed, no permissions)
-- [x] LS2 ~~Catalog schema shape defined as TBD (id, name, locality, streamUrl), entries pending user list~~ — CANCELLED (superseded 2026-10-13: replaced by safe harness schema in SPEC)
+- [x] LS2 ~~Catalog schema shape defined as TBD (id, name, locality, streamUrl), entries pending the provided list~~ — CANCELLED (superseded 2026-10-13: replaced by safe harness schema in SPEC)
 - [x] LS3 ~~Implementation prompt snippet ready for the future build slice~~ — CANCELLED (superseded 2026-10-13)
-- [x] LS4 ~~Implementation deferred until the user provides the real station list~~ — CANCELLED (superseded 2026-10-13: local list will not be requested)
+- [x] LS4 ~~Implementation deferred until the real station list exists~~ — CANCELLED (superseded 2026-10-13: local list will not be requested)
 
-Claude prompt snippet (for LS3/LS4): "Implement the local-only station catalog per SPEC-radio-playback.md and odd/tasks/local-stations-selector.md: seed `stations` with the user-provided local list (id, name, locality, streamUrl), extend `StationRef` with `locality`, keep in-place switching with no station screens, render an honest empty message when the catalog is empty. Do not invent station names or URLs."
+Claude prompt snippet (for LS3/LS4): "Implement the local-only station catalog per SPEC-radio-playback.md and odd/tasks/local-stations-selector.md: seed `stations` with the provided local list (id, name, locality, streamUrl), extend `StationRef` with `locality`, keep in-place switching with no station screens, render an honest empty message when the catalog is empty. Do not invent station names or URLs."
 
 ## Acceptance criteria
 
