@@ -2,6 +2,7 @@ import {
   ConflictError,
   DataIntegrityError,
   NotFoundError,
+  UpgradeRequired,
   ValidationError,
 } from "@aqui-suena/api/shared/domain-error";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -51,6 +52,14 @@ const mapDomainErrors = t.middleware(async ({ next }) => {
 
     if (error instanceof ConflictError) {
       throw new TRPCError({ code: "CONFLICT", message: error.message, cause: error });
+    }
+
+    if (error instanceof UpgradeRequired) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `${error.code}: ${error.hint}`,
+        cause: error,
+      });
     }
   }
 

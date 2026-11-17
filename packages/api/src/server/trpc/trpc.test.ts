@@ -3,6 +3,7 @@ import {
   ConflictError,
   DataIntegrityError,
   NotFoundError,
+  UpgradeRequired,
   ValidationError,
 } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it, vi } from "vitest";
@@ -60,5 +61,21 @@ describe("DataIntegrityError mapping", () => {
     const caller = r.createCaller({ user: null });
 
     await expect(caller.broken()).rejects.toMatchObject({ code, message: error.message });
+  });
+});
+
+describe("UpgradeRequired mapping", () => {
+  it("answers FORBIDDEN with the UPGRADE_REQUIRED prefix and its hint", async () => {
+    const r = router({
+      gated: publicProcedure.query(() => {
+        throw new UpgradeRequired("billing.upgradeRequired.productCreate");
+      }),
+    });
+    const caller = r.createCaller({ user: null });
+
+    await expect(caller.gated()).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "UPGRADE_REQUIRED: billing.upgradeRequired.productCreate",
+    });
   });
 });

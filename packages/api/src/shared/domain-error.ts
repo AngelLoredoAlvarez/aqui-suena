@@ -50,3 +50,15 @@ export class DataIntegrityError extends DomainError {
     this.value = value;
   }
 }
+
+/** The plan does not include the request; the transport answers FORBIDDEN with `UPGRADE_REQUIRED: <hint>`. */
+export class UpgradeRequired extends DomainError {
+  readonly code = "UPGRADE_REQUIRED" as const;
+  readonly hint: string;
+
+  constructor(hint: string) {
+    super(hint);
+    this.name = "UpgradeRequired";
+    this.hint = hint;
+  }
+}

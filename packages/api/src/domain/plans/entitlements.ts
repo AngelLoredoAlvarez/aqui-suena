@@ -2,12 +2,13 @@
 // spots, owner-portal) reads through `getEntitlements` / the helpers below.
 // Never re-implement a limit anywhere else: add a field here instead.
 
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import { DataIntegrityError, UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 
 export const UPGRADE_HINTS = {
   productCreate: "billing.upgradeRequired.productCreate",
   businessCreate: "billing.upgradeRequired.businessCreate",
   visibleSelection: "billing.upgradeRequired.visibleSelection",
+  invoiceIssue: "billing.upgradeRequired.invoiceIssue",
 } as const;
 
 export const ENTITLEMENTS = {
@@ -82,17 +83,6 @@ export function parsePlanId(value: unknown): PlanId {
   if (isPlanId(value)) return value;
 
   throw new DataIntegrityError("planId", value);
-}
-
-export class UpgradeRequired extends Error {
-  readonly code = "UPGRADE_REQUIRED" as const;
-  readonly hint: string;
-
-  constructor(hint: string) {
-    super(hint);
-    this.name = "UpgradeRequired";
-    this.hint = hint;
-  }
 }
 
 export type ProductCreateResult =

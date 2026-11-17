@@ -8,9 +8,8 @@ import {
   isWithinPhotoQuota,
   isWithinProductQuota,
   parsePlanId,
-  UpgradeRequired,
 } from "@aqui-suena/api/domain/plans/entitlements";
-import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+import { DataIntegrityError, UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 describe("ENTITLEMENTS matrix", () => {

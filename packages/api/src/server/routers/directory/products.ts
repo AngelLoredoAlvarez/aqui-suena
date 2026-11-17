@@ -6,7 +6,6 @@ import {
   assertCanCreateProduct,
   isWithinProductQuota,
   UPGRADE_HINTS,
-  UpgradeRequired,
 } from "@aqui-suena/api/domain/plans/entitlements";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
@@ -66,15 +65,7 @@ export function createProductsRouter(deps: ProductsRouterDeps) {
 
       const plan = resolvePlan(await subscriptionRepository.getActive(ctx.user.accountId));
 
-      try {
-        assertCanCreateProduct(plan);
-      } catch (error) {
-        if (error instanceof UpgradeRequired) {
-          throw new TRPCError({ code: "FORBIDDEN", message: `UPGRADE_REQUIRED: ${error.hint}` });
-        }
-
-        throw error;
-      }
+      assertCanCreateProduct(plan);
 
       const used = (await repository.listAllByBusiness(input.businessId)).length;
 

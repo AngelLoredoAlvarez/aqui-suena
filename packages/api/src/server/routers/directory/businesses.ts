@@ -8,7 +8,6 @@ import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { cursorInputSchema, offsetInputSchema } from "@aqui-suena/api/shared/pagination/input";
-import { TRPCError } from "@trpc/server";
 import * as v from "valibot";
 
 export type BusinessesRouterDeps = {
@@ -85,14 +84,7 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
 
       const existing = await repository.listAllByAccount(accountId);
 
-      try {
-        assertCanCreateBusiness(plan, existing.length);
-      } catch (error) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `UPGRADE_REQUIRED: ${(error as Error).message}`,
-        });
-      }
+      assertCanCreateBusiness(plan, existing.length);
 
       return repository.create({ ...input, accountId });
     }),
