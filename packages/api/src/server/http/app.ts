@@ -15,7 +15,11 @@ import {
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
 import { probeMediaStorage } from "@aqui-suena/api/server/http/health";
-import { type RequestLogger, requestLogging } from "@aqui-suena/api/server/http/observability";
+import {
+  type RequestLogger,
+  requestLogging,
+  silentErrorHandler,
+} from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
@@ -127,6 +131,9 @@ export function createApp(options: AppOptions): Hono {
   );
 
   app.notFound((c) => c.text("not found", 404));
+
+  // One logger: without this, Hono's default handler prints the raw stack again.
+  app.onError(silentErrorHandler);
 
   return app;
 }

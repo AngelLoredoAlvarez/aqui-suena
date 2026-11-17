@@ -1,4 +1,4 @@
-import type { MiddlewareHandler } from "hono";
+import type { ErrorHandler, MiddlewareHandler } from "hono";
 
 export type RequestLogEntry = {
   readonly level: "info" | "error";
@@ -46,6 +46,12 @@ export function logRequest(logger: RequestLogger, entry: RequestLogEntry): void 
 function elapsedSince(startedAt: number): number {
   return Math.round(performance.now() - startedAt);
 }
+
+/**
+ * Hono's default error handler prints the raw stack with `console.error`. The
+ * request logger is the only logger, so this answers a bare 500 instead.
+ */
+export const silentErrorHandler: ErrorHandler = (_error, c) => c.text("Internal Server Error", 500);
 
 // Path only: query strings can carry tokens.
 export function requestLogging(logger: RequestLogger = console): MiddlewareHandler {
