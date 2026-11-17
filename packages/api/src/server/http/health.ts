@@ -15,7 +15,11 @@ export async function probeMediaStorage(storage: ObjectStorage | undefined): Pro
     await storage.head(PROBE_KEY);
 
     return "configured";
-  } catch {
+  } catch (error) {
+    console.error("health: media probe failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
     return "unreachable";
   }
 }
