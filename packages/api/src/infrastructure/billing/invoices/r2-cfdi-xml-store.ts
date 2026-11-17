@@ -1,11 +1,8 @@
 import type { CfdiXmlStore } from "@aqui-suena/api/domain/billing/invoices/invoice";
-import {
-  presignR2ObjectUrl,
-  type R2ObjectStorageOptions,
-} from "@aqui-suena/api/infrastructure/media/r2-client";
+import { presignR2ObjectUrl, type R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
 export type R2CfdiXmlStoreDependencies = {
-  readonly r2: R2ObjectStorageOptions;
+  readonly r2: R2StorageOptions;
   readonly fetch: typeof fetch;
 };
 

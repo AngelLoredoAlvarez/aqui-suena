@@ -174,9 +174,19 @@ explains.
       drives a throwing route through the real `createApp` and requires zero
       `console.error` calls; the observability test now proves the structured line
       survives. The suite output no longer prints a stray stack.
-- [ ] Move the R2 client from `infrastructure/media/` to `infrastructure/r2/`:
-      billing imports it for CFDI XML, which is a cross-context infrastructure
-      dependency. `pnpm arch` allows it today; the file name lies about ownership.
+- [x] Split the R2 signer out of the media context — DONE 2026-11-17
+      (`refactor/r2-signer-split`). `infrastructure/r2/sigv4.ts` holds the generic
+      SigV4 signing (`presignR2ObjectUrl`, `R2StorageOptions`); the media adapter
+      stays in `infrastructure/media/r2-object-storage.ts` with the key layout and
+      the size/type rules. Billing's CFDI store imports only the signer. A new
+      dependency-cruiser rule forbids `infrastructure/billing` from importing
+      `infrastructure/media`. Enabling that rule exposed a bigger gap: the whole
+      arch config left `@aqui-suena/*` imports unresolved, so every layer rule
+      silently skipped them; `options.tsConfig` now points at
+      `tsconfig.base.json` and the rules resolve real files (561 phantom modules
+      became 355 real ones). That surfaced one pre-existing cycle in
+      `packages/ui/src/ads-carousel` (the hook imported the barrel that
+      re-exported it), fixed in the same change.
 - [x] Prove a full media upload round trip in staging — DONE 2026-11-17: an
       authorized probe against the staging Worker ran `media.presignUpload` → a
       client `PUT` straight to R2 → `media.confirm` → `media.list` →

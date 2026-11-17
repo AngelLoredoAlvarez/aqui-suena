@@ -6,7 +6,7 @@ import {
   seedPlanVectors,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
-import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-client";
+import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";

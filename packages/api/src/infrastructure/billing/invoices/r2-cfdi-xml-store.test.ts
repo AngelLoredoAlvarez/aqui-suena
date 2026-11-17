@@ -1,8 +1,8 @@
 import { R2CfdiXmlStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-xml-store";
-import type { R2ObjectStorageOptions } from "@aqui-suena/api/infrastructure/media/r2-client";
+import type { R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 import { describe, expect, it } from "vitest";
 
-const r2: R2ObjectStorageOptions = {
+const r2: R2StorageOptions = {
   accountId: "acc-1",
   accessKeyId: "access-key",
   secretAccessKey: "secret-key",
