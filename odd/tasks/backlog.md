@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-11-16 against `main` (dependency bump merged; listener status, pagination, observability, api cleanups and the native safe-area fix shipped; email sender wired with `subscriptions.cancel` as its first trigger).
+Last synced 2026-11-17 against `main` (dependency bump merged; listener status, pagination, observability, api cleanups and the native safe-area fix shipped; email sender wired with `subscriptions.cancel` as its first trigger; the media upload round trip is verified on staging and account provisioning is now a tracked gap).
 
 ## Production wiring (closed 2026-11-10)
 
@@ -56,6 +56,20 @@ Documented state, not fixed yet. Nothing below changes behavior today.
 - [x] R2 secrets in staging — DONE 2026-11-10: the five `R2_*` secrets were
       uploaded and the Worker redeployed; `/health` reports `media: "configured"`.
 
+## Auth and accounts (opened 2026-11-17)
+
+- [ ] No account provisioning. `accounts` has no writer anywhere in
+      `packages/api`: Supabase Auth issues a session, but `media.owner_id`,
+      `businesses.account_id`, `subscriptions.account_id` and the fiscal columns
+      all reference `accounts(id)`. A newly signed-up user therefore cannot
+      persist any owned resource until a row exists. Reproduced on staging during
+      the media round-trip probe: `media.confirm` answered
+      `INTERNAL_SERVER_ERROR` with `D1_ERROR: FOREIGN KEY constraint failed`
+      until a temporary `accounts` row was inserted for the test user. Needs one
+      provisioning path (a signup trigger or a first-request upsert in the
+      composition root) plus a test that a fresh session can create an owned
+      resource.
+
 ## Pending engineering (post api tracks)
 
 Detected during the api structure and security reviews, deferred to their own
@@ -85,6 +99,14 @@ branches. None of these blocks the product today.
       in-memory repositories per app, `AppRouter` stays as a type); the email
       renderer now receives `billingPath` and `ownerPortalPath` instead of
       hardcoding frontend routes.
+- [ ] Input contract split before any client consumes it: procedures built on
+      `requiredId` (`media.delete`, `plans.getById`, the directory `get`/`delete`
+      procedures) take a bare string as their input, while every other procedure
+      takes an object. A caller that assumes `{ id }` gets a `400 "… id is
+      required"` with no hint about the shape. Normalize to one contract (or
+      document the split) before the owner portal wires these calls. Also noted
+      during the probe: `media.list` answers `{ items, limit, offset, nextOffset }`,
+      not a bare array.
 
 ## Persistence validation and error codes (closed 2026-11-10)
 
@@ -152,11 +174,17 @@ explains.
 - [ ] Move the R2 client from `infrastructure/media/` to `infrastructure/r2/`:
       billing imports it for CFDI XML, which is a cross-context infrastructure
       dependency. `pnpm arch` allows it today; the file name lies about ownership.
-- [ ] Prove a full media upload round trip in staging: the client asks
-      `media.presignUpload`, uploads the file straight to R2, then calls
-      `media.confirm`, which reads the object back with `head`. `head` and `delete`
-      failed on Workers until the `fetch` fix (Illegal invocation), so that path
-      has never run end to end.
+- [x] Prove a full media upload round trip in staging — DONE 2026-11-17: an
+      authorized probe against the staging Worker ran `media.presignUpload` → a
+      client `PUT` straight to R2 → `media.confirm` → `media.list` →
+      `media.delete`, 15/15 checks green. `confirm` persisted the metadata read
+      back from R2 (`mime`, `size`, `r2Key`), a declared size mismatch answered
+      `BAD_REQUEST`, a foreign key prefix answered `NOT_FOUND`, and after
+      `delete` the object was really gone (a second `confirm` answered
+      `NOT_FOUND`). `/health/deep` reports `configured`. Staging was left clean:
+      no `media` rows, no probe accounts, no test users and no orphan objects.
+      This is the first end-to-end run of `head` and `delete` on Workers after
+      the `fetch` fix.
 
 ## Security (closed 2026-11-10)
 
