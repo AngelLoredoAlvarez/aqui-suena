@@ -34,13 +34,13 @@ Route for every task: inline, teaching mode. The user transcribes the code; the 
 
 ## Commits
 
-| Task | Commit |
-| --- | --- |
-| T1 | `1c6c937` refactor(api): map UpgradeRequired once in the transport |
-| T2, T3 | `df9e9a0` feat(billing): issue CFDI invoices through Facturama |
-| T4, T6 | `8db8b35` feat(db): add cfdi_invoices and snapshot the plan on payments |
-| T5 | `49f4a8f` feat(billing): expose billing.requestInvoice |
-| T7 | `a58a386` docs: document CFDI invoicing and drop user attribution from task logs |
+| Task   | Commit                                                                           |
+| ------ | -------------------------------------------------------------------------------- |
+| T1     | `1c6c937` refactor(api): map UpgradeRequired once in the transport               |
+| T2, T3 | `df9e9a0` feat(billing): issue CFDI invoices through Facturama                   |
+| T4, T6 | `8db8b35` feat(db): add cfdi_invoices and snapshot the plan on payments          |
+| T5     | `49f4a8f` feat(billing): expose billing.requestInvoice                           |
+| T7     | `a58a386` docs: document CFDI invoicing and drop user attribution from task logs |
 
 T4 and T6 share one commit because both edit `packages/db/src/schema.ts`; splitting them would have needed hunk staging and left a commit that does not build. The attribution rule itself landed separately in `57ef9e3 docs(agents): forbid user attribution in artifacts`.
 
