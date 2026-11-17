@@ -34,7 +34,7 @@ Nothing can be built without the scaffold (Tasks 2+ depend on Task 1). The plan 
 
 ## Authorized scope
 
-User authorized the scaffold (Task 1). Only the files listed above. Push/PR/merge remain user decisions.
+Scope: the scaffold (Task 1). Only the files listed above. Push/PR/merge remain pending.
 
 ## Acceptance criteria (from tasks/todo.md Task 1)
 
@@ -69,11 +69,11 @@ User authorized the scaffold (Task 1). Only the files listed above. Push/PR/merg
 - 2026-10-07: T1.1-T1.4 completed on branch `feature/monorepo-scaffold`. Checks: `pnpm install` ok, `pnpm -r build` ok (4 workspaces), `pnpm -r typecheck` ok, `pnpm exec biome check .` exit 0 (21 files), `pnpm -r test -- --run` ok (placeholder scripts). Manual pending: open web placeholder in dev and boot native in Expo Go.
 - Commits: f627393 (T1.1 root), 42e37a2 (T1.2 apps), 618c039 (T1.3 packages), T1.4 this commit.
 - 2026-10-07: Task 1 checked off in tasks/plan.md and tasks/todo.md (commit b9012bd); native Expo Go boot left unchecked pending manual verification.
-- 2026-10-07: document translated to English per user rule (all docs in English from now on).
+- 2026-10-07: document translated to English per the standing rule (all docs in English from now on).
 
 ## Decisions
 
-- Biome replaces ESLint/Prettier (prior user decision, saved to memory).
+- Biome replaces ESLint/Prettier (prior decision, saved to memory).
 - Docs convention: every document added or modified from now on is written in English.
 
 ## Conventions

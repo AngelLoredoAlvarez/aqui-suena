@@ -9,6 +9,22 @@ describe("R2ObjectStorage", () => {
     bucketName: "my-bucket",
   };
 
+  it("calls fetch without a receiver, as the Workers runtime requires", async () => {
+    const receivers: unknown[] = [];
+    const detachedFetch = function (this: unknown) {
+      receivers.push(this);
+      if (this !== undefined) throw new TypeError("Illegal invocation");
+
+      return Promise.resolve(new Response(null, { status: 200 }));
+    } as unknown as typeof fetch;
+
+    const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: detachedFetch });
+
+    await expect(storage.head("present")).resolves.toMatchObject({ key: "present" });
+    await expect(storage.delete("present")).resolves.toBeUndefined();
+    expect(receivers).toEqual([undefined, undefined]);
+  });
+
   it("presigns a PUT url with SigV4 params", async () => {
     const fakeFetch: typeof fetch = async () => new Response(null, { status: 200 });
 

@@ -1,6 +1,9 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/invoice";
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
+import { UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 const account: Account = {
@@ -19,9 +22,29 @@ const input = {
   billingEmail: "Facturas@Example.com",
 } as const;
 
-function setup(accounts: Account[] = [account]) {
+const issuedInvoice: CfdiInvoice = {
+  id: "cfdi-1",
+  accountId: "acc-1",
+  paymentId: null,
+  status: "issued",
+  uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+  providerId: "fac-1",
+  xmlKey: "cfdi/acc-1/1.xml",
+  failureReason: null,
+  createdAt: new Date("2026-11-16T18:00:00Z"),
+  updatedAt: new Date("2026-11-16T18:00:00Z"),
+};
+
+function setup(
+  accounts: Account[] = [account],
+  issueInvoice: Pick<IssueInvoice, "execute"> | null = { execute: async () => issuedInvoice },
+) {
   const repo = new InMemoryAccountRepository(accounts);
-  const router = createBillingRouter({ account: repo });
+
+  const router = createBillingRouter({
+    account: repo,
+    issueInvoice: issueInvoice ?? undefined,
+  });
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
   return { repo, caller, router };
@@ -91,5 +114,39 @@ describe("billing.updateFiscalProfile", () => {
     const caller = router.createCaller({ user: null });
 
     await expect(caller.updateFiscalProfile(input)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("billing.requestInvoice", () => {
+  it("returns the issued invoice view", async () => {
+    const { caller } = setup();
+
+    expect(await caller.requestInvoice()).toEqual({
+      invoice: {
+        id: "cfdi-1",
+        status: "issued",
+        uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+        issuedAt: issuedInvoice.createdAt,
+      },
+    });
+  });
+
+  it("maps a community account to FORBIDDEN with the upgrade prefix", async () => {
+    const { caller } = setup([account], {
+      execute: async () => {
+        throw new UpgradeRequired("billing.upgradeRequired.invoiceIssue");
+      },
+    });
+
+    await expect(caller.requestInvoice()).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "UPGRADE_REQUIRED: billing.upgradeRequired.invoiceIssue",
+    });
+  });
+
+  it("answers PRECONDITION_FAILED when invoicing is not configured", async () => {
+    const { caller } = setup([account], null);
+
+    await expect(caller.requestInvoice()).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
   });
 });

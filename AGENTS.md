@@ -34,6 +34,13 @@ Map the user's intent to the matching skill automatically:
 - If the user explicitly requests artifacts in another language, use a neutral/professional register unless they ask for a regional variant.
 - Before ANY Write/Edit whose content is an artifact, re-verify these language rules.
 
+## Artifact Attribution (MANDATORY)
+
+- Never transcribe, quote, or paraphrase the user's chat messages into any repository artifact: specs, READMEs, task documents, logs, commit messages, PR descriptions, or code comments.
+- Record only the resulting objective, decision, constraint, or verification outcome, in neutral technical language. When a rule depends on an earlier instruction, restate the rule itself, never the message that produced it.
+- No "the user said", "the user requested", "user request (verbatim)", or similar attribution. This applies retroactively to any historical document the agent edits.
+- Verification evidence belongs in the artifact; who produced it does not. State "verified on device" or "verified headed", not "verified by user".
+
 ## Authorization (MANDATORY)
 
 - Answering a question never authorizes a change. Explaining, reviewing, auditing, or discussing past work is read-only: do not create, edit, delete, move, commit, push, or run any mutating command as a side effect of an answer.

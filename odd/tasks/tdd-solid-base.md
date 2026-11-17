@@ -10,7 +10,7 @@ Set up a minimal TDD base (Vitest) + RED-GREEN example in `packages/ui` + Husky 
 
 ## Why
 
-User explicitly requested ("yes, do it") to set up what was proposed: Vitest + example + Husky + dependency-cruiser.
+Requirement: set up what was proposed: Vitest + example + Husky + dependency-cruiser.
 
 ## Scope
 
@@ -25,17 +25,17 @@ Out of scope: Playwright E2E, MSW, coverage thresholds, CI workflow, push/PR/mer
 ## Constraints
 
 - Stack: pnpm 12.4.1, turbo 2.11.7, Next 16, Expo 57, React 19, Tamagui 2.7.7, TS strict (base strict:true).
-- No push to any remote without an explicit order. Local commits on the feature branch are allowed.
+- No push to any remote. Local commits on the feature branch are allowed.
 - Do not touch `apps/web/next-env.d.ts` (generated, was dirty at start).
 - Generated files (lockfile, .next) are excluded from the authored-line count.
 
 ## Authorized scope
 
-User: approved the previous turn's proposal. Covers the files listed in Scope. Does not authorize push or PR.
+Approved: the previous proposal. Covers the files listed in Scope. Does not authorize push or PR.
 
 ## TDD mode
 
-- Mode: ON. Source: explicit user request + test-driven-development skill. Runner: `vitest run` (to be installed), via `pnpm --filter @aqui-suena/ui test` and `turbo run test -- --run`.
+- Mode: ON. Source: explicit requirement + test-driven-development skill. Runner: `vitest run` (to be installed), via `pnpm --filter @aqui-suena/ui test` and `turbo run test -- --run`.
 - RED before GREEN for the example. Minimal GREEN. REFACTOR with tests green.
 
 ## Delivery strategy
@@ -80,11 +80,11 @@ User: approved the previous turn's proposal. Covers the files listed in Scope. D
 - `pnpm exec biome check` on new files → OK (1 auto-fixed format in package.json).
 - `pnpm arch` (depcruise) → no violations (22 modules); temporary probe with a forbidden import → 1 error detected, probe removed.
 - `.husky/pre-commit` hook ran lint-staged + typecheck + test on every branch commit (observed in output).
-- RDD slice assess → risk medium, review_due (slice_budget_reached, 785 lines including lockfile). Consent granted by user. review-reliability lens BLOCKED: Task runtime rejects subagents outside OpenCode (3 attempts). No capture, no acknowledgement; lineage `review-2fae62cc5f764af5` preserved in reviewing state to resume inside OpenCode.
+- RDD slice assess → risk medium, review_due (slice_budget_reached, 785 lines including lockfile). Consent granted. review-reliability lens BLOCKED: Task runtime rejects subagents outside OpenCode (3 attempts). No capture, no acknowledgement; lineage `review-2fae62cc5f764af5` preserved in reviewing state to resume inside OpenCode.
 
 ## Next step
 
-- Review inside OpenCode (resume lineage) or accept functional verification; then PR to main (push/PR only on explicit order).
+- Review inside OpenCode (resume lineage) or accept functional verification; then PR to main (push/PR only on explicit instruction).
 
 ## Commits
 

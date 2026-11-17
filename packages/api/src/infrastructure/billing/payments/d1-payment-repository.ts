@@ -1,14 +1,17 @@
-import type {
-  Payment,
-  PaymentRepository,
-  PaymentStatus,
+import {
+  type NewPayment,
+  type Payment,
+  type PaymentRepository,
+  type PaymentStatus,
+  parsePaymentStatus,
 } from "@aqui-suena/api/domain/billing/payments/payment";
-import { parsePaymentStatus } from "@aqui-suena/api/domain/billing/payments/payment";
+import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 
 type PaymentRow = {
   id: string;
   subscription_id: string;
+  plan_id: string | null;
   amount: number;
   currency: string;
   status: string;
@@ -20,23 +23,31 @@ type PaymentRow = {
 export class D1PaymentRepository implements PaymentRepository {
   constructor(private readonly db: D1Database) {}
 
-  async create(subscriptionId: string, amount: number, currency: string): Promise<Payment> {
+  async create(input: NewPayment): Promise<Payment> {
     const id = crypto.randomUUID();
-
     const now = new Date();
 
     await this.db
       .prepare(
-        "INSERT INTO payments (id, subscription_id, amount, currency, status, paid_at, created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', NULL, ?, ?)",
+        "INSERT INTO payments (id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, ?)",
       )
-      .bind(id, subscriptionId, amount, currency, toEpoch(now), toEpoch(now))
+      .bind(
+        id,
+        input.subscriptionId,
+        input.planId,
+        input.amount,
+        input.currency,
+        toEpoch(now),
+        toEpoch(now),
+      )
       .run();
 
     return {
       id,
-      subscriptionId,
-      amount,
-      currency,
+      subscriptionId: input.subscriptionId,
+      planId: input.planId,
+      amount: input.amount,
+      currency: input.currency,
       status: "pending",
       paidAt: null,
       createdAt: now,
@@ -56,7 +67,7 @@ export class D1PaymentRepository implements PaymentRepository {
   async listBySubscription(subscriptionId: string): Promise<Payment[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, subscription_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE subscription_id = ? ORDER BY created_at DESC",
+        "SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE subscription_id = ? ORDER BY created_at DESC",
       )
       .bind(subscriptionId)
       .all();
@@ -67,7 +78,7 @@ export class D1PaymentRepository implements PaymentRepository {
   async getById(id: string): Promise<Payment | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, subscription_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE id = ?",
+        "SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE id = ?",
       )
       .bind(id)
       .first();
@@ -79,6 +90,7 @@ export class D1PaymentRepository implements PaymentRepository {
     return {
       id: row.id,
       subscriptionId: row.subscription_id,
+      planId: row.plan_id === null ? null : parsePlanId(row.plan_id),
       amount: row.amount,
       currency: row.currency,
       status: parsePaymentStatus(row.status),

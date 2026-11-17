@@ -132,7 +132,9 @@ export class R2ObjectStorage implements ObjectStorage {
 
   async head(key: string): Promise<ObjectMetadata | null> {
     const url = await presignUrl("GET", key, this.options, this.endpoint);
-    const response = await this.fetchFn(url, { method: "GET" });
+    // Workers rejects a native fetch invoked as a method (`this.fetchFn()`).
+    const fetchFn = this.fetchFn;
+    const response = await fetchFn(url, { method: "GET" });
 
     if (response.status === 404) {
       return null;
@@ -148,9 +150,22 @@ export class R2ObjectStorage implements ObjectStorage {
 
   async delete(key: string): Promise<void> {
     const url = await presignUrl("DELETE", key, this.options, this.endpoint);
-    const response = await this.fetchFn(url, { method: "DELETE" });
+    // Workers rejects a native fetch invoked as a method (`this.fetchFn()`).
+    const fetchFn = this.fetchFn;
+    const response = await fetchFn(url, { method: "DELETE" });
     if (!response.ok && response.status !== 204) {
       throw new Error(`R2 delete failed: ${response.status}`);
     }
   }
+}
+
+/** Presigns an arbitrary method/key for callers outside media uploads. */
+export async function presignR2ObjectUrl(
+  options: R2ObjectStorageOptions,
+  method: string,
+  key: string,
+): Promise<string> {
+  const endpoint = options.endpoint ?? `https://${options.accountId}.r2.cloudflarestorage.com`;
+
+  return presignUrl(method, key, options, endpoint);
 }

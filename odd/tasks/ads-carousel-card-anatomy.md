@@ -47,16 +47,16 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
 
 ## Log
 
-L1 (2026-10-26, user): "User requested adding it to a spec first, then starting the card anatomy, for all platforms not only mobile."
+L1 (2026-10-26): Scope fixed: spec first, then the card anatomy for every platform, not mobile only.
 
-L2 (2026-10-26, user): "Requirement: share as much code as possible across platforms." — choose structured meta over a flat `meta` string.
+L2 (2026-10-26): Requirement: share as much code as possible across platforms — chose structured meta over a flat `meta` string.
 
-L3 (2026-10-26, user): delivery label is canonical "Servicio a domicilio" on
+L3 (2026-10-26): the delivery label is canonical "Servicio a domicilio" on
 all platforms.
 
-L4 (2026-10-26, user): "User requested it clean, with no disclosure." — no sponsorship badge.
+L4 (2026-10-26): Requirement: no sponsorship disclosure on the card — no sponsorship badge.
 
-L5 (2026-10-26, user): "User chose option A: card anatomy only; the
+L5 (2026-10-26): Scope: card anatomy only; the
 directory list and contact detail panel belong to SPEC-business-directory.md.
 
 L6 (2026-10-26, verification): `pnpm -r typecheck` green across all packages +

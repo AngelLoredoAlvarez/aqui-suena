@@ -1,3 +1,4 @@
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -13,6 +14,7 @@ import {
   type DirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
 import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
+import { probeMediaStorage } from "@aqui-suena/api/server/http/health";
 import { type RequestLogger, requestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
@@ -39,14 +41,19 @@ export interface AppOptions {
   subscriptionNotifier?: SubscriptionNotifier;
   logger?: RequestLogger;
   logRequests?: boolean;
+  issueInvoice?: Pick<IssueInvoice, "execute">;
 }
 
 export function createApp(options: AppOptions): Hono {
   const upstreamFetch = options.upstreamFetch ?? fetch;
+
   const planRepository = options.planRepository ?? defaultPlanRepository;
+
   const directoryRepositories = options.directoryRepositories ?? createInMemoryRepositories();
+
   const stationRepository =
     options.stationRepository ?? new InMemoryStationRepository([...HARNESS_STATIONS]);
+
   const appRouter = createAppRouter(
     planRepository,
     directoryRepositories,
@@ -56,7 +63,9 @@ export function createApp(options: AppOptions): Hono {
     options.aiGatewayId,
     options.mediaStorage,
     options.subscriptionNotifier,
+    options.issueInvoice,
   );
+
   const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);
 
   const app = new Hono();
@@ -97,6 +106,11 @@ export function createApp(options: AppOptions): Hono {
       status: "ok",
       media: options.mediaStorage === undefined ? "unconfigured" : "configured",
     }),
+  );
+
+  // Costs one read, so it stays out of the cheap probe: presence is not access.
+  app.get("/health/deep", async (c) =>
+    c.json({ status: "ok", media: await probeMediaStorage(options.mediaStorage) }),
   );
 
   app.get("/stream", async (c) => {

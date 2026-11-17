@@ -26,8 +26,8 @@ Objective: make `pnpm --filter desktop build` produce a working bundle from a re
 
 ## Log
 
-- **L1 — 2026-10-21, user request (verbatim):**
-  > User asked to merge this branch to main, push to remote, delete api-server, then solve the desktop build on a new branch from main, leveraging the T4 App context.
+- **L1 — 2026-10-21:**
+  > Merge this branch to main, push to remote, delete api-server, then solve the desktop build on a new branch from main, leveraging the T4 App context.
 - **L2 — 2026-10-21, merge first.** `feature/api-server` merged into `main` with `--no-ff` (`acdb03c Merge branch 'feature/api-server'`), pushed `9672d90..acdb03c`, local branch deleted. No remote branch existed. New branch `fix/desktop-build` from `main`.
 - **L3 — 2026-10-21, the blocker is verified, not assumed.** Temporarily set `output: "export"` in `apps/web/next.config.ts` and ran `pnpm --filter web build`: `Compiled successfully`, then `Failed to collect page data for /api/stream` with `export const dynamic = "force-static"/export const revalidate not configured on route "/api/stream" with "output: export"`. Config restored; no residue. So the route handler is a hard blocker, and a `force-static` handler would be worse than useless: it would pre-render a fixed response and silently break `?url=`.
 - **L4 — 2026-10-21, T1 RED then GREEN.** Wrote `streamProxyUrl` cases first: `3 failed | 6 passed` with `TypeError: streamProxyUrl is not a function`. After adding `apiBaseUrl` and the resolver: `2 passed (2)` files, `22 passed (22)` in `src/drivers/`, and the ui package went from 84 to 87 tests.

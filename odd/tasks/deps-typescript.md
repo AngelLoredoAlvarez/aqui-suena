@@ -30,11 +30,11 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
 
 ## Log
 
-- **L1 — 2026-10-22, user request (verbatim):**
-  > User approved proceeding with the dependencies and TypeScript work on a new branch.
+- **L1 — 2026-10-22:**
+  > Proceed with the dependencies and TypeScript work on a new branch.
 
-- **L2 — 2026-10-22, decision (verbatim answer to the target-line question).**
-  > User selected TypeScript 6.0.3 (recommended).
+- **L2 — 2026-10-22, decision.**
+  > TypeScript 6.0.3 selected (recommended).
 
 - **L3 — 2026-10-22, scope decision.** This branch takes TypeScript (6.0.3) plus the scheduled
   patch bumps and the Tamagui minor. Deferred to separate slices: `@react-native-async-storage/async-storage`
@@ -110,10 +110,10 @@ patch/minor dependency bumps already scheduled in the backlog, without changing 
   `c865095`, `bcce562`). Deferred to separate slices: `@react-native-async-storage/async-storage`
   2.2.0→3.1.1 (major, native), `react-native-gesture-handler` 3.3.0→3.4.0 (native minor),
   `@types/node` 24.x (26 line ahead of Node 24), `@biomejs/biome` 2.5.15→2.6.2. Push/PR/merge remain
-  user decisions.
+  outside this slice.
 
-- **L16 — 2026-10-22, user request (verbatim) — reopens T1/S1:**
-  > User requested migrating to TypeScript 7 immediately instead of deferring it.
+- **L16 — 2026-10-22 — reopens T1/S1:**
+  > Migrate to TypeScript 7 immediately instead of deferring it.
 
 - **L17 — 2026-10-22, implementation + verification (TypeScript 6.0.3 → 7.0.2).** `typescript` moved
   to `7.0.2` in all 8 manifests. Verified `typescript@7.0.2` is the native Go compiler (ships

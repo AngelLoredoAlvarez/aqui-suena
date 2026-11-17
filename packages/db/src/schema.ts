@@ -89,10 +89,30 @@ export const payments = sqliteTable("payments", {
   subscriptionId: text("subscription_id")
     .notNull()
     .references(() => subscriptions.id),
+  planId: text("plan_id").references(() => plans.id),
   amount: integer("amount").notNull(),
   currency: text("currency").notNull().default("MXN"),
   status: text("status").notNull().default("pending"),
   paidAt: integer("paid_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const cfdiInvoices = sqliteTable("cfdi_invoices", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id")
+    .notNull()
+    .references(() => accounts.id),
+  paymentId: text("payment_id").references(() => payments.id),
+  status: text("status").notNull(),
+  uuid: text("uuid"),
+  providerId: text("provider_id"),
+  xmlKey: text("xml_key"),
+  failureReason: text("failure_reason"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

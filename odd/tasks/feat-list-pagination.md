@@ -4,8 +4,8 @@ Objective: apply the correct pagination per listing type — keyset (cursor) for
 public feeds, offset for owner/business-scoped lists, none for already-bounded
 lists. Branch `feat/list-pagination`. Delivery: one PR per router slice
 (standing instruction: always open a PR). Test runner: vitest
-(`pnpm --filter @aqui-suena/api test`). Teaching mode: the user transcribes
-code; the agent specifies and reviews. Strict TDD (RED → GREEN → REFACTOR),
+(`pnpm --filter @aqui-suena/api test`). Teaching mode: code is transcribed by
+hand; the agent specifies and reviews. Strict TDD (RED → GREEN → REFACTOR),
 SOLID and CLEAN CODE mandatory.
 
 ## Specs
@@ -55,7 +55,7 @@ SOLID and CLEAN CODE mandatory.
 - S5 (consumers/quota): Internal consumers that only need a count (e.g.
   `products.create` quota check via `listByBusiness().length`) must not page
   silently past the cap. Use a dedicated `countByBusiness` or an explicit
-  large limit; decide per call site with the user (teaching moment).
+  large limit; decide per call site (teaching moment).
 
 - S6 (clients): Infinite scroll is out of scope for this feature. Where a
   client consumes a paginated list, the query passes no input by default
@@ -71,7 +71,7 @@ SOLID and CLEAN CODE mandatory.
 
 ## Tasks
 
-- [x] T1 (S1, S2 — shared primitives, teaching pilot, user writes): cursor codec
+- [x] T1 (S1, S2 — shared primitives, teaching pilot, hand-written): cursor codec
       (encode/decode), offset and cursor input schemas, `OffsetPage` and
       `CursorPage` types, `nextOffset`/`nextCursor` derivation helpers, with
       RED → GREEN tests. DONE: `shared/pagination/{cursor,input,page}.ts` + tests,
@@ -109,13 +109,12 @@ SOLID and CLEAN CODE mandatory.
 
 ## Log
 
-- L1 (2026-11-12): User requested the pagination work: branch change,
-  teaching mode, strict TDD, SOLID + Clean Code mandatory. Original wording
-  kept in memory, not transcribed here.
+- L1 (2026-11-12): Scope: pagination work — branch change,
+  teaching mode, strict TDD, SOLID + Clean Code mandatory.
 - L2 (2026-11-12): Backlog origin: pending-engineering item detected during
   the 2026-11-10 api structure/security reviews; every `list()` returns the
   full table. Branch created from main.
-- L3 (2026-11-12): User authorized a scope change to the per-type mapping
+- L3 (2026-11-12): Scope change approved to the per-type mapping
   (see S3) and to start in teaching mode. Decision: replace uniform offset
   with per-type mapping — keyset for `businesses.list` + `flyers.list`, offset
   for owner/business-scoped lists, none for `hours.listByBusiness` and
@@ -148,7 +147,7 @@ SOLID and CLEAN CODE mandatory.
 - L9 (2026-11-13): T4 slice 2 done — `media.list` offset (c271bb5). No escape
   hatch because the router is the only consumer; `toEpochSeconds` moved to
   `shared/pagination/cursor` and `business.ts` now reuses it. 734 tests green,
-  typecheck clean. User authorized the agent to apply code directly from this
+  typecheck clean. Decision: the agent applies code directly from this
   point on (review-on-delivery instead of transcription). Next:
   `products.listByBusiness`, auditing its quota `.length` consumer first.
 - L10 (2026-11-13): Scope correction. A consumer audit showed no router exposes

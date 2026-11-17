@@ -10,7 +10,7 @@ Pause/resume on web AND native (hook + card + both drivers) plus native backgrou
 
 ## Why
 
-User requirement: pause/resume must work on web and native (plan wrongly scoped it native-only; fixed in docs).
+Requirement: pause/resume must work on web and native (plan wrongly scoped it native-only; fixed in docs).
 
 ## Scope
 
@@ -24,13 +24,13 @@ Out of scope: lock-screen metadata, track-player evaluation, E2E, push/PR/merge.
 
 ## Constraints
 
-- TDD strict, ping-pong as needed; user implements by default, agent on request.
-- Background no-crash is device-verified by user (not unit-testable).
-- Branch `feat/task-7-playback-controls`; local commits only, no push without explicit order.
+- TDD strict, ping-pong as needed; implementation is manual by default, agent on request.
+- Background no-crash is device-verified (not unit-testable).
+- Branch `feat/task-7-playback-controls`; local commits only, no push.
 
 ## Authorized scope
 
-User: authorized the Task 7 start. Covers implementation. No push, no PR.
+Approved: the Task 7 start. Covers implementation. No push, no PR.
 
 ## TDD mode
 
@@ -45,13 +45,13 @@ User: authorized the Task 7 start. Covers implementation. No push, no PR.
 - [x] T1 Hook pause + paused status + tests (RED→GREEN)
 - [x] T2 Drivers pause + native background effect + tests
 - [x] T3 Card pause UI + landing wiring + tests
-- [x] T4 Verification (gates + user device checks) + close
+- [x] T4 Verification (gates + device checks) + close
 
 ## Acceptance criteria
 
 - pause() keeps the url, sets paused, calls driver pause; resume() replays to playing.
 - Card: pause button while playing, resume tap while paused, single tap while blocked (unchanged).
-- Gates green; background behavior verified by user on device.
+- Gates green; background behavior verified on device.
 
 ## Applicable checks
 
@@ -63,7 +63,7 @@ User: authorized the Task 7 start. Covers implementation. No push, no PR.
 - 2026-10-09: T1 done (hook pause + paused status, commits 9fa46a5/e23546f).
 - 2026-10-09: T2 done. RED observed by stashing driver impl: `result.current.pause is not a function` on both drivers (+ audio-mode test). GREEN with impl restored: native `setAudioModeAsync` exact-recipe test + `player.pause()` test; web element-pause test via FakeAudio tracking. Existing proxy/error tests green.
 - 2026-10-09: T3 done. RED observed on card (3 failures: no Pause button, no paused UI, selector visible while loading). GREEN after: `onPause` required prop, Pause button while playing, Paused + Resume while paused, `Loading…` while loading, selector visible in playing/paused/error and hidden while blocked/loading. Landing passes `onPause={pause}`; `paused` never hits the loading branch (guard is idle/loading only).
-- 2026-10-09: T4 done. User verified pause/resume on web + native and background audio on native device. Task closed.
+- 2026-10-09: T4 done. Pause/resume verified on web + native and background audio on native device. Task closed.
 
 ## Verification evidence
 
@@ -75,7 +75,7 @@ User: authorized the Task 7 start. Covers implementation. No push, no PR.
 
 ## Next step
 
-- Done. Closed 2026-10-09: user verified pause/resume on web + native and background audio on device.
+- Done. Closed 2026-10-09: pause/resume verified on web + native and background audio on device.
 
 ## Commits
 

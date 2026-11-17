@@ -1,0 +1,41 @@
+import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
+import { DomainError } from "@aqui-suena/api/shared/domain-error";
+
+export type IssueInvoiceRequest = {
+  readonly accountId: string;
+  readonly planId: PlanId;
+  readonly planName: string;
+  readonly amountCents: number;
+  readonly currency: string;
+  readonly fiscalProfile: FiscalProfile;
+  readonly issuedAt: Date;
+};
+
+export type IssuedCfdi = {
+  readonly providerId: string;
+  readonly uuid: string;
+  readonly xml: string;
+};
+
+/**
+ * Port for a PAC (Proveedor Autorizado de Certificación). Adapters speak the
+ * provider protocol; the domain only knows "issue this request".
+ */
+export interface InvoiceIssuer {
+  issue(request: IssueInvoiceRequest): Promise<IssuedCfdi>;
+}
+
+/**
+ * The PAC rejected the request. It is a domain error so the transport maps it
+ * once; `detail` is the provider message and is never sent to the client.
+ */
+export class InvoiceProviderRejection extends DomainError {
+  readonly detail: string;
+
+  constructor(detail: string) {
+    super("The invoice provider rejected the request");
+    this.name = "InvoiceProviderRejection";
+    this.detail = detail;
+  }
+}

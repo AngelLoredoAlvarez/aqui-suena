@@ -48,6 +48,22 @@ AI_GATEWAY_ID = "aqui-suena"
 # Production intentionally omits it: the harness never ships to prod.
 STREAM_BASE_URL = "https://aqui-suena-web-staging.pages.dev"
 
+# Facturama sandbox: non-secret emitter settings. The API user and password are
+# Worker secrets (`wrangler secret put FACTURAMA_USER --env staging`).
+FACTURAMA_BASE_URL = "https://apisandbox.facturama.mx"
+# Sandbox-only: the account RFC is personal and cannot carry the test CSD, so
+# staging stamps the SAT test RFC through the multiemisor endpoint. Production
+# uses the `web` mode with the company CSD and no issuer block.
+FACTURAMA_MODE = "multiemisor"
+FACTURAMA_EXPEDITION_PLACE = "42501"
+FACTURAMA_IVA_RATE = "0.16"
+FACTURAMA_PRODUCT_CODE = "01010101"
+FACTURAMA_UNIT_CODE = "E48"
+FACTURAMA_SERIES = "A"
+FACTURAMA_ISSUER_RFC = "EKU9003173C9"
+FACTURAMA_ISSUER_NAME = "ESCUELA KEMPER URGATE"
+FACTURAMA_ISSUER_FISCAL_REGIME = "601"
+
 [[env.staging.d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db-staging"

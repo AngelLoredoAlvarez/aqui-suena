@@ -10,7 +10,7 @@ Current landing renders the proven playback core in a centered brand-plum card (
 
 ## Why
 
-Playback + gapless + i18n risks are retired and merged. Design-01 is the user-selected next slice (2026-10-14 next-steps) and the visual contract for oyente screens.
+Playback + gapless + i18n risks are retired and merged. Design-01 is the selected next slice (2026-10-14 next-steps) and the visual contract for oyente screens.
 
 ## Scope
 
@@ -25,17 +25,17 @@ Out of scope: owner portal screens, ads-carousel logic, push/PR/merge, new local
 
 ## Constraints
 
-- TDD ON (RED first per slice); user verifies headed on web + native (agent cannot see).
+- TDD ON (RED first per slice); headed verification on web + native is manual (the agent cannot see).
 - No hardcoded copy; no router imports in shared code; additive tokens only.
-- Branch `feature/player-restyle-01`; work-unit commits on the branch, local only, no push without explicit order.
-- Commits: user runs all `git commit`s; agent dictates exact commands and commits only on explicit user request (rule 2026-10-15).
-- Route: dictated (user types per standing rule — writer trigger fires at 2+ files but standing user-types rule wins; agent dictates RED, reviews, verifies).
+- Branch `feature/player-restyle-01`; work-unit commits on the branch, local only, no push.
+- Commits: all `git commit`s are run manually; agent dictates exact commands and commits only on explicit request (rule 2026-10-15).
+- Route: dictated (manual typing per the standing rule — writer trigger fires at 2+ files but the standing manual-typing rule wins; agent dictates RED, reviews, verifies).
 - Teaching: every RED error and GREEN snippet ships with a junior-level explanation (why the error, why GREEN passes, line-by-line, why it is CLEAN CODE).
 - Dictation: every file edit names the repo-relative file path plus exact line numbers plus a nearby code anchor. Test edits also ship the exact pnpm watch command for those tests.
 
 ## Authorized scope
 
-User: approved the console mock and authorized the slice (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
+Approved: the console mock and the slice (2026-10-15). Covers design-01 restyle implementation on the feature branch. No push, no PR.
 
 ## TDD mode
 
@@ -48,7 +48,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 ## Tasks
 
 - [x] R1 Noche/Brasa theme tokens + font wiring + token tests (route: dictated)
-- [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed user verify (route: dictated)
+- [x] R2 Dock layout (bottom dock dark / player-top light, 390 composition, 44px targets) + headed verification (route: dictated)
 - [x] R3 Missing states (idle branch + station sheet + state tests; sheet = BOTTOM OVERLAY per reference image Descargas/Selector de estaciones (en el lugar).png: drag handle, rows with dot + En vivo + accent check on active, backdrop dismiss; sheet scales to large catalogs via scroll + stable keys, virtualization deferred; empty + ad-countdown moved to ads-display/owner modules — no triggers exist yet) (route: dictated) — CLOSED 2026-10-19: idle `ecf00f9` + sheet `6c50dd4`, both ancestors of `main`; `packages/ui/src/station-sheet/` ships with `station-sheet.test.tsx`. R3b-3 closed as already satisfied: zero `chip` references remain in source and `player-landing-channels.test.tsx` already drives the sheet, so no test needed migrating.
 - [x] R4 i18n additions ES/EN + parity tests (route: dictated) — CLOSED 2026-10-19: `tapToPlay` + `sheetTitle` present in both dictionaries (`packages/ui/src/i18n/locales.ts:15,32,50`) with the parity suite in `packages/ui/src/i18n/i18n.test.ts`. The other keys the scope listed (dock line, chip label, countdown, empty copy) belonged to descoped surfaces: chips no longer exist and empty/ad-countdown are backlog items.
 - [x] R5 Full gates + headed web + native approval + close (route: dictated) — CLOSED 2026-10-19: gates re-verified on the merged result (see Verification evidence); headed approvals recorded at R2b/R2c/R2e/R2f/R3b. Brasa headed verification is NOT claimed here — it remains a backlog item.
@@ -56,7 +56,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 ## Acceptance criteria
 
 - [x] Landing matches design-01 Main (dark dock at the bottom) and Owner (light player on top) compositions (order tests + headed web/native at R2f). 7 of 9 states reachable and bilingual: idle, loading, playing, paused, blocked, signal-error, station sheet. The "9 states" wording predates the R3 descope: empty and ad-countdown moved to their owner modules (no triggers exist) and live in the backlog. Brasa headed verification is still open in the backlog.
-- [x] Workspace gates green: `pnpm test` 7/7 packages (ui 9 files / 80 tests), `pnpm typecheck` 7/7, `biome check` clean (98 files); headed look approved by the user on web + native through R2/R3. The 8/8 in this line was correct when written — `packages/navigation` declared a test script then and no longer does.
+- [x] Workspace gates green: `pnpm test` 7/7 packages (ui 9 files / 80 tests), `pnpm typecheck` 7/7, `biome check` clean (98 files); headed look approved on web + native through R2/R3. The 8/8 in this line was correct when written — `packages/navigation` declared a test script then and no longer does.
 
 ## Applicable checks
 
@@ -65,7 +65,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 ## Progress
 
 - 2026-10-15: R3a idle GREEN (tapToPlay keys ES/EN, card idle branch + dot-null + pass-through, suite green, apps working). Next: R3b station sheet.
-- 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web by agent + headed native by user). Committed ecf00f9 (idle) + 6c50dd4 (overlay). Next: R3b-3 chips removal decision.
+- 2026-10-15: R3b overlay GREEN (bottom overlay per reference image: backdrop + handle + dots + check; sheet state lifted to StationPlayer; ui 80/80 + tsc clean + headed web by agent + headed native, human-reviewed). Committed ecf00f9 (idle) + 6c50dd4 (overlay). Next: R3b-3 chips removal decision.
 - 2026-10-15: doc created + explore map done. Branch feature/player-restyle-01 active.
 - 2026-10-15: R1a tokens GREEN (6/6 config tests, typecheck 8/8, full turbo test 8/8). Next: R1b font wiring.
 - 2026-10-15: R1b font GREEN (web next/font + native expo-font, both tsc clean, emulator verified). R1 complete. Next: R2 dock layout RED.
@@ -84,7 +84,7 @@ User: approved the console mock and authorized the slice (2026-10-15). Covers de
 
 - 2026-10-19 (post-merge reconciliation on `main`): `pnpm --filter @aqui-suena/ui test` real run — 9 files / 80 tests green; workspace `pnpm test` 7/7 packages; `pnpm typecheck` 7/7; `pnpm exec biome check .` clean over 98 files.
 - packages/config 6/6 green (noche/brasa pairs), turbo typecheck 8/8, turbo test 8/8 via pre-commit hooks.
-- R1b: web + native tsc clean, headed emulator font verified by user.
+- R1b: web + native tsc clean, headed emulator font verified.
 - R2a: player-card suite all green including new dock test (old behavior untouched).
 - R2f: order tests green both schemes; headed noche verified web + emulador (dock bottom, centered, seamless); brasa order unit-covered.
 
