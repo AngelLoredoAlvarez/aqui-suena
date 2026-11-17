@@ -2,11 +2,11 @@ import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invo
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { createIssueInvoice } from "@aqui-suena/api/server/composition/invoices";
+import { createIssueInvoice, type FacturamaEnv } from "@aqui-suena/api/server/composition/invoices";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
 
-const facturama = {
+const facturama: FacturamaEnv = {
   user: "facturama-user",
   password: "secret",
   baseUrl: "https://apisandbox.facturama.mx",
@@ -20,7 +20,7 @@ const r2 = {
   secretAccessKey: "secret",
 };
 
-function setup(overrides: { facturama?: Partial<typeof facturama>; r2?: Partial<typeof r2> } = {}) {
+function setup(overrides: { facturama?: Partial<FacturamaEnv>; r2?: Partial<typeof r2> } = {}) {
   return createIssueInvoice({
     db: new FakeD1Database().db,
     account: { getFiscalProfile: async () => null },
@@ -51,5 +51,23 @@ describe("createIssueInvoice", () => {
 
   it("returns undefined when the VAT rate is not a fraction", () => {
     expect(setup({ facturama: { ivaRate: 16 } })).toBeUndefined();
+  });
+
+  it("returns undefined in multiemisor mode without an issuer", () => {
+    expect(setup({ facturama: { mode: "multiemisor" } })).toBeUndefined();
+  });
+
+  it("builds in multiemisor mode when the issuer is configured", () => {
+    const issueInvoice = setup({
+      facturama: {
+        mode: "multiemisor",
+        series: "A",
+        issuerRfc: "EKU9003173C9",
+        issuerName: "ESCUELA KEMPER URGATE",
+        issuerFiscalRegime: "601",
+      },
+    });
+
+    expect(issueInvoice).toBeInstanceOf(IssueInvoice);
   });
 });

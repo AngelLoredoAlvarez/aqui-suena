@@ -5,6 +5,7 @@ import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/f
 import { describe, expect, it } from "vitest";
 
 const settings: FacturamaFiscalSettings = {
+  mode: "web",
   expeditionPlace: "42501",
   ivaRate: 0.16,
   productCode: "01010101",
@@ -108,5 +109,45 @@ describe("FacturamaInvoiceIssuer", () => {
 
     expect(error).toBeInstanceOf(InvoiceProviderRejection);
     expect(error).toMatchObject({ detail: "Malformed response from the invoice provider" });
+  });
+
+  it("posts to the multiemisor endpoint and accepts its response shape", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const fakeFetch: typeof fetch = async (input, init) => {
+      calls.push({ url: String(input), init: init ?? {} });
+
+      return new Response(
+        JSON.stringify({
+          Id: "fac-2",
+          XmlBase64: btoa("<cfdi:Comprobante/>"),
+          TaxStamp: { Uuid: "e836bae4-fa5c-4fce-9a47-1589f4ef0035" },
+        }),
+        { status: 201 },
+      );
+    };
+
+    const issuers = new FacturamaInvoiceIssuer({
+      credentials: {
+        user: "facturama-user",
+        password: "s3cr3t",
+        baseUrl: "https://apisandbox.facturama.mx",
+      },
+      fiscal: {
+        ...settings,
+        mode: "multiemisor",
+        series: "A",
+        issuer: { rfc: "EKU9003173C9", name: "ESCUELA KEMPER URGATE", fiscalRegime: "601" },
+      },
+      fetch: fakeFetch,
+    });
+
+    const issued = await issuers.issue(request);
+
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/api-lite/4/cfdis");
+    expect(issued).toEqual({
+      providerId: "fac-2",
+      uuid: "e836bae4-fa5c-4fce-9a47-1589f4ef0035",
+      xml: "<cfdi:Comprobante/>",
+    });
   });
 });

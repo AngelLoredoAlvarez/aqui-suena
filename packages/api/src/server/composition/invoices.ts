@@ -18,10 +18,15 @@ export type FacturamaEnv = {
   readonly user?: string;
   readonly password?: string;
   readonly baseUrl?: string;
+  readonly mode?: "web" | "multiemisor";
   readonly expeditionPlace?: string;
   readonly ivaRate?: number;
   readonly productCode?: string;
   readonly unitCode?: string;
+  readonly series?: string;
+  readonly issuerRfc?: string;
+  readonly issuerName?: string;
+  readonly issuerFiscalRegime?: string;
 };
 
 export type R2Env = {
@@ -71,6 +76,15 @@ export function createIssueInvoice(
     return undefined;
   }
 
+  const mode = facturama.mode ?? "web";
+
+  if (
+    mode === "multiemisor" &&
+    (!facturama.issuerRfc || !facturama.issuerName || !facturama.issuerFiscalRegime)
+  ) {
+    return undefined;
+  }
+
   const fetchFn = options.fetch ?? fetch;
 
   const issuer = new FacturamaInvoiceIssuer({
@@ -80,10 +94,20 @@ export function createIssueInvoice(
       baseUrl: facturama.baseUrl,
     },
     fiscal: {
+      mode,
       expeditionPlace: facturama.expeditionPlace,
       ivaRate,
       productCode: facturama.productCode ?? DEFAULT_PRODUCT_CODE,
       unitCode: facturama.unitCode ?? DEFAULT_UNIT_CODE,
+      series: facturama.series,
+      issuer:
+        facturama.issuerRfc && facturama.issuerName && facturama.issuerFiscalRegime
+          ? {
+              rfc: facturama.issuerRfc,
+              name: facturama.issuerName,
+              fiscalRegime: facturama.issuerFiscalRegime,
+            }
+          : undefined,
     },
     fetch: fetchFn,
   });

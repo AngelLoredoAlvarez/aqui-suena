@@ -65,10 +65,15 @@ export interface WorkerEnv {
   FACTURAMA_USER?: string;
   FACTURAMA_PASSWORD?: string;
   FACTURAMA_BASE_URL?: string;
+  FACTURAMA_MODE?: string;
   FACTURAMA_EXPEDITION_PLACE?: string;
   FACTURAMA_IVA_RATE?: string;
   FACTURAMA_PRODUCT_CODE?: string;
   FACTURAMA_UNIT_CODE?: string;
+  FACTURAMA_SERIES?: string;
+  FACTURAMA_ISSUER_RFC?: string;
+  FACTURAMA_ISSUER_NAME?: string;
+  FACTURAMA_ISSUER_FISCAL_REGIME?: string;
 }
 
 export default {
@@ -191,10 +196,15 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
       user: env.FACTURAMA_USER,
       password: env.FACTURAMA_PASSWORD,
       baseUrl: env.FACTURAMA_BASE_URL,
+      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
       expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
       ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
       productCode: env.FACTURAMA_PRODUCT_CODE,
       unitCode: env.FACTURAMA_UNIT_CODE,
+      series: env.FACTURAMA_SERIES,
+      issuerRfc: env.FACTURAMA_ISSUER_RFC,
+      issuerName: env.FACTURAMA_ISSUER_NAME,
+      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
     },
     r2: {
       accountId: env.R2_ACCOUNT_ID,

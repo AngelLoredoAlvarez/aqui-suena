@@ -24,10 +24,15 @@ export type FacturamaInvoiceIssuerDependencies = {
 type FacturamaCfdiResponse = {
   readonly Id?: unknown;
   readonly ContentBase64?: unknown;
+  readonly XmlBase64?: unknown;
   readonly Complement?: { readonly TaxStamp?: { readonly Uuid?: unknown } };
+  readonly TaxStamp?: { readonly Uuid?: unknown };
 };
 
 const MALFORMED_RESPONSE = "Malformed response from the invoice provider";
+
+const WEB_ENDPOINT = "/3/cfdis";
+const MULTIEMISOR_ENDPOINT = "/api-lite/4/cfdis";
 
 /** Trims trailing slashes so `${baseUrl}/3/cfdis` never doubles a slash. */
 function trimTrailingSlash(url: string): string {
@@ -79,16 +84,17 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
   }
 
   async issue(request: IssueInvoiceRequest): Promise<IssuedCfdi> {
-    const { credentials } = this.deps;
+    const { credentials, fiscal } = this.deps;
+    const endpoint = fiscal.mode === "multiemisor" ? MULTIEMISOR_ENDPOINT : WEB_ENDPOINT;
 
-    const response = await this.deps.fetch(`${trimTrailingSlash(credentials.baseUrl)}/3/cfdis`, {
+    const response = await this.deps.fetch(`${trimTrailingSlash(credentials.baseUrl)}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: toBasicAuth(credentials.user, credentials.password),
       },
-      body: JSON.stringify(toFacturamaCfdiPayload(request, this.deps.fiscal)),
+      body: JSON.stringify(toFacturamaCfdiPayload(request, fiscal)),
     });
 
     if (!response.ok) {
@@ -97,16 +103,14 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
 
     const body = (await response.json()) as FacturamaCfdiResponse;
     const providerId = body.Id;
-    const uuid = body.Complement?.TaxStamp?.Uuid;
+    // API Web nests the stamp under Complement; API Multiemisor returns it flat.
+    const uuid = body.Complement?.TaxStamp?.Uuid ?? body.TaxStamp?.Uuid;
+    const xml = body.ContentBase64 ?? body.XmlBase64;
 
-    if (
-      typeof providerId !== "string" ||
-      typeof uuid !== "string" ||
-      typeof body.ContentBase64 !== "string"
-    ) {
+    if (typeof providerId !== "string" || typeof uuid !== "string" || typeof xml !== "string") {
       throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
     }
 
-    return { providerId, uuid, xml: decodeXml(body.ContentBase64) };
+    return { providerId, uuid, xml: decodeXml(xml) };
   }
 }
