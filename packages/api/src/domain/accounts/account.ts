@@ -9,3 +9,11 @@ export interface Account {
   readonly locale: EmailLocale;
   readonly fiscalProfile?: FiscalProfile | null;
 }
+
+export const DEFAULT_ACCOUNT_PLAN: PlanId = "community";
+export const DEFAULT_ACCOUNT_LOCALE: EmailLocale = "es-MX";
+
+/** Sessions carry the email as-is; the account row stores one canonical form. */
+export function normalizeAccountEmail(email: string): string {
+  return email.trim().toLowerCase();
+}

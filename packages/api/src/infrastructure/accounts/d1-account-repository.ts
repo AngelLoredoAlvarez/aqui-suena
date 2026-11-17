@@ -1,5 +1,8 @@
-import type { Account } from "@aqui-suena/api/domain/accounts/account";
-import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import { type Account, normalizeAccountEmail } from "@aqui-suena/api/domain/accounts/account";
+import {
+  AccountEmailConflictError,
+  type AccountRepository,
+} from "@aqui-suena/api/domain/accounts/account-repository";
 import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
 import { parseStoredFiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
@@ -42,6 +45,62 @@ export class D1AccountRepository implements AccountRepository {
       .first();
 
     return row ? this.mapRow(row as AccountRow) : null;
+  }
+
+  async ensure(id: string, email: string): Promise<void> {
+    const normalized = normalizeAccountEmail(email);
+
+    const existing = (await this.db
+      .prepare("SELECT email FROM accounts WHERE id = ?")
+      .bind(id)
+      .first()) as { email: string } | null;
+
+    if (existing === null) {
+      const now = toEpoch(new Date());
+
+      try {
+        await this.db
+          .prepare(
+            `INSERT INTO accounts (id, email, created_at, updated_at)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(id) DO NOTHING`,
+          )
+          .bind(id, normalized, now, now)
+          .run();
+      } catch (error) {
+        if (!isAccountEmailUniqueViolation(error)) {
+          throw error;
+        }
+
+        throw await this.conflict(id, normalized);
+      }
+
+      return;
+    }
+
+    if (existing.email !== normalized) {
+      try {
+        await this.db
+          .prepare("UPDATE accounts SET email = ?, updated_at = ? WHERE id = ?")
+          .bind(normalized, toEpoch(new Date()), id)
+          .run();
+      } catch (error) {
+        if (!isAccountEmailUniqueViolation(error)) {
+          throw error;
+        }
+
+        throw await this.conflict(id, normalized);
+      }
+    }
+  }
+
+  private async conflict(id: string, email: string): Promise<AccountEmailConflictError> {
+    const owner = (await this.db
+      .prepare("SELECT id FROM accounts WHERE email = ?")
+      .bind(email)
+      .first()) as { id: string } | null;
+
+    return new AccountEmailConflictError(id, owner?.id ?? "unknown");
   }
 
   async updateLocale(id: string, locale: EmailLocale): Promise<void> {
@@ -97,4 +156,14 @@ export class D1AccountRepository implements AccountRepository {
       ...(fiscalProfile === null ? {} : { fiscalProfile }),
     };
   }
+}
+
+/**
+ * D1 and node:sqlite both report the same constraint text, so one check covers
+ * the Worker and the local adapter. Anything else is a real failure.
+ */
+function isAccountEmailUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof Error && error.message.includes("UNIQUE constraint failed: accounts.email")
+  );
 }

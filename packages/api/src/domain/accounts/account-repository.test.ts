@@ -1,5 +1,8 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import {
+  AccountEmailConflictError,
+  InMemoryAccountRepository,
+} from "@aqui-suena/api/domain/accounts/account-repository";
 import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
@@ -50,5 +53,71 @@ describe("InMemoryAccountRepository fiscal profile", () => {
     await expect(repo.updateFiscalProfile("missing", profile)).rejects.toBeInstanceOf(
       NotFoundError,
     );
+  });
+});
+
+describe("InMemoryAccountRepository ensure", () => {
+  it("creates the row with the default plan and locale", async () => {
+    const repo = new InMemoryAccountRepository([]);
+
+    await repo.ensure("acc-new", "owner@example.com");
+
+    expect(await repo.getById("acc-new")).toEqual({
+      id: "acc-new",
+      email: "owner@example.com",
+      planId: "community",
+      locale: "es-MX",
+    });
+  });
+
+  it("normalizes the email before storing it", async () => {
+    const repo = new InMemoryAccountRepository([]);
+
+    await repo.ensure("acc-new", "  Owner@Example.COM  ");
+
+    expect((await repo.getById("acc-new"))?.email).toBe("owner@example.com");
+  });
+
+  it("syncs the email when the session email changes", async () => {
+    const repo = new InMemoryAccountRepository([{ ...account, email: "old@example.com" }]);
+
+    await repo.ensure("acc-1", "new@example.com");
+
+    expect((await repo.getById("acc-1"))?.email).toBe("new@example.com");
+  });
+
+  it("changes nothing else when it syncs the email", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.updateFiscalProfile("acc-1", profile);
+
+    await repo.ensure("acc-1", "new@example.com");
+
+    expect(await repo.getById("acc-1")).toEqual({
+      id: "acc-1",
+      email: "new@example.com",
+      planId: "trades",
+      locale: "es-MX",
+      fiscalProfile: profile,
+    });
+  });
+
+  it("refuses an email owned by another account", async () => {
+    const repo = new InMemoryAccountRepository([
+      { ...account, id: "acc-old", email: "taken@example.com" },
+    ]);
+
+    await expect(repo.ensure("acc-new", "TAKEN@example.com")).rejects.toBeInstanceOf(
+      AccountEmailConflictError,
+    );
+    expect(await repo.getById("acc-new")).toBeNull();
+  });
+
+  it("leaves an existing account untouched when the email already matches", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await expect(repo.ensure("acc-1", "  OWNER@Example.com ")).resolves.toBeUndefined();
+
+    expect(await repo.getById("acc-1")).toEqual(account);
   });
 });

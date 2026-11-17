@@ -122,7 +122,7 @@ export function createApp(options: AppOptions): Hono {
     "/trpc/*",
     trpcServer({
       router: appRouter,
-      createContext: ({ req }) => createContext(req, supabase),
+      createContext: ({ req }) => createContext(req, supabase, directoryRepositories.account),
     }),
   );
 

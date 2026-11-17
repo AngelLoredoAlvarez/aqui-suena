@@ -58,17 +58,17 @@ Documented state, not fixed yet. Nothing below changes behavior today.
 
 ## Auth and accounts (opened 2026-11-17)
 
-- [ ] No account provisioning. `accounts` has no writer anywhere in
-      `packages/api`: Supabase Auth issues a session, but `media.owner_id`,
-      `businesses.account_id`, `subscriptions.account_id` and the fiscal columns
-      all reference `accounts(id)`. A newly signed-up user therefore cannot
-      persist any owned resource until a row exists. Reproduced on staging during
-      the media round-trip probe: `media.confirm` answered
-      `INTERNAL_SERVER_ERROR` with `D1_ERROR: FOREIGN KEY constraint failed`
-      until a temporary `accounts` row was inserted for the test user. Needs one
-      provisioning path (a signup trigger or a first-request upsert in the
-      composition root) plus a test that a fresh session can create an owned
-      resource.
+- [x] Account provisioning — DONE 2026-11-17 (`feat/account-provisioning`).
+      `createContext` ensures the `accounts` row for every authenticated session,
+      keyed by `app_metadata.account_id ?? user.id`, with the session email
+      trimmed and lowercased; one read per request, one write per account
+      lifetime. `AccountRepository.ensure` is idempotent, re-syncs a changed
+      email without touching `plan_id`, `locale`, `billing_email` or the fiscal
+      columns, and raises `AccountEmailConflictError` when the email belongs to
+      another id instead of adopting it. Proven against real SQLite: two racing
+      first requests leave one row, and an owned `media` insert passes the
+      foreign key right after provisioning. Details:
+      `odd/tasks/feat-account-provisioning.md`.
 
 ## Pending engineering (post api tracks)
 
