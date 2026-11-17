@@ -119,22 +119,23 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 
 ## CFDI invoicing (opened 2026-11-16)
 
-Issuing shipped in `feat/billing-cfdi`; these follow-ups are out of that slice.
+Issuing shipped in `feat/billing-cfdi` (PR #41) and runs against the Facturama
+sandbox in staging. Production is not deployed and has no CSD, so
+production-only work is not tracked here; staging stays on the multiemisor
+endpoint with the SAT test CSD, which the `wrangler.toml` comment already
+explains.
 
 - [x] Validate the Facturama payload against the real sandbox — DONE 2026-11-17
-      (PR #41). The sandbox rejected three assumptions and they are now pinned by
-      tests: CFDI 4.0 requires `TaxObject` and an item `Total`, and `PaymentForm`
-      `99` is only valid with `PPD`. The multiemisor response nests the stamp as
-      `TaxStamp`/`XmlBase64` instead of `Complement.TaxStamp`/`ContentBase64`, so
-      the adapter accepts both shapes.
+      (PR #41). The provider rejected three assumptions, now pinned by tests:
+      CFDI 4.0 requires `TaxObject` and an item `Total`, and `PaymentForm` `99`
+      is only valid with `PPD`. The multiemisor response nests the stamp as
+      `TaxStamp`/`XmlBase64` instead of `Complement.TaxStamp`/`ContentBase64`,
+      so the adapter accepts both shapes.
 - [x] Apply migrations `0001`/`0002` to staging and configure the PAC — DONE
       2026-11-17: applied with bookmark
       `00000022-00000000-00005126-66a9de4b5b8ffcc01aa66b6c9c0ad57a`, the SAT test
-      CSD `EKU9003173C9` registered in the multiemisor API, and
-      `FACTURAMA_USER`/`FACTURAMA_PASSWORD` uploaded as Worker secrets.
-- [ ] Decide the real SAT product code: `01010101` ("no match in the catalog") is
-      valid but generic. Replace it with the subscription service code agreed with
-      the accountant.
+      CSD registered in the multiemisor API, and `FACTURAMA_USER` /
+      `FACTURAMA_PASSWORD` uploaded as Worker secrets.
 - [ ] CFDI cancellation slice: the emitter requests cancellation with a motive and
       the receiver accepts or rejects within 72 hours, so it needs
       `issued` → `cancellation_pending` → `cancelled` | `cancellation_rejected`,
@@ -151,22 +152,11 @@ Issuing shipped in `feat/billing-cfdi`; these follow-ups are out of that slice.
 - [ ] Move the R2 client from `infrastructure/media/` to `infrastructure/r2/`:
       billing imports it for CFDI XML, which is a cross-context infrastructure
       dependency. `pnpm arch` allows it today; the file name lies about ownership.
-- [ ] Validate the single-emitter path: every stamp so far went through the
-      multiemisor endpoint (`/api-lite/4/cfdis`). Production uses `/3/cfdis` with
-      the company CSD, and its response shape is assumed, not observed. Close it
-      with the real CSD before the first production invoice.
-- [ ] Remove the sandbox shortcut when the company CSD exists: staging runs
-      `FACTURAMA_MODE=multiemisor` with `FACTURAMA_ISSUER_RFC=EKU9003173C9` so it
-      can stamp the SAT test RFC. In production that would invoice for a
-      third-party RFC; drop it to `web` with the company certificate.
-- [ ] Verify the media upload flow in staging: `R2ObjectStorage.head`/`delete`
-      called native `fetch` as a method and only failed on Workers (`Illegal
-      invocation`), so client uploads were untested while `/health` reported
-      `configured`. `/health/deep` now probes a real read; a full upload round trip
-      is still unproven.
-- [ ] Propagate a Facturama password rotation everywhere: the panel password is a
-      Worker secret and an Infisical value, so rotating it without updating both
-      turns every `billing.requestInvoice` into a 401 until they are refreshed.
+- [ ] Prove a full media upload round trip in staging: the client asks
+      `media.presignUpload`, uploads the file straight to R2, then calls
+      `media.confirm`, which reads the object back with `head`. `head` and `delete`
+      failed on Workers until the `fetch` fix (Illegal invocation), so that path
+      has never run end to end.
 
 ## Security (closed 2026-11-10)
 
