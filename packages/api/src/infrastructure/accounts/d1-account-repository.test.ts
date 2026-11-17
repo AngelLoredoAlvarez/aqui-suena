@@ -142,3 +142,47 @@ describe("D1AccountRepository fiscal profile", () => {
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 });
+
+describe("D1AccountRepository ensure", () => {
+  it("inserts a new row and leaves the defaults to the database", async () => {
+    const fake = new FakeD1Database((statement) =>
+      statement.sql.startsWith("SELECT") ? { first: null } : { run: { changes: 1 } },
+    );
+
+    await new D1AccountRepository(fake.db).ensure("acc-new", "  Owner@Example.COM ");
+
+    const insert = fake.statements[1];
+
+    expect(fake.statements[0]?.sql).toContain("FROM accounts");
+    expect(insert?.sql).toContain("INSERT INTO accounts");
+    expect(insert?.sql).toContain("ON CONFLICT(id) DO NOTHING");
+    expect(insert?.sql).not.toContain("plan_id");
+    expect(insert?.sql).not.toContain("locale");
+    expect(insert?.params[0]).toBe("acc-new");
+    expect(insert?.params[1]).toBe("owner@example.com");
+    expect(typeof insert?.params[2]).toBe("number");
+    expect(typeof insert?.params[3]).toBe("number");
+  });
+
+  it("writes nothing when the account already has that email", async () => {
+    const fake = new FakeD1Database(() => ({ first: { email: "owner@example.com" } }));
+
+    await new D1AccountRepository(fake.db).ensure("acc-1", "owner@example.com");
+
+    expect(fake.statements).toHaveLength(1);
+    expect(fake.statements[0]?.sql).toContain("SELECT email FROM accounts");
+  });
+
+  it("updates only the email when the session email changed", async () => {
+    const fake = new FakeD1Database(() => ({ first: { email: "old@example.com" } }));
+
+    await new D1AccountRepository(fake.db).ensure("acc-1", "new@example.com");
+
+    const update = fake.statements[1];
+
+    expect(update?.sql).toContain("UPDATE accounts SET email = ?");
+    expect(update?.sql).not.toMatch(/billing_email|plan_id|locale|rfc/);
+    expect(update?.params[0]).toBe("new@example.com");
+    expect(update?.params[2]).toBe("acc-1");
+  });
+});

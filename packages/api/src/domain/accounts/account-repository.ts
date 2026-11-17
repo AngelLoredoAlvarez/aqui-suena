@@ -1,10 +1,26 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
+import {
+  DEFAULT_ACCOUNT_LOCALE,
+  DEFAULT_ACCOUNT_PLAN,
+  normalizeAccountEmail,
+} from "@aqui-suena/api/domain/accounts/account";
 import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
-import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
+import { DomainError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
+
+export class AccountEmailConflictError extends DomainError {
+  constructor(
+    readonly accountId: string,
+    readonly ownerId: string,
+  ) {
+    super(`Account email is already owned by another account (${ownerId})`);
+    this.name = "AccountEmailConflictError";
+  }
+}
 
 export interface AccountRepository {
   getById(id: string): Promise<Account | null>;
+  ensure(id: string, email: string): Promise<void>;
   updateLocale(id: string, locale: EmailLocale): Promise<void>;
   getFiscalProfile(id: string): Promise<FiscalProfile | null>;
   updateFiscalProfile(id: string, profile: FiscalProfile): Promise<void>;
@@ -15,6 +31,32 @@ export class InMemoryAccountRepository implements AccountRepository {
 
   async getById(id: string): Promise<Account | null> {
     return this.store.find((account) => account.id === id) ?? null;
+  }
+
+  async ensure(id: string, email: string): Promise<void> {
+    const normalized = normalizeAccountEmail(email);
+    const existing = this.store.find((account) => account.id === id);
+
+    if (existing === undefined) {
+      const owner = this.store.find((account) => account.email === normalized);
+
+      if (owner !== undefined) {
+        throw new AccountEmailConflictError(id, owner.id);
+      }
+
+      this.store.push({
+        id,
+        email: normalized,
+        planId: DEFAULT_ACCOUNT_PLAN,
+        locale: DEFAULT_ACCOUNT_LOCALE,
+      });
+
+      return;
+    }
+
+    if (existing.email !== normalized) {
+      this.replace(id, (account) => ({ ...account, email: normalized }));
+    }
   }
 
   async updateLocale(id: string, locale: EmailLocale): Promise<void> {
