@@ -38,7 +38,12 @@ describe("InMemoryPaymentRepository", () => {
   it("creates a payment with pending status", async () => {
     const repo = new InMemoryPaymentRepository();
 
-    const payment = await repo.create("sub-1", 4900, "MXN");
+    const payment = await repo.create({
+      subscriptionId: "sub-1",
+      planId: "trades",
+      amount: 4900,
+      currency: "MXN",
+    });
 
     expect(payment.subscriptionId).toBe("sub-1");
     expect(payment.amount).toBe(4900);
@@ -46,12 +51,18 @@ describe("InMemoryPaymentRepository", () => {
     expect(payment.status).toBe("pending");
     expect(payment.paidAt).toBeNull();
     expect(payment.id).toBeTruthy();
+    expect(payment.planId).toBe("trades");
   });
 
   it("updates payment status to completed with paidAt", async () => {
     const repo = new InMemoryPaymentRepository();
 
-    const payment = await repo.create("sub-1", 4900, "MXN");
+    const payment = await repo.create({
+      subscriptionId: "sub-1",
+      planId: "trades",
+      amount: 4900,
+      currency: "MXN",
+    });
 
     const paidAt = new Date("2026-01-15");
 
@@ -66,11 +77,16 @@ describe("InMemoryPaymentRepository", () => {
   it("lists payments by subscription", async () => {
     const repo = new InMemoryPaymentRepository();
 
-    await repo.create("sub-1", 4900, "MXN");
+    await repo.create({ subscriptionId: "sub-1", planId: "trades", amount: 4900, currency: "MXN" });
 
-    await repo.create("sub-1", 4900, "MXN");
+    await repo.create({ subscriptionId: "sub-1", planId: "trades", amount: 4900, currency: "MXN" });
 
-    await repo.create("sub-2", 9900, "MXN");
+    await repo.create({
+      subscriptionId: "sub-2",
+      planId: "commerce",
+      amount: 9900,
+      currency: "MXN",
+    });
 
     const list = await repo.listBySubscription("sub-1");
 

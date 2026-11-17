@@ -8,6 +8,20 @@
       "when": 1794860497661,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794870866687,
+      "tag": "0001_white_northstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794874903476,
+      "tag": "0002_rainy_champions",
+      "breakpoints": true
     }
   ]
 }

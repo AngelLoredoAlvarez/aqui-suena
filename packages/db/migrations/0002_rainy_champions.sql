@@ -1,0 +1,1 @@
+ALTER TABLE `payments` ADD `plan_id` text REFERENCES plans(id);

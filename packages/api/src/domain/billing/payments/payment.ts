@@ -1,3 +1,4 @@
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 
 export const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"] as const;
@@ -16,6 +17,7 @@ export function parsePaymentStatus(value: unknown): PaymentStatus {
 export type Payment = {
   id: string;
   subscriptionId: string;
+  planId: PlanId | null;
   amount: number;
   currency: string;
   status: PaymentStatus;
@@ -24,8 +26,15 @@ export type Payment = {
   updatedAt: Date;
 };
 
+export type NewPayment = {
+  readonly subscriptionId: string;
+  readonly planId: PlanId;
+  readonly amount: number;
+  readonly currency: string;
+};
+
 export interface PaymentRepository {
-  create(subscriptionId: string, amount: number, currency: string): Promise<Payment>;
+  create(input: NewPayment): Promise<Payment>;
   updateStatus(id: string, status: PaymentStatus, paidAt?: Date): Promise<void>;
   listBySubscription(subscriptionId: string): Promise<Payment[]>;
   getById(id: string): Promise<Payment | null>;
@@ -34,12 +43,13 @@ export interface PaymentRepository {
 export class InMemoryPaymentRepository implements PaymentRepository {
   constructor(private readonly store: Payment[] = []) {}
 
-  async create(subscriptionId: string, amount: number, currency: string): Promise<Payment> {
+  async create(input: NewPayment): Promise<Payment> {
     const payment: Payment = {
       id: crypto.randomUUID(),
-      subscriptionId,
-      amount,
-      currency,
+      subscriptionId: input.subscriptionId,
+      planId: input.planId,
+      amount: input.amount,
+      currency: input.currency,
       status: "pending",
       paidAt: null,
       createdAt: new Date(),
