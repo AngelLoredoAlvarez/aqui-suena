@@ -170,3 +170,26 @@ describe("InMemoryBusinessRepository.list", () => {
     expect(page.items.map((item) => item.id)).toEqual(["biz-a", "biz-d"]);
   });
 });
+
+describe("InMemoryBusinessRepository deleteByAccount", () => {
+  it("deletes every business of the account, hidden ones included", async () => {
+    const repo = new InMemoryBusinessRepository([
+      makeBusiness("b1", new Date("2026-01-01")),
+      { ...makeBusiness("b2", new Date("2026-01-02")), hiddenAt: new Date("2026-02-01") },
+      { ...makeBusiness("b3", new Date("2026-01-03")), accountId: "acc-2" },
+    ]);
+
+    expect(await repo.deleteByAccount("acc-1")).toBe(2);
+    expect(await repo.getById("b1")).toBeNull();
+    expect(await repo.getById("b2")).toBeNull();
+    expect(await repo.getById("b3")).not.toBeNull();
+  });
+
+  it("returns zero when nothing is left for that account", async () => {
+    const repo = new InMemoryBusinessRepository([makeBusiness("b1", new Date())]);
+
+    await repo.deleteByAccount("acc-1");
+
+    expect(await repo.deleteByAccount("acc-1")).toBe(0);
+  });
+});

@@ -70,6 +70,7 @@ export interface BusinessRepository {
   create(input: CreateBusinessInput): Promise<Business>;
   update(id: string, input: UpdateBusinessInput): Promise<Business | null>;
   delete(id: string): Promise<boolean | null>;
+  deleteByAccount(accountId: string): Promise<number>;
   deleteExpired(now: Date): Promise<number>;
 }
 
@@ -161,6 +162,18 @@ export class InMemoryBusinessRepository implements BusinessRepository {
     this.businesses.splice(index, 1);
 
     return true;
+  }
+
+  async deleteByAccount(accountId: string): Promise<number> {
+    const remaining = this.businesses.filter((business) => business.accountId !== accountId);
+
+    const deleted = this.businesses.length - remaining.length;
+
+    this.businesses.length = 0;
+
+    this.businesses.push(...remaining);
+
+    return deleted;
   }
 
   async deleteExpired(now: Date): Promise<number> {

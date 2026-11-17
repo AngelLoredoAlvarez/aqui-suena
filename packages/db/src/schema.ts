@@ -38,6 +38,7 @@ export const accounts = sqliteTable("accounts", {
   cfdiUse: text("cfdi_use"),
   billingEmail: text("billing_email"),
   taxDataUpdatedAt: integer("tax_data_updated_at", { mode: "timestamp" }),
+  deletedAt: integer("deleted_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

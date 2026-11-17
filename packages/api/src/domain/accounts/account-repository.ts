@@ -1,5 +1,6 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import {
+  anonymizedAccountEmail,
   DEFAULT_ACCOUNT_LOCALE,
   DEFAULT_ACCOUNT_PLAN,
   normalizeAccountEmail,
@@ -21,6 +22,7 @@ export class AccountEmailConflictError extends DomainError {
 export interface AccountRepository {
   getById(id: string): Promise<Account | null>;
   ensure(id: string, email: string): Promise<void>;
+  anonymize(id: string): Promise<void>;
   updateLocale(id: string, locale: EmailLocale): Promise<void>;
   getFiscalProfile(id: string): Promise<FiscalProfile | null>;
   updateFiscalProfile(id: string, profile: FiscalProfile): Promise<void>;
@@ -57,6 +59,16 @@ export class InMemoryAccountRepository implements AccountRepository {
     if (existing.email !== normalized) {
       this.replace(id, (account) => ({ ...account, email: normalized }));
     }
+  }
+
+  async anonymize(id: string): Promise<void> {
+    this.replace(id, (account) => ({
+      id: account.id,
+      email: anonymizedAccountEmail(account.id),
+      planId: account.planId,
+      locale: account.locale,
+      deletedAt: account.deletedAt ?? new Date(),
+    }));
   }
 
   async updateLocale(id: string, locale: EmailLocale): Promise<void> {

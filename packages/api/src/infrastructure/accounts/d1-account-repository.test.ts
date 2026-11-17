@@ -186,3 +186,27 @@ describe("D1AccountRepository ensure", () => {
     expect(update?.params[2]).toBe("acc-1");
   });
 });
+
+describe("D1AccountRepository anonymize", () => {
+  it("anonymizes in a single write that keeps the first deletion moment", async () => {
+    const fake = new FakeD1Database(() => ({ run: { changes: 1 } }));
+
+    await new D1AccountRepository(fake.db).anonymize("acc-1");
+
+    const update = fake.statements[0];
+
+    expect(update?.sql).toMatch(/UPDATE accounts\s+SET/);
+    expect(update?.sql).toContain("deleted_at = COALESCE(deleted_at, ?)");
+    expect(update?.sql).toContain("rfc = NULL");
+    expect(update?.params[0]).toBe("deleted-acc-1@deleted.invalid");
+    expect(update?.params.at(-1)).toBe("acc-1");
+  });
+
+  it("throws NotFoundError when no row matched", async () => {
+    const fake = new FakeD1Database(() => ({ run: { changes: 0 } }));
+
+    await expect(new D1AccountRepository(fake.db).anonymize("missing")).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+  });
+});

@@ -27,7 +27,11 @@ Documented state, not fixed yet. Nothing below changes behavior today.
       `AccountNotifier` and `PaymentNotifier`, and add the signup/verification,
       payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
       payment provider, and a Worker cron). Until those exist, only the
-      cancellation email can actually be sent.
+      cancellation email can actually be sent. **When the cron lands:** every
+      scheduled sender must resolve the recipient from an account row and skip
+      rows with `deleted_at` set — a deleted account keeps its financial records
+      but must never receive mail again (spec S8 of
+      `odd/tasks/feat-account-deletion.md`).
 - [ ] Real listener status — PARTIAL 2026-11-16. `listener.getStatus` now
       resolves the station from D1 (`D1StationRepository`, seeded by
       `POST /admin/seed-stations`) or the in-memory harness for local Node,
@@ -69,6 +73,16 @@ Documented state, not fixed yet. Nothing below changes behavior today.
       first requests leave one row, and an owned `media` insert passes the
       foreign key right after provisioning. Details:
       `odd/tasks/feat-account-provisioning.md`.
+- [x] Account deletion — DONE 2026-11-17 (`feat/account-deletion`). An owner
+      erases their own account through `account.delete`: the Supabase user is
+      deleted first (so an interrupted run can never let them sign back in), then
+      media rows and their R2 objects, then every business with its directory
+      children. The `accounts` row survives as a tombstone — email replaced by
+      `deleted-<id>@deleted.invalid`, fiscal columns cleared, `deleted_at` set —
+      because `subscriptions`, `payments` and `cfdi_invoices` are kept for fiscal
+      retention. Proof against real SQLite: children cascade, financial rows stay,
+      and the freed email provisions a brand-new account. Details:
+      `odd/tasks/feat-account-deletion.md`.
 
 ## Pending engineering (post api tracks)
 

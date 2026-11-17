@@ -231,6 +231,15 @@ export class D1BusinessRepository implements BusinessRepository {
     return result.success && (result.meta?.changes ?? 0) > 0;
   }
 
+  async deleteByAccount(accountId: string): Promise<number> {
+    const result = await this.db
+      .prepare("DELETE FROM businesses WHERE account_id = ?")
+      .bind(accountId)
+      .run();
+
+    return result.success ? (result.meta?.changes ?? 0) : 0;
+  }
+
   async deleteExpired(now: Date): Promise<number> {
     const result = await this.db
       .prepare("DELETE FROM businesses WHERE retained_until IS NOT NULL AND retained_until <= ?")

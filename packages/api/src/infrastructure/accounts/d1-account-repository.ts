@@ -1,4 +1,8 @@
-import { type Account, normalizeAccountEmail } from "@aqui-suena/api/domain/accounts/account";
+import {
+  type Account,
+  anonymizedAccountEmail,
+  normalizeAccountEmail,
+} from "@aqui-suena/api/domain/accounts/account";
 import {
   AccountEmailConflictError,
   type AccountRepository,
@@ -8,7 +12,7 @@ import { parseStoredFiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { resolveEmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
-import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
+import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 
 type AccountRow = {
@@ -22,6 +26,7 @@ type AccountRow = {
   tax_zip_code: string | null;
   cfdi_use: string | null;
   billing_email: string | null;
+  deleted_at: number | null;
 };
 
 type FiscalRow = {
@@ -40,7 +45,9 @@ export class D1AccountRepository implements AccountRepository {
 
   async getById(id: string): Promise<Account | null> {
     const row = await this.db
-      .prepare(`SELECT id, email, plan_id, locale, ${FISCAL_COLUMNS} FROM accounts WHERE id = ?`)
+      .prepare(
+        `SELECT id, email, plan_id, locale, deleted_at, ${FISCAL_COLUMNS} FROM accounts WHERE id = ?`,
+      )
       .bind(id)
       .first();
 
@@ -103,6 +110,26 @@ export class D1AccountRepository implements AccountRepository {
     return new AccountEmailConflictError(id, owner?.id ?? "unknown");
   }
 
+  async anonymize(id: string): Promise<void> {
+    const now = toEpoch(new Date());
+
+    const result = await this.db
+      .prepare(
+        `UPDATE accounts
+            SET email = ?, rfc = NULL, legal_name = NULL, tax_regime = NULL,
+                tax_zip_code = NULL, cfdi_use = NULL, billing_email = NULL,
+                tax_data_updated_at = NULL, deleted_at = COALESCE(deleted_at, ?),
+                updated_at = ?
+          WHERE id = ?`,
+      )
+      .bind(anonymizedAccountEmail(id), now, now, id)
+      .run();
+
+    if ((result.meta?.changes ?? 0) === 0) {
+      throw new NotFoundError("Account not found");
+    }
+  }
+
   async updateLocale(id: string, locale: EmailLocale): Promise<void> {
     await this.db
       .prepare("UPDATE accounts SET locale = ?, updated_at = ? WHERE id = ?")
@@ -147,6 +174,8 @@ export class D1AccountRepository implements AccountRepository {
 
   private mapRow(row: AccountRow): Account {
     const fiscalProfile = parseStoredFiscalProfile(row);
+    // Nullable columns can be absent from a partially-shaped row; treat both as unset.
+    const deletedAt = row.deleted_at == null ? null : fromEpoch(row.deleted_at);
 
     return {
       id: row.id,
@@ -154,6 +183,7 @@ export class D1AccountRepository implements AccountRepository {
       planId: parsePlanId(row.plan_id),
       locale: resolveEmailLocale(row.locale),
       ...(fiscalProfile === null ? {} : { fiscalProfile }),
+      ...(deletedAt === null ? {} : { deletedAt }),
     };
   }
 }

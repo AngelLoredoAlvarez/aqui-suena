@@ -154,3 +154,18 @@ describe("D1BusinessRepository", () => {
     expect(await repository.delete("nonexistent")).toBe(false);
   });
 });
+
+describe("D1BusinessRepository deleteByAccount", () => {
+  it("deletes in one statement and reports how many rows went", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 3 } }));
+
+    const deleted = await new D1BusinessRepository(fake.db).deleteByAccount("acc-1");
+
+    expect(deleted).toBe(3);
+
+    const statement = fake.statements[0];
+
+    expect(statement?.sql).toMatch(/DELETE FROM businesses[\s\S]*WHERE account_id = \?/);
+    expect(statement?.params).toEqual(["acc-1"]);
+  });
+});

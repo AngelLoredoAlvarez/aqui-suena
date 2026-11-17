@@ -15,5 +15,23 @@ export function createSupabaseClient(
   if (!url || !anonKey) {
     return null;
   }
+
   return createClient(url, anonKey);
+}
+
+/**
+ * Admin client for identity operations that need the service role. Stateless on
+ * purpose: a Worker request must never persist or refresh a session.
+ */
+export function createSupabaseAdminClient(
+  url: string | undefined,
+  secretKey: string | undefined,
+): SupabaseClient | null {
+  if (!url || !secretKey) {
+    return null;
+  }
+
+  return createClient(url, secretKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
