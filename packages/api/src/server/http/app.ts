@@ -8,6 +8,7 @@ import {
   type StationRepository,
 } from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
+import { createDeleteAccount } from "@aqui-suena/api/server/composition/accounts";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import {
   createInMemoryRepositories,
@@ -58,6 +59,13 @@ export function createApp(options: AppOptions): Hono {
   const stationRepository =
     options.stationRepository ?? new InMemoryStationRepository([...HARNESS_STATIONS]);
 
+  const deleteAccount = createDeleteAccount({
+    repositories: directoryRepositories,
+    storage: options.mediaStorage,
+    supabaseUrl: options.supabaseUrl,
+    supabaseSecretKey: options.supabaseSecretKey,
+  });
+
   const appRouter = createAppRouter(
     planRepository,
     directoryRepositories,
@@ -68,6 +76,7 @@ export function createApp(options: AppOptions): Hono {
     options.mediaStorage,
     options.subscriptionNotifier,
     options.issueInvoice,
+    deleteAccount,
   );
 
   const supabase = createSupabaseFromEnv(options.supabaseUrl, options.supabaseAnonKey);

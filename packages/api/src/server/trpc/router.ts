@@ -1,3 +1,4 @@
+import type { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
@@ -5,6 +6,7 @@ import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { StationRepository } from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
 import type { DirectoryRepositories } from "@aqui-suena/api/server/composition/repositories";
+import { createAccountRouter } from "@aqui-suena/api/server/routers/account/account";
 import { createCarouselRouter } from "@aqui-suena/api/server/routers/ads/carousel";
 import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
@@ -31,6 +33,7 @@ export function createAppRouter(
   mediaStorage: ObjectStorage | undefined,
   subscriptionNotifier?: SubscriptionNotifier,
   issueInvoice?: Pick<IssueInvoice, "execute">,
+  deleteAccount?: Pick<DeleteAccount, "execute">,
 ) {
   return router({
     ads: createCarouselRouter({
@@ -78,6 +81,7 @@ export function createAppRouter(
       business: directoryRepositories.business,
     }),
     plans: createPlansRouter(planRepository),
+    account: createAccountRouter({ deleteAccount }),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
   });
 }

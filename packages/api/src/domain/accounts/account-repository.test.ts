@@ -121,3 +121,46 @@ describe("InMemoryAccountRepository ensure", () => {
     expect(await repo.getById("acc-1")).toEqual(account);
   });
 });
+
+describe("InMemoryAccountRepository anonymize", () => {
+  it("frees the email and clears the fiscal data", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.updateFiscalProfile("acc-1", profile);
+
+    await repo.anonymize("acc-1");
+
+    const anonymized = await repo.getById("acc-1");
+
+    expect(anonymized?.email).toBe("deleted-acc-1@deleted.invalid");
+    expect(anonymized?.fiscalProfile).toBeUndefined();
+    expect(anonymized?.deletedAt).toBeInstanceOf(Date);
+    expect(anonymized?.planId).toBe(account.planId);
+  });
+
+  it("keeps the row so the financial records still point at it", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.anonymize("acc-1");
+
+    expect(await repo.getById("acc-1")).not.toBeNull();
+  });
+
+  it("is idempotent and keeps the first deletion moment", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.anonymize("acc-1");
+
+    const first = (await repo.getById("acc-1"))?.deletedAt;
+
+    await repo.anonymize("acc-1");
+
+    expect((await repo.getById("acc-1"))?.deletedAt).toEqual(first);
+  });
+
+  it("throws NotFoundError for an unknown account", async () => {
+    const repo = new InMemoryAccountRepository([]);
+
+    await expect(repo.anonymize("missing")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
