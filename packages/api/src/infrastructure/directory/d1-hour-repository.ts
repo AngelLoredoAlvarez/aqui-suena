@@ -40,7 +40,8 @@ export class D1HourRepository implements HourRepository {
     const id = crypto.randomUUID();
     const result = await this.db
       .prepare(
-        "INSERT INTO hours (id, business_id, day, open_minute, close_minute) VALUES (?, ?, ?, ?, ?)",
+        `INSERT INTO hours (id, business_id, day, open_minute, close_minute)
+        VALUES (?, ?, ?, ?, ?)`,
       )
       .bind(id, input.businessId, input.day, input.openMinute, input.closeMinute)
       .run();

@@ -35,7 +35,12 @@ export class D1WorkEntryRepository implements WorkEntryRepository {
   async listByBusiness(input: ListWorkEntriesByBusinessInput): Promise<OffsetPage<WorkEntry>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, title, description, created_at, updated_at FROM work_entries WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT id, business_id, title, description, created_at, updated_at
+        FROM work_entries
+        WHERE business_id = ?
+        ORDER BY created_at, id
+        LIMIT ?
+        OFFSET ?`,
       )
       .bind(input.businessId, input.limit, input.offset)
       .all();
@@ -52,7 +57,8 @@ export class D1WorkEntryRepository implements WorkEntryRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        "INSERT INTO work_entries (id, business_id, title, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+        `INSERT INTO work_entries (id, business_id, title, description, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, input.businessId, input.title, input.description, now, now)
       .run();

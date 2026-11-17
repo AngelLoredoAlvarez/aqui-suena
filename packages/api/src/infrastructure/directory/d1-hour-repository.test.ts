@@ -1,5 +1,6 @@
 import { D1HourRepository } from "@aqui-suena/api/infrastructure/directory/d1-hour-repository";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -40,7 +41,7 @@ describe("D1HourRepository", () => {
 
     expect(hours).toHaveLength(1);
     expect(hours[0]?.businessId).toBe("biz-1");
-    expect(fake.statements[0]?.sql).toMatch(/WHERE business_id = \? ORDER BY day/);
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(/WHERE business_id = \? ORDER BY day/);
   });
 
   it("creates an hour and returns it with generated id", async () => {

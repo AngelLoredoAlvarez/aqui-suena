@@ -26,7 +26,10 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async listByAccount(accountId: string): Promise<Subscription[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at FROM subscriptions WHERE account_id = ? ORDER BY started_at DESC",
+        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        FROM subscriptions
+        WHERE account_id = ?
+        ORDER BY started_at DESC`,
       )
       .bind(accountId)
       .all();
@@ -37,7 +40,11 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async getActive(accountId: string, now: Date = new Date()): Promise<Subscription | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at FROM subscriptions WHERE account_id = ? AND ((status = 'active' AND started_at <= ? AND (ends_at IS NULL OR ends_at > ?)) OR (status = 'grace' AND grace_end IS NOT NULL AND grace_end >= ?) OR (status = 'cancelled' AND ends_at > ?)) ORDER BY CASE WHEN status = 'active' THEN 0 WHEN status = 'grace' THEN 1 ELSE 2 END LIMIT 1",
+        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        FROM subscriptions
+        WHERE account_id = ? AND ((status = 'active' AND started_at <= ? AND (ends_at IS NULL OR ends_at > ?)) OR (status = 'grace' AND grace_end IS NOT NULL AND grace_end >= ?) OR (status = 'cancelled' AND ends_at > ?))
+        ORDER BY CASE WHEN status = 'active' THEN 0 WHEN status = 'grace' THEN 1 ELSE 2 END
+        LIMIT 1`,
       )
       .bind(accountId, toEpoch(now), toEpoch(now), toEpoch(now), toEpoch(now))
       .first();
@@ -48,7 +55,9 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async getById(id: string): Promise<Subscription | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at FROM subscriptions WHERE id = ?",
+        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        FROM subscriptions
+        WHERE id = ?`,
       )
       .bind(id)
       .first();
@@ -68,7 +77,8 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
 
     await this.db
       .prepare(
-        "INSERT INTO subscriptions (id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?, NULL, ?, ?)",
+        `INSERT INTO subscriptions (id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at)
+        VALUES (?, ?, ?, 'active', ?, ?, NULL, ?, ?)`,
       )
       .bind(id, accountId, planId, toEpoch(startedAt), toEpoch(endsAt), toEpoch(now), toEpoch(now))
       .run();

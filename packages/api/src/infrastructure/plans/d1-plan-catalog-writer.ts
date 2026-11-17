@@ -15,19 +15,19 @@ export class D1PlanCatalogWriter implements PlanCatalogWriter {
     const result = await this.db
       .prepare(
         `INSERT INTO plans (
-          id, name, audience, description, benefits, price_monthly, price_annual,
-          currency, active, created_at, updated_at
+        id, name, audience, description, benefits, price_monthly, price_annual,
+        currency, active, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
-          name = excluded.name,
-          audience = excluded.audience,
-          description = excluded.description,
-          benefits = excluded.benefits,
-          price_monthly = excluded.price_monthly,
-          price_annual = excluded.price_annual,
-          currency = excluded.currency,
-          active = excluded.active,
-          updated_at = excluded.updated_at`,
+        name = excluded.name,
+        audience = excluded.audience,
+        description = excluded.description,
+        benefits = excluded.benefits,
+        price_monthly = excluded.price_monthly,
+        price_annual = excluded.price_annual,
+        currency = excluded.currency,
+        active = excluded.active,
+        updated_at = excluded.updated_at`,
       )
       .bind(
         plan.id,

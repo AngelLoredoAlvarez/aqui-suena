@@ -1,5 +1,6 @@
 import { D1ProductRepository } from "@aqui-suena/api/infrastructure/directory/d1-product-repository";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -40,7 +41,7 @@ describe("D1ProductRepository", () => {
 
     await repository.listByBusiness({ businessId: "biz-1", limit: 5, offset: 10 });
 
-    expect(fake.statements[0]?.sql).toMatch(
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(
       /WHERE business_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
     );
     expect(fake.statements[0]?.params).toEqual(["biz-1", 5, 10]);
@@ -53,8 +54,8 @@ describe("D1ProductRepository", () => {
     const products = await repository.listAllByBusiness("biz-1");
 
     expect(products).toHaveLength(1);
-    expect(fake.statements[0]?.sql).toMatch(/WHERE business_id = \?/);
-    expect(fake.statements[0]?.sql).not.toMatch(/LIMIT/);
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(/WHERE business_id = \?/);
+    expect(normalizeSql(fake.statements[0]?.sql)).not.toMatch(/LIMIT/);
   });
 
   it("creates a product and returns it with generated id and timestamps", async () => {

@@ -1,5 +1,6 @@
 import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 describe("D1StationCatalogWriter", () => {
@@ -15,9 +16,9 @@ describe("D1StationCatalogWriter", () => {
 
     const statement = fake.statements[0];
 
-    expect(statement?.sql).toContain("INSERT INTO stations");
-    expect(statement?.sql).toContain("ON CONFLICT(id) DO UPDATE");
-    expect(statement?.sql).toContain("stream_url = excluded.stream_url");
+    expect(normalizeSql(statement?.sql)).toContain("INSERT INTO stations");
+    expect(normalizeSql(statement?.sql)).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(normalizeSql(statement?.sql)).toContain("stream_url = excluded.stream_url");
     expect(statement?.params).toEqual([
       "aqui-suena-pop",
       "Aquí Suena Pop",

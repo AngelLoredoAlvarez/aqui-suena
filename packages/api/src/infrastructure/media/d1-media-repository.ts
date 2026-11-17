@@ -24,7 +24,11 @@ export class D1MediaRepository implements MediaRepository {
   async listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>> {
     const result = await this.db
       .prepare(
-        "SELECT id, owner_id, kind, r2_key, mime, size, created_at FROM media WHERE owner_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT id, owner_id, kind, r2_key, mime, size, created_at
+        FROM media
+        WHERE owner_id = ?
+        ORDER BY created_at, id
+        LIMIT ? OFFSET ?`,
       )
       .bind(input.ownerId, input.limit, input.offset)
       .all();
@@ -51,7 +55,8 @@ export class D1MediaRepository implements MediaRepository {
 
     const result = await this.db
       .prepare(
-        "INSERT INTO media (id, owner_id, kind, r2_key, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO media (id, owner_id, kind, r2_key, mime, size, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, input.ownerId, input.kind, input.r2Key, input.mime, input.size, now)
       .run();

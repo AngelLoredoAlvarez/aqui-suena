@@ -1,6 +1,7 @@
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 describe("D1PlanCatalogWriter", () => {
@@ -13,9 +14,9 @@ describe("D1PlanCatalogWriter", () => {
 
     const statement = fake.statements[0];
 
-    expect(statement?.sql).toContain("INSERT INTO plans");
-    expect(statement?.sql).toContain("ON CONFLICT(id) DO UPDATE");
-    expect(statement?.sql).toContain("updated_at = excluded.updated_at");
+    expect(normalizeSql(statement?.sql)).toContain("INSERT INTO plans");
+    expect(normalizeSql(statement?.sql)).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(normalizeSql(statement?.sql)).toContain("updated_at = excluded.updated_at");
     expect(statement?.params).toEqual([
       "trades",
       "Oficios & Servicios",

@@ -28,14 +28,29 @@ type BusinessRow = {
   updated_at: number;
 };
 
+const BUSINESS_COLUMNS = [
+  "id",
+  "account_id",
+  "name",
+  "category",
+  "phone",
+  "email",
+  "address",
+  "timezone",
+  "delivery",
+  "hidden_at",
+  "retained_until",
+  "created_at",
+  "updated_at",
+].join(", ");
+
 export class D1BusinessRepository implements BusinessRepository {
   constructor(private readonly db: D1Database) {}
 
   async list(input: ListBusinessesInput): Promise<CursorPage<Business>> {
     const point = input.cursor === null ? null : decodeCursor(input.cursor);
 
-    const base =
-      "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL";
+    const base = `SELECT ${BUSINESS_COLUMNS} FROM businesses WHERE hidden_at IS NULL`;
 
     const sql =
       point === null
@@ -61,9 +76,7 @@ export class D1BusinessRepository implements BusinessRepository {
 
   async listAll(): Promise<Business[]> {
     const result = await this.db
-      .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE hidden_at IS NULL",
-      )
+      .prepare(`SELECT ${BUSINESS_COLUMNS} FROM businesses WHERE hidden_at IS NULL`)
       .all();
 
     return result.results.map((row) => this.mapRow(row as BusinessRow));
@@ -72,7 +85,11 @@ export class D1BusinessRepository implements BusinessRepository {
   async listByAccount(input: ListBusinessesByAccountInput): Promise<OffsetPage<Business>> {
     const result = await this.db
       .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT ${BUSINESS_COLUMNS}
+        FROM businesses
+        WHERE account_id = ?
+        ORDER BY created_at, id
+        LIMIT ? OFFSET ?`,
       )
       .bind(input.accountId, input.limit, input.offset)
       .all();
@@ -86,9 +103,7 @@ export class D1BusinessRepository implements BusinessRepository {
 
   async listAllByAccount(accountId: string): Promise<Business[]> {
     const result = await this.db
-      .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE account_id = ?",
-      )
+      .prepare(`SELECT ${BUSINESS_COLUMNS} FROM businesses WHERE account_id = ?`)
       .bind(accountId)
       .all();
 
@@ -97,9 +112,7 @@ export class D1BusinessRepository implements BusinessRepository {
 
   async getById(id: string): Promise<Business | null> {
     const row = await this.db
-      .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE id = ? AND hidden_at IS NULL",
-      )
+      .prepare(`SELECT ${BUSINESS_COLUMNS} FROM businesses WHERE id = ? AND hidden_at IS NULL`)
       .bind(id)
       .first();
 
@@ -108,9 +121,7 @@ export class D1BusinessRepository implements BusinessRepository {
 
   async getByIdForOwner(id: string): Promise<Business | null> {
     const row = await this.db
-      .prepare(
-        "SELECT id, account_id, name, category, phone, email, address, timezone, delivery, hidden_at, retained_until, created_at, updated_at FROM businesses WHERE id = ?",
-      )
+      .prepare(`SELECT ${BUSINESS_COLUMNS} FROM businesses WHERE id = ?`)
       .bind(id)
       .first();
 
@@ -122,23 +133,9 @@ export class D1BusinessRepository implements BusinessRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        `
-      INSERT INTO businesses (
-        id,
-        account_id,
-        name,
-        category,
-        phone,
-        email,
-        address,
-        timezone,
-        delivery,
-        hidden_at,
-        retained_until,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
+        `INSERT INTO businesses (id, account_id, name, category, phone, email, address,
+        timezone, delivery, hidden_at, retained_until, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -201,9 +198,9 @@ export class D1BusinessRepository implements BusinessRepository {
     const result = await this.db
       .prepare(
         `UPDATE businesses
-         SET name = ?, category = ?, phone = ?, email = ?, address = ?,
-             timezone = ?, delivery = ?, updated_at = ?
-         WHERE id = ?`,
+        SET name = ?, category = ?, phone = ?, email = ?, address = ?, timezone = ?,
+        delivery = ?, updated_at = ?
+        WHERE id = ?`,
       )
       .bind(
         updated.name,

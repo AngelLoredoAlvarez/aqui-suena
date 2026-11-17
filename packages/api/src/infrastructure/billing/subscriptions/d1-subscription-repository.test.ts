@@ -1,6 +1,7 @@
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -125,8 +126,8 @@ describe("D1SubscriptionRepository", () => {
 
     await repo.updateEndsAt("sub-1", new Date("2026-02-01"));
 
-    expect(fake.statements[0]?.sql).toContain("UPDATE subscriptions SET ends_at");
-    expect(fake.statements[0]?.sql).toContain("WHERE id = ?");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("UPDATE subscriptions SET ends_at");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("WHERE id = ?");
     expect(fake.statements[0]?.params).toContain("sub-1");
   });
 });
