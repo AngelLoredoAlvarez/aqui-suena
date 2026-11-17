@@ -167,10 +167,13 @@ explains.
       link strategy; the XML is already archived in R2.
 - [ ] Recover missing XML archives: when the R2 upload fails, the row is recorded
       as `issued` with `xmlKey: null`. A job can re-fetch the XML by `providerId`.
-- [ ] Hono logs every unhandled error twice: its built-in handler calls
-      `console.error(err)` with the full stack, and `requestLogging` adds the
-      structured line. Add `app.onError` returning a bare 500 so
-      `requestLogging` stays the only logger, and assert it with a test.
+- [x] Hono double logging — DONE 2026-11-17 (`fix/hono-double-logging`).
+      `silentErrorHandler` in `server/http/observability.ts` answers a bare 500 and
+      `createApp` registers it with `app.onError`, so Hono's built-in handler no
+      longer prints the raw stack next to the structured line. `app-error.test.ts`
+      drives a throwing route through the real `createApp` and requires zero
+      `console.error` calls; the observability test now proves the structured line
+      survives. The suite output no longer prints a stray stack.
 - [ ] Move the R2 client from `infrastructure/media/` to `infrastructure/r2/`:
       billing imports it for CFDI XML, which is a cross-context infrastructure
       dependency. `pnpm arch` allows it today; the file name lies about ownership.

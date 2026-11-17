@@ -2,10 +2,11 @@ import {
   describeError,
   requestLogging,
   resolveRequestId,
+  silentErrorHandler,
   withRequestLogging,
 } from "@aqui-suena/api/server/http/observability";
 import { Hono } from "hono";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 function makeLogger() {
   const info: string[] = [];
@@ -97,10 +98,12 @@ describe("requestLogging", () => {
 
   it("logs a structured error and answers 500 when a handler throws", async () => {
     const { logger, errors } = makeLogger();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const app = new Hono();
 
     app.use("*", requestLogging(logger));
+    app.onError(silentErrorHandler);
 
     app.get("/boom", () => {
       throw new Error("kaboom");
@@ -117,6 +120,11 @@ describe("requestLogging", () => {
     expect(entry).toMatchObject({ level: "error", path: "/boom", status: 500 });
     expect(entry.error).toBe("Error: kaboom");
     expect(errors[0]).not.toContain(" at ");
+
+    // One logger: Hono's default handler must never print the raw stack again.
+    expect(consoleError).not.toHaveBeenCalled();
+
+    consoleError.mockRestore();
   });
 });
 
