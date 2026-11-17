@@ -23,8 +23,10 @@ export class R2CfdiXmlStore implements CfdiXmlStore {
     const key = `cfdi/${input.accountId}/${crypto.randomUUID()}.xml`;
 
     const url = await presignR2ObjectUrl(this.deps.r2, "PUT", key);
+    // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
+    const fetchFn = this.deps.fetch;
 
-    const response = await this.deps.fetch(url, {
+    const response = await fetchFn(url, {
       method: "PUT",
       headers: { "Content-Type": CONTENT_TYPE },
       body: input.xml,

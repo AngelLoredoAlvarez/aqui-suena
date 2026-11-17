@@ -86,8 +86,10 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
   async issue(request: IssueInvoiceRequest): Promise<IssuedCfdi> {
     const { credentials, fiscal } = this.deps;
     const endpoint = fiscal.mode === "multiemisor" ? MULTIEMISOR_ENDPOINT : WEB_ENDPOINT;
+    // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
+    const fetchFn = this.deps.fetch;
 
-    const response = await this.deps.fetch(`${trimTrailingSlash(credentials.baseUrl)}${endpoint}`, {
+    const response = await fetchFn(`${trimTrailingSlash(credentials.baseUrl)}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
