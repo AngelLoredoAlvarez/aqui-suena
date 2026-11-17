@@ -48,6 +48,16 @@ AI_GATEWAY_ID = "aqui-suena"
 # Production intentionally omits it: the harness never ships to prod.
 STREAM_BASE_URL = "https://aqui-suena-web-staging.pages.dev"
 
+# Facturama sandbox: non-secret emitter settings. The API user and password are
+# Worker secrets (`wrangler secret put FACTURAMA_USER --env staging`).
+FACTURAMA_BASE_URL = "https://apisandbox.facturama.mx"
+# Set the CSD emitter zip before enabling issuing: while unset, requestInvoice
+# answers PRECONDITION_FAILED instead of stamping with a placeholder.
+# FACTURAMA_EXPEDITION_PLACE = ""
+FACTURAMA_IVA_RATE = "0.16"
+FACTURAMA_PRODUCT_CODE = "01010101"
+FACTURAMA_UNIT_CODE = "E48"
+
 [[env.staging.d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db-staging"

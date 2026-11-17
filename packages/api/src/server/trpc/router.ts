@@ -1,3 +1,4 @@
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -29,6 +30,7 @@ export function createAppRouter(
   aiGatewayId: string | undefined,
   mediaStorage: ObjectStorage | undefined,
   subscriptionNotifier?: SubscriptionNotifier,
+  issueInvoice?: Pick<IssueInvoice, "execute">,
 ) {
   return router({
     ads: createCarouselRouter({
@@ -37,7 +39,7 @@ export function createAppRouter(
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
     }),
-    billing: createBillingRouter({ account: directoryRepositories.account }),
+    billing: createBillingRouter({ account: directoryRepositories.account, issueInvoice }),
     businesses: createBusinessesRouter({
       business: directoryRepositories.business,
       subscription: directoryRepositories.subscription,

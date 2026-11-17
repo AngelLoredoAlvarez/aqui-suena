@@ -14,6 +14,7 @@ import { D1StationRepository } from "@aqui-suena/api/infrastructure/radio/d1-sta
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
+import { createIssueInvoice } from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { isAdminAuthorized } from "@aqui-suena/api/server/http/admin-auth";
@@ -60,6 +61,14 @@ export interface WorkerEnv {
   R2_ENDPOINT?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
+  /** Facturama sandbox/production credentials and emitter fiscal settings. */
+  FACTURAMA_USER?: string;
+  FACTURAMA_PASSWORD?: string;
+  FACTURAMA_BASE_URL?: string;
+  FACTURAMA_EXPEDITION_PLACE?: string;
+  FACTURAMA_IVA_RATE?: string;
+  FACTURAMA_PRODUCT_CODE?: string;
+  FACTURAMA_UNIT_CODE?: string;
 }
 
 export default {
@@ -173,6 +182,35 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
 
   const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
 
+  const issueInvoice = createIssueInvoice({
+    db: env.aqui_suena_db,
+    account: directoryRepositories.account,
+    subscriptions: directoryRepositories.subscription,
+    plans: planRepository,
+    facturama: {
+      user: env.FACTURAMA_USER,
+      password: env.FACTURAMA_PASSWORD,
+      baseUrl: env.FACTURAMA_BASE_URL,
+      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
+      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
+      productCode: env.FACTURAMA_PRODUCT_CODE,
+      unitCode: env.FACTURAMA_UNIT_CODE,
+    },
+    r2: {
+      accountId: env.R2_ACCOUNT_ID,
+      accessKeyId: env.R2_ACCESS_KEY_ID,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      bucketName: env.R2_BUCKET_NAME,
+      endpoint: env.R2_ENDPOINT,
+    },
+  });
+
+  if (issueInvoice === undefined) {
+    console.error(
+      "worker: invoicing is unconfigured (set FACTURAMA_* and R2_* to enable billing.requestInvoice)",
+    );
+  }
+
   const app = createApp({
     allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
     supabaseUrl: env.SUPABASE_URL,
@@ -186,6 +224,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     aiGatewayId: gatewayId,
     mediaStorage,
     subscriptionNotifier,
+    issueInvoice,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,
   });

@@ -154,3 +154,14 @@ export class R2ObjectStorage implements ObjectStorage {
     }
   }
 }
+
+/** Presigns an arbitrary method/key for callers outside media uploads. */
+export async function presignR2ObjectUrl(
+  options: R2ObjectStorageOptions,
+  method: string,
+  key: string,
+): Promise<string> {
+  const endpoint = options.endpoint ?? `https://${options.accountId}.r2.cloudflarestorage.com`;
+
+  return presignUrl(method, key, options, endpoint);
+}
