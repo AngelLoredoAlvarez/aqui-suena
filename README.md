@@ -147,6 +147,7 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 - Account deletion (2026-11-17): an owner erases their own account through `account.delete`; the Supabase user goes first, then media objects and rows, then businesses with their children, and the `accounts` row survives as an anonymized tombstone because `subscriptions`, `payments` and `cfdi_invoices` are kept for fiscal retention. The freed email can sign up again. Verified on staging 12/12. See `odd/tasks/feat-account-deletion.md`.
 - CFDI issuing (2026-11-17): `billing.requestInvoice` issues a fiscally valid CFDI through a PAC (`InvoiceIssuer` port, Facturama sandbox), archives the XML in R2 and records every attempt in `cfdi_invoices` as `issued` or `failed`. Issuing requires a paid plan; saving fiscal data does not. Proven against the sandbox, with three provider assumptions pinned by tests. See `odd/tasks/feat-billing-cfdi.md`.
 - Project hygiene (2026-11-18): the directory child resources share one ownership protocol, the 17 single-id procedures take `{ id }` instead of a bare string, `FiscalProfile` moved to the account domain with a cruiser rule that forbids the reverse, the subscription suite split per use case, and specs and closed plans moved under `docs/`. See `odd/tasks/refactor-project-hygiene.md`.
+- CFDI cancellation (2026-11-18): an owner can cancel an issued invoice with motive `02` or `03`. The row is claimed with a compare-and-set before the PAC is called, the article 29-A window is enforced in Mexico City time, the provider's six states map to four outcomes, and the acuse is archived in R2. Reading the history refreshes pending rows, so the positive ficta is not missed. See `odd/tasks/feat-cfdi-cancellation.md`.
 - CFDI delivery by email (2026-11-18): a stamped invoice now reaches the owner with the provider PDF and the archived XML attached, so the fiscal document travels with the message instead of hanging from a link that expires. `IssueInvoice` downloads the PDF, archives it in R2 next to the XML (`cfdi_invoices.pdf_key`, migration `0004`), records both keys in one insert and then notifies; every delivery failure is logged and never fails the request, and a deleted account is never emailed. See `odd/tasks/feat-cfdi-email.md`.
 ### Next
 
@@ -154,8 +155,8 @@ Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 
 1. **Signup and verification** (`create-account` with birthdate, T&C and an 18+ attestation). It unblocks the account emails, the owner portal and anything plan-selection related.
 2. **Payment provider** (Conekta). It unblocks receipts, renewal reminders and the `PUE` CFDI path.
-3. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. `CfdiInvoiceRepository` still needs `listByAccount`/`getById`.
-4. **CFDI cancellation slice**: `issued` → `cancellation_pending` → `cancelled` | `cancellation_rejected`, with a reconciliation job and motive `01` substitution.
+3. **CFDI cancellation phase 2**: a Worker `scheduled` handler with the 15–30 minute sweep (moving reconciliation out of the listing query) and motive `01` with the substitute CFDI.
+4. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. The API it consumes already ships.
 5. **Recover missing fiscal archives** by `providerId` when `xmlKey`/`pdfKey` is null.
 6. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
 7. **Windows/macOS signing and publishing**; desktop stays dev-only until then.

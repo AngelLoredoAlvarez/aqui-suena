@@ -74,6 +74,26 @@ sends both files through `TemplateCfdiNotifier`.
 Live flows: `subscriptions.cancel` (template 10) and `billing.requestInvoice`
 (template 8).
 
+## Invoice cancellation
+
+`billing.invoices.cancel` takes `{ id, motive }` (motive `02` or `03`). The row is
+moved to `cancellation_pending` with a compare-and-set **before** the PAC is
+called, so two concurrent requests cannot both reach the provider and a crash
+between the answer and the write cannot lose the fiscal act. The article 29-A
+window is enforced here in Mexico City time: a request after the annual return
+month of the invoice's fiscal year answers `BAD_REQUEST` naming the deadline.
+
+The provider's six states map to four outcomes — `canceled`, `acepted` and
+`expired` (positive ficta) are all `cancelled`; `active` means not cancellable and
+returns the row to `issued`; `rejected` keeps the invoice valid. A provider
+refusal returns the row to `issued` with the reason recorded instead of leaving it
+pending forever, and a lost acuse is logged, never fatal.
+
+Reading the history refreshes up to five pending rows — those whose receiver
+window closed or that nobody checked in fifteen minutes — so the positive ficta
+is not missed. That write-on-read is conscious debt until the Worker gains a
+`scheduled` handler.
+
 ## Invoice history
 
 `billing.invoices.list` returns the caller's `issued` invoices (offset

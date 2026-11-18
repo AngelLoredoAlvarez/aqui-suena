@@ -67,23 +67,37 @@ acceptance handling, refunds and payment coupling, and any UI.
 
 ## Tasks
 
-- **T1** — Domain model: statuses, audit fields, legal window helper and its tests.
-- **T2** — Migration `0005`, schema and D1 mapping/insert.
+- **T1** — Domain model: statuses, audit fields, legal window helper and its tests. DONE.
+- **T2** — Migration `0005`, schema and D1 mapping/insert. DONE.
 - **T3** — PAC port `cancelInvoice` and the Facturama adapter with its response
-  mapping.
-- **T4** — `CancelInvoice` use case: compare-and-set, window, state mapping, acuse.
-- **T5** — `billing.invoices.cancel` and the list fields.
-- **T6** — Lazy reconciliation inside `invoices.list`.
-- **T7** — Docs.
+  mapping. DONE.
+- **T4** — `CancelInvoice` use case: compare-and-set, window, state mapping, acuse. DONE.
+- **T5** — `billing.invoices.cancel` and the list fields. DONE.
+- **T6** — Lazy reconciliation inside `invoices.list`. DONE.
+- **T7** — Docs. DONE.
 
 ## Verification
 
-Pending.
+- `pnpm --filter @aqui-suena/api test` — 953 tests, 117 files, green.
+- `typecheck`, `biome check`, `pnpm arch`, `check:singletons` — clean.
+- Not exercised on staging yet: the adapter is covered by unit tests against the
+  provider contract, and the happy path can be cancelled for real in sandbox
+  (only `EKU9003173C9` issued CFDIs are cancellable there). The receiver rejection,
+  the pending window and the positive ficta cannot be forced from sandbox, so they
+  stay covered by fakes.
 
 ## Log
 
 - **L1** — Phase 1 authorised with teaching mode. Phase 2 (cron, motive 01) stays
   in `odd/tasks/backlog.md`.
+- **L3** — The use case had to change one earlier decision: `listByAccount` and
+  `getByIdForAccount` no longer filter on `issued`. A cancelled invoice is still
+  fiscal history and must stay visible, and a download of a cancelled CFDI is
+  still the legal record. Only `failed` rows are excluded from the list.
+- **L4** — Reconciliation runs inside the listing query, which writes on a GET.
+  Accepted on purpose with hard bounds (five rows per call, only expired windows
+  or stale checks). It moves to the cron when that exists, leaving the listing
+  pure; recorded as conscious debt rather than an oversight.
 - **L2** — Verified provider facts: sandbox only cancels CFDIs emitted with
   `EKU9003173C9` (our sandbox emitter), so the happy path is testable for real;
   `rejected` keeps the invoice valid, and a second request after a rejection that
