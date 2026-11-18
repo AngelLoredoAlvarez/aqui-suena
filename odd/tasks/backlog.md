@@ -113,6 +113,13 @@ branches. None of these blocks the product today.
       in-memory repositories per app, `AppRouter` stays as a type); the email
       renderer now receives `billingPath` and `ownerPortalPath` instead of
       hardcoding frontend routes.
+- [x] SQL formatting and format-agnostic assertions — DONE 2026-11-17
+      (`refactor/sql-format`). Statements over 120 characters break at clause
+      boundaries with the clauses aligned to the literal; inserts always put
+      `VALUES` on its own line; the five repeated business column lists became one
+      `BUSINESS_COLUMNS` constant. Tests assert through `normalizeSql`, which
+      collapses whitespace, so moving a clause to the next line can never fail a
+      test that only cares about what the statement means.
 - [ ] Input contract split before any client consumes it: procedures built on
       `requiredId` (`media.delete`, `plans.getById`, the directory `get`/`delete`
       procedures) take a bare string as their input, while every other procedure

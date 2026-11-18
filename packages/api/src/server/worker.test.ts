@@ -1,6 +1,7 @@
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import worker, { type WorkerEnv } from "@aqui-suena/api/server/worker";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let infoLog: ReturnType<typeof vi.spyOn>;
@@ -82,7 +83,7 @@ describe("POST /admin/seed-stations", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ seeded: 3 });
     expect(statements).toHaveLength(3);
-    expect(statements[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(normalizeSql(statements[0]?.sql)).toContain("ON CONFLICT(id) DO UPDATE");
     expect(statements[0]?.params[2]).toBe("https://web.test/test-streams/aqui-suena-pop.m4a");
   });
 });
@@ -122,7 +123,7 @@ describe("POST /admin/seed-plans", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ seeded: DEFAULT_PLAN_CATALOG.length });
     expect(statements).toHaveLength(DEFAULT_PLAN_CATALOG.length);
-    expect(statements[0]?.sql).toContain("ON CONFLICT(id) DO UPDATE");
+    expect(normalizeSql(statements[0]?.sql)).toContain("ON CONFLICT(id) DO UPDATE");
   });
 });
 

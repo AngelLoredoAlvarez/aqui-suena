@@ -29,7 +29,8 @@ export class D1PaymentRepository implements PaymentRepository {
 
     await this.db
       .prepare(
-        "INSERT INTO payments (id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, ?)",
+        `INSERT INTO payments (id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, ?)`,
       )
       .bind(
         id,
@@ -67,7 +68,10 @@ export class D1PaymentRepository implements PaymentRepository {
   async listBySubscription(subscriptionId: string): Promise<Payment[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE subscription_id = ? ORDER BY created_at DESC",
+        `SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at
+        FROM payments
+        WHERE subscription_id = ?
+        ORDER BY created_at DESC`,
       )
       .bind(subscriptionId)
       .all();
@@ -78,7 +82,9 @@ export class D1PaymentRepository implements PaymentRepository {
   async getById(id: string): Promise<Payment | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at FROM payments WHERE id = ?",
+        `SELECT id, subscription_id, plan_id, amount, currency, status, paid_at, created_at, updated_at
+        FROM payments
+        WHERE id = ?`,
       )
       .bind(id)
       .first();

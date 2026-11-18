@@ -1,6 +1,7 @@
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -62,7 +63,7 @@ describe("D1BusinessRepository", () => {
     expect(page.items).toHaveLength(1);
     expect(page.items[0]?.accountId).toBe("acc-1");
     expect(page).toMatchObject({ limit: 5, offset: 10 });
-    expect(fake.statements[0]?.sql).toMatch(
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(
       /WHERE account_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
     );
     expect(fake.statements[0]?.params).toEqual(["acc-1", 5, 10]);
@@ -73,8 +74,8 @@ describe("D1BusinessRepository", () => {
     const repository = new D1BusinessRepository(fake.db);
 
     expect(await repository.listAllByAccount("acc-1")).toEqual([]);
-    expect(fake.statements[0]?.sql).toMatch(/WHERE account_id = \?/);
-    expect(fake.statements[0]?.sql).not.toMatch(/LIMIT/);
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(/WHERE account_id = \?/);
+    expect(normalizeSql(fake.statements[0]?.sql)).not.toMatch(/LIMIT/);
   });
 
   it("creates a business and returns it with generated id and timestamps", async () => {
@@ -165,7 +166,9 @@ describe("D1BusinessRepository deleteByAccount", () => {
 
     const statement = fake.statements[0];
 
-    expect(statement?.sql).toMatch(/DELETE FROM businesses[\s\S]*WHERE account_id = \?/);
+    expect(normalizeSql(statement?.sql)).toMatch(
+      /DELETE FROM businesses[\s\S]*WHERE account_id = \?/,
+    );
     expect(statement?.params).toEqual(["acc-1"]);
   });
 });

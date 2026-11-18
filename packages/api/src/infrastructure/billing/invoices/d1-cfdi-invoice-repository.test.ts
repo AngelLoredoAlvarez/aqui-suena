@@ -1,6 +1,7 @@
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 describe("D1CfdiInvoiceRepository", () => {
@@ -29,7 +30,7 @@ describe("D1CfdiInvoiceRepository", () => {
       failureReason: null,
     });
     expect(db.statements).toHaveLength(1);
-    expect(db.statements[0]?.sql).toContain("INSERT INTO cfdi_invoices");
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("INSERT INTO cfdi_invoices");
     expect(db.statements[0]?.params).toEqual([
       invoice.id,
       "acc-1",

@@ -1,5 +1,6 @@
 import { D1MediaRepository } from "@aqui-suena/api/infrastructure/media/d1-media-repository";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -36,7 +37,7 @@ describe("D1MediaRepository", () => {
 
     await repository.listByOwner({ ownerId: "acc-1", limit: 5, offset: 10 });
 
-    expect(fake.statements[0]?.sql).toMatch(
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(
       /WHERE owner_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
     );
     expect(fake.statements[0]?.params).toEqual(["acc-1", 5, 10]);

@@ -2,6 +2,7 @@ import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/paym
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
+import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
@@ -90,7 +91,7 @@ describe("D1PaymentRepository", () => {
       currency: "MXN",
       status: "pending",
     });
-    expect(fake.statements[0]?.sql).toContain("plan_id");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("plan_id");
     expect(fake.statements[0]?.params).toEqual([
       payment.id,
       "sub-1",
@@ -124,8 +125,8 @@ describe("D1PaymentRepository", () => {
 
     await repo.updateStatus("pay-1", "completed", new Date("2026-01-15"));
 
-    expect(fake.statements[0]?.sql).toContain("UPDATE payments SET status");
-    expect(fake.statements[0]?.sql).toContain("WHERE id = ?");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("UPDATE payments SET status");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("WHERE id = ?");
     expect(fake.statements[0]?.params).toContain("pay-1");
     expect(fake.statements[0]?.params).toContain("completed");
   });

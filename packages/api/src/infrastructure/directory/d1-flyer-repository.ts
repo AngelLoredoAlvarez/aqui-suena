@@ -79,7 +79,8 @@ export class D1FlyerRepository implements FlyerRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        "INSERT INTO flyers (id, business_id, url, replaced_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+        `INSERT INTO flyers (id, business_id, url, replaced_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, input.businessId, input.url, now, now, now)
       .run();

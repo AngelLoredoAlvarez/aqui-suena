@@ -36,7 +36,12 @@ export class D1PhotoRepository implements PhotoRepository {
   async listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, work_entry_id, product_id, kind, url, created_at FROM photos WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT id, business_id, work_entry_id, product_id, kind, url, created_at
+        FROM photos
+        WHERE business_id = ?
+        ORDER BY created_at, id
+        LIMIT ?
+        OFFSET ?`,
       )
       .bind(input.businessId, input.limit, input.offset)
       .all();
@@ -53,7 +58,8 @@ export class D1PhotoRepository implements PhotoRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        "INSERT INTO photos (id, business_id, work_entry_id, product_id, kind, url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO photos (id, business_id, work_entry_id, product_id, kind, url, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, input.businessId, input.workEntryId, input.productId, input.kind, input.url, now)
       .run();

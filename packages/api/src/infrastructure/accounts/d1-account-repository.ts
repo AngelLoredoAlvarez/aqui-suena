@@ -69,8 +69,8 @@ export class D1AccountRepository implements AccountRepository {
         await this.db
           .prepare(
             `INSERT INTO accounts (id, email, created_at, updated_at)
-             VALUES (?, ?, ?, ?)
-             ON CONFLICT(id) DO NOTHING`,
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(id) DO NOTHING`,
           )
           .bind(id, normalized, now, now)
           .run();
@@ -116,11 +116,10 @@ export class D1AccountRepository implements AccountRepository {
     const result = await this.db
       .prepare(
         `UPDATE accounts
-            SET email = ?, rfc = NULL, legal_name = NULL, tax_regime = NULL,
-                tax_zip_code = NULL, cfdi_use = NULL, billing_email = NULL,
-                tax_data_updated_at = NULL, deleted_at = COALESCE(deleted_at, ?),
-                updated_at = ?
-          WHERE id = ?`,
+        SET email = ?, rfc = NULL, legal_name = NULL, tax_regime = NULL, tax_zip_code = NULL,
+        cfdi_use = NULL, billing_email = NULL, tax_data_updated_at = NULL,
+        deleted_at = COALESCE(deleted_at, ?), updated_at = ?
+        WHERE id = ?`,
       )
       .bind(anonymizedAccountEmail(id), now, now, id)
       .run();
@@ -150,9 +149,10 @@ export class D1AccountRepository implements AccountRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        `UPDATE accounts SET rfc = ?, legal_name = ?, tax_regime = ?, tax_zip_code = ?,
-           cfdi_use = ?, billing_email = ?, tax_data_updated_at = ?, updated_at = ?
-         WHERE id = ?`,
+        `UPDATE accounts
+        SET rfc = ?, legal_name = ?, tax_regime = ?, tax_zip_code = ?, cfdi_use = ?,
+        billing_email = ?, tax_data_updated_at = ?, updated_at = ?
+        WHERE id = ?`,
       )
       .bind(
         profile.rfc,

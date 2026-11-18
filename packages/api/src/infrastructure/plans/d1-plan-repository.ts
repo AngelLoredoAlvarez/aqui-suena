@@ -20,7 +20,10 @@ export class D1PlanRepository implements PlanRepository {
   async list(): Promise<Plan[]> {
     const result = await this.db
       .prepare(
-        "SELECT id, name, audience, description, benefits, price_monthly, price_annual, currency, active FROM plans WHERE active = 1",
+        `SELECT id, name, audience, description, benefits, price_monthly, price_annual,
+        currency, active
+        FROM plans
+        WHERE active = 1`,
       )
       .all();
 
@@ -30,7 +33,10 @@ export class D1PlanRepository implements PlanRepository {
   async getById(id: PlanId): Promise<Plan | null> {
     const row = await this.db
       .prepare(
-        "SELECT id, name, audience, description, benefits, price_monthly, price_annual, currency, active FROM plans WHERE id = ? AND active = 1",
+        `SELECT id, name, audience, description, benefits, price_monthly, price_annual,
+        currency, active
+        FROM plans
+        WHERE id = ? AND active = 1`,
       )
       .bind(id)
       .first();

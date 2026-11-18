@@ -36,7 +36,12 @@ export class D1ServiceRepository implements ServiceRepository {
   async listByBusiness(input: ListServicesByBusinessInput): Promise<OffsetPage<Service>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, name, description, base_price, created_at, updated_at FROM services WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT id, business_id, name, description, base_price, created_at, updated_at
+        FROM services
+        WHERE business_id = ?
+        ORDER BY created_at, id
+        LIMIT ?
+        OFFSET ?`,
       )
       .bind(input.businessId, input.limit, input.offset)
       .all();
@@ -53,7 +58,8 @@ export class D1ServiceRepository implements ServiceRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        "INSERT INTO services (id, business_id, name, description, base_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        `INSERT INTO services (id, business_id, name, description, base_price, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, data.businessId, data.name, data.description, data.basePrice, now, now)
       .run();

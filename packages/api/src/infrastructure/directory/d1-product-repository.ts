@@ -35,7 +35,12 @@ export class D1ProductRepository implements ProductRepository {
   async listByBusiness(input: ListProductsByBusinessInput): Promise<OffsetPage<Product>> {
     const results = await this.db
       .prepare(
-        "SELECT id, business_id, name, description, price, created_at FROM products WHERE business_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
+        `SELECT id, business_id, name, description, price, created_at
+        FROM products
+        WHERE business_id = ?
+        ORDER BY created_at, id
+        LIMIT ?
+        OFFSET ?`,
       )
       .bind(input.businessId, input.limit, input.offset)
       .all();
@@ -63,7 +68,8 @@ export class D1ProductRepository implements ProductRepository {
     const now = toEpoch(new Date());
     const result = await this.db
       .prepare(
-        "INSERT INTO products (id, business_id, name, description, price, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        `INSERT INTO products (id, business_id, name, description, price, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, input.businessId, input.name, input.description, input.price, now)
       .run();
