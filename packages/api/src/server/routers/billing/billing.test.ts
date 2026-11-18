@@ -1,5 +1,6 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import {
   type CfdiDocumentLinker,
   type CfdiInvoice,
@@ -53,6 +54,8 @@ function setup(
     invoices?: CfdiInvoice[];
     documents?: CfdiDocumentLinker;
     withoutHistory?: boolean;
+    cancelInvoice?: Pick<CancelInvoice, "execute">;
+    withoutCancel?: boolean;
   } = {},
 ) {
   const repo = new InMemoryAccountRepository(accounts);
@@ -63,6 +66,7 @@ function setup(
     issueInvoice: issueInvoice ?? undefined,
     invoices: options.withoutHistory ? undefined : invoices,
     documents: options.documents,
+    cancelInvoice: options.withoutCancel ? undefined : options.cancelInvoice,
   });
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
@@ -192,8 +196,13 @@ describe("billing.invoices.list", () => {
         id: "cfdi-1",
         uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
         issuedAt: issuedInvoice.createdAt,
+        status: "issued",
         hasXml: true,
         hasPdf: true,
+        cancellationMotive: null,
+        cancellationResolvedAt: null,
+        cancellationExpiresAt: null,
+        cancellationDetail: null,
       },
     ]);
   });
@@ -259,5 +268,45 @@ describe("billing.invoices.downloadUrl", () => {
     await expect(
       caller.invoices.downloadUrl({ id: "cfdi-1", format: "pdf" }),
     ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+});
+
+describe("billing.invoices.cancel", () => {
+  it("cancels through the use case and reports the resulting state", async () => {
+    const cancelled: CfdiInvoice = {
+      ...issuedInvoice,
+      status: "cancelled",
+      cancellationMotive: "03",
+      cancellationRequestedAt: new Date("2026-11-18T20:00:00Z"),
+      cancellationResolvedAt: new Date("2026-11-18T20:00:05Z"),
+      acuseKey: "cfdi/acc-1/1-acuse.xml",
+    };
+    const calls: Array<{ accountId: string; invoiceId: string; motive: string }> = [];
+    const { caller } = setup([account], null, {
+      cancelInvoice: {
+        execute: async (command) => {
+          calls.push(command);
+
+          return cancelled;
+        },
+      },
+    });
+
+    const result = await caller.invoices.cancel({ id: "cfdi-1", motive: "03" });
+
+    expect(calls).toEqual([{ accountId: "acc-1", invoiceId: "cfdi-1", motive: "03" }]);
+    expect(result.invoice).toMatchObject({
+      id: "cfdi-1",
+      status: "cancelled",
+      cancellationMotive: "03",
+    });
+  });
+
+  it("answers PRECONDITION_FAILED when cancellation is not configured", async () => {
+    const { caller } = setup([account], null, { withoutCancel: true });
+
+    await expect(caller.invoices.cancel({ id: "cfdi-1", motive: "03" })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+    });
   });
 });

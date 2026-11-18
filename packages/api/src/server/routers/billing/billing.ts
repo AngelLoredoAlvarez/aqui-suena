@@ -1,9 +1,11 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import { fiscalProfileSchema } from "@aqui-suena/api/domain/accounts/fiscal-profile";
-import type {
-  CfdiDocumentLinker,
-  CfdiInvoice,
-  CfdiInvoiceRepository,
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
+import {
+  CFDI_CANCELLATION_MOTIVES,
+  type CfdiDocumentLinker,
+  type CfdiInvoice,
+  type CfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
@@ -16,6 +18,7 @@ export type BillingRouterDeps = {
   readonly issueInvoice?: Pick<IssueInvoice, "execute">;
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;
+  readonly cancelInvoice?: Pick<CancelInvoice, "execute">;
 };
 
 const DOCUMENT_TYPES = {
@@ -28,13 +31,23 @@ const downloadInput = v.object({
   format: v.picklist(["pdf", "xml"]),
 });
 
+const cancelInput = v.object({
+  id: v.pipe(v.string(), v.minLength(1)),
+  motive: v.picklist(CFDI_CANCELLATION_MOTIVES),
+});
+
 function toInvoiceSummary(invoice: CfdiInvoice) {
   return {
     id: invoice.id,
     uuid: invoice.uuid,
     issuedAt: invoice.createdAt,
+    status: invoice.status,
     hasXml: invoice.xmlKey !== null,
     hasPdf: invoice.pdfKey !== null,
+    cancellationMotive: invoice.cancellationMotive,
+    cancellationResolvedAt: invoice.cancellationResolvedAt,
+    cancellationExpiresAt: invoice.cancellationExpiresAt,
+    cancellationDetail: invoice.cancellationDetail,
   };
 }
 
@@ -95,6 +108,25 @@ export function createBillingRouter(deps: BillingRouterDeps) {
 
           return { ...page, items: page.items.map(toInvoiceSummary) };
         }),
+
+      cancel: protectedProcedure.input(cancelInput).mutation(async ({ input, ctx }) => {
+        const cancelInvoice = deps.cancelInvoice;
+
+        if (cancelInvoice === undefined) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Invoice cancellation is not configured",
+          });
+        }
+
+        const invoice = await cancelInvoice.execute({
+          accountId: ctx.user.accountId,
+          invoiceId: input.id,
+          motive: input.motive,
+        });
+
+        return { invoice: toInvoiceSummary(invoice) };
+      }),
 
       downloadUrl: protectedProcedure.input(downloadInput).query(async ({ input, ctx }) => {
         const { invoices, documents } = deps;
