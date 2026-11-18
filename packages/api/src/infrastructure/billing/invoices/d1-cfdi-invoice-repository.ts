@@ -1,4 +1,5 @@
 import type {
+  CfdiCancellationMotive,
   CfdiInvoice,
   CfdiInvoiceRepository,
   CfdiInvoiceStatus,
@@ -9,7 +10,9 @@ import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { type OffsetPage, paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
 const COLUMNS =
-  "id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, created_at, updated_at";
+  "id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, " +
+  "cancellation_motive, cancellation_requested_at, cancellation_resolved_at, cancellation_expires_at, " +
+  "cancellation_detail, acuse_key, created_at, updated_at";
 
 type CfdiInvoiceRow = {
   readonly id: string;
@@ -21,6 +24,12 @@ type CfdiInvoiceRow = {
   readonly xml_key: string | null;
   readonly pdf_key: string | null;
   readonly failure_reason: string | null;
+  readonly cancellation_motive: string | null;
+  readonly cancellation_requested_at: number | null;
+  readonly cancellation_resolved_at: number | null;
+  readonly cancellation_expires_at: number | null;
+  readonly cancellation_detail: string | null;
+  readonly acuse_key: string | null;
   readonly created_at: number;
   readonly updated_at: number;
 };
@@ -34,8 +43,8 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
 
     await this.db
       .prepare(
-        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, cancellation_motive, cancellation_requested_at, cancellation_resolved_at, cancellation_expires_at, cancellation_detail, acuse_key, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -47,6 +56,12 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
         input.xmlKey,
         input.pdfKey,
         input.failureReason,
+        input.cancellationMotive,
+        input.cancellationRequestedAt === null ? null : toEpoch(input.cancellationRequestedAt),
+        input.cancellationResolvedAt === null ? null : toEpoch(input.cancellationResolvedAt),
+        input.cancellationExpiresAt === null ? null : toEpoch(input.cancellationExpiresAt),
+        input.cancellationDetail,
+        input.acuseKey,
         toEpoch(now),
         toEpoch(now),
       )
@@ -113,6 +128,12 @@ function mapRow(row: CfdiInvoiceRow): CfdiInvoice {
     xmlKey: row.xml_key,
     pdfKey: row.pdf_key,
     failureReason: row.failure_reason,
+    cancellationMotive: row.cancellation_motive as CfdiCancellationMotive | null,
+    cancellationRequestedAt: fromEpoch(row.cancellation_requested_at),
+    cancellationResolvedAt: fromEpoch(row.cancellation_resolved_at),
+    cancellationExpiresAt: fromEpoch(row.cancellation_expires_at),
+    cancellationDetail: row.cancellation_detail,
+    acuseKey: row.acuse_key,
     createdAt,
     updatedAt,
   };

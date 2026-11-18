@@ -92,6 +92,12 @@ export class IssueInvoice {
         xmlKey,
         pdfKey,
         failureReason: null,
+        cancellationMotive: null,
+        cancellationRequestedAt: null,
+        cancellationResolvedAt: null,
+        cancellationExpiresAt: null,
+        cancellationDetail: null,
+        acuseKey: null,
       });
 
       await this.tryNotify(invoice, {
@@ -117,6 +123,12 @@ export class IssueInvoice {
         xmlKey: null,
         pdfKey: null,
         failureReason: error.detail,
+        cancellationMotive: null,
+        cancellationRequestedAt: null,
+        cancellationResolvedAt: null,
+        cancellationExpiresAt: null,
+        cancellationDetail: null,
+        acuseKey: null,
       });
 
       throw error;

@@ -19,6 +19,12 @@ describe("D1CfdiInvoiceRepository", () => {
       xmlKey: "cfdi/acc-1/1.xml",
       pdfKey: "cfdi/acc-1/1.pdf",
       failureReason: null,
+      cancellationMotive: null,
+      cancellationRequestedAt: null,
+      cancellationResolvedAt: null,
+      cancellationExpiresAt: null,
+      cancellationDetail: null,
+      acuseKey: null,
     });
 
     expect(invoice.id).toMatch(/^[0-9a-f-]{36}$/);
@@ -42,6 +48,13 @@ describe("D1CfdiInvoiceRepository", () => {
       "cfdi/acc-1/1.xml",
       "cfdi/acc-1/1.pdf",
       null,
+      // cancellation fields: motive, requested, resolved, expires, detail, acuse
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       toEpoch(invoice.createdAt),
       toEpoch(invoice.updatedAt),
     ]);
@@ -61,6 +74,12 @@ describe("D1CfdiInvoiceRepository", () => {
       xmlKey: null,
       pdfKey: null,
       failureReason: "El RFC del receptor no se encuentra en la lista de contribuyentes",
+      cancellationMotive: null,
+      cancellationRequestedAt: null,
+      cancellationResolvedAt: null,
+      cancellationExpiresAt: null,
+      cancellationDetail: null,
+      acuseKey: null,
     });
 
     expect(invoice.status).toBe("failed");
@@ -74,6 +93,12 @@ describe("D1CfdiInvoiceRepository", () => {
       null,
       null,
       "El RFC del receptor no se encuentra en la lista de contribuyentes",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       toEpoch(invoice.createdAt),
       toEpoch(invoice.updatedAt),
     ]);

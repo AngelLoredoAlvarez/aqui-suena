@@ -1,6 +1,16 @@
 import { type OffsetPage, paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 
-export const CFDI_INVOICE_STATUSES = ["issued", "failed"] as const;
+export const CFDI_INVOICE_STATUSES = [
+  "issued",
+  "failed",
+  "cancellation_pending",
+  "cancelled",
+  "cancellation_rejected",
+] as const;
+
+export const CFDI_CANCELLATION_MOTIVES = ["01", "02", "03", "04"] as const;
+
+export type CfdiCancellationMotive = (typeof CFDI_CANCELLATION_MOTIVES)[number];
 
 export type CfdiInvoiceStatus = (typeof CFDI_INVOICE_STATUSES)[number];
 
@@ -14,6 +24,12 @@ export type CfdiInvoice = {
   xmlKey: string | null;
   pdfKey: string | null;
   failureReason: string | null;
+  cancellationMotive: CfdiCancellationMotive | null;
+  cancellationRequestedAt: Date | null;
+  cancellationResolvedAt: Date | null;
+  cancellationExpiresAt: Date | null;
+  cancellationDetail: string | null;
+  acuseKey: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

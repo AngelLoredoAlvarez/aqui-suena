@@ -36,6 +36,12 @@ const issuedInvoice: CfdiInvoice = {
   xmlKey: "cfdi/acc-1/1.xml",
   pdfKey: "cfdi/acc-1/1.pdf",
   failureReason: null,
+  cancellationMotive: null,
+  cancellationRequestedAt: null,
+  cancellationResolvedAt: null,
+  cancellationExpiresAt: null,
+  cancellationDetail: null,
+  acuseKey: null,
   createdAt: new Date("2026-11-16T18:00:00Z"),
   updatedAt: new Date("2026-11-16T18:00:00Z"),
 };
