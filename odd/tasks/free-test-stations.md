@@ -10,7 +10,7 @@ Local FM streams were removed (2026-10-13) because there were no permissions and
 
 ## Scope
 
-- In: safe harness per `SPEC-radio-playback.md` (self-hosted synthesized loops, verified playable seed rule, link-out or honest empty state otherwise, proof file kept).
+- In: safe harness per `docs/specs/SPEC-radio-playback.md` (self-hosted synthesized loops, verified playable seed rule, link-out or honest empty state otherwise, proof file kept).
 - Out: local FM stations; commercial catalogue embeds without signed permission; aggregator-scraped URLs; invented URLs; proxying, re-serving, caching, or transcoding third-party streams.
 - Unchanged: in-place selector mechanism, no station screens, `packages/navigation` stays reserved; autoplay, persistence, dock, fallback behavior.
 
@@ -35,7 +35,7 @@ Serving: Next `public/` in dev (`localhost:3000/test-streams/...`, LAN IP for Ex
 
 ## Authorized scope
 
-Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits, no push, no PRs.
+Docs only: this ODD file + `docs/specs/SPEC-radio-playback.md` updates. No code, no commits, no push, no PRs.
 
 ## Checklist
 
@@ -61,7 +61,7 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 CLOSED 2026-10-23. All FS1-FS4 items verified done:
 
 - FS1: SPEC cleaned of local-only references.
-- FS2: Catalog schema (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes) + seed rule + explicit forbids + 3-channel table already in SPEC-radio-playback.md "Catalog (safe test-stations harness)".
+- FS2: Catalog schema (id, name, locality=TEST, band, streamUrl, streamStatus, streamSourceUrl, verifiedAt, licenseType, operator, officialSite, permissionStatus, confidence, notes) + seed rule + explicit forbids + 3-channel table already in docs/specs/SPEC-radio-playback.md "Catalog (safe test-stations harness)".
 - FS3: Proof-file process and generation approach (ffmpeg, `-c:a aac`, zero downloads) documented in SPEC + feature doc; `.gitignore` rule active for `public/test-streams/*.m4a`.
 - FS4: Implementation live — 3 channels (aqui-suena-pop, aqui-suena-focus, aqui-suena-night) in `packages/ui/src/player-landing/player-landing.tsx` (TEST_CHANNELS), .m4a binaries present in `apps/web/public/test-streams/` (gitignored), selector switches in place, no station screens.
-  Build order by reference: Phase 1 player restyle per `SPEC-radio-playback.md` → Phase 2 Supabase Auth per `SPEC-owner-portal.md` → registration → plans/Conekta → downgrade → directory/spots/stats/feedback → ads-tiers. Designs may change, so each phase re-verifies against the SPECs before coding.
+  Build order by reference: Phase 1 player restyle per `docs/specs/SPEC-radio-playback.md` → Phase 2 Supabase Auth per `docs/specs/SPEC-owner-portal.md` → registration → plans/Conekta → downgrade → directory/spots/stats/feedback → ads-tiers. Designs may change, so each phase re-verifies against the SPECs before coding.

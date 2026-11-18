@@ -7,8 +7,8 @@ import {
   AccountEmailConflictError,
   type AccountRepository,
 } from "@aqui-suena/api/domain/accounts/account-repository";
-import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
-import { parseStoredFiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
+import { parseStoredFiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { resolveEmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";

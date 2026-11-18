@@ -52,7 +52,7 @@ table shape, fiscal data verification against SAT, and any UI.
 - [x] T3 (S1, S4, S6) — `AccountRepository.getFiscalProfile` /
       `.updateFiscalProfile` in the in-memory and D1 adapters, with tests.
 - [x] T4 (S4, S5) — `billing` tRPC router, wired in `createAppRouter`, with tests.
-- [x] T5 — update `SPEC-memberships.md` (CFDI section) and the backlog.
+- [x] T5 — update `docs/specs/SPEC-memberships.md` (CFDI section) and the backlog.
 - [x] T6 (S7) — apply the migration to staging and production D1 and verify the
       columns exist with no row changes. DONE 2026-11-16.
 - [x] T7 (S8) — document the request/issuance split and pin it with a test that a

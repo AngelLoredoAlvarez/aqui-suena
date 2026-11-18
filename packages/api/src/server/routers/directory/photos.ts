@@ -1,7 +1,8 @@
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PhotoRepository } from "@aqui-suena/api/domain/directory/photo";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
@@ -48,8 +49,10 @@ export function createPhotosRouter(deps: PhotosRouterDeps) {
       }),
 
     getById: publicProcedure
-      .input(requiredId("Photo id is required"))
-      .query(async ({ input }) => requireFound(await repository.getById(input), "Photo not found")),
+      .input(idInput("Photo id is required"))
+      .query(async ({ input }) =>
+        requireFound(await repository.getById(input.id), "Photo not found"),
+      ),
 
     create: protectedProcedure.input(createPhotoInput).mutation(async ({ input, ctx }) => {
       await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
@@ -59,21 +62,30 @@ export function createPhotosRouter(deps: PhotosRouterDeps) {
 
     update: protectedProcedure.input(updatePhotoInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
-      const current = requireFound(await repository.getById(id), "Photo not found");
 
-      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+      await findOwned(
+        (childId) => repository.getById(childId),
+        business,
+        ctx.user.accountId,
+        id,
+        "Photo not found",
+      );
 
       return requireFound(await repository.update(id, rest), "Photo not found");
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Photo id is required"))
+      .input(idInput("Photo id is required"))
       .mutation(async ({ input, ctx }) => {
-        const current = requireFound(await repository.getById(input), "Photo not found");
+        await findOwned(
+          (childId) => repository.getById(childId),
+          business,
+          ctx.user.accountId,
+          input.id,
+          "Photo not found",
+        );
 
-        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
-
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Photo not found");
         }
 

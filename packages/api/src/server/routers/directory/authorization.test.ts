@@ -141,7 +141,7 @@ describe("directory mutation authorization", () => {
     const router = makeProductsRouter(s);
     const caller = router.createCaller(s.callerA);
 
-    await expect(caller.delete("product-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "product-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(await s.product.getById("product-b")).not.toBeNull();
   });
 
@@ -173,7 +173,7 @@ describe("directory mutation authorization", () => {
     await expect(
       caller.update({ id: "photo-b", url: "https://example.com/stolen.jpg" }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
-    await expect(caller.delete("photo-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "photo-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a photo under a foreign business", async () => {
@@ -200,7 +200,7 @@ describe("directory mutation authorization", () => {
     await expect(caller.update({ id: "service-b", name: "Stolen" })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
-    await expect(caller.delete("service-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "service-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a service under a foreign business", async () => {
@@ -229,7 +229,7 @@ describe("directory mutation authorization", () => {
     await expect(caller.update({ id: "work-b", title: "Stolen" })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
-    await expect(caller.delete("work-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "work-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a work entry under a foreign business", async () => {
@@ -253,7 +253,7 @@ describe("directory mutation authorization", () => {
     await expect(
       caller.update({ id: "flyer-b", url: "https://example.com/stolen.jpg" }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
-    await expect(caller.delete("flyer-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "flyer-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a flyer under a foreign business", async () => {
@@ -274,7 +274,7 @@ describe("directory mutation authorization", () => {
     await expect(caller.update({ id: "hour-b", day: 2 })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
-    await expect(caller.delete("hour-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "hour-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating an hour under a foreign business", async () => {
@@ -298,7 +298,7 @@ describe("directory mutation authorization", () => {
     await expect(caller.update({ id: "biz-b", name: "Stolen" })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
-    await expect(caller.delete("biz-b")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "biz-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect((await s.businessRepository.getByIdForOwner("biz-b"))?.name).toBe("Account A business");
   });
 

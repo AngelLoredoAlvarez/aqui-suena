@@ -75,7 +75,7 @@ station repository in the Node harness), answers `NOT_FOUND` for unknown ids and
 returns the persisted `streamUrl`. `listeners` is a deterministic simulated
 count computed in the endpoint (`domain/radio/simulated-listeners.ts`): no D1
 writes, no feature flag. A heartbeat was evaluated and discarded for cost; see
-`SPEC-live-listener-count.md`.
+`docs/specs/SPEC-live-listener-count.md`.
 
 ## Layout, and the one rule that keeps it safe
 

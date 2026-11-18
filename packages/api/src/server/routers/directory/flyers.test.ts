@@ -52,19 +52,23 @@ describe("flyers router", () => {
   it("rejects getById with NOT_FOUND when nothing matches", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "nonexistent" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects a malformed id with BAD_REQUEST", async () => {
     const { caller } = setup();
 
-    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.getById({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects deleting a missing flyer with NOT_FOUND", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates a flyer with generated id", async () => {
@@ -97,6 +101,6 @@ describe("flyers router", () => {
   it("deletes a flyer and reports success", async () => {
     const { caller } = setup();
 
-    expect(await caller.delete("fly-1")).toBe(true);
+    expect(await caller.delete({ id: "fly-1" })).toBe(true);
   });
 });

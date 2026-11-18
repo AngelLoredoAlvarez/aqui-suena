@@ -120,14 +120,15 @@ branches. None of these blocks the product today.
       `BUSINESS_COLUMNS` constant. Tests assert through `normalizeSql`, which
       collapses whitespace, so moving a clause to the next line can never fail a
       test that only cares about what the statement means.
-- [ ] Input contract split before any client consumes it: procedures built on
-      `requiredId` (`media.delete`, `plans.getById`, the directory `get`/`delete`
-      procedures) take a bare string as their input, while every other procedure
-      takes an object. A caller that assumes `{ id }` gets a `400 "… id is
-      required"` with no hint about the shape. Normalize to one contract (or
-      document the split) before the owner portal wires these calls. Also noted
-      during the probe: `media.list` answers `{ items, limit, offset, nextOffset }`,
-      not a bare array.
+- [x] Input contract normalized — DONE 2026-11-18
+      (`refactor/project-hygiene`). `idInput` replaced `requiredId`: the 17
+      single-id procedures (`media.delete`, `plans.getById`, the directory
+      `get`/`delete` set, `businesses.getMine`) now take `{ id }` like every
+      other procedure, and the contract has its own tests
+      (`server/trpc/errors.test.ts`). A bare string is a `BAD_REQUEST` carrying
+      the procedure message. Still true and intentionally unchanged:
+      `media.list` answers `{ items, limit, offset, nextOffset }`, not a bare
+      array. Details: `odd/tasks/refactor-project-hygiene.md`.
 
 ## Persistence validation and error codes (closed 2026-11-10)
 
@@ -343,9 +344,9 @@ explains.
 
 ## New features (planned — docs/specs created 2026-10-23)
 
-- [ ] Push notifications (SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Delivery runs on free tiers; manual campaigns are a Comercios & Catálogo entitlement, while receiving and automatic publish triggers are universal. Depends on: none. NOT STARTED: no `notification_tokens` table or dispatch code yet.
-- [ ] Offline/no-connection handling (SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none. NOT STARTED: no service worker in `apps/web` yet.
-- [x] Cloudflare media storage (SPEC-media-storage.md) — DONE: `ObjectStorage` port + `R2ObjectStorage` (SigV4 presigned URLs), D1 media repository, `media` tRPC router, Worker wiring and R2 secrets configured on the Worker.
+- [ ] Push notifications (docs/specs/SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Delivery runs on free tiers; manual campaigns are a Comercios & Catálogo entitlement, while receiving and automatic publish triggers are universal. Depends on: none. NOT STARTED: no `notification_tokens` table or dispatch code yet.
+- [ ] Offline/no-connection handling (docs/specs/SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none. NOT STARTED: no service worker in `apps/web` yet.
+- [x] Cloudflare media storage (docs/specs/SPEC-media-storage.md) — DONE: `ObjectStorage` port + `R2ObjectStorage` (SigV4 presigned URLs), D1 media repository, `media` tRPC router, Worker wiring and R2 secrets configured on the Worker.
 - [x] Chatbot with Cloudflare Workers AI — DONE: support domain (plan catalog), Vectorize index seeder, Workers AI embeddings and AI Gateway wiring behind optional env vars.
 - [ ] Image pipeline completion — the `OptimizedImage` component (lazy loading via IntersectionObserver, blur placeholder, error state) ships and is used by the ads carousel. MISSING: responsive size variants / `srcset` and WebP/AVIF generation, which need an image resizing service. Depends on: media storage (done).
 

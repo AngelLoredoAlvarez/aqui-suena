@@ -47,7 +47,7 @@ Build the first vertical slice of aqui-suena: open the app and hear the temporar
 
 ### Checkpoint: Complete
 
-- [x] All SPEC-radio-playback.md success criteria met
+- [x] All docs/specs/SPEC-radio-playback.md success criteria met
 - [x] Ready for review
 
 Tasks tracked in `tasks/todo.md`.

@@ -8,7 +8,8 @@ import {
   UPGRADE_HINTS,
 } from "@aqui-suena/api/domain/plans/entitlements";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
@@ -53,9 +54,9 @@ export function createProductsRouter(deps: ProductsRouterDeps) {
       }),
 
     getById: publicProcedure
-      .input(requiredId("Product id is required"))
+      .input(idInput("Product id is required"))
       .query(async ({ input }) =>
-        requireFound(await repository.getById(input), "Product not found"),
+        requireFound(await repository.getById(input.id), "Product not found"),
       ),
 
     create: protectedProcedure.input(createProductInput).mutation(async ({ input, ctx }) => {
@@ -81,21 +82,30 @@ export function createProductsRouter(deps: ProductsRouterDeps) {
 
     update: protectedProcedure.input(updateProductInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
-      const current = requireFound(await repository.getById(id), "Product not found");
 
-      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+      await findOwned(
+        (childId) => repository.getById(childId),
+        business,
+        ctx.user.accountId,
+        id,
+        "Product not found",
+      );
 
       return requireFound(await repository.update(id, rest), "Product not found");
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Product id is required"))
+      .input(idInput("Product id is required"))
       .mutation(async ({ input, ctx }) => {
-        const current = requireFound(await repository.getById(input), "Product not found");
+        await findOwned(
+          (childId) => repository.getById(childId),
+          business,
+          ctx.user.accountId,
+          input.id,
+          "Product not found",
+        );
 
-        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
-
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Product not found");
         }
 

@@ -37,7 +37,7 @@ Task 2 is the UI foundation for all playback UI (Tasks 4-7). Without shared toke
 
 Scope: Task 2, with Task 1 web + native boot verified first. Only files listed above plus minimal wiring (package.json, tsconfig, next.config, babel). Push/PR/merge remain pending.
 
-## Acceptance criteria (from tasks/todo.md Task 2)
+## Acceptance criteria (from docs/archive/tasks/todo.md Task 2)
 
 - [x] Same Tamagui button renders on web and native from shared code
 - [x] `/player` resolves on web and native via Solito with no `next/link` in `packages/ui`

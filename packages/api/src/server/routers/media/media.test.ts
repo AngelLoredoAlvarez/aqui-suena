@@ -225,7 +225,7 @@ describe("media router", () => {
       sizeBytes: 512,
     });
 
-    const ok = await caller.delete(media.id);
+    const ok = await caller.delete({ id: media.id });
 
     expect(ok).toBe(true);
     expect(await storage.head(key)).toBeNull();
@@ -234,13 +234,15 @@ describe("media router", () => {
   it("rejects deleting a malformed id with BAD_REQUEST", async () => {
     const { caller } = setup();
 
-    await expect(caller.delete(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.delete({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects deleting a missing media with NOT_FOUND", async () => {
     const { caller } = setup();
 
-    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("answers SERVICE_UNAVAILABLE on presign when storage is not configured", async () => {
@@ -273,7 +275,7 @@ describe("media router", () => {
     const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    await expect(caller.delete("media-1")).rejects.toMatchObject({
+    await expect(caller.delete({ id: "media-1" })).rejects.toMatchObject({
       code: "SERVICE_UNAVAILABLE",
     });
   });

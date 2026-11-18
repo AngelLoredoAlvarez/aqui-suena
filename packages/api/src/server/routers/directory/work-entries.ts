@@ -1,7 +1,8 @@
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
@@ -42,9 +43,9 @@ export function createWorkEntriesRouter(deps: WorkEntriesRouterDeps) {
       }),
 
     getById: publicProcedure
-      .input(requiredId("Work entry id is required"))
+      .input(idInput("Work entry id is required"))
       .query(async ({ input }) =>
-        requireFound(await repository.getById(input), "Work entry not found"),
+        requireFound(await repository.getById(input.id), "Work entry not found"),
       ),
 
     create: protectedProcedure.input(createWorkEntryInput).mutation(async ({ input, ctx }) => {
@@ -55,21 +56,30 @@ export function createWorkEntriesRouter(deps: WorkEntriesRouterDeps) {
 
     update: protectedProcedure.input(updateWorkEntryInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
-      const current = requireFound(await repository.getById(id), "Work entry not found");
 
-      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+      await findOwned(
+        (childId) => repository.getById(childId),
+        business,
+        ctx.user.accountId,
+        id,
+        "Work entry not found",
+      );
 
       return requireFound(await repository.update(id, rest), "Work entry not found");
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Work entry id is required"))
+      .input(idInput("Work entry id is required"))
       .mutation(async ({ input, ctx }) => {
-        const current = requireFound(await repository.getById(input), "Work entry not found");
+        await findOwned(
+          (childId) => repository.getById(childId),
+          business,
+          ctx.user.accountId,
+          input.id,
+          "Work entry not found",
+        );
 
-        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
-
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Work entry not found");
         }
 

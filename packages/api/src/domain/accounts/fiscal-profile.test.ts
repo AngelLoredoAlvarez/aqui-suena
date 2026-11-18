@@ -4,7 +4,7 @@ import {
   parseFiscalProfile,
   parseStoredFiscalProfile,
   TAX_REGIMES,
-} from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+} from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import { DataIntegrityError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";

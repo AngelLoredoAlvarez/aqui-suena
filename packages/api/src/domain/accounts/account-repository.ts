@@ -5,7 +5,7 @@ import {
   DEFAULT_ACCOUNT_PLAN,
   normalizeAccountEmail,
 } from "@aqui-suena/api/domain/accounts/account";
-import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import { DomainError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 

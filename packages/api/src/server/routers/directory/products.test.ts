@@ -112,19 +112,23 @@ describe("products router", () => {
   it("rejects getById with NOT_FOUND when nothing matches", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "nonexistent" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects a malformed id with BAD_REQUEST", async () => {
     const { caller } = setup();
 
-    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.getById({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects deleting a missing product with NOT_FOUND", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates a product with generated id", async () => {
@@ -159,7 +163,7 @@ describe("products router", () => {
   it("deletes a product and reports success", async () => {
     const { caller } = setup();
 
-    expect(await caller.delete("pdct-1")).toBe(true);
+    expect(await caller.delete({ id: "pdct-1" })).toBe(true);
   });
 
   it("rejects creating a product without a paid plan", async () => {

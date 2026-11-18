@@ -28,7 +28,7 @@ S8. Writing fiscal data stays open to any authenticated account (checkout fills 
 - T4. `cfdi_invoices` table, migration, D1 and in-memory repositories (S6) — inline.
 - T5. `billing.requestInvoice` procedure, R2 XML storage and router wiring (S1, S6) — inline.
 - T6. `payments.plan_id` snapshot (S6) — inline.
-- T7. Docs: `SPEC-memberships.md`, `odd/tasks/backlog.md`, `.env.schema`, `packages/api/README.md` (S5, S8) — inline.
+- T7. Docs: `docs/specs/SPEC-memberships.md`, `odd/tasks/backlog.md`, `.env.schema`, `packages/api/README.md` (S5, S8) — inline.
 
 Route for every task: inline, teaching mode. The user transcribes the code; the agent hands exact code, target file and line reference, then waits for doubts before moving on.
 
@@ -66,7 +66,7 @@ L9 (2026-11-16): T3 done (S4, S5): `toFacturamaCfdiPayload` + `FacturamaInvoiceI
 
 L10 (2026-11-16): T5-A done: `presignR2ObjectUrl` helper and `R2CfdiXmlStore`. User-approved policy for a failed XML upload after a successful stamp: persist `issued` with `xmlKey: null`, do not fail the request; the XML is recoverable later via the stored `providerId`. A known cross-context dependency (`billing` importing `infrastructure/media`) is accepted for now and logged as debt: the R2 client should move to `infrastructure/r2/`.
 
-L11 (2026-11-16): T5 done (S1, S4, S6, S8): `billing.requestInvoice` with `PRECONDITION_FAILED` when unconfigured, `createIssueInvoice` composition (all-or-nothing, VAT rate validated as a fraction), `router.ts`/`app.ts`/`worker.ts` wiring, staging `[vars]` and `.env.schema` entries. T6 done (S6): `payments.plan_id` snapshot, `NewPayment` write contract, migration `0002`. T7 docs: `SPEC-memberships.md`, `packages/api/DEPLOY.md` and `odd/tasks/backlog.md` updated.
+L11 (2026-11-16): T5 done (S1, S4, S6, S8): `billing.requestInvoice` with `PRECONDITION_FAILED` when unconfigured, `createIssueInvoice` composition (all-or-nothing, VAT rate validated as a fraction), `router.ts`/`app.ts`/`worker.ts` wiring, staging `[vars]` and `.env.schema` entries. T6 done (S6): `payments.plan_id` snapshot, `NewPayment` write contract, migration `0002`. T7 docs: `docs/specs/SPEC-memberships.md`, `packages/api/DEPLOY.md` and `odd/tasks/backlog.md` updated.
 
 L12 (2026-11-16): Remaining before the slice closes: apply migrations `0001`/`0002` to staging, upload the Facturama secrets, replace `FACTURAMA_EXPEDITION_PLACE`, deploy, and run one authenticated `billing.requestInvoice` against the sandbox to validate the payload. Every one of those is a remote mutation and waits for an explicit go-ahead.
 

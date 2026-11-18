@@ -1,4 +1,4 @@
-import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DomainError } from "@aqui-suena/api/shared/domain-error";
 

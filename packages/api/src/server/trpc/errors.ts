@@ -1,16 +1,22 @@
 import { NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 
 /**
- * tRPC input parser for required ids. Malformed input is a client error, so it
- * is rejected as a ValidationError (mapped to BAD_REQUEST at the transport).
+ * tRPC input parser for a single id.
+ *
+ * Every procedure takes an object input, so an id arrives as `{ id }` like the
+ * rest of the API. Anything else is a client error, rejected as a
+ * ValidationError (mapped to BAD_REQUEST at the transport).
  */
-export function requiredId(message: string): (value: unknown) => string {
+export function idInput(message: string): (value: unknown) => { id: string } {
   return (value: unknown) => {
-    if (typeof value !== "string" || value.length === 0) {
+    const id =
+      typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
+
+    if (typeof id !== "string" || id.length === 0) {
       throw new ValidationError(message);
     }
 
-    return value;
+    return { id };
   };
 }
 

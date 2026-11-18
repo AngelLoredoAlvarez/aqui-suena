@@ -28,7 +28,7 @@ Out of scope: HTTP tRPC handler, live Postgres + verified `db:push`, native remo
 - Branch `feat/task-3-status-api`; local commits only, no push.
 - New packages follow existing conventions: `build`/`typecheck` = `tsc --noEmit`, `test` = `vitest run`, tsconfig extending `tsconfig.base.json`.
 - dependency-cruiser layer rules must keep passing (`packages/*` never import `apps/*`).
-- Stale-sweep result (2026-10-08): no `/player` route in code (good); `SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `tasks/plan.md`, `tasks/todo.md`.
+- Stale-sweep result (2026-10-08): no `/player` route in code (good); `docs/specs/SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `tasks/plan.md`, `tasks/todo.md`.
 
 ## Authorized scope
 

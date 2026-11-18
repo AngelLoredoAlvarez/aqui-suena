@@ -78,19 +78,23 @@ describe("work entries router", () => {
   it("rejects getById with NOT_FOUND when nothing matches", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "nonexistent" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects a malformed id with BAD_REQUEST", async () => {
     const { caller } = setup();
 
-    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.getById({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects deleting a missing work entry with NOT_FOUND", async () => {
     const { caller } = setup([]);
 
-    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates a work entry with generated id", async () => {
@@ -124,6 +128,6 @@ describe("work entries router", () => {
   it("deletes a work entry and reports success", async () => {
     const { caller } = setup();
 
-    expect(await caller.delete("we-1")).toBe(true);
+    expect(await caller.delete({ id: "we-1" })).toBe(true);
   });
 });

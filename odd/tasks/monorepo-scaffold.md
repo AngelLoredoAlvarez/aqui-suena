@@ -36,7 +36,7 @@ Nothing can be built without the scaffold (Tasks 2+ depend on Task 1). The plan 
 
 Scope: the scaffold (Task 1). Only the files listed above. Push/PR/merge remain pending.
 
-## Acceptance criteria (from tasks/todo.md Task 1)
+## Acceptance criteria (from docs/archive/tasks/todo.md Task 1)
 
 - [x] `pnpm -r build` resolves all workspaces without errors
 - [x] `apps/web` renders placeholder (verified in prerendered HTML) and `apps/native` structure ready + typecheck (Expo Go boot pending manual check)
@@ -68,7 +68,7 @@ Scope: the scaffold (Task 1). Only the files listed above. Push/PR/merge remain 
 - 2026-10-07: document created, 4 tasks. Next: delegate writer for T1.1-T1.4.
 - 2026-10-07: T1.1-T1.4 completed on branch `feature/monorepo-scaffold`. Checks: `pnpm install` ok, `pnpm -r build` ok (4 workspaces), `pnpm -r typecheck` ok, `pnpm exec biome check .` exit 0 (21 files), `pnpm -r test -- --run` ok (placeholder scripts). Manual pending: open web placeholder in dev and boot native in Expo Go.
 - Commits: f627393 (T1.1 root), 42e37a2 (T1.2 apps), 618c039 (T1.3 packages), T1.4 this commit.
-- 2026-10-07: Task 1 checked off in tasks/plan.md and tasks/todo.md (commit b9012bd); native Expo Go boot left unchecked pending manual verification.
+- 2026-10-07: Task 1 checked off in docs/archive/tasks/plan.md and docs/archive/tasks/todo.md (commit b9012bd); native Expo Go boot left unchecked pending manual verification.
 - 2026-10-07: document translated to English per the standing rule (all docs in English from now on).
 
 ## Decisions
