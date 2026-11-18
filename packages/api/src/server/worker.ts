@@ -19,6 +19,7 @@ import {
   emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
 import {
+  createCancelInvoice,
   createInvoiceHistory,
   createIssueInvoice,
 } from "@aqui-suena/api/server/composition/invoices";
@@ -235,6 +236,31 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     },
   });
 
+  const cancelInvoice = createCancelInvoice({
+    db: env.aqui_suena_db,
+    facturama: {
+      user: env.FACTURAMA_USER,
+      password: env.FACTURAMA_PASSWORD,
+      baseUrl: env.FACTURAMA_BASE_URL,
+      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
+      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
+      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
+      productCode: env.FACTURAMA_PRODUCT_CODE,
+      unitCode: env.FACTURAMA_UNIT_CODE,
+      series: env.FACTURAMA_SERIES,
+      issuerRfc: env.FACTURAMA_ISSUER_RFC,
+      issuerName: env.FACTURAMA_ISSUER_NAME,
+      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
+    },
+    r2: {
+      accountId: env.R2_ACCOUNT_ID,
+      accessKeyId: env.R2_ACCESS_KEY_ID,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      bucketName: env.R2_BUCKET_NAME,
+      endpoint: env.R2_ENDPOINT,
+    },
+  });
+
   const invoiceHistory = createInvoiceHistory({
     db: env.aqui_suena_db,
     r2: {
@@ -269,6 +295,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
       issueInvoice,
       invoices: invoiceHistory.invoices,
       documents: invoiceHistory.documents,
+      cancelInvoice,
     },
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,

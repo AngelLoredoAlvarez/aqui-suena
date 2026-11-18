@@ -1,4 +1,5 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import type {
   CfdiDocumentLinker,
@@ -7,6 +8,7 @@ import type {
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
 import { R2CfdiDocumentStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-document-store";
@@ -56,25 +58,25 @@ export type IssueInvoiceCompositionOptions = {
   readonly now?: () => Date;
 };
 
-/**
- * Builds the invoice issuing chain, or `undefined` when the deployment is not
- * configured. Both halves are required: without a PAC nothing can be stamped,
- * and without R2 there is no fiscal archive.
- */
-export function createIssueInvoice(
-  options: IssueInvoiceCompositionOptions,
-): IssueInvoice | undefined {
-  const { facturama, r2 } = options;
+type FacturamaSettings = {
+  readonly credentials: { user: string; password: string; baseUrl: string };
+  readonly fiscal: {
+    mode: "web" | "multiemisor";
+    expeditionPlace: string;
+    ivaRate: number;
+    productCode: string;
+    unitCode: string;
+    series?: string;
+    issuer?: { rfc: string; name: string; fiscalRegime: string };
+  };
+};
 
-  if (
-    !facturama.user ||
-    !facturama.password ||
-    !facturama.baseUrl ||
-    !facturama.expeditionPlace ||
-    !r2.accountId ||
-    !r2.accessKeyId ||
-    !r2.secretAccessKey
-  ) {
+/**
+ * Validates the PAC settings once and returns them in the shape both adapters
+ * take, or `undefined` when the deployment cannot invoice at all.
+ */
+function facturamaSettings(facturama: FacturamaEnv): FacturamaSettings | undefined {
+  if (!facturama.user || !facturama.password || !facturama.baseUrl || !facturama.expeditionPlace) {
     return undefined;
   }
 
@@ -93,9 +95,7 @@ export function createIssueInvoice(
     return undefined;
   }
 
-  const fetchFn = options.fetch ?? fetch;
-
-  const issuer = new FacturamaInvoiceIssuer({
+  return {
     credentials: {
       user: facturama.user,
       password: facturama.password,
@@ -117,6 +117,29 @@ export function createIssueInvoice(
             }
           : undefined,
     },
+  };
+}
+
+/**
+ * Builds the invoice issuing chain, or `undefined` when the deployment is not
+ * configured. Both halves are required: without a PAC nothing can be stamped,
+ * and without R2 there is no fiscal archive.
+ */
+export function createIssueInvoice(
+  options: IssueInvoiceCompositionOptions,
+): IssueInvoice | undefined {
+  const { facturama, r2 } = options;
+  const settings = facturamaSettings(facturama);
+
+  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+    return undefined;
+  }
+
+  const fetchFn = options.fetch ?? fetch;
+
+  const issuer = new FacturamaInvoiceIssuer({
+    credentials: settings.credentials,
+    fiscal: settings.fiscal,
     fetch: fetchFn,
   });
 
@@ -189,4 +212,60 @@ export function createInvoiceHistory(options: {
   });
 
   return { invoices, documents: store };
+}
+
+export type CancelInvoiceCompositionOptions = {
+  readonly db: D1Database;
+  readonly facturama: FacturamaEnv;
+  readonly r2: R2Env;
+  readonly fetch?: typeof fetch;
+  readonly now?: () => Date;
+};
+
+/**
+ * Builds the cancellation chain, or `undefined` when the deployment cannot
+ * cancel. R2 is required as well: cancelling without keeping the acuse would
+ * leave the fiscal proof nowhere.
+ */
+export function createCancelInvoice(
+  options: CancelInvoiceCompositionOptions,
+): CancelInvoice | undefined {
+  const settings = facturamaSettings(options.facturama);
+  const { r2 } = options;
+
+  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+    return undefined;
+  }
+
+  const fetchFn = options.fetch ?? fetch;
+
+  const canceller = new FacturamaInvoiceCanceller({
+    credentials: settings.credentials,
+    fiscal: settings.fiscal,
+    fetch: fetchFn,
+  });
+
+  const documents = new R2CfdiDocumentStore({
+    r2: {
+      accountId: r2.accountId,
+      accessKeyId: r2.accessKeyId,
+      secretAccessKey: r2.secretAccessKey,
+      bucketName: r2.bucketName ?? DEFAULT_BUCKET,
+      endpoint: r2.endpoint,
+    },
+    fetch: fetchFn,
+  });
+
+  return new CancelInvoice({
+    invoices: new D1CfdiInvoiceRepository(options.db),
+    canceller,
+    documents,
+    now: options.now,
+    onArchiveError: (error, accountId) => {
+      console.error("billing: CFDI acuse archive failed", {
+        accountId,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
+  });
 }

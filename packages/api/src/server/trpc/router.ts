@@ -1,4 +1,5 @@
 import type { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import type {
   CfdiDocumentLinker,
   CfdiInvoiceRepository,
@@ -31,6 +32,7 @@ export type BillingSurfaces = {
   readonly issueInvoice?: Pick<IssueInvoice, "execute">;
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;
+  readonly cancelInvoice?: Pick<CancelInvoice, "execute">;
 };
 
 export function createAppRouter(
