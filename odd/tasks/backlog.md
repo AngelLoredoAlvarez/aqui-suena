@@ -20,14 +20,15 @@ Last synced 2026-11-18 against `main` at the `refactor/project-hygiene` merge (C
 
 Documented state, not fixed yet. Nothing below changes behavior today.
 
-- [ ] Email sender and triggers (partially done 2026-11-11): `ResendEmailSender`
-      and the `SubscriptionNotifier` are now instantiated in the composition root
-      (`feat/email-sender-wiring`) and wired through `createApp`/`createAppRouter`;
-      the first call site `subscriptions.cancel` is live. Remaining: wire the
-      `AccountNotifier` and `PaymentNotifier`, and add the signup/verification,
-      payment receipt, renewal-reminder and downgrade call sites (blocked on auth,
-      payment provider, and a Worker cron). Until those exist, only the
-      cancellation email can actually be sent. **When the cron lands:** every
+- [ ] Email sender and triggers (partially done 2026-11-11, extended 2026-11-18):
+      `ResendEmailSender`, the subscription notifier and the CFDI notifier are
+      instantiated in the composition root (`feat/email-sender-wiring`,
+      `feat/cfdi-email`) and wired through `createApp`/`createAppRouter`;
+      `subscriptions.cancel` and `billing.requestInvoice` are the live call
+      sites. Remaining: wire the `AccountNotifier` and `PaymentNotifier`, and add
+      the signup/verification, payment receipt, renewal-reminder and downgrade
+      call sites (blocked on signup, a payment provider and a Worker cron). Until
+      those exist, only the cancellation and CFDI delivery emails are sent. **When the cron lands:** every
       scheduled sender must resolve the recipient from an account row and skip
       rows with `deleted_at` set — a deleted account keeps its financial records
       but must never receive mail again (spec S8 of
@@ -270,8 +271,9 @@ explains.
       verification. The noche/brasa token sets exist; no `useColorScheme` call
       does.
 - [ ] Tamagui `ZStack` cleanup for the overlay: overlays are still positioned
-      with `position="absolute"` on `YStack` (`player-landing.tsx`), the
-      non-idiomatic shape found during the overlay work.
+      with `position="absolute"` on `YStack` (`packages/ui/src/player-landing/player-dock.tsx`,
+      moved out of `player-landing.tsx` by the dock refactor), the non-idiomatic
+      shape found during the overlay work.
 - [x] Native system bars (Android): DONE 2026-11-14 (PR #30) and verified on a
       physical device 2026-11-16 with build `caf3c458`. The landing clears the
       status bar and the player clears the navigation bar. The same safe-area hook
@@ -353,14 +355,23 @@ explains.
 ## Email integration follow-ups (2026-11-10)
 
 Templates, renderer and notifiers are merged. `packages/api/src/server/composition/email.ts`
-instantiates `ResendEmailSender` and the subscription notifier and wires them
-through `createApp`/`createAppRouter` when `RESEND_API_KEY` is set.
+instantiates `ResendEmailSender`, the subscription notifier and the CFDI notifier
+and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is set.
 
 - [ ] Account flows: call `AccountNotifier.emailVerificationRequested` and `.welcome` from signup and email verification once auth exists (only the null-safe Supabase seam exists today).
 - [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
 - [x] Cancellation: `subscriptions.cancel` is live and passes the account `recipientEmail` and `locale` into `SubscriptionService.cancel` (2026-11-11).
 - [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral below).
-- [ ] CFDI email: blocked on a PAC integration and CFDI file hosting (see `email-templates/TEMPLATES.md`). Fiscal data is only requested from accounts with paid time (resolved plan, not `accounts.plan_id`); storing it stays open to any authenticated account and issuing a CFDI requires a paid plan (`UPGRADE_REQUIRED` otherwise). The `invoices` table was dropped (2026-11-16) because nothing consumed it and it duplicated `payments`; the CFDI document gets its own table next, and `payments` needs a `plan_id` snapshot before Conekta is wired.
+- [x] CFDI email — DONE 2026-11-18 (`feat/cfdi-email`). `TemplateCfdiNotifier`
+      delivers template 8 with the provider PDF and the archived XML attached;
+      `IssueInvoice` archives the PDF beside the XML (`cfdi_invoices.pdf_key`,
+      migration `0004`) and sends after recording the row. Fiscal data is only
+      requested from accounts with paid time (resolved plan, not
+      `accounts.plan_id`); storing it stays open to any authenticated account and
+      issuing a CFDI requires a paid plan (`UPGRADE_REQUIRED` otherwise).
+      `cfdi_invoices` exists since migrations `0001`/`0002`, so the dropped
+      `invoices` table is closed history; `payments` still needs a `plan_id`
+      snapshot before Conekta is wired.
 
 ## Deferred (account preferences — revisit on the third preference)
 
