@@ -6,7 +6,7 @@ Implement Task 3 (DB + tRPC status API) adjusted to the landing `/`: Drizzle sch
 
 ## Problem
 
-`tasks/plan.md` and `tasks/todo.md` still describe `/player` route shells, a `apps/web/app/player/page.tsx`, and placeholder-`/player` checkpoints that no longer exist since player-landing. No `packages/db` or `packages/api` exist; no tRPC/Drizzle/TanStack/zod installed anywhere.
+`docs/archive/tasks/plan.md` and `docs/archive/tasks/todo.md` still describe `/player` route shells, a `apps/web/app/player/page.tsx`, and placeholder-`/player` checkpoints that no longer exist since player-landing. No `packages/db` or `packages/api` exist; no tRPC/Drizzle/TanStack/zod installed anywhere.
 
 ## Why
 
@@ -14,7 +14,7 @@ Scope: start Task 3 adjusted to the landing, sweep and fix everything not update
 
 ## Scope
 
-- Living docs: `tasks/plan.md` (overview + architecture), `tasks/todo.md` (Task 2 close-out as landed, Task 3 rewritten for landing, checkpoint wording). Closed `odd/tasks/*` history docs stay untouched.
+- Living docs: `docs/archive/tasks/plan.md` (overview + architecture), `docs/archive/tasks/todo.md` (Task 2 close-out as landed, Task 3 rewritten for landing, checkpoint wording). Closed `odd/tasks/*` history docs stay untouched.
 - `packages/db` (new workspace): Drizzle `pg-core` schema `stations` / `listen_sessions` + `db:push` script (drizzle-kit, needs `DATABASE_URL`; live run deferred, marked pending).
 - `packages/api` (new workspace): tRPC `listener.getStatus` router, zod-validated input/output, mock data source. Unit-tested via caller (no HTTP).
 - Landing wiring: shared async status fetcher in `packages/api` consumed via TanStack Query in `PlayerLanding` with loading/error/data states; `QueryClientProvider` in web + native providers. No HTTP transport, no native absolute-URL config yet.
@@ -28,7 +28,7 @@ Out of scope: HTTP tRPC handler, live Postgres + verified `db:push`, native remo
 - Branch `feat/task-3-status-api`; local commits only, no push.
 - New packages follow existing conventions: `build`/`typecheck` = `tsc --noEmit`, `test` = `vitest run`, tsconfig extending `tsconfig.base.json`.
 - dependency-cruiser layer rules must keep passing (`packages/*` never import `apps/*`).
-- Stale-sweep result (2026-10-08): no `/player` route in code (good); `docs/specs/SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `tasks/plan.md`, `tasks/todo.md`.
+- Stale-sweep result (2026-10-08): no `/player` route in code (good); `docs/specs/SPEC-radio-playback.md` already landing-aware (good); `packages/navigation` route contracts kept intentionally per AGENTS.md (good); stale only in `docs/archive/tasks/plan.md`, `docs/archive/tasks/todo.md`.
 
 ## Authorized scope
 
@@ -45,7 +45,7 @@ Approved: Task 3 adjusted to the landing, with corrections on a new branch, plus
 
 ## Tasks
 
-- [x] T1 Fix stale docs (`tasks/plan.md`, `tasks/todo.md` Task 2 close-out + Task 3 landing rewrite)
+- [x] T1 Fix stale docs (`docs/archive/tasks/plan.md`, `docs/archive/tasks/todo.md` Task 2 close-out + Task 3 landing rewrite)
 - [x] T2 `packages/db`: Drizzle schema + schema test (RED→GREEN)
 - [x] T3 `packages/api`: tRPC `listener.getStatus` + zod + mock + router tests (RED→GREEN)
 - [x] T4 Landing wiring: shared fetcher + `useListenerStatus` + `PlayerLanding` states + providers (web/native) + UI test

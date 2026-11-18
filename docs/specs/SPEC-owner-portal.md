@@ -1,6 +1,6 @@
 # Spec: owner-portal — Aquí Suena for Business (by 17Labs)
 
-> **Status: partial (2026-11-16).** The directory and billing procedures the portal consumes are implemented in `packages/api`; no `/owner` route, form or billing view exists in `apps/web` yet.
+> **Status: partial (2026-11-18).** The directory and billing procedures the portal consumes are implemented in `packages/api` — including account deletion and CFDI issuing with email delivery — and lazy account provisioning means a first authenticated request already has its `accounts` row. No `/owner` route, form or billing view exists in `apps/web` yet: the only page there is the landing player.
 
 ## Objective
 

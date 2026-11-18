@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-11-18 against `feat/cfdi-email` (CFDI delivery by email with the PDF and XML attached, plus the PDF archived in R2; the owner-portal invoice history and download surface is now a tracked gap).
+Last synced 2026-11-18 against `main` at the `refactor/project-hygiene` merge (CFDI delivery by email with the PDF and XML attached, the PDF archived in R2, account provisioning and deletion shipped, the id input contract normalized, and the specs moved under `docs/specs`; the owner-portal invoice history and download surface is the newest tracked gap).
 
 ## Production wiring (closed 2026-11-10)
 
