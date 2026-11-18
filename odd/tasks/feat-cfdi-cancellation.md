@@ -78,7 +78,7 @@ acceptance handling, refunds and payment coupling, and any UI.
 
 ## Verification
 
-- `pnpm --filter @aqui-suena/api test` — 953 tests, 117 files, green.
+- `pnpm --filter @aqui-suena/api test` — 960 tests, 117 files, green.
 - `typecheck`, `biome check`, `pnpm arch`, `check:singletons` — clean.
 - Not exercised on staging yet: the adapter is covered by unit tests against the
   provider contract, and the happy path can be cancelled for real in sandbox
@@ -94,6 +94,13 @@ acceptance handling, refunds and payment coupling, and any UI.
   `getByIdForAccount` no longer filter on `issued`. A cancelled invoice is still
   fiscal history and must stay visible, and a download of a cancelled CFDI is
   still the legal record. Only `failed` rows are excluded from the list.
+- **L5** — The staging probe found that Facturama sandbox returns a canned acuse
+  (UUID `0088B8E0-…`, `EstatusUUID 201`, dated 2021) instead of the real one. The
+  code archived whatever arrived, so a document proving nothing could be filed as
+  proof. `archiveAcuse` now checks the acuse names the cancelled UUID: a mismatch
+  is dropped, recorded in `cancellation_detail` as "acuse does not match the
+  invoice", and never fails a cancellation that already happened. Added after the
+  first merge, in `fix/acuse-must-match-invoice`.
 - **L4** — Reconciliation runs inside the listing query, which writes on a GET.
   Accepted on purpose with hard bounds (five rows per call, only expired windows
   or stale checks). It moves to the cron when that exists, leaving the listing

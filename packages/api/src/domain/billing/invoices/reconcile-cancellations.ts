@@ -1,13 +1,11 @@
+import { archiveAcuse, mergeDetail } from "@aqui-suena/api/domain/billing/invoices/archive-acuse";
 import { cancellationStateFor } from "@aqui-suena/api/domain/billing/invoices/cancellation-outcome";
 import type {
   CfdiDocumentStore,
   CfdiInvoice,
   CfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
-import type {
-  InvoiceCancellationResult,
-  InvoiceCanceller,
-} from "@aqui-suena/api/domain/billing/invoices/invoice-canceller";
+import type { InvoiceCanceller } from "@aqui-suena/api/domain/billing/invoices/invoice-canceller";
 
 export type ReconcileCancellationsDependencies = {
   readonly invoices: CfdiInvoiceRepository;
@@ -72,7 +70,13 @@ export class ReconcileCancellations {
 
     const result = await this.deps.canceller.cancellationStatus(invoice.providerId);
     const state = cancellationStateFor(result, now);
-    const acuseKey = await this.tryArchiveAcuse(invoice.accountId, result);
+    const acuse = await archiveAcuse({
+      documents: this.deps.documents,
+      accountId: invoice.accountId,
+      invoiceUuid: invoice.uuid,
+      acuseXml: result.acuseXml,
+      onArchiveError: this.deps.onError,
+    });
 
     await this.deps.invoices.recordCancellationOutcome({
       id: invoice.id,
@@ -80,27 +84,12 @@ export class ReconcileCancellations {
       status: state.status,
       resolvedAt: state.resolvedAt,
       expiresAt: state.expiresAt,
-      detail: result.detail,
-      acuseKey: acuseKey ?? invoice.acuseKey,
+      detail: mergeDetail(result.detail, acuse.warning),
+      acuseKey: acuse.key ?? invoice.acuseKey,
       updatedAt: now,
     });
 
     return true;
-  }
-
-  private async tryArchiveAcuse(
-    accountId: string,
-    result: InvoiceCancellationResult,
-  ): Promise<string | null> {
-    if (result.acuseXml === null) return null;
-
-    try {
-      return await this.deps.documents.saveAcuse({ accountId, xml: result.acuseXml });
-    } catch (error) {
-      this.deps.onError?.(error, accountId);
-
-      return null;
-    }
   }
 }
 
