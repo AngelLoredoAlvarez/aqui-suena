@@ -14,8 +14,8 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
 
     await this.db
       .prepare(
-        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, failure_reason, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -25,6 +25,7 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
         input.uuid,
         input.providerId,
         input.xmlKey,
+        input.pdfKey,
         input.failureReason,
         toEpoch(now),
         toEpoch(now),

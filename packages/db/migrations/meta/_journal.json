@@ -29,6 +29,13 @@
       "when": 1794954456294,
       "tag": "0003_big_randall",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1795025613411,
+      "tag": "0004_cuddly_network",
+      "breakpoints": true
     }
   ]
 }

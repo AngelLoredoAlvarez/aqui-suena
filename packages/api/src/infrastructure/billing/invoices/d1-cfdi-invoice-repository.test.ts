@@ -5,7 +5,7 @@ import { normalizeSql } from "@aqui-suena/api/testing/sql";
 import { describe, expect, it } from "vitest";
 
 describe("D1CfdiInvoiceRepository", () => {
-  it("inserts an issued invoice with its fiscal ids and XML key", async () => {
+  it("inserts an issued invoice with its fiscal ids and its document keys", async () => {
     const db = new FakeD1Database();
 
     const repository = new D1CfdiInvoiceRepository(db.db);
@@ -17,6 +17,7 @@ describe("D1CfdiInvoiceRepository", () => {
       uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
       providerId: "fac-1",
       xmlKey: "cfdi/acc-1/1.xml",
+      pdfKey: "cfdi/acc-1/1.pdf",
       failureReason: null,
     });
 
@@ -39,6 +40,7 @@ describe("D1CfdiInvoiceRepository", () => {
       "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
       "fac-1",
       "cfdi/acc-1/1.xml",
+      "cfdi/acc-1/1.pdf",
       null,
       toEpoch(invoice.createdAt),
       toEpoch(invoice.updatedAt),
@@ -57,6 +59,7 @@ describe("D1CfdiInvoiceRepository", () => {
       uuid: null,
       providerId: null,
       xmlKey: null,
+      pdfKey: null,
       failureReason: "El RFC del receptor no se encuentra en la lista de contribuyentes",
     });
 
@@ -66,6 +69,7 @@ describe("D1CfdiInvoiceRepository", () => {
       "acc-1",
       null,
       "failed",
+      null,
       null,
       null,
       null,

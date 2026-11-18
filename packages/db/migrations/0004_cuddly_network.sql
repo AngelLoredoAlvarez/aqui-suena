@@ -1,0 +1,1 @@
+ALTER TABLE `cfdi_invoices` ADD `pdf_key` text;

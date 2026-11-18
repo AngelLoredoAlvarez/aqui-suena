@@ -30,6 +30,7 @@ const issuedInvoice: CfdiInvoice = {
   uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
   providerId: "fac-1",
   xmlKey: "cfdi/acc-1/1.xml",
+  pdfKey: "cfdi/acc-1/1.pdf",
   failureReason: null,
   createdAt: new Date("2026-11-16T18:00:00Z"),
   updatedAt: new Date("2026-11-16T18:00:00Z"),

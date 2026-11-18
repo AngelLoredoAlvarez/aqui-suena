@@ -13,7 +13,11 @@ import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-
 import { D1StationRepository } from "@aqui-suena/api/infrastructure/radio/d1-station-repository";
 import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support/vectorize-plan-index";
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
-import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
+import {
+  createCfdiNotifier,
+  createSubscriptionNotifier,
+  EMAIL_BILLING_URL,
+} from "@aqui-suena/api/server/composition/email";
 import { createIssueInvoice } from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
@@ -186,12 +190,15 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
       : new FullCatalogRetriever(planRepository);
 
   const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
+  const cfdiNotifier = createCfdiNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
 
   const issueInvoice = createIssueInvoice({
     db: env.aqui_suena_db,
     account: directoryRepositories.account,
     subscriptions: directoryRepositories.subscription,
     plans: planRepository,
+    notifier: cfdiNotifier,
+    downloadUrl: EMAIL_BILLING_URL,
     facturama: {
       user: env.FACTURAMA_USER,
       password: env.FACTURAMA_PASSWORD,

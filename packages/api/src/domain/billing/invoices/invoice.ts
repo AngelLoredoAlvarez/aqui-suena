@@ -10,6 +10,7 @@ export type CfdiInvoice = {
   uuid: string | null;
   providerId: string | null;
   xmlKey: string | null;
+  pdfKey: string | null;
   failureReason: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -21,8 +22,9 @@ export interface CfdiInvoiceRepository {
   create(input: NewCfdiInvoice): Promise<CfdiInvoice>;
 }
 
-export interface CfdiXmlStore {
-  save(input: { accountId: string; xml: string }): Promise<string>;
+export interface CfdiDocumentStore {
+  saveXml(input: { accountId: string; xml: string }): Promise<string>;
+  savePdf(input: { accountId: string; pdf: Uint8Array }): Promise<string>;
 }
 
 export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {

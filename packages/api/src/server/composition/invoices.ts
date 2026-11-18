@@ -1,10 +1,11 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
-import { R2CfdiXmlStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-xml-store";
+import { R2CfdiDocumentStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-document-store";
 import type { R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
 const DEFAULT_IVA_RATE = 0.16;
@@ -39,11 +40,14 @@ export type R2Env = {
 
 export type IssueInvoiceCompositionOptions = {
   readonly db: D1Database;
-  readonly account: Pick<AccountRepository, "getFiscalProfile">;
+  readonly account: Pick<AccountRepository, "getFiscalProfile" | "getById">;
   readonly subscriptions: SubscriptionRepository;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly facturama: FacturamaEnv;
   readonly r2: R2Env;
+  /** Delivery is optional: without it the invoice is issued and archived only. */
+  readonly notifier?: CfdiNotifier;
+  readonly downloadUrl?: string;
   readonly fetch?: typeof fetch;
   readonly now?: () => Date;
 };
@@ -126,11 +130,20 @@ export function createIssueInvoice(
     plans: options.plans,
     issuer,
     invoices: new D1CfdiInvoiceRepository(options.db),
-    xml: new R2CfdiXmlStore({ r2: r2Options, fetch: fetchFn }),
+    documents: new R2CfdiDocumentStore({ r2: r2Options, fetch: fetchFn }),
+    accounts: options.account,
+    notifier: options.notifier,
+    downloadUrl: options.downloadUrl,
     now: options.now,
     onArchiveError: (error, accountId) => {
-      console.error("billing: CFDI XML archive failed", {
+      console.error("billing: CFDI document archive failed", {
         accountId,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
+    onDeliveryError: (error, stage, subjectId) => {
+      console.error(`billing: CFDI ${stage} delivery failed`, {
+        subjectId,
         error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
       });
     },

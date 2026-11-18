@@ -115,4 +115,43 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
 
     return { providerId, uuid, xml: decodeXml(xml) };
   }
+
+  /**
+   * The stamped PDF is addressed by provider id. Both API variants answer with
+   * the file as the raw response body, not as JSON.
+   */
+  async downloadPdf(providerId: string): Promise<Uint8Array> {
+    const { credentials, fiscal } = this.deps;
+
+    const endpoint = fiscal.mode === "multiemisor" ? MULTIEMISOR_ENDPOINT : WEB_ENDPOINT;
+
+    // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
+    const fetchFn = this.deps.fetch;
+
+    const id = encodeURIComponent(providerId);
+
+    const response = await fetchFn(
+      `${trimTrailingSlash(credentials.baseUrl)}${endpoint}/${id}?format=pdf`,
+      {
+        headers: {
+          Accept: "application/pdf",
+          Authorization: toBasicAuth(credentials.user, credentials.password),
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new InvoiceProviderRejection(await readRejectionDetail(response));
+    }
+
+    const bytes = new Uint8Array(await response.arrayBuffer());
+
+    // A 200 with an empty body is not a PDF; treating it as success would ship
+    // a zero-byte attachment and a bogus R2 object.
+    if (bytes.length === 0) {
+      throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
+    }
+
+    return bytes;
+  }
 }

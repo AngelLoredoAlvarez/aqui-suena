@@ -113,6 +113,7 @@ export const cfdiInvoices = sqliteTable("cfdi_invoices", {
   uuid: text("uuid"),
   providerId: text("provider_id"),
   xmlKey: text("xml_key"),
+  pdfKey: text("pdf_key"),
   failureReason: text("failure_reason"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

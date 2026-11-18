@@ -1,32 +1,44 @@
-import type { CfdiXmlStore } from "@aqui-suena/api/domain/billing/invoices/invoice";
+import type { CfdiDocumentStore } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { presignR2ObjectUrl, type R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
-export type R2CfdiXmlStoreDependencies = {
+export type R2CfdiDocumentStoreDependencies = {
   readonly r2: R2StorageOptions;
   readonly fetch: typeof fetch;
 };
 
-const CONTENT_TYPE = "application/xml";
+/** Stores stamped CFDI documents (XML and PDF) in R2. The key layout belongs to this adapter. */
+export class R2CfdiDocumentStore implements CfdiDocumentStore {
+  private readonly deps: R2CfdiDocumentStoreDependencies;
 
-/** Stores stamped CFDI XML in R2. The key layout belongs to this adapter. */
-export class R2CfdiXmlStore implements CfdiXmlStore {
-  private readonly deps: R2CfdiXmlStoreDependencies;
-
-  constructor(deps: R2CfdiXmlStoreDependencies) {
+  constructor(deps: R2CfdiDocumentStoreDependencies) {
     this.deps = deps;
   }
 
-  async save(input: { accountId: string; xml: string }): Promise<string> {
-    const key = `cfdi/${input.accountId}/${crypto.randomUUID()}.xml`;
+  async saveXml(input: { accountId: string; xml: string }): Promise<string> {
+    return this.put(
+      `cfdi/${input.accountId}/${crypto.randomUUID()}.xml`,
+      input.xml,
+      "application/xml",
+    );
+  }
 
+  async savePdf(input: { accountId: string; pdf: Uint8Array }): Promise<string> {
+    return this.put(
+      `cfdi/${input.accountId}/${crypto.randomUUID()}.pdf`,
+      input.pdf,
+      "application/pdf",
+    );
+  }
+
+  private async put(key: string, body: string | Uint8Array, contentType: string): Promise<string> {
     const url = await presignR2ObjectUrl(this.deps.r2, "PUT", key);
     // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
     const fetchFn = this.deps.fetch;
 
     const response = await fetchFn(url, {
       method: "PUT",
-      headers: { "Content-Type": CONTENT_TYPE },
-      body: input.xml,
+      headers: { "Content-Type": contentType },
+      body,
     });
 
     if (!response.ok) {
