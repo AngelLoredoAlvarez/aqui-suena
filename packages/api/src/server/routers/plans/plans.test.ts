@@ -32,13 +32,15 @@ describe("plans router", () => {
   it("rejects a malformed id with BAD_REQUEST", async () => {
     const caller = createPlansRouter(new InMemoryPlanRepository([])).createCaller({ user: null });
 
-    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.getById({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects an unknown plan id with NOT_FOUND", async () => {
     const caller = createPlansRouter(new InMemoryPlanRepository([])).createCaller({ user: null });
 
-    await expect(caller.getById("enterprise" as never)).rejects.toMatchObject({
+    await expect(caller.getById({ id: "enterprise" as never })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
   });
@@ -46,6 +48,6 @@ describe("plans router", () => {
   it("rejects a known plan id that is not persisted with NOT_FOUND", async () => {
     const caller = createPlansRouter(new InMemoryPlanRepository([])).createCaller({ user: null });
 
-    await expect(caller.getById("community")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "community" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

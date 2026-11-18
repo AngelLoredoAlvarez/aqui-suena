@@ -42,7 +42,9 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    await expect(caller.getById("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "nonexistent" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects a malformed id with BAD_REQUEST", async () => {
@@ -53,7 +55,9 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    await expect(caller.getById(123 as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.getById({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects deleting a missing business with NOT_FOUND", async () => {
@@ -64,7 +68,7 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    await expect(caller.delete("nonexistent")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("creates a business and returns it with a generated id", async () => {
@@ -129,7 +133,7 @@ describe("businesses router", () => {
       subscription: new InMemorySubscriptionRepository([]),
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
-    const deleted = await caller.delete("biz-1");
+    const deleted = await caller.delete({ id: "biz-1" });
 
     expect(deleted).toBe(true);
   });
@@ -148,7 +152,7 @@ describe("businesses router", () => {
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect((await caller.list()).items).toEqual([]);
-    await expect(caller.getById("biz-hidden")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getById({ id: "biz-hidden" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("returns hidden businesses through the owner endpoints", async () => {
@@ -165,7 +169,7 @@ describe("businesses router", () => {
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
     expect((await caller.listMine()).items.map((item) => item.id)).toEqual(["biz-hidden"]);
-    expect((await caller.getMine("biz-hidden"))?.id).toBe("biz-hidden");
+    expect((await caller.getMine({ id: "biz-hidden" }))?.id).toBe("biz-hidden");
   });
 
   it("does not return another account's business through the owner endpoint", async () => {
@@ -182,7 +186,9 @@ describe("businesses router", () => {
     });
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    await expect(caller.getMine("biz-foreign")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.getMine({ id: "biz-foreign" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects creating a business when the account cap is reached", async () => {

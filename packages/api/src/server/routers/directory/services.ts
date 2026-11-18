@@ -1,7 +1,8 @@
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { ServiceRepository } from "@aqui-suena/api/domain/directory/service";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
@@ -44,9 +45,9 @@ export function createServicesRouter(deps: ServicesRouterDeps) {
       }),
 
     getById: publicProcedure
-      .input(requiredId("Service id is required"))
+      .input(idInput("Service id is required"))
       .query(async ({ input }) =>
-        requireFound(await repository.getById(input), "Service not found"),
+        requireFound(await repository.getById(input.id), "Service not found"),
       ),
 
     create: protectedProcedure.input(createServiceInput).mutation(async ({ input, ctx }) => {
@@ -57,21 +58,30 @@ export function createServicesRouter(deps: ServicesRouterDeps) {
 
     update: protectedProcedure.input(updateServiceInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
-      const current = requireFound(await repository.getById(id), "Service not found");
 
-      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+      await findOwned(
+        (childId) => repository.getById(childId),
+        business,
+        ctx.user.accountId,
+        id,
+        "Service not found",
+      );
 
       return requireFound(await repository.update(id, rest), "Service not found");
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Service id is required"))
+      .input(idInput("Service id is required"))
       .mutation(async ({ input, ctx }) => {
-        const current = requireFound(await repository.getById(input), "Service not found");
+        await findOwned(
+          (childId) => repository.getById(childId),
+          business,
+          ctx.user.accountId,
+          input.id,
+          "Service not found",
+        );
 
-        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
-
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Service not found");
         }
 

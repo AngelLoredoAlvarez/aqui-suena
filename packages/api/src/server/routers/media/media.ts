@@ -1,7 +1,7 @@
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
-import { requiredId } from "@aqui-suena/api/server/trpc/errors";
+import { idInput } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { offsetInputSchema } from "@aqui-suena/api/shared/pagination/input";
@@ -111,15 +111,15 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
       }),
 
     delete: protectedProcedure
-      .input(requiredId("Media id is required"))
+      .input(idInput("Media id is required"))
       .mutation(async ({ input, ctx }) => {
         const activeStorage = requireStorage(storage);
-        const media = await repository.getById(input);
+        const media = await repository.getById(input.id);
         if (media === null || media.ownerId !== ctx.user.accountId) {
           throw new NotFoundError("Media not found");
         }
         await activeStorage.delete(media.r2Key);
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Media not found");
         }
         return true;

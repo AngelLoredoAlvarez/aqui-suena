@@ -1,7 +1,8 @@
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { cursorInputSchema } from "@aqui-suena/api/shared/pagination/input";
@@ -33,8 +34,10 @@ export function createFlyersRouter(deps: FlyersRouterDeps) {
       }),
 
     getById: publicProcedure
-      .input(requiredId("Flyer id is required"))
-      .query(async ({ input }) => requireFound(await repository.getById(input), "Flyer not found")),
+      .input(idInput("Flyer id is required"))
+      .query(async ({ input }) =>
+        requireFound(await repository.getById(input.id), "Flyer not found"),
+      ),
 
     create: protectedProcedure.input(createFlyerInput).mutation(async ({ input, ctx }) => {
       await assertBusinessOwned(business, ctx.user.accountId, input.businessId);
@@ -44,21 +47,30 @@ export function createFlyersRouter(deps: FlyersRouterDeps) {
 
     update: protectedProcedure.input(updateFlyerInput).mutation(async ({ input, ctx }) => {
       const { id, ...rest } = input;
-      const current = requireFound(await repository.getById(id), "Flyer not found");
 
-      await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
+      await findOwned(
+        (childId) => repository.getById(childId),
+        business,
+        ctx.user.accountId,
+        id,
+        "Flyer not found",
+      );
 
       return requireFound(await repository.update(id, rest), "Flyer not found");
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Flyer id is required"))
+      .input(idInput("Flyer id is required"))
       .mutation(async ({ input, ctx }) => {
-        const current = requireFound(await repository.getById(input), "Flyer not found");
+        await findOwned(
+          (childId) => repository.getById(childId),
+          business,
+          ctx.user.accountId,
+          input.id,
+          "Flyer not found",
+        );
 
-        await assertBusinessOwned(business, ctx.user.accountId, current.businessId);
-
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Flyer not found");
         }
 

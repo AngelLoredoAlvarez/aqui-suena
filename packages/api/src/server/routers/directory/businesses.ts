@@ -4,7 +4,7 @@ import type { BusinessRepository } from "@aqui-suena/api/domain/directory/busine
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { assertCanCreateBusiness } from "@aqui-suena/api/domain/plans/entitlements";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
-import { requiredId, requireFound } from "@aqui-suena/api/server/trpc/errors";
+import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { cursorInputSchema, offsetInputSchema } from "@aqui-suena/api/shared/pagination/input";
@@ -58,9 +58,9 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
       }),
 
     getMine: protectedProcedure
-      .input(requiredId("Business id is required"))
+      .input(idInput("Business id is required"))
       .query(async ({ input, ctx }) => {
-        const business = await repository.getByIdForOwner(input);
+        const business = await repository.getByIdForOwner(input.id);
 
         if (business === null || business.accountId !== ctx.user.accountId) {
           throw new NotFoundError("Business not found");
@@ -69,11 +69,9 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
         return business;
       }),
 
-    getById: publicProcedure
-      .input(requiredId("Business id is required"))
-      .query(async ({ input }) => {
-        return requireFound(await repository.getById(input), "Business not found");
-      }),
+    getById: publicProcedure.input(idInput("Business id is required")).query(async ({ input }) => {
+      return requireFound(await repository.getById(input.id), "Business not found");
+    }),
 
     create: protectedProcedure.input(createBusinessInput).mutation(async ({ input, ctx }) => {
       // Never trust a client-supplied accountId: a business always belongs to
@@ -97,11 +95,11 @@ export function createBusinessesRouter(deps: BusinessesRouterDeps) {
     }),
 
     delete: protectedProcedure
-      .input(requiredId("Business id is required"))
+      .input(idInput("Business id is required"))
       .mutation(async ({ input, ctx }) => {
-        await assertBusinessOwned(repository, ctx.user.accountId, input);
+        await assertBusinessOwned(repository, ctx.user.accountId, input.id);
 
-        if (!(await repository.delete(input))) {
+        if (!(await repository.delete(input.id))) {
           throw new NotFoundError("Business not found");
         }
 
