@@ -21,6 +21,8 @@ export class ResendEmailSender implements EmailSender {
   }
 
   async send(message: EmailMessage): Promise<void> {
+    // Workers rejects a native fetch invoked as a method (`this.fetchFn()`).
+    const fetchFn = this.fetchFn;
     const attachments =
       message.attachments?.map((attachment) => ({
         filename: attachment.filename,
@@ -28,7 +30,7 @@ export class ResendEmailSender implements EmailSender {
         content_type: attachment.contentType,
       })) ?? [];
 
-    const response = await this.fetchFn(RESEND_API_URL, {
+    const response = await fetchFn(RESEND_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
