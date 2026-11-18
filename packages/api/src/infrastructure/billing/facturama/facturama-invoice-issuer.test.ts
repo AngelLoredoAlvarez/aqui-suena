@@ -150,4 +150,65 @@ describe("FacturamaInvoiceIssuer", () => {
       xml: "<cfdi:Comprobante/>",
     });
   });
+
+  it("downloads the stamped PDF with basic auth and returns the raw bytes", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+
+    const fakeFetch: typeof fetch = async (input, init) => {
+      calls.push({ url: String(input), init: init ?? {} });
+
+      return new Response(new Uint8Array([0x25, 0x50, 0x44, 0x46]), { status: 200 });
+    };
+
+    const pdf = await setup(fakeFetch).downloadPdf("fac-1");
+
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/3/cfdis/fac-1?format=pdf");
+    expect(calls[0]?.init.method).toBeUndefined();
+    expect(calls[0]?.init.headers).toMatchObject({
+      Authorization: `Basic ${btoa("facturama-user:s3cr3t")}`,
+      Accept: "application/pdf",
+    });
+    expect(Array.from(pdf)).toEqual([0x25, 0x50, 0x44, 0x46]);
+  });
+
+  it("downloads from the multiemisor endpoint when that mode is configured", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+
+    const fakeFetch: typeof fetch = async (input, init) => {
+      calls.push({ url: String(input), init: init ?? {} });
+
+      return new Response(new Uint8Array([0x25]), { status: 200 });
+    };
+
+    const multiemisor = new FacturamaInvoiceIssuer({
+      credentials: {
+        user: "facturama-user",
+        password: "s3cr3t",
+        baseUrl: "https://apisandbox.facturama.mx",
+      },
+      fiscal: {
+        ...settings,
+        mode: "multiemisor",
+        series: "A",
+        issuer: { rfc: "EKU9003173C9", name: "ESCUELA KEMPER URGATE", fiscalRegime: "601" },
+      },
+      fetch: fakeFetch,
+    });
+
+    await multiemisor.downloadPdf("fac-2");
+
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/api-lite/4/cfdis/fac-2?format=pdf");
+  });
+
+  it("throws InvoiceProviderRejection when the PDF cannot be downloaded", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      new Response(JSON.stringify({ Message: "El CFDI no existe" }), { status: 404 });
+
+    const error = await setup(fakeFetch)
+      .downloadPdf("fac-404")
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(InvoiceProviderRejection);
+    expect(error).toMatchObject({ detail: "El CFDI no existe" });
+  });
 });

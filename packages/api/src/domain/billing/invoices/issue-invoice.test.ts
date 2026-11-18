@@ -1,6 +1,12 @@
+import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type {
+  CfdiInvoiceNotification,
+  CfdiNotifier,
+  CfdiRecipient,
+} from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import {
-  type CfdiXmlStore,
+  type CfdiDocumentStore,
   InMemoryCfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import {
@@ -42,7 +48,10 @@ class FakeFiscalProfiles {
 class FakeInvoiceIssuer implements InvoiceIssuer {
   readonly requests: IssueInvoiceRequest[] = [];
 
-  constructor(private readonly result: IssuedCfdi | Error) {}
+  constructor(
+    private readonly result: IssuedCfdi | Error,
+    private readonly pdf: Uint8Array | Error = new TextEncoder().encode("%PDF-1.4"),
+  ) {}
 
   async issue(request: IssueInvoiceRequest): Promise<IssuedCfdi> {
     this.requests.push(request);
@@ -53,21 +62,57 @@ class FakeInvoiceIssuer implements InvoiceIssuer {
 
     return this.result;
   }
+
+  async downloadPdf(): Promise<Uint8Array> {
+    if (this.pdf instanceof Error) {
+      throw this.pdf;
+    }
+
+    return this.pdf;
+  }
 }
 
-class FakeCfdiXmlStore implements CfdiXmlStore {
-  readonly saved: Array<{ accountId: string; xml: string }> = [];
+class FakeCfdiDocumentStore implements CfdiDocumentStore {
+  readonly xmls: Array<{ accountId: string; xml: string }> = [];
+  readonly pdfs: Array<{ accountId: string; pdf: Uint8Array }> = [];
 
-  constructor(private readonly shouldFail = false) {}
+  constructor(
+    private readonly xmlFails = false,
+    private readonly pdfFails = false,
+  ) {}
 
-  async save(input: { accountId: string; xml: string }): Promise<string> {
-    if (this.shouldFail) {
+  async saveXml(input: { accountId: string; xml: string }): Promise<string> {
+    if (this.xmlFails) {
       throw new Error("R2 cfdi upload failed: 403");
     }
 
-    this.saved.push(input);
+    this.xmls.push(input);
 
-    return `cfdi/${input.accountId}/${this.saved.length}.xml`;
+    return `cfdi/${input.accountId}/${this.xmls.length}.xml`;
+  }
+
+  async savePdf(input: { accountId: string; pdf: Uint8Array }): Promise<string> {
+    if (this.pdfFails) {
+      throw new Error("R2 cfdi upload failed: 403");
+    }
+
+    this.pdfs.push(input);
+
+    return `cfdi/${input.accountId}/${this.pdfs.length}.pdf`;
+  }
+}
+
+class FakeCfdiNotifier implements CfdiNotifier {
+  readonly sent: Array<{ recipient: CfdiRecipient; invoice: CfdiInvoiceNotification }> = [];
+
+  constructor(private readonly failure?: Error) {}
+
+  async invoiceIssued(recipient: CfdiRecipient, invoice: CfdiInvoiceNotification): Promise<void> {
+    if (this.failure !== undefined) {
+      throw this.failure;
+    }
+
+    this.sent.push({ recipient, invoice });
   }
 }
 
@@ -91,20 +136,47 @@ function setup(
     subscription?: Subscription | null;
     issuerResult?: Error | IssuedCfdi;
     xmlSaveFails?: boolean;
+    pdfSaveFails?: boolean;
+    pdfDownloadFails?: boolean;
+    notificationFails?: boolean;
+    withoutNotifier?: boolean;
+    accountDeleted?: boolean;
     onArchiveError?: (error: unknown, accountId: string) => void;
   } = {},
 ) {
+  const deliveryErrors: Array<{ stage: string; subjectId: string }> = [];
+
   const issuer = new FakeInvoiceIssuer(
     options.issuerResult ?? {
       providerId: "fac-1",
       uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
       xml: "<cfdi:Comprobante/>",
     },
+    options.pdfDownloadFails ? new InvoiceProviderRejection("El CFDI no existe") : undefined,
   );
 
   const invoices = new InMemoryCfdiInvoiceRepository();
 
-  const xml = new FakeCfdiXmlStore(options.xmlSaveFails ?? false);
+  const documents = new FakeCfdiDocumentStore(
+    options.xmlSaveFails ?? false,
+    options.pdfSaveFails ?? false,
+  );
+
+  const notifier = options.withoutNotifier
+    ? undefined
+    : new FakeCfdiNotifier(
+        options.notificationFails ? new Error("Resend API error 500: mail failed") : undefined,
+      );
+
+  const accounts = new InMemoryAccountRepository([
+    {
+      id: "acc-1",
+      email: "owner@example.com",
+      planId: "commerce",
+      locale: "es-MX",
+      deletedAt: options.accountDeleted ? new Date("2026-11-17T00:00:00Z") : null,
+    },
+  ]);
 
   const fiscalProfiles = new FakeFiscalProfiles(
     options.profile === undefined ? completeProfile : options.profile,
@@ -120,17 +192,21 @@ function setup(
     plans: new InMemoryPlanRepository([...DEFAULT_PLAN_CATALOG]),
     issuer,
     invoices,
-    xml,
+    documents,
+    accounts,
+    notifier,
+    downloadUrl: "https://aquisuena.mx/cuenta/suscripcion",
     now: () => NOW,
     onArchiveError: options.onArchiveError,
+    onDeliveryError: (_error, stage, subjectId) => deliveryErrors.push({ stage, subjectId }),
   });
 
-  return { issueInvoice, issuer, invoices, xml };
+  return { issueInvoice, issuer, invoices, documents, notifier, deliveryErrors };
 }
 
 describe("IssueInvoice", () => {
   it("issues a CFDI for the active paid plan and stores the XML", async () => {
-    const { issueInvoice, issuer, xml } = setup();
+    const { issueInvoice, issuer, documents } = setup();
 
     const invoice = await issueInvoice.execute("acc-1");
 
@@ -150,7 +226,7 @@ describe("IssueInvoice", () => {
       uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
     });
     expect(invoice.xmlKey).toBe("cfdi/acc-1/1.xml");
-    expect(xml.saved).toEqual([{ accountId: "acc-1", xml: "<cfdi:Comprobante/>" }]);
+    expect(documents.xmls).toEqual([{ accountId: "acc-1", xml: "<cfdi:Comprobante/>" }]);
   });
 
   it("rejects a community account without reaching the provider", async () => {
@@ -191,7 +267,7 @@ describe("IssueInvoice", () => {
   it("persists a failed attempt and rethrows when the provider rejects", async () => {
     const rejection = new InvoiceProviderRejection("CSD EKU9003173C9 is not valid");
 
-    const { issueInvoice, invoices, xml } = setup({ issuerResult: rejection });
+    const { issueInvoice, invoices, documents } = setup({ issuerResult: rejection });
 
     const error = await issueInvoice.execute("acc-1").catch((caught: unknown) => caught);
 
@@ -203,7 +279,7 @@ describe("IssueInvoice", () => {
       uuid: null,
       xmlKey: null,
     });
-    expect(xml.saved).toHaveLength(0);
+    expect(documents.xmls).toHaveLength(0);
   });
 
   it("does not persist anything when the issuer throws an unexpected error", async () => {
@@ -227,5 +303,77 @@ describe("IssueInvoice", () => {
     expect(invoice).toMatchObject({ status: "issued", xmlKey: null });
     expect(invoices.rows).toHaveLength(1);
     expect(reported).toEqual(["acc-1"]);
+  });
+
+  it("archives the PDF and records its key in the same invoice", async () => {
+    const { issueInvoice, documents, notifier } = setup();
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(documents.pdfs).toHaveLength(1);
+    expect(invoice.pdfKey).toBe("cfdi/acc-1/1.pdf");
+    expect(notifier?.sent[0]?.invoice.pdf).toEqual(new TextEncoder().encode("%PDF-1.4"));
+    expect(notifier?.sent[0]?.recipient).toEqual({
+      email: "owner@example.com",
+      locale: "es-MX",
+    });
+    expect(notifier?.sent[0]?.invoice).toMatchObject({
+      invoiceId: invoice.id,
+      uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      planName: "Comercios & Catálogo",
+      amountMinorUnits: 9900,
+      currency: "MXN",
+      downloadUrl: "https://aquisuena.mx/cuenta/suscripcion",
+      xml: "<cfdi:Comprobante/>",
+    });
+  });
+
+  it("still issues and emails when the PDF download fails", async () => {
+    const { issueInvoice, notifier, deliveryErrors } = setup({ pdfDownloadFails: true });
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(invoice.status).toBe("issued");
+    expect(invoice.pdfKey).toBeNull();
+    expect(notifier?.sent[0]?.invoice.pdf).toBeUndefined();
+    expect(deliveryErrors[0]).toMatchObject({ stage: "pdf", subjectId: "fac-1" });
+  });
+
+  it("keeps the invoice when the PDF archive fails", async () => {
+    const { issueInvoice, documents, notifier } = setup({ pdfSaveFails: true });
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(invoice.status).toBe("issued");
+    expect(invoice.pdfKey).toBeNull();
+    expect(documents.pdfs).toHaveLength(0);
+    expect(notifier?.sent[0]?.invoice.pdf).toBeDefined();
+  });
+
+  it("still issues when the email fails", async () => {
+    const { issueInvoice, deliveryErrors } = setup({ notificationFails: true });
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(invoice.status).toBe("issued");
+    expect(deliveryErrors[0]).toMatchObject({ stage: "email", subjectId: invoice.id });
+  });
+
+  it("never emails a deleted account", async () => {
+    const { issueInvoice, notifier } = setup({ accountDeleted: true });
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(invoice.status).toBe("issued");
+    expect(notifier?.sent).toHaveLength(0);
+  });
+
+  it("issues without delivery when no notifier is configured", async () => {
+    const { issueInvoice, deliveryErrors } = setup({ withoutNotifier: true });
+
+    const invoice = await issueInvoice.execute("acc-1");
+
+    expect(invoice.status).toBe("issued");
+    expect(deliveryErrors).toHaveLength(0);
   });
 });

@@ -76,4 +76,53 @@ describe("ResendEmailSender", () => {
       }),
     ).rejects.toThrow(/Resend API error 401/);
   });
+
+  it("forwards attachments with their filename and content type", async () => {
+    const calls: CapturedCall[] = [];
+
+    const fakeFetch: typeof fetch = async (url, init) => {
+      if (init === undefined) {
+        throw new Error("init is required");
+      }
+
+      calls.push({ url: String(url), init });
+
+      return new Response(JSON.stringify({ id: "email-123" }), { status: 200 });
+    };
+
+    const sender = new ResendEmailSender({
+      apiKey: "re_test_key",
+      from: "noreply@aqui-suena.com",
+      fetchFn: fakeFetch,
+    });
+
+    await sender.send({
+      to: "owner@example.com",
+      subject: "Tu factura CFDI",
+      html: "<p>Adjuntamos tu CFDI.</p>",
+      attachments: [
+        { filename: "CFDI-uuid.pdf", content: "JVBERi0=", contentType: "application/pdf" },
+        { filename: "CFDI-uuid.xml", content: "PD94bWw+", contentType: "application/xml" },
+      ],
+    });
+
+    const call = calls[0];
+
+    if (call === undefined) {
+      throw new Error("expected at least one call");
+    }
+
+    const body: unknown = JSON.parse(String(call.init.body));
+
+    expect(body).toEqual({
+      from: "noreply@aqui-suena.com",
+      to: "owner@example.com",
+      subject: "Tu factura CFDI",
+      html: "<p>Adjuntamos tu CFDI.</p>",
+      attachments: [
+        { filename: "CFDI-uuid.pdf", content: "JVBERi0=", content_type: "application/pdf" },
+        { filename: "CFDI-uuid.xml", content: "PD94bWw+", content_type: "application/xml" },
+      ],
+    });
+  });
 });

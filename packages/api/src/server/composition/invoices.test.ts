@@ -23,7 +23,10 @@ const r2 = {
 function setup(overrides: { facturama?: Partial<FacturamaEnv>; r2?: Partial<typeof r2> } = {}) {
   return createIssueInvoice({
     db: new FakeD1Database().db,
-    account: { getFiscalProfile: async () => null },
+    account: {
+      getFiscalProfile: async () => null,
+      getById: async () => null,
+    },
     subscriptions: new InMemorySubscriptionRepository(),
     plans: new InMemoryPlanRepository([...DEFAULT_PLAN_CATALOG]),
     facturama: { ...facturama, ...overrides.facturama },

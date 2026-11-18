@@ -21,6 +21,13 @@ export class ResendEmailSender implements EmailSender {
   }
 
   async send(message: EmailMessage): Promise<void> {
+    const attachments =
+      message.attachments?.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        content_type: attachment.contentType,
+      })) ?? [];
+
     const response = await this.fetchFn(RESEND_API_URL, {
       method: "POST",
       headers: {
@@ -32,6 +39,7 @@ export class ResendEmailSender implements EmailSender {
         to: message.to,
         subject: message.subject,
         html: message.html,
+        ...(attachments.length > 0 ? { attachments } : {}),
       }),
     });
 

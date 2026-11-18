@@ -1,4 +1,4 @@
-import type { EmailSender } from "@aqui-suena/api/domain/email/email";
+import type { EmailAttachment, EmailSender } from "@aqui-suena/api/domain/email/email";
 import type {
   EmailLocale,
   EmailTemplateId,
@@ -21,6 +21,7 @@ export async function sendRenderedEmail(
   id: EmailTemplateId,
   recipient: TemplateEmailRecipient,
   vars: EmailTemplateVars,
+  attachments: readonly EmailAttachment[] = [],
 ): Promise<void> {
   const rendered = renderer.render(id, recipient.locale, vars);
 
@@ -28,5 +29,6 @@ export async function sendRenderedEmail(
     to: recipient.email,
     subject: rendered.subject,
     html: rendered.html,
+    ...(attachments.length > 0 ? { attachments } : {}),
   });
 }

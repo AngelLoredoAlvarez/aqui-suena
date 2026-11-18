@@ -25,28 +25,37 @@ The runtime source of truth is `renderer.ts` (TypeScript). The pre-rendered
 hand-maintained machine-readable copy; if one is ever needed, generate it from
 `TEMPLATES.md` (or the renderer copy) instead of duplicating it.
 
-Notifier owners (no production call site yet — no email is sent today):
+Notifier owners and their call sites:
 
-| Template                                                                                   | Notifier                                       |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation, 11 cancellation-immediate | `TemplateSubscriptionNotifier`                 |
-| 4 renewal-7d, 5 renewal-1d                                                                 | `TemplateSubscriptionNotifier.renewalUpcoming` |
-| 6 verify-email, 9 welcome                                                                  | `TemplateAccountNotifier`                      |
-| 7 receipt                                                                                  | `TemplatePaymentNotifier.paymentReceipt`       |
+| Template                                                                                   | Notifier                                       | Live call site                       |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------ |
+| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation, 11 cancellation-immediate | `TemplateSubscriptionNotifier`                 | `subscriptions.cancel` (template 10) |
+| 4 renewal-7d, 5 renewal-1d                                                                 | `TemplateSubscriptionNotifier.renewalUpcoming` | none (needs a Worker cron)           |
+| 6 verify-email, 9 welcome                                                                  | `TemplateAccountNotifier`                      | none (needs the signup flow)         |
+| 7 receipt                                                                                  | `TemplatePaymentNotifier.paymentReceipt`       | none (needs a payment provider)      |
+| 8 invoice-cfdi                                                                             | `TemplateCfdiNotifier.invoiceIssued`           | `billing.requestInvoice`             |
 
-### Blocked: template 8 (invoice-cfdi)
+### Template 8 (invoice-cfdi): delivered with attachments
 
-`renderEmail("invoice-cfdi", ...)` works and is covered by the renderer tests, but no
-notifier exposes it yet. A CFDI is a fiscal document, not just an email: the message
-only announces that the CFDI is ready and links to `downloadUrl`. Sending it requires
-decisions and infrastructure that do not exist in the codebase:
+`TemplateCfdiNotifier` renders `invoice-cfdi` and hands the message to the transport
+with the fiscal document attached, so the owner keeps the CFDI without depending on a
+link: `CFDI-{uuid}.pdf` (the provider PDF) and `CFDI-{uuid}.xml` (the stamped XML
+archived in R2).
 
-1. Fiscal data on `accounts` (RFC, legal name, tax regime).
-2. A PAC integration (Proveedor Autorizado de Certificación) that stamps the CFDI.
-3. Storage for the resulting PDF/XML, since `downloadUrl` must resolve to it.
-4. A product decision on who issues the invoice and when (per charge, on request, or
-   both).
+- The CTA (`downloadUrl`) points at the billing page, not at the files. The button
+  label still reads "Descargar factura"; rewording it is a copy decision, not a
+  behavior change.
+- The PDF is optional. When the PAC download or the R2 archive fails, the mail goes
+  out with the XML alone and the failure is logged; `cfdi_invoices.pdf_key` stays
+  null.
+- Delivery never fails the request. A stamped CFDI is a fiscal fact: a render, send
+  or download failure is reported through `onDeliveryError` with its stage and never
+  becomes an HTTP error.
+- A deleted account keeps its `cfdi_invoices` row for fiscal retention but is never
+  emailed.
+- The template also interpolates `{planName}`, so the notifier supplies it next to
+  `invoiceId`, `issuedAt` and `amount`.
 
-Until those exist, adding a `PaymentNotifier.invoiceIssued` method would codify an API
-for a flow that is still undefined. Keep the template rendered and tested, and wire it
-in the same commit that introduces the fiscal flow.
+Owner-portal history and downloads are a separate slice: `CfdiInvoiceRepository` has
+no `listByAccount`/`getById` yet, and serving the archived files needs an
+authentication decision (presigned URL versus an authenticated endpoint).

@@ -3,7 +3,7 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-11-17 against `main` (dependency bump merged; listener status, pagination, observability, api cleanups and the native safe-area fix shipped; email sender wired with `subscriptions.cancel` as its first trigger; the media upload round trip is verified on staging and account provisioning is now a tracked gap).
+Last synced 2026-11-18 against `feat/cfdi-email` (CFDI delivery by email with the PDF and XML attached, plus the PDF archived in R2; the owner-portal invoice history and download surface is now a tracked gap).
 
 ## Production wiring (closed 2026-11-10)
 
@@ -183,11 +183,25 @@ explains.
       the receiver accepts or rejects within 72 hours, so it needs
       `issued` → `cancellation_pending` → `cancelled` | `cancellation_rejected`,
       a reconciliation job and motive `01` substitution support.
-- [ ] Send the CFDI by email: template 8 is rendered but has no send site. It needs
-      the PDF/XML download (`GET /3/cfdis/{id}?format=pdf|xml` in Facturama) and a
-      link strategy; the XML is already archived in R2.
+- [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
+      reaches the owner with the provider PDF and the archived XML attached, so
+      the fiscal document travels with the message and no signed URL can expire.
+      `IssueInvoice` downloads the PDF
+      (`GET /3/cfdis/{id}?format=pdf`, `GET /api-lite/4/cfdis/{id}?format=pdf` for
+      multiemisor), archives it beside the XML, records `xml_key` and `pdf_key` in
+      one insert (migration `0004`) and then notifies through
+      `TemplateCfdiNotifier`. Every delivery failure is logged and never fails the
+      request, a missing PDF still sends the XML, and a deleted account is skipped.
+      Details: `odd/tasks/feat-cfdi-email.md`. The migration is not applied to
+      staging yet.
+- [ ] Owner-portal invoice history and downloads: `CfdiInvoiceRepository` only has
+      `create()`, so there is no `listByAccount`/`getById` to show past CFDIs. The
+      archived `xml_key`/`pdf_key` make the download cheap, but serving them needs
+      an authentication decision (presigned R2 URL versus an authenticated
+      endpoint) and the portal surface itself.
 - [ ] Recover missing XML archives: when the R2 upload fails, the row is recorded
       as `issued` with `xmlKey: null`. A job can re-fetch the XML by `providerId`.
+      The same applies to `pdfKey` now that it exists.
 - [x] Hono double logging — DONE 2026-11-17 (`fix/hono-double-logging`).
       `silentErrorHandler` in `server/http/observability.ts` answers a bare 500 and
       `createApp` registers it with `app.onError`, so Hono's built-in handler no
