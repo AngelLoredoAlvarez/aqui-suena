@@ -15,6 +15,11 @@ import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/s
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-18T20:00:00Z");
+const INVOICE_UUID = "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B";
+
+function acuseFor(uuid: string): string {
+  return `<Acuse><Folios><UUID>${uuid}</UUID><EstatusUUID>201</EstatusUUID></Folios></Acuse>`;
+}
 
 function invoice(overrides: Partial<CfdiInvoice> = {}): CfdiInvoice {
   return {
@@ -89,7 +94,7 @@ const cancelled: InvoiceCancellationResult = {
   detail: null,
   expiresAt: null,
   resolvedAt: new Date("2026-11-18T20:00:05Z"),
-  acuseXml: "<Acuse/>",
+  acuseXml: acuseFor(INVOICE_UUID),
 };
 
 function setup(
@@ -302,5 +307,44 @@ describe("CancelInvoice", () => {
     expect(result.status).toBe("cancelled");
     expect(result.acuseKey).toBeNull();
     expect(reported).toEqual(["acc-1"]);
+  });
+});
+
+describe("CancelInvoice acuse validation", () => {
+  it("drops an acuse that names another invoice and says so", async () => {
+    const { useCase, documents } = setup({
+      answer: { ...cancelled, acuseXml: acuseFor("0088B8E0-00DE-43D7-A590-8328B803839F") },
+    });
+
+    const result = await useCase.execute({
+      accountId: "acc-1",
+      invoiceId: "cfdi-1",
+      motive: "03",
+    });
+
+    expect(result.status).toBe("cancelled");
+    expect(result.acuseKey).toBeNull();
+    expect(result.cancellationDetail).toBe("acuse does not match the invoice");
+    expect(documents.acuses).toHaveLength(0);
+  });
+
+  it("keeps the provider message and the warning together", async () => {
+    const { useCase } = setup({
+      answer: {
+        ...cancelled,
+        detail: "Cancelado sin aceptación",
+        acuseXml: acuseFor("0088B8E0-00DE-43D7-A590-8328B803839F"),
+      },
+    });
+
+    const result = await useCase.execute({
+      accountId: "acc-1",
+      invoiceId: "cfdi-1",
+      motive: "03",
+    });
+
+    expect(result.cancellationDetail).toBe(
+      "Cancelado sin aceptación (acuse does not match the invoice)",
+    );
   });
 });

@@ -187,7 +187,9 @@ explains.
       maps the six provider states to four outcomes and archives the acuse in
       R2. `billing.invoices.list` refreshes up to five pending rows per read, so
       the positive ficta is not missed. Motives `02` and `03` are supported;
-      reason detail is kept for disputes. Details:
+      reason detail is kept for disputes. The acuse is only archived when it
+      names the cancelled UUID: a mismatched document is dropped and reported in
+      `cancellation_detail`, never filed as proof. Details:
       `odd/tasks/feat-cfdi-cancellation.md`.
 - [ ] CFDI cancellation, phase 2: a Worker `scheduled` handler with the sweep
       every 15–30 minutes (moving reconciliation out of the listing query), and

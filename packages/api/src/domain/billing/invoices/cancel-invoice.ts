@@ -1,3 +1,4 @@
+import { archiveAcuse, mergeDetail } from "@aqui-suena/api/domain/billing/invoices/archive-acuse";
 import { cancellationStateFor } from "@aqui-suena/api/domain/billing/invoices/cancellation-outcome";
 import {
   cancellationDeadline,
@@ -118,7 +119,13 @@ export class CancelInvoice {
     }
 
     const state = cancellationStateFor(result, now);
-    const acuseKey = await this.tryArchiveAcuse(command.accountId, result.acuseXml);
+    const acuse = await archiveAcuse({
+      documents: this.deps.documents,
+      accountId: command.accountId,
+      invoiceUuid: invoice.uuid,
+      acuseXml: result.acuseXml,
+      onArchiveError: this.deps.onArchiveError,
+    });
 
     await this.deps.invoices.recordCancellationOutcome({
       id: invoice.id,
@@ -126,8 +133,8 @@ export class CancelInvoice {
       status: state.status,
       resolvedAt: state.resolvedAt,
       expiresAt: state.expiresAt,
-      detail: result.detail,
-      acuseKey,
+      detail: mergeDetail(result.detail, acuse.warning),
+      acuseKey: acuse.key,
       updatedAt: now,
     });
 
@@ -141,18 +148,5 @@ export class CancelInvoice {
     }
 
     return updated;
-  }
-
-  /** The cancellation already happened: a lost acuse is logged, never fatal. */
-  private async tryArchiveAcuse(accountId: string, xml: string | null): Promise<string | null> {
-    if (xml === null) return null;
-
-    try {
-      return await this.deps.documents.saveAcuse({ accountId, xml });
-    } catch (error) {
-      this.deps.onArchiveError?.(error, accountId);
-
-      return null;
-    }
   }
 }

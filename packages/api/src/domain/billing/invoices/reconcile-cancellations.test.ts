@@ -12,6 +12,11 @@ import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-25T20:00:00Z");
+const INVOICE_UUID = "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B";
+
+function acuseFor(uuid: string): string {
+  return `<Acuse><Folios><UUID>${uuid}</UUID></Folios></Acuse>`;
+}
 
 function pending(overrides: Partial<CfdiInvoice> = {}): CfdiInvoice {
   return {
@@ -80,7 +85,7 @@ const cancelled: InvoiceCancellationResult = {
   detail: null,
   expiresAt: null,
   resolvedAt: new Date("2026-11-24T10:00:00Z"),
-  acuseXml: "<Acuse/>",
+  acuseXml: acuseFor(INVOICE_UUID),
 };
 
 function setup(
