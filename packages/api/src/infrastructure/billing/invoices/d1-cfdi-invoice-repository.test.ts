@@ -78,4 +78,110 @@ describe("D1CfdiInvoiceRepository", () => {
       toEpoch(invoice.updatedAt),
     ]);
   });
+
+  it("lists only issued invoices of the account, newest first", async () => {
+    const db = new FakeD1Database(() => ({
+      all: [
+        {
+          id: "inv-2",
+          account_id: "acc-1",
+          payment_id: null,
+          status: "issued",
+          uuid: "uuid-2",
+          provider_id: "fac-2",
+          xml_key: "cfdi/acc-1/2.xml",
+          pdf_key: "cfdi/acc-1/2.pdf",
+          failure_reason: null,
+          created_at: 1_700_000_200,
+          updated_at: 1_700_000_200,
+        },
+        {
+          id: "inv-1",
+          account_id: "acc-1",
+          payment_id: null,
+          status: "issued",
+          uuid: "uuid-1",
+          provider_id: "fac-1",
+          xml_key: null,
+          pdf_key: null,
+          failure_reason: null,
+          created_at: 1_700_000_100,
+          updated_at: 1_700_000_100,
+        },
+      ],
+    }));
+
+    const page = await new D1CfdiInvoiceRepository(db.db).listByAccount({
+      accountId: "acc-1",
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(page.items.map((item) => item.id)).toEqual(["inv-2", "inv-1"]);
+    expect(page.items[0]?.createdAt).toEqual(new Date(1_700_000_200_000));
+    expect(page.nextOffset).toBeNull();
+    expect(normalizeSql(db.statements[0]?.sql)).toContain(
+      "WHERE account_id = ? AND status = 'issued' ORDER BY created_at DESC, id DESC",
+    );
+    expect(db.statements[0]?.params).toEqual(["acc-1", 20, 0]);
+  });
+
+  it("returns a page cursor when the page is full", async () => {
+    const row = {
+      id: "inv-1",
+      account_id: "acc-1",
+      payment_id: null,
+      status: "issued",
+      uuid: "uuid-1",
+      provider_id: "fac-1",
+      xml_key: "cfdi/acc-1/1.xml",
+      pdf_key: "cfdi/acc-1/1.pdf",
+      failure_reason: null,
+      created_at: 1_700_000_000,
+      updated_at: 1_700_000_000,
+    };
+    const db = new FakeD1Database(() => ({ all: [row] }));
+
+    const page = await new D1CfdiInvoiceRepository(db.db).listByAccount({
+      accountId: "acc-1",
+      limit: 1,
+      offset: 0,
+    });
+
+    expect(page.nextOffset).toBe(1);
+  });
+
+  it("scopes a single invoice lookup to its account and to issued rows", async () => {
+    const db = new FakeD1Database(() => ({
+      first: {
+        id: "inv-1",
+        account_id: "acc-1",
+        payment_id: null,
+        status: "issued",
+        uuid: "uuid-1",
+        provider_id: "fac-1",
+        xml_key: "cfdi/acc-1/1.xml",
+        pdf_key: "cfdi/acc-1/1.pdf",
+        failure_reason: null,
+        created_at: 1_700_000_000,
+        updated_at: 1_700_000_000,
+      },
+    }));
+
+    const invoice = await new D1CfdiInvoiceRepository(db.db).getByIdForAccount("acc-1", "inv-1");
+
+    expect(invoice).toMatchObject({ id: "inv-1", accountId: "acc-1", status: "issued" });
+    expect(normalizeSql(db.statements[0]?.sql)).toContain(
+      "WHERE id = ? AND account_id = ? AND status = 'issued'",
+    );
+    expect(db.statements[0]?.params).toEqual(["inv-1", "acc-1"]);
+  });
+
+  it("answers null for an invoice of another account", async () => {
+    const db = new FakeD1Database(() => ({ first: null }));
+
+    await expect(
+      new D1CfdiInvoiceRepository(db.db).getByIdForAccount("acc-2", "inv-1"),
+    ).resolves.toBeNull();
+  });
 });

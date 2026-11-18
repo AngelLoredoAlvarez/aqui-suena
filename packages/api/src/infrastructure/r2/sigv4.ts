@@ -9,7 +9,17 @@ export interface R2StorageOptions {
 
 const REGION = "auto";
 const SERVICE = "s3";
-const EXPIRES_SECONDS = 300;
+const DEFAULT_EXPIRES_SECONDS = 300;
+const MAX_EXPIRES_SECONDS = 604_800;
+
+export type PresignOptions = {
+  /** Seconds the URL stays valid. AWS caps it at 7 days. Defaults to 5 minutes. */
+  readonly expiresInSeconds?: number;
+  /** Signed `response-content-disposition`: R2 serves the file with this name. */
+  readonly responseContentDisposition?: string;
+  /** Signed `response-content-type`: the type R2 answers with. */
+  readonly responseContentType?: string;
+};
 
 function bufToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
@@ -50,6 +60,7 @@ export async function presignR2ObjectUrl(
   options: R2StorageOptions,
   method: string,
   key: string,
+  presign: PresignOptions = {},
 ): Promise<string> {
   const endpoint = options.endpoint ?? `https://${options.accountId}.r2.cloudflarestorage.com`;
   const { accessKeyId, secretAccessKey, bucketName } = options;
@@ -60,13 +71,26 @@ export async function presignR2ObjectUrl(
   const credentialScope = `${dateStamp}/${REGION}/${SERVICE}/aws4_request`;
   const credential = `${accessKeyId}/${credentialScope}`;
 
+  const expiresIn = Math.min(
+    presign.expiresInSeconds ?? DEFAULT_EXPIRES_SECONDS,
+    MAX_EXPIRES_SECONDS,
+  );
+
   const queryParams: Record<string, string> = {
     "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
     "X-Amz-Credential": credential,
     "X-Amz-Date": amzDate,
-    "X-Amz-Expires": String(EXPIRES_SECONDS),
+    "X-Amz-Expires": String(expiresIn),
     "X-Amz-SignedHeaders": "host",
   };
+
+  if (presign.responseContentDisposition !== undefined) {
+    queryParams["response-content-disposition"] = presign.responseContentDisposition;
+  }
+
+  if (presign.responseContentType !== undefined) {
+    queryParams["response-content-type"] = presign.responseContentType;
+  }
 
   const sortedQuery = Object.keys(queryParams)
     .sort()

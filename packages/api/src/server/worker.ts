@@ -18,7 +18,10 @@ import {
   createSubscriptionNotifier,
   emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
-import { createIssueInvoice } from "@aqui-suena/api/server/composition/invoices";
+import {
+  createInvoiceHistory,
+  createIssueInvoice,
+} from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { isAdminAuthorized } from "@aqui-suena/api/server/http/admin-auth";
@@ -232,6 +235,17 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     },
   });
 
+  const invoiceHistory = createInvoiceHistory({
+    db: env.aqui_suena_db,
+    r2: {
+      accountId: env.R2_ACCOUNT_ID,
+      accessKeyId: env.R2_ACCESS_KEY_ID,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      bucketName: env.R2_BUCKET_NAME,
+      endpoint: env.R2_ENDPOINT,
+    },
+  });
+
   if (issueInvoice === undefined) {
     console.error(
       "worker: invoicing is unconfigured (set FACTURAMA_* and R2_* to enable billing.requestInvoice)",
@@ -251,7 +265,11 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     aiGatewayId: gatewayId,
     mediaStorage,
     subscriptionNotifier,
-    issueInvoice,
+    billing: {
+      issueInvoice,
+      invoices: invoiceHistory.invoices,
+      documents: invoiceHistory.documents,
+    },
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,
   });

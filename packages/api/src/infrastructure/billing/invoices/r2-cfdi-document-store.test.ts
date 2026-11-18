@@ -73,4 +73,24 @@ describe("R2CfdiDocumentStore", () => {
       store.savePdf({ accountId: "acc-1", pdf: new Uint8Array([0x25]) }),
     ).rejects.toThrow(/R2 cfdi upload failed: 403/);
   });
+
+  it("signs a five-minute download with the filename and content type", async () => {
+    const store = new R2CfdiDocumentStore({ r2, fetch: async () => new Response(null) });
+
+    const url = await store.signedDownloadUrl({
+      key: "cfdi/acc-1/1.pdf",
+      fileName: "CFDI-uuid.pdf",
+      contentType: "application/pdf",
+    });
+
+    const parsed = new URL(url);
+
+    expect(parsed.pathname).toContain("cfdi/acc-1/1.pdf");
+    expect(parsed.searchParams.get("X-Amz-Expires")).toBe("300");
+    expect(parsed.searchParams.get("response-content-disposition")).toBe(
+      'attachment; filename="CFDI-uuid.pdf"',
+    );
+    expect(parsed.searchParams.get("response-content-type")).toBe("application/pdf");
+    expect(parsed.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
+  });
 });
