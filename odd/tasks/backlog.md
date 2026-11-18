@@ -191,10 +191,14 @@ explains.
       names the cancelled UUID: a mismatched document is dropped and reported in
       `cancellation_detail`, never filed as proof. Details:
       `odd/tasks/feat-cfdi-cancellation.md`.
-- [ ] CFDI cancellation, phase 2: a Worker `scheduled` handler with the sweep
-      every 15–30 minutes (moving reconciliation out of the listing query), and
-      motive `01` with the substitute CFDI (emit the replacement first, then
-      cancel the original with its UUID).
+- [x] CFDI cancellation, scheduled sweep — DONE 2026-11-18. The Worker exposes a
+      `scheduled` handler with a fifteen-minute cron (default worker and staging);
+      it sweeps pending rows across every account, oldest first, five per run, and
+      stays silent when billing is unconfigured. The read-path refresh stays for
+      first-read freshness. Details: `odd/tasks/feat-cfdi-cancellation.md`.
+- [ ] CFDI cancellation, motive `01`: emit the substitute CFDI first, then cancel
+      the original with its UUID. Needs the substitution relation (`TipoRelacion`
+      `04`) in the issuing payload, which the product does not model yet.
 - [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
       reaches the owner with the provider PDF and the archived XML attached, so
       the fiscal document travels with the message and no signed URL can expire.

@@ -155,7 +155,7 @@ Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 
 1. **Signup and verification** (`create-account` with birthdate, T&C and an 18+ attestation). It unblocks the account emails, the owner portal and anything plan-selection related.
 2. **Payment provider** (Conekta). It unblocks receipts, renewal reminders and the `PUE` CFDI path.
-3. **CFDI cancellation phase 2**: a Worker `scheduled` handler with the 15–30 minute sweep (moving reconciliation out of the listing query) and motive `01` with the substitute CFDI.
+3. **CFDI cancellation, motive `01`**: emit the substitute CFDI (relation `04`) and then cancel the original with its UUID. The scheduled sweep already ships.
 4. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. The API it consumes already ships.
 5. **Recover missing fiscal archives** by `providerId` when `xmlKey`/`pdfKey` is null.
 6. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
