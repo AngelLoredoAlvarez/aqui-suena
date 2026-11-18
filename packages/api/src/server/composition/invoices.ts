@@ -1,5 +1,9 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
+import type {
+  CfdiDocumentLinker,
+  CfdiInvoiceRepository,
+} from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -148,4 +152,41 @@ export function createIssueInvoice(
       });
     },
   });
+}
+
+export type InvoiceHistoryComposition = {
+  readonly invoices: CfdiInvoiceRepository;
+  /** Absent when R2 is unconfigured: listing still works, downloads answer 412. */
+  readonly documents?: CfdiDocumentLinker;
+};
+
+/**
+ * Builds the read side of billing. Listing only needs D1; signing a download
+ * needs R2, so a deployment without storage keeps the history and loses only the
+ * downloads.
+ */
+export function createInvoiceHistory(options: {
+  readonly db: D1Database;
+  readonly r2: R2Env;
+  readonly fetch?: typeof fetch;
+}): InvoiceHistoryComposition {
+  const { r2 } = options;
+  const invoices = new D1CfdiInvoiceRepository(options.db);
+
+  if (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+    return { invoices };
+  }
+
+  const store = new R2CfdiDocumentStore({
+    r2: {
+      accountId: r2.accountId,
+      accessKeyId: r2.accessKeyId,
+      secretAccessKey: r2.secretAccessKey,
+      bucketName: r2.bucketName ?? DEFAULT_BUCKET,
+      endpoint: r2.endpoint,
+    },
+    fetch: options.fetch ?? fetch,
+  });
+
+  return { invoices, documents: store };
 }

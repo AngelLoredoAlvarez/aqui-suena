@@ -1,4 +1,8 @@
 import type { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
+import type {
+  CfdiDocumentLinker,
+  CfdiInvoiceRepository,
+} from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
@@ -23,6 +27,12 @@ import { createSubscriptionsRouter } from "@aqui-suena/api/server/routers/subscr
 import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { router } from "@aqui-suena/api/server/trpc/trpc";
 
+export type BillingSurfaces = {
+  readonly issueInvoice?: Pick<IssueInvoice, "execute">;
+  readonly invoices?: CfdiInvoiceRepository;
+  readonly documents?: CfdiDocumentLinker;
+};
+
 export function createAppRouter(
   planRepository: PlanRepository,
   directoryRepositories: DirectoryRepositories,
@@ -32,7 +42,7 @@ export function createAppRouter(
   aiGatewayId: string | undefined,
   mediaStorage: ObjectStorage | undefined,
   subscriptionNotifier?: SubscriptionNotifier,
-  issueInvoice?: Pick<IssueInvoice, "execute">,
+  billing?: BillingSurfaces,
   deleteAccount?: Pick<DeleteAccount, "execute">,
 ) {
   return router({
@@ -42,7 +52,10 @@ export function createAppRouter(
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
     }),
-    billing: createBillingRouter({ account: directoryRepositories.account, issueInvoice }),
+    billing: createBillingRouter({
+      account: directoryRepositories.account,
+      ...(billing ?? {}),
+    }),
     businesses: createBusinessesRouter({
       business: directoryRepositories.business,
       subscription: directoryRepositories.subscription,

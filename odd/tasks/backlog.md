@@ -199,11 +199,15 @@ explains.
       delivered with both attachments. The run found and fixed two defects: the
       PDF was fetched from the issuing endpoint (JSON archived as `.pdf`) and
       Resend was called with a bound `fetch` (Workers "Illegal invocation").
-- [ ] Owner-portal invoice history and downloads: `CfdiInvoiceRepository` only has
-      `create()`, so there is no `listByAccount`/`getById` to show past CFDIs. The
-      archived `xml_key`/`pdf_key` make the download cheap, but serving them needs
-      an authentication decision (presigned R2 URL versus an authenticated
-      endpoint) and the portal surface itself.
+- [x] Owner-portal invoice history and downloads — API DONE 2026-11-18
+      (`feat/invoice-history`). `billing.invoices.list` returns the account's
+      `issued` invoices, newest first, with `hasXml`/`hasPdf`;
+      `billing.invoices.downloadUrl` authorises per invoice and returns a
+      five-minute presigned URL whose signature carries
+      `attachment; filename="CFDI-<uuid>.<ext>"`. The bytes never pass through the
+      Worker, a missing archive answers `CONFLICT` and a foreign invoice answers
+      `NOT_FOUND`. The portal UI that consumes it is still pending. Details:
+      `odd/tasks/feat-invoice-history.md`.
 - [ ] Recover missing XML archives: when the R2 upload fails, the row is recorded
       as `issued` with `xmlKey: null`. A job can re-fetch the XML by `providerId`.
       The same applies to `pdfKey` now that it exists.

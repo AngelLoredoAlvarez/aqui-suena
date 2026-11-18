@@ -72,7 +72,17 @@ The email stack is implemented and wired through the composition root. What exis
 sends both files through `TemplateCfdiNotifier`.
 
 Live flows: `subscriptions.cancel` (template 10) and `billing.requestInvoice`
-(template 8). What is missing is the remaining trigger call sites:
+(template 8).
+
+## Invoice history
+
+`billing.invoices.list` returns the caller's `issued` invoices (offset
+pagination, newest first) with `hasXml`/`hasPdf`, and
+`billing.invoices.downloadUrl` authorises one invoice and returns a five-minute
+presigned R2 URL. The signature carries `response-content-disposition`, so R2
+serves `CFDI-<uuid>.pdf|xml` as a named download and no object byte crosses the
+Worker. A failed archive answers `CONFLICT`; a foreign or missing invoice answers
+`NOT_FOUND`. What is missing is the remaining trigger call sites:
 signup/verification, payment receipts, renewal reminders and downgrades are
 blocked on signup, a payment provider and a Worker cron. Without
 `RESEND_API_KEY` no notifier is constructed, so nothing is sent. Wiring the rest

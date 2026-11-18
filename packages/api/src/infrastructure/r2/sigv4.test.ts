@@ -38,3 +38,38 @@ describe("presignR2ObjectUrl", () => {
     expect(url.startsWith("http://localhost:9000/my-bucket/k?")).toBe(true);
   });
 });
+
+describe("presignR2ObjectUrl overrides", () => {
+  it("defaults to five minutes and honours a requested expiry", async () => {
+    const short = await presignR2ObjectUrl(options, "GET", "cfdi/a/b.pdf");
+    const long = await presignR2ObjectUrl(options, "GET", "cfdi/a/b.pdf", {
+      expiresInSeconds: 900,
+    });
+
+    expect(short).toContain("X-Amz-Expires=300");
+    expect(long).toContain("X-Amz-Expires=900");
+  });
+
+  it("caps the expiry at seven days", async () => {
+    const url = await presignR2ObjectUrl(options, "GET", "cfdi/a/b.pdf", {
+      expiresInSeconds: 999_999,
+    });
+
+    expect(url).toContain("X-Amz-Expires=604800");
+  });
+
+  it("signs the response overrides so R2 serves a named download", async () => {
+    const url = await presignR2ObjectUrl(options, "GET", "cfdi/a/b.pdf", {
+      responseContentDisposition: 'attachment; filename="CFDI-uuid.pdf"',
+      responseContentType: "application/pdf",
+    });
+
+    const parsed = new URL(url);
+
+    expect(parsed.searchParams.get("response-content-disposition")).toBe(
+      'attachment; filename="CFDI-uuid.pdf"',
+    );
+    expect(parsed.searchParams.get("response-content-type")).toBe("application/pdf");
+    expect(parsed.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
