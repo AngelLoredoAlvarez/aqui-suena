@@ -188,9 +188,9 @@ explains.
 - [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
       reaches the owner with the provider PDF and the archived XML attached, so
       the fiscal document travels with the message and no signed URL can expire.
-      `IssueInvoice` downloads the PDF
-      (`GET /3/cfdis/{id}?format=pdf`, `GET /api-lite/4/cfdis/{id}?format=pdf` for
-      multiemisor), archives it beside the XML, records `xml_key` and `pdf_key` in
+      `IssueInvoice` downloads the PDF from the file endpoint
+      (`GET /cfdi/pdf/issued/{id}`, `GET /cfdi/pdf/issuedLite/{id}` for multiemisor,
+      base64 inside JSON), archives it beside the XML, records `xml_key` and `pdf_key` in
       one insert (migration `0004`) and then notifies through
       `TemplateCfdiNotifier`. Every delivery failure is logged and never fails the
       request, a missing PDF still sends the XML, and a deleted account is skipped.
