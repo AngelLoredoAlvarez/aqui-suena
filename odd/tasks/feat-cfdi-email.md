@@ -20,9 +20,10 @@ instruction.
   `attachments` key at all.
 - **S3 — The PAC exposes the PDF.** The issuer port gains a PDF download for an
   already-stamped CFDI addressed by provider id. The Facturama adapter asks
-  `GET {baseUrl}/3/cfdis/{id}?format=pdf` (API Web) or
-  `GET {baseUrl}/api-lite/4/cfdis/{id}?format=pdf` (multiemisor) with the same
-  Basic credentials, and returns the raw bytes. A non-2xx answer raises
+  `GET {baseUrl}/cfdi/pdf/issued/{id}` (API Web) or
+  `GET {baseUrl}/cfdi/pdf/issuedLite/{id}` (multiemisor) with the same Basic
+  credentials, and decodes the base64 file the JSON response carries. The
+  issuing path ignores `?format=pdf` and returns the CFDI detail instead. A non-2xx answer raises
   `InvoiceProviderRejection` with the provider detail; the detail is never
   returned to the client.
 - **S4 — One notifier owns template 8.** A `CfdiNotifier` port receives the owner

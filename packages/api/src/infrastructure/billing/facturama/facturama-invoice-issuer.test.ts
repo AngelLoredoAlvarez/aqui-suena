@@ -151,33 +151,43 @@ describe("FacturamaInvoiceIssuer", () => {
     });
   });
 
-  it("downloads the stamped PDF with basic auth and returns the raw bytes", async () => {
+  it("downloads the stamped PDF from the file endpoint and decodes its base64", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
 
     const fakeFetch: typeof fetch = async (input, init) => {
       calls.push({ url: String(input), init: init ?? {} });
 
-      return new Response(new Uint8Array([0x25, 0x50, 0x44, 0x46]), { status: 200 });
+      return new Response(
+        JSON.stringify({
+          ContentEncoding: "base64",
+          ContentType: "pdf",
+          ContentLength: 4,
+          Content: btoa("%PDF"),
+        }),
+        { status: 200 },
+      );
     };
 
     const pdf = await setup(fakeFetch).downloadPdf("fac-1");
 
-    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/3/cfdis/fac-1?format=pdf");
-    expect(calls[0]?.init.method).toBeUndefined();
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/cfdi/pdf/issued/fac-1");
     expect(calls[0]?.init.headers).toMatchObject({
       Authorization: `Basic ${btoa("facturama-user:s3cr3t")}`,
-      Accept: "application/pdf",
+      Accept: "application/json",
     });
     expect(Array.from(pdf)).toEqual([0x25, 0x50, 0x44, 0x46]);
   });
 
-  it("downloads from the multiemisor endpoint when that mode is configured", async () => {
+  it("downloads from the multiemisor file endpoint when that mode is configured", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
 
     const fakeFetch: typeof fetch = async (input, init) => {
       calls.push({ url: String(input), init: init ?? {} });
 
-      return new Response(new Uint8Array([0x25]), { status: 200 });
+      return new Response(
+        JSON.stringify({ ContentEncoding: "base64", ContentType: "pdf", Content: btoa("%") }),
+        { status: 200 },
+      );
     };
 
     const multiemisor = new FacturamaInvoiceIssuer({
@@ -197,7 +207,7 @@ describe("FacturamaInvoiceIssuer", () => {
 
     await multiemisor.downloadPdf("fac-2");
 
-    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/api-lite/4/cfdis/fac-2?format=pdf");
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/cfdi/pdf/issuedLite/fac-2");
   });
 
   it("throws InvoiceProviderRejection when the PDF cannot be downloaded", async () => {
@@ -210,5 +220,17 @@ describe("FacturamaInvoiceIssuer", () => {
 
     expect(error).toBeInstanceOf(InvoiceProviderRejection);
     expect(error).toMatchObject({ detail: "El CFDI no existe" });
+  });
+
+  it("throws InvoiceProviderRejection when the download answers no file", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      new Response(JSON.stringify({ ContentType: "pdf" }), { status: 200 });
+
+    const error = await setup(fakeFetch)
+      .downloadPdf("fac-1")
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(InvoiceProviderRejection);
+    expect(error).toMatchObject({ detail: "Malformed response from the invoice provider" });
   });
 });

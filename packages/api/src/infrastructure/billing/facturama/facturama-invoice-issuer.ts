@@ -21,6 +21,12 @@ export type FacturamaInvoiceIssuerDependencies = {
   readonly fetch: typeof fetch;
 };
 
+type FacturamaFileResponse = {
+  readonly Content?: unknown;
+  readonly ContentEncoding?: unknown;
+  readonly ContentType?: unknown;
+};
+
 type FacturamaCfdiResponse = {
   readonly Id?: unknown;
   readonly ContentBase64?: unknown;
@@ -33,6 +39,9 @@ const MALFORMED_RESPONSE = "Malformed response from the invoice provider";
 
 const WEB_ENDPOINT = "/3/cfdis";
 const MULTIEMISOR_ENDPOINT = "/api-lite/4/cfdis";
+/** Download endpoint: /cfdi/{format}/{type}/{id}, a different path from issuing. */
+const DOWNLOAD_ENDPOINT = "/cfdi";
+const DOWNLOAD_TYPES = { web: "issued", multiemisor: "issuedLite" } as const;
 
 /** Trims trailing slashes so `${baseUrl}/3/cfdis` never doubles a slash. */
 function trimTrailingSlash(url: string): string {
@@ -42,6 +51,11 @@ function trimTrailingSlash(url: string): string {
 /** Facturama v3 authenticates with the panel credentials over Basic. */
 function toBasicAuth(user: string, password: string): string {
   return `Basic ${btoa(`${user}:${password}`)}`;
+}
+
+/** The download endpoint answers base64; `atob` yields a binary string. */
+function decodeBase64Bytes(base64: string): Uint8Array {
+  return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
 }
 
 /** The XML arrives base64-encoded UTF-8; `atob` alone would corrupt accents. */
@@ -117,24 +131,25 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
   }
 
   /**
-   * The stamped PDF is addressed by provider id. Both API variants answer with
-   * the file as the raw response body, not as JSON.
+   * Downloads the stamped PDF.
+   *
+   * Facturama serves files from `/cfdi/{format}/{type}/{id}`, not from the
+   * issuing path, and answers JSON carrying the file as base64 — the issuing
+   * endpoint ignores `?format=pdf` and returns the CFDI detail instead, which is
+   * how a JSON document once ended up archived as a PDF.
    */
   async downloadPdf(providerId: string): Promise<Uint8Array> {
     const { credentials, fiscal } = this.deps;
-
-    const endpoint = fiscal.mode === "multiemisor" ? MULTIEMISOR_ENDPOINT : WEB_ENDPOINT;
-
+    const type = DOWNLOAD_TYPES[fiscal.mode];
     // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
     const fetchFn = this.deps.fetch;
-
     const id = encodeURIComponent(providerId);
 
     const response = await fetchFn(
-      `${trimTrailingSlash(credentials.baseUrl)}${endpoint}/${id}?format=pdf`,
+      `${trimTrailingSlash(credentials.baseUrl)}${DOWNLOAD_ENDPOINT}/pdf/${type}/${id}`,
       {
         headers: {
-          Accept: "application/pdf",
+          Accept: "application/json",
           Authorization: toBasicAuth(credentials.user, credentials.password),
         },
       },
@@ -144,10 +159,16 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
       throw new InvoiceProviderRejection(await readRejectionDetail(response));
     }
 
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    const body = (await response.json()) as FacturamaFileResponse;
 
-    // A 200 with an empty body is not a PDF; treating it as success would ship
-    // a zero-byte attachment and a bogus R2 object.
+    if (body.ContentEncoding !== "base64" || typeof body.Content !== "string") {
+      throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
+    }
+
+    const bytes = decodeBase64Bytes(body.Content);
+
+    // A 200 with no file is not a PDF; treating it as success would ship a
+    // zero-byte attachment and a bogus R2 object.
     if (bytes.length === 0) {
       throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
     }
