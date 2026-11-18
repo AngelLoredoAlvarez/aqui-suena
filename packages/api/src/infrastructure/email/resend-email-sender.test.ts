@@ -125,4 +125,25 @@ describe("ResendEmailSender", () => {
       ],
     });
   });
+
+  it("invokes fetch unbound so a native fetch keeps its receiver", async () => {
+    let receiver: unknown = "never called";
+
+    const fakeFetch = function (this: unknown): Promise<Response> {
+      receiver = this;
+
+      return Promise.resolve(new Response(JSON.stringify({ id: "email-123" }), { status: 200 }));
+    } as unknown as typeof fetch;
+
+    const sender = new ResendEmailSender({
+      apiKey: "re_test_key",
+      from: "onboarding@resend.dev",
+      fetchFn: fakeFetch,
+    });
+
+    await sender.send({ to: "owner@example.com", subject: "test", html: "<p>test</p>" });
+
+    // A bound `this` is what Workers rejects with "Illegal invocation".
+    expect(receiver).toBeUndefined();
+  });
 });
