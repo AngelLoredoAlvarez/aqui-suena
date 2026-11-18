@@ -326,13 +326,28 @@ explains.
   `react-native-gesture-handler` 3.5.0 (expected `~3.3.0`). `@types/node` is
   26.6.6. Rust side: nothing pending.
 
-## Deferred (T4 parity — webpack-only, revisit if Turbopack-compatible)
+## Discarded (T4 parity — not Turbopack-compatible, checked 2026-11-18)
 
-- [ ] Million.js — React compiler. DEFERRED: webpack-only, incompatible with
-      Turbopack (Next 16 default) + React 19. Revisit if a Turbopack-compatible
-      compiler or a new maintained option emerges.
-- [ ] PattyCake — zero-runtime ts-pattern compiler. DEFERRED: same webpack/
-      Turbopack concern. Revisit alongside Million.js.
+Neither tool has a path under Turbopack, and one of them has no problem left to
+solve in this repository. Both leave the pending list.
+
+- [x] **Million.js — DISCARDED.** Its Next integration is a webpack plugin, and
+      Turbopack has no plugin API (only loaders). The published package is also
+      stale: `million@3.1.11` is from 2024-06-04, so it predates Turbopack being
+      the default bundler by more than a year. Using it would mean pinning the
+      web build to `--webpack`. If render cost ever becomes a problem, the
+      official replacement is **React Compiler**, which Next 16 supports
+      natively and Turbopack compiles without a third-party plugin (Next 16.3
+      ships an experimental Rust compiler path for it).
+- [x] **PattyCake — DISCARDED.** `pattycake@0.0.2` was last pushed on 2024-01-29
+      and its own README calls it "highly experimental software". It ships as a
+      webpack plugin, so Turbopack cannot load it. It also has nothing to
+      optimize here: the repository calls `ts-pattern` in exactly one file
+      (`packages/ui/src/player-landing/select-listener-status.ts`) with one
+      `match()` expression, so the win would have been unmeasurable. If that
+      expression ever needs to be faster, a plain exhaustive `switch` on the
+      discriminated union is zero-runtime by construction and already the
+      pattern the rest of the codebase uses.
 
 ## Expo Go block (resolved 2026-10-26)
 
