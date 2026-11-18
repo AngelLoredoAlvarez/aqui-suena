@@ -62,9 +62,18 @@ cancellation.
 
 - `pnpm --filter @aqui-suena/api test` — 918 tests, 113 files, green.
 - `typecheck`, `biome check`, `pnpm arch` — clean.
-- Not exercised on staging yet: the procedures are covered by router tests with
-  an in-memory repository and a fake signer. A staging probe should request one
-  URL and fetch it to prove R2 honours the signed filename.
+- Verified on staging 2026-11-18 with a real invoice and real signed URLs:
+  - `billing.invoices.list` returned the invoice with `hasXml` and `hasPdf` true.
+  - `downloadUrl` for both formats returned a 300-second signed URL.
+  - Fetching the PDF answered `200`, `Content-Type: application/pdf`,
+    `Content-Disposition: attachment; filename="CFDI-<uuid>.pdf"`, 54,635 bytes
+    starting with `%PDF-1.4`.
+  - Fetching the XML answered `200`, `application/xml`, the matching filename, and
+    its Timbre UUID equalled the invoice UUID.
+  - An unknown invoice answered `404 NOT_FOUND`; a tampered signature answered
+    `403`; an `issued` row with `pdf_key` null answered `409 CONFLICT`.
+  - Staging was left clean: both invoice rows, both R2 objects, the subscription,
+    the account row and the probe user removed.
 
 ## Log
 
