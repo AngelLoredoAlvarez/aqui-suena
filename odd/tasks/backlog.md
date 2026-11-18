@@ -194,8 +194,11 @@ explains.
       one insert (migration `0004`) and then notifies through
       `TemplateCfdiNotifier`. Every delivery failure is logged and never fails the
       request, a missing PDF still sends the XML, and a deleted account is skipped.
-      Details: `odd/tasks/feat-cfdi-email.md`. The migration is not applied to
-      staging yet.
+      Details: `odd/tasks/feat-cfdi-email.md`. Proven on staging 2026-11-18:
+      stamped, both keys recorded, PDF archived as a real file and the email
+      delivered with both attachments. The run found and fixed two defects: the
+      PDF was fetched from the issuing endpoint (JSON archived as `.pdf`) and
+      Resend was called with a bound `fetch` (Workers "Illegal invocation").
 - [ ] Owner-portal invoice history and downloads: `CfdiInvoiceRepository` only has
       `create()`, so there is no `listByAccount`/`getById` to show past CFDIs. The
       archived `xml_key`/`pdf_key` make the download cheap, but serving them needs
