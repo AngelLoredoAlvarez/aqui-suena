@@ -23,12 +23,15 @@ gate that proves the types, exactly like the other packages.
 
 ## Environment
 
-| Variable          | Default    | Purpose                                                                                                                                                                                    |
-| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                                                                                                          |
-| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                                                                                                    |
-| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                                                                                                    |
-| `RESEND_API_KEY`  | (optional) | Enables transactional email. When unset, `createSubscriptionNotifier` and `createCfdiNotifier` return `undefined`, so the composition wires no notifier and no message leaves the process. |
+| Variable                | Default                 | Purpose                                                                                                                                                                                    |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`                  | `3001`                  | TCP port. Must be an integer between 1 and 65535.                                                                                                                                          |
+| `HOST`                  | `0.0.0.0`               | Bind address. Container platforms need every interface.                                                                                                                                    |
+| `ALLOWED_ORIGINS`       | see below               | Comma-separated extra origins for CORS.                                                                                                                                                    |
+| `RESEND_API_KEY`        | (optional)              | Enables transactional email. When unset, `createSubscriptionNotifier` and `createCfdiNotifier` return `undefined`, so the composition wires no notifier and no message leaves the process. |
+| `RESEND_FROM`           | `onboarding@resend.dev` | Sender address. Until a domain is verified, Resend only accepts this address and only delivers to the account owner's inbox.                                                               |
+| `EMAIL_APP_URL`         | `http://localhost:3000` | Origin every email link points at. It must be a deployment we actually serve: pointing it at a domain we do not own turns every CTA into a dead link.                                      |
+| `EMAIL_SUPPORT_ADDRESS` | the sender address      | Support address in the email footer.                                                                                                                                                       |
 
 ## Routes
 

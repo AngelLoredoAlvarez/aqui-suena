@@ -3,38 +3,48 @@ import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/sub
 import {
   createCfdiNotifier,
   createSubscriptionNotifier,
-  EMAIL_BILLING_URL,
+  emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
 import { describe, expect, it } from "vitest";
 
+const settings = {
+  apiKey: "re_test_key",
+  from: "onboarding@resend.dev",
+  appUrl: "https://aqui-suena-web-staging.pages.dev",
+};
+
 describe("createSubscriptionNotifier", () => {
   it("returns undefined when no Resend API key is configured", () => {
-    expect(createSubscriptionNotifier(undefined, "no-reply@example.com")).toBeUndefined();
+    expect(createSubscriptionNotifier({ ...settings, apiKey: undefined })).toBeUndefined();
   });
 
   it("returns undefined when the API key is empty", () => {
-    expect(createSubscriptionNotifier("", "no-reply@example.com")).toBeUndefined();
+    expect(createSubscriptionNotifier({ ...settings, apiKey: "" })).toBeUndefined();
   });
 
   it("builds a subscription notifier over Resend when a key is configured", () => {
-    const notifier = createSubscriptionNotifier("re_test_key", "no-reply@example.com");
-    expect(notifier).toBeInstanceOf(TemplateSubscriptionNotifier);
+    expect(createSubscriptionNotifier(settings)).toBeInstanceOf(TemplateSubscriptionNotifier);
   });
 });
 
 describe("createCfdiNotifier", () => {
   it("returns undefined when no Resend API key is configured", () => {
-    expect(createCfdiNotifier(undefined, "no-reply@example.com")).toBeUndefined();
+    expect(createCfdiNotifier({ ...settings, apiKey: undefined })).toBeUndefined();
   });
 
   it("builds a CFDI notifier over Resend when a key is configured", () => {
-    const notifier = createCfdiNotifier("re_test_key", "no-reply@example.com");
-    expect(notifier).toBeInstanceOf(TemplateCfdiNotifier);
+    expect(createCfdiNotifier(settings)).toBeInstanceOf(TemplateCfdiNotifier);
   });
 });
 
-describe("EMAIL_BILLING_URL", () => {
-  it("points at the billing page used by every billing email", () => {
-    expect(EMAIL_BILLING_URL).toBe("https://aquisuena.mx/cuenta/suscripcion");
+describe("emailBillingUrl", () => {
+  it("builds the billing link from the configured app origin", () => {
+    expect(emailBillingUrl("https://aqui-suena-web-staging.pages.dev")).toBe(
+      "https://aqui-suena-web-staging.pages.dev/cuenta/suscripcion",
+    );
+  });
+
+  it("falls back to a local origin instead of an unowned domain", () => {
+    expect(emailBillingUrl(undefined)).toBe("http://localhost:3000/cuenta/suscripcion");
   });
 });

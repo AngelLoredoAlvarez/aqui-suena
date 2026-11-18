@@ -16,7 +16,7 @@ import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/
 import {
   createCfdiNotifier,
   createSubscriptionNotifier,
-  EMAIL_BILLING_URL,
+  emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
 import { createIssueInvoice } from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
@@ -65,6 +65,10 @@ export interface WorkerEnv {
   R2_ENDPOINT?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
+  /** Origin every transactional-email link points at. */
+  EMAIL_APP_URL?: string;
+  /** Support address in the email footer; defaults to the sender. */
+  EMAIL_SUPPORT_ADDRESS?: string;
   /** Facturama sandbox/production credentials and emitter fiscal settings. */
   FACTURAMA_USER?: string;
   FACTURAMA_PASSWORD?: string;
@@ -189,8 +193,14 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
         })
       : new FullCatalogRetriever(planRepository);
 
-  const subscriptionNotifier = createSubscriptionNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
-  const cfdiNotifier = createCfdiNotifier(env.RESEND_API_KEY, env.RESEND_FROM);
+  const emailSettings = {
+    apiKey: env.RESEND_API_KEY,
+    from: env.RESEND_FROM,
+    appUrl: env.EMAIL_APP_URL,
+    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
+  };
+  const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
+  const cfdiNotifier = createCfdiNotifier(emailSettings);
 
   const issueInvoice = createIssueInvoice({
     db: env.aqui_suena_db,
@@ -198,7 +208,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     subscriptions: directoryRepositories.subscription,
     plans: planRepository,
     notifier: cfdiNotifier,
-    downloadUrl: EMAIL_BILLING_URL,
+    downloadUrl: emailBillingUrl(env.EMAIL_APP_URL),
     facturama: {
       user: env.FACTURAMA_USER,
       password: env.FACTURAMA_PASSWORD,
