@@ -38,6 +38,11 @@ index_name = "aqui-suena-plan-catalog"
 # ----------------------------------------------------------------------------
 # Staging environment. Deploy with: npx wrangler deploy --env staging
 # ----------------------------------------------------------------------------
+# Cancellation reconciliation: the SAT resolves a request on its own clock, so a
+# sweep is the only way to notice it without someone opening the history.
+[triggers]
+crons = ["*/15 * * * *"]
+
 [env.staging]
 name = "aqui-suena-api-staging"
 
@@ -78,3 +83,6 @@ binding = "AI"
 [[env.staging.vectorize]]
 binding = "PLAN_VECTORS"
 index_name = "aqui-suena-plan-catalog"
+
+[env.staging.triggers]
+crons = ["*/15 * * * *"]

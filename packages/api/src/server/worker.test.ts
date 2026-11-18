@@ -169,3 +169,46 @@ describe("GET /health media wiring", () => {
     log.mockRestore();
   });
 });
+
+describe("scheduled sweep", () => {
+  it("does nothing instead of throwing when invoicing is unconfigured", async () => {
+    const db = new FakeD1Database();
+
+    await expect(
+      worker.scheduled?.(
+        undefined as never,
+        {
+          aqui_suena_db: db.db,
+        } as unknown as WorkerEnv,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(errorLog).toHaveBeenCalledWith(
+      "worker: scheduled sweep skipped, invoicing is unconfigured",
+    );
+  });
+
+  it("does not touch the database when there is nothing to cancel", async () => {
+    const db = new FakeD1Database(() => ({ all: [] }));
+
+    await worker.scheduled?.(
+      undefined as never,
+      {
+        aqui_suena_db: db.db,
+        FACTURAMA_USER: "user",
+        FACTURAMA_PASSWORD: "pass",
+        FACTURAMA_BASE_URL: "https://apisandbox.facturama.mx",
+        FACTURAMA_MODE: "multiemisor",
+        FACTURAMA_EXPEDITION_PLACE: "42501",
+        FACTURAMA_ISSUER_RFC: "EKU9003173C9",
+        FACTURAMA_ISSUER_NAME: "ESCUELA KEMPER URGATE",
+        FACTURAMA_ISSUER_FISCAL_REGIME: "601",
+        R2_ACCOUNT_ID: "acc",
+        R2_ACCESS_KEY_ID: "key",
+        R2_SECRET_ACCESS_KEY: "secret",
+      } as unknown as WorkerEnv,
+    );
+
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE status = 'cancellation_pending'");
+  });
+});

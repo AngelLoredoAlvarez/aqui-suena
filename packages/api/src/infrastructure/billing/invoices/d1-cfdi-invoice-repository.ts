@@ -158,6 +158,21 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
     return results.results.map((row) => mapRow(row as CfdiInvoiceRow));
   }
 
+  async listPendingCancellationsForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]> {
+    const results = await this.db
+      .prepare(
+        `SELECT ${COLUMNS}
+        FROM cfdi_invoices
+        WHERE status = 'cancellation_pending'
+        ORDER BY updated_at ASC
+        LIMIT ?`,
+      )
+      .bind(input.limit)
+      .all();
+
+    return results.results.map((row) => mapRow(row as CfdiInvoiceRow));
+  }
+
   async getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null> {
     const row = await this.db
       .prepare(

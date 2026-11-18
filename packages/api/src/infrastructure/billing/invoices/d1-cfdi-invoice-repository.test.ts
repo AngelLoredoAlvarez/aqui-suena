@@ -208,3 +208,16 @@ describe("D1CfdiInvoiceRepository", () => {
     ).resolves.toBeNull();
   });
 });
+
+describe("D1CfdiInvoiceRepository pending sweep", () => {
+  it("selects pending rows across every account, oldest check first", async () => {
+    const db = new FakeD1Database(() => ({ all: [] }));
+
+    await new D1CfdiInvoiceRepository(db.db).listPendingCancellationsForAllAccounts({ limit: 25 });
+
+    expect(normalizeSql(db.statements[0]?.sql)).toContain(
+      "WHERE status = 'cancellation_pending' ORDER BY updated_at ASC LIMIT ?",
+    );
+    expect(db.statements[0]?.params).toEqual([25]);
+  });
+});

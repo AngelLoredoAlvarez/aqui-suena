@@ -38,13 +38,32 @@ export class ReconcileCancellations {
     this.deps = deps;
   }
 
+  /** One account, triggered by a read of that account's history. */
   async execute(input: { accountId: string }): Promise<{ checked: number; updated: number }> {
-    const now = this.deps.now?.() ?? new Date();
-    const staleAfterMs = this.deps.staleAfterMs ?? DEFAULT_STALE_AFTER_MS;
     const pending = await this.deps.invoices.listPendingCancellations({
       accountId: input.accountId,
-      limit: this.deps.maxPerRun ?? DEFAULT_MAX_PER_RUN,
+      limit: this.batchSize(),
     });
+
+    return this.run(pending);
+  }
+
+  /** Every account, triggered by the scheduled sweep: no session, no account. */
+  async executeAll(): Promise<{ checked: number; updated: number }> {
+    const pending = await this.deps.invoices.listPendingCancellationsForAllAccounts({
+      limit: this.batchSize(),
+    });
+
+    return this.run(pending);
+  }
+
+  private batchSize(): number {
+    return this.deps.maxPerRun ?? DEFAULT_MAX_PER_RUN;
+  }
+
+  private async run(pending: CfdiInvoice[]): Promise<{ checked: number; updated: number }> {
+    const now = this.deps.now?.() ?? new Date();
+    const staleAfterMs = this.deps.staleAfterMs ?? DEFAULT_STALE_AFTER_MS;
 
     let checked = 0;
     let updated = 0;

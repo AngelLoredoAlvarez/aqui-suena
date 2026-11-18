@@ -205,3 +205,23 @@ describe("ReconcileCancellations", () => {
     expect(canceller.checks).toHaveLength(0);
   });
 });
+
+describe("ReconcileCancellations.executeAll", () => {
+  it("sweeps pending rows across accounts, oldest first", async () => {
+    const { reconcile, canceller } = setup({
+      invoices: [
+        pending({ id: "cfdi-a", accountId: "acc-1" }),
+        pending({
+          id: "cfdi-b",
+          accountId: "acc-2",
+          updatedAt: new Date("2026-11-19T10:00:00Z"),
+        }),
+      ],
+    });
+
+    const result = await reconcile.executeAll();
+
+    expect(result).toEqual({ checked: 2, updated: 2 });
+    expect(canceller.checks).toEqual(["fac-1", "fac-1"]);
+  });
+});

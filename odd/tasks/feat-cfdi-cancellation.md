@@ -76,9 +76,30 @@ acceptance handling, refunds and payment coupling, and any UI.
 - **T6** — Lazy reconciliation inside `invoices.list`. DONE.
 - **T7** — Docs. DONE.
 
+## Phase 2 — scheduled sweep
+
+The reconciliation that runs on read only helps accounts that open their history.
+An account that never looks would keep `cancellation_pending` forever, even after
+the positive ficta cancelled the CFDI.
+
+- **S8 — A cron sweeps without a session.** The Worker exposes a `scheduled`
+  handler and `wrangler.toml` declares a fifteen-minute trigger for the default
+  worker and for staging. It builds only the cancellation chain — no router, no
+  app — and awaits the sweep.
+- **S9 — The sweep is bounded and oldest-first.** At most five rows per run,
+  ordered by `updated_at`, across all accounts. An empty queue touches the database
+  once and stops.
+- **S10 — Unconfigured deployments stay quiet.** Without a PAC or R2 the sweep logs
+  one line and returns instead of throwing, because staging without billing is a
+  valid deployment.
+- The read-path reconciliation stays. It is bounded and cheap, and it keeps the
+  first read fresh; the cron covers the accounts nobody opens.
+
+Out of scope still: motive `01` with a substitute CFDI.
+
 ## Verification
 
-- `pnpm --filter @aqui-suena/api test` — 960 tests, 117 files, green.
+- `pnpm --filter @aqui-suena/api test` — 962 tests, 117 files, green.
 - `typecheck`, `biome check`, `pnpm arch`, `check:singletons` — clean.
 - Not exercised on staging yet: the adapter is covered by unit tests against the
   provider contract, and the happy path can be cancelled for real in sandbox
@@ -94,6 +115,10 @@ acceptance handling, refunds and payment coupling, and any UI.
   `getByIdForAccount` no longer filter on `issued`. A cancelled invoice is still
   fiscal history and must stay visible, and a download of a cancelled CFDI is
   still the legal record. Only `failed` rows are excluded from the list.
+- **L6** — The first `[triggers]` block was placed right after `name`, which made
+  every following top-level key (`main`, `compatibility_date`) belong to it. The
+  `wrangler deploy --dry-run` caught it before CI: "Unexpected fields found in
+  triggers field". The block now sits at the end of its section.
 - **L5** — The staging probe found that Facturama sandbox returns a canned acuse
   (UUID `0088B8E0-…`, `EstatusUUID 201`, dated 2021) instead of the real one. The
   code archived whatever arrived, so a document proving nothing could be filed as

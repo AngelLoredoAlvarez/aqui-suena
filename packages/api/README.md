@@ -89,10 +89,12 @@ returns the row to `issued`; `rejected` keeps the invoice valid. A provider
 refusal returns the row to `issued` with the reason recorded instead of leaving it
 pending forever, and a lost acuse is logged, never fatal.
 
-Reading the history refreshes up to five pending rows — those whose receiver
-window closed or that nobody checked in fifteen minutes — so the positive ficta
-is not missed. That write-on-read is conscious debt until the Worker gains a
-`scheduled` handler.
+Two paths keep that state fresh. Reading the history refreshes up to five pending
+rows — those whose receiver window closed or that nobody checked in fifteen
+minutes — which keeps the first read accurate. A fifteen-minute cron
+(`scheduled` in the Worker, see `[triggers]` in `wrangler.toml`) sweeps pending
+rows across every account, so an account that never opens its history still gets
+the positive ficta recorded. Both are bounded to five rows per run.
 
 ## Invoice history
 

@@ -69,6 +69,11 @@ export interface CfdiInvoiceRepository {
    */
   listPendingCancellations(input: { accountId: string; limit: number }): Promise<CfdiInvoice[]>;
   /**
+   * Every account's pending row, for the scheduled sweep: the cron has no session
+   * and no account in scope.
+   */
+  listPendingCancellationsForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]>;
+  /**
    * Compare-and-set to `cancellation_pending`. `false` means another request
    * already claimed it, so the provider must not be called twice.
    */
@@ -143,6 +148,13 @@ export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
   }): Promise<CfdiInvoice[]> {
     return this.rows
       .filter((row) => row.accountId === input.accountId && row.status === "cancellation_pending")
+      .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
+      .slice(0, input.limit);
+  }
+
+  async listPendingCancellationsForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]> {
+    return this.rows
+      .filter((row) => row.status === "cancellation_pending")
       .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
       .slice(0, input.limit);
   }
