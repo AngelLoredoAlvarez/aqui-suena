@@ -1,3 +1,4 @@
+import { cancellationStateFor } from "@aqui-suena/api/domain/billing/invoices/cancellation-outcome";
 import {
   cancellationDeadline,
   isWithinCancellationWindow,
@@ -34,14 +35,6 @@ export type CancelInvoiceCommand = {
   readonly invoiceId: string;
   readonly motive: CfdiCancellationMotive;
 };
-
-/** Where each provider outcome leaves the row. */
-const OUTCOME_STATES = {
-  cancelled: { status: "cancelled", keepPending: false },
-  pending: { status: "cancellation_pending", keepPending: true },
-  rejected: { status: "cancellation_rejected", keepPending: false },
-  not_cancellable: { status: "issued", keepPending: false },
-} as const;
 
 /**
  * Cancels an issued CFDI.
@@ -124,15 +117,15 @@ export class CancelInvoice {
       throw error;
     }
 
-    const state = OUTCOME_STATES[result.outcome];
+    const state = cancellationStateFor(result, now);
     const acuseKey = await this.tryArchiveAcuse(command.accountId, result.acuseXml);
 
     await this.deps.invoices.recordCancellationOutcome({
       id: invoice.id,
       accountId: command.accountId,
       status: state.status,
-      resolvedAt: state.keepPending ? null : (result.resolvedAt ?? now),
-      expiresAt: state.keepPending ? result.expiresAt : null,
+      resolvedAt: state.resolvedAt,
+      expiresAt: state.expiresAt,
       detail: result.detail,
       acuseKey,
       updatedAt: now,
