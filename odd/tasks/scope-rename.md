@@ -15,7 +15,7 @@ The legacy short scope was terse but opaque to outsiders. Decision: the explicit
 - `tsconfig.base.json` path aliases
 - `apps/web/next.config.ts` `transpilePackages`
 - All source imports (`@aqui-suena/config`, `@aqui-suena/navigation`, `@aqui-suena/ui`)
-- Doc references (`tasks/todo.md`, `SPEC-*.md`, `odd/tasks/*.md`, `tasks/plan.md` where they name the scope)
+- Doc references (`docs/archive/tasks/todo.md`, `SPEC-*.md`, `odd/tasks/*.md`, `docs/archive/tasks/plan.md` where they name the scope)
 - `pnpm-lock.yaml` via `pnpm install` regen (never hand-edited)
 
 ## Constraints

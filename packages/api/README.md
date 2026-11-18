@@ -23,12 +23,12 @@ gate that proves the types, exactly like the other packages.
 
 ## Environment
 
-| Variable          | Default    | Purpose                                                                                                                                                            |
-| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                                                                                  |
-| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                                                                            |
-| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                                                                            |
-| `RESEND_API_KEY`  | (optional) | Enables transactional email. When unset, `createSubscriptionNotifier` returns `undefined`, so the composition wires no notifier and no message leaves the process. |
+| Variable          | Default    | Purpose                                                                                                                                                                                    |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`            | `3001`     | TCP port. Must be an integer between 1 and 65535.                                                                                                                                          |
+| `HOST`            | `0.0.0.0`  | Bind address. Container platforms need every interface.                                                                                                                                    |
+| `ALLOWED_ORIGINS` | see below  | Comma-separated extra origins for CORS.                                                                                                                                                    |
+| `RESEND_API_KEY`  | (optional) | Enables transactional email. When unset, `createSubscriptionNotifier` and `createCfdiNotifier` return `undefined`, so the composition wires no notifier and no message leaves the process. |
 
 ## Routes
 
@@ -56,17 +56,24 @@ The email stack is implemented and wired through the composition root. What exis
   in `src/infrastructure/email/`.
 - `ResendEmailSender` (`src/infrastructure/email/resend-email-sender.ts`), an
   adapter for the `EmailSender` port.
-- `TemplateSubscriptionNotifier`, `TemplateAccountNotifier` and
-  `TemplatePaymentNotifier`, each covered by tests.
-- `src/server/composition/email.ts`, which builds the sender and the
-  subscription notifier when `RESEND_API_KEY` is set and passes it through
-  `createApp`/`createAppRouter`.
+- `TemplateSubscriptionNotifier`, `TemplateAccountNotifier`,
+  `TemplatePaymentNotifier` and `TemplateCfdiNotifier`, each covered by tests.
+- `src/server/composition/email.ts`, which builds the sender plus the
+  subscription and CFDI notifiers when `RESEND_API_KEY` is set and passes them
+  through `createApp`/`createAppRouter`. `EMAIL_BILLING_URL` is exported there
+  and injected as the invoice CTA, so the domain never hardcodes a frontend
+  route.
 
-What is missing: the remaining trigger call sites. `subscriptions.cancel` is the
-only flow that notifies today; signup/verification, payment receipts, renewal
-reminders and downgrades are blocked on auth, a payment provider and a Worker
-cron. Without `RESEND_API_KEY` no notifier is constructed, so cancelling sends
-nothing. Wiring the rest is tracked in `odd/tasks/backlog.md`.
+`EmailMessage` carries optional attachments, which is how a stamped CFDI travels:
+`IssueInvoice` downloads the provider PDF, archives it beside the XML in R2 and
+sends both files through `TemplateCfdiNotifier`.
+
+Live flows: `subscriptions.cancel` (template 10) and `billing.requestInvoice`
+(template 8). What is missing is the remaining trigger call sites:
+signup/verification, payment receipts, renewal reminders and downgrades are
+blocked on signup, a payment provider and a Worker cron. Without
+`RESEND_API_KEY` no notifier is constructed, so nothing is sent. Wiring the rest
+is tracked in `odd/tasks/backlog.md`.
 
 ## Listener status
 
@@ -111,9 +118,12 @@ anything other than the client-safe entries.
   entitlements. It imports no other domain module, so billing, directory, ads
   and support can all depend on it without coupling to each other.
 - `src/domain/billing/` subdivides into `subscriptions/` (lifecycle, grace,
-  reminders, notifiers) and `payments/` (payments and the receipt notifier).
-  Billing may depend on directory (a downgrade hides businesses), never the
-  reverse; `directory/retention.ts` owns the hiding and retention helpers.
+  reminders, notifiers), `payments/` (payments and the receipt notifier) and
+  `invoices/` (CFDI issuing, document archiving and delivery). Billing may
+  depend on directory (a downgrade hides businesses) and on accounts (an invoice
+  reads the fiscal profile), never the reverse; `directory/retention.ts` owns
+  the hiding and retention helpers and a cruiser rule enforces the
+  accounts → billing direction.
 - `src/infrastructure/<context>/` mirrors the domain module it implements. One
   adapter per port; no business rules.
 - `src/testing/` holds test-only doubles (`FakeEmailSender`, the `Fake*Notifier`
