@@ -36,6 +36,14 @@ export class R2CfdiDocumentStore implements CfdiDocumentStore, CfdiDocumentLinke
     );
   }
 
+  async saveAcuse(input: { accountId: string; xml: string }): Promise<string> {
+    return this.put(
+      `cfdi/${input.accountId}/${crypto.randomUUID()}-acuse.xml`,
+      input.xml,
+      "application/xml",
+    );
+  }
+
   /**
    * Signs a GET for an archived document. The filename travels inside the
    * signature, so R2 answers a named download and the caller never streams the

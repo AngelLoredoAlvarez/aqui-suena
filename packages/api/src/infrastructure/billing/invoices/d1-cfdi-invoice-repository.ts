@@ -1,4 +1,5 @@
 import type {
+  CancellationOutcomeUpdate,
   CfdiCancellationMotive,
   CfdiInvoice,
   CfdiInvoiceRepository,
@@ -80,7 +81,7 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
       .prepare(
         `SELECT ${COLUMNS}
         FROM cfdi_invoices
-        WHERE account_id = ? AND status = 'issued'
+        WHERE account_id = ? AND status <> 'failed'
         ORDER BY created_at DESC, id DESC
         LIMIT ?
         OFFSET ?`,
@@ -95,12 +96,56 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
     );
   }
 
+  async markCancellationRequested(input: {
+    id: string;
+    accountId: string;
+    motive: CfdiCancellationMotive;
+    requestedAt: Date;
+  }): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        `UPDATE cfdi_invoices
+        SET status = 'cancellation_pending', cancellation_motive = ?, cancellation_requested_at = ?, updated_at = ?
+        WHERE id = ? AND account_id = ?`,
+      )
+      .bind(
+        input.motive,
+        toEpoch(input.requestedAt),
+        toEpoch(input.requestedAt),
+        input.id,
+        input.accountId,
+      )
+      .run();
+
+    return (result.meta?.changes ?? 0) === 1;
+  }
+
+  async recordCancellationOutcome(input: CancellationOutcomeUpdate): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE cfdi_invoices
+        SET status = ?, cancellation_resolved_at = ?, cancellation_expires_at = ?, cancellation_detail = ?, acuse_key = ?, updated_at = ?
+        WHERE id = ? AND account_id = ?`,
+      )
+      .bind(
+        input.status,
+        input.resolvedAt === null ? null : toEpoch(input.resolvedAt),
+        input.expiresAt === null ? null : toEpoch(input.expiresAt),
+        input.detail,
+        input.acuseKey,
+        toEpoch(input.updatedAt),
+        input.id,
+        input.accountId,
+      )
+      .run();
+  }
+
   async getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null> {
     const row = await this.db
       .prepare(
         `SELECT ${COLUMNS}
         FROM cfdi_invoices
-        WHERE id = ? AND account_id = ? AND status = 'issued'`,
+        WHERE id = ? AND account_id = ?`,
       )
       .bind(id, accountId)
       .first();

@@ -42,16 +42,46 @@ export type ListInvoicesInput = {
   readonly offset: number;
 };
 
+/** What the provider answered, already normalised by the port. */
+export type CancellationOutcomeUpdate = {
+  readonly id: string;
+  readonly accountId: string;
+  readonly status: CfdiInvoiceStatus;
+  readonly resolvedAt: Date | null;
+  readonly expiresAt: Date | null;
+  readonly detail: string | null;
+  readonly acuseKey: string | null;
+  readonly updatedAt: Date;
+};
+
 export interface CfdiInvoiceRepository {
   create(input: NewCfdiInvoice): Promise<CfdiInvoice>;
-  /** Only `issued` rows: a PAC rejection is not a document the owner owns. */
+  /**
+   * Every row except `failed`: a PAC rejection is not a document the owner owns,
+   * but a cancelled invoice is still fiscal history.
+   */
   listByAccount(input: ListInvoicesInput): Promise<OffsetPage<CfdiInvoice>>;
+  /** Any status: the caller decides what each one may do. */
   getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null>;
+  /**
+   * Compare-and-set to `cancellation_pending`. `false` means another request
+   * already claimed it, so the provider must not be called twice.
+   */
+  markCancellationRequested(input: {
+    id: string;
+    accountId: string;
+    motive: CfdiCancellationMotive;
+    requestedAt: Date;
+  }): Promise<boolean>;
+  /** Records what the provider answered, without touching the motive. */
+  recordCancellationOutcome(input: CancellationOutcomeUpdate): Promise<void>;
 }
 
 export interface CfdiDocumentStore {
   saveXml(input: { accountId: string; xml: string }): Promise<string>;
   savePdf(input: { accountId: string; pdf: Uint8Array }): Promise<string>;
+  /** The acuse proves a cancellation: it is a fiscal document like the CFDI. */
+  saveAcuse(input: { accountId: string; xml: string }): Promise<string>;
 }
 
 /** Signs a short-lived download for an archived document. */
@@ -63,23 +93,58 @@ export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
   constructor(readonly rows: CfdiInvoice[] = []) {}
 
   async listByAccount(input: ListInvoicesInput): Promise<OffsetPage<CfdiInvoice>> {
-    const issued = this.rows
-      .filter((row) => row.accountId === input.accountId && row.status === "issued")
+    const listed = this.rows
+      .filter((row) => row.accountId === input.accountId && row.status !== "failed")
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return paginateOffset(
-      issued.slice(input.offset, input.offset + input.limit),
+      listed.slice(input.offset, input.offset + input.limit),
       input.limit,
       input.offset,
     );
   }
 
   async getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null> {
-    return (
-      this.rows.find(
-        (row) => row.id === id && row.accountId === accountId && row.status === "issued",
-      ) ?? null
+    return this.rows.find((row) => row.id === id && row.accountId === accountId) ?? null;
+  }
+
+  /** Compare-and-set: the winner is the only caller that reaches the provider. */
+  async markCancellationRequested(input: {
+    id: string;
+    accountId: string;
+    motive: CfdiCancellationMotive;
+    requestedAt: Date;
+  }): Promise<boolean> {
+    const row = this.rows.find(
+      (candidate) =>
+        candidate.id === input.id &&
+        candidate.accountId === input.accountId &&
+        candidate.status === "issued",
     );
+
+    if (row === undefined) return false;
+
+    row.status = "cancellation_pending";
+    row.cancellationMotive = input.motive;
+    row.cancellationRequestedAt = input.requestedAt;
+    row.updatedAt = input.requestedAt;
+
+    return true;
+  }
+
+  async recordCancellationOutcome(input: CancellationOutcomeUpdate): Promise<void> {
+    const row = this.rows.find(
+      (candidate) => candidate.id === input.id && candidate.accountId === input.accountId,
+    );
+
+    if (row === undefined) return;
+
+    row.status = input.status;
+    row.cancellationResolvedAt = input.resolvedAt;
+    row.cancellationExpiresAt = input.expiresAt;
+    row.cancellationDetail = input.detail;
+    row.acuseKey = input.acuseKey;
+    row.updatedAt = input.updatedAt;
   }
 
   async create(input: NewCfdiInvoice): Promise<CfdiInvoice> {
