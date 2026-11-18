@@ -8,12 +8,17 @@ import {
   type FacturamaFiscalSettings,
   toFacturamaCfdiPayload,
 } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-cfdi-payload";
+import {
+  decodeBase64Bytes,
+  decodeBase64Text,
+  type FacturamaCredentials,
+  MALFORMED_RESPONSE,
+  readRejectionDetail,
+  toBasicAuth,
+  trimTrailingSlash,
+} from "@aqui-suena/api/infrastructure/billing/facturama/facturama-http";
 
-export type FacturamaCredentials = {
-  readonly user: string;
-  readonly password: string;
-  readonly baseUrl: string;
-};
+export type { FacturamaCredentials };
 
 export type FacturamaInvoiceIssuerDependencies = {
   readonly credentials: FacturamaCredentials;
@@ -35,60 +40,11 @@ type FacturamaCfdiResponse = {
   readonly TaxStamp?: { readonly Uuid?: unknown };
 };
 
-const MALFORMED_RESPONSE = "Malformed response from the invoice provider";
-
 const WEB_ENDPOINT = "/3/cfdis";
 const MULTIEMISOR_ENDPOINT = "/api-lite/4/cfdis";
 /** Download endpoint: /cfdi/{format}/{type}/{id}, a different path from issuing. */
 const DOWNLOAD_ENDPOINT = "/cfdi";
 const DOWNLOAD_TYPES = { web: "issued", multiemisor: "issuedLite" } as const;
-
-/** Trims trailing slashes so `${baseUrl}/3/cfdis` never doubles a slash. */
-function trimTrailingSlash(url: string): string {
-  return url.replace(/\/+$/, "");
-}
-
-/** Facturama v3 authenticates with the panel credentials over Basic. */
-function toBasicAuth(user: string, password: string): string {
-  return `Basic ${btoa(`${user}:${password}`)}`;
-}
-
-/** The download endpoint answers base64; `atob` yields a binary string. */
-function decodeBase64Bytes(base64: string): Uint8Array {
-  return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
-}
-
-/** The XML arrives base64-encoded UTF-8; `atob` alone would corrupt accents. */
-function decodeXml(base64: string): string {
-  const binary = atob(base64);
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-
-  return new TextDecoder().decode(bytes);
-}
-
-/**
- * A rejection carries a JSON `Message`. When the body is not JSON or is empty,
- * the HTTP status is the only useful detail left.
- */
-async function readRejectionDetail(response: Response): Promise<string> {
-  const body = await response.text();
-
-  if (body.length > 0) {
-    try {
-      const parsed: unknown = JSON.parse(body);
-
-      if (typeof parsed === "object" && parsed !== null && "Message" in parsed) {
-        const message = (parsed as { Message: unknown }).Message;
-
-        if (typeof message === "string" && message.length > 0) return message;
-      }
-    } catch {
-      return body;
-    }
-  }
-
-  return `The invoice provider answered ${response.status}`;
-}
 
 export class FacturamaInvoiceIssuer implements InvoiceIssuer {
   private readonly deps: FacturamaInvoiceIssuerDependencies;
@@ -127,7 +83,7 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
       throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
     }
 
-    return { providerId, uuid, xml: decodeXml(xml) };
+    return { providerId, uuid, xml: decodeBase64Text(xml) };
   }
 
   /**
