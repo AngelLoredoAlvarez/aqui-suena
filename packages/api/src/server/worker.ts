@@ -90,7 +90,50 @@ export interface WorkerEnv {
 
 export default {
   fetch: withRequestLogging(handleFetch),
+  scheduled: handleScheduled,
 };
+
+/**
+ * Cron entry point. It builds only the cancellation chain — no router, no app —
+ * and lets the platform wait for it, so a slow PAC does not count against the
+ * request path.
+ */
+async function handleScheduled(_controller: ScheduledController, env: WorkerEnv): Promise<void> {
+  const cancellation = createCancelInvoice({
+    db: env.aqui_suena_db,
+    facturama: {
+      user: env.FACTURAMA_USER,
+      password: env.FACTURAMA_PASSWORD,
+      baseUrl: env.FACTURAMA_BASE_URL,
+      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
+      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
+      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
+      productCode: env.FACTURAMA_PRODUCT_CODE,
+      unitCode: env.FACTURAMA_UNIT_CODE,
+      series: env.FACTURAMA_SERIES,
+      issuerRfc: env.FACTURAMA_ISSUER_RFC,
+      issuerName: env.FACTURAMA_ISSUER_NAME,
+      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
+    },
+    r2: {
+      accountId: env.R2_ACCOUNT_ID,
+      accessKeyId: env.R2_ACCESS_KEY_ID,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      bucketName: env.R2_BUCKET_NAME,
+      endpoint: env.R2_ENDPOINT,
+    },
+  });
+
+  if (cancellation === undefined) {
+    console.error("worker: scheduled sweep skipped, invoicing is unconfigured");
+
+    return;
+  }
+
+  // Success stays quiet: the sweep reports failures through the reconcile hook,
+  // and the lint config only allows console.error.
+  await cancellation.reconcile.executeAll();
+}
 
 async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> {
   const ai = env.AI as unknown as AiBinding;
