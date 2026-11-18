@@ -19,6 +19,12 @@ describe("D1CfdiInvoiceRepository", () => {
       xmlKey: "cfdi/acc-1/1.xml",
       pdfKey: "cfdi/acc-1/1.pdf",
       failureReason: null,
+      cancellationMotive: null,
+      cancellationRequestedAt: null,
+      cancellationResolvedAt: null,
+      cancellationExpiresAt: null,
+      cancellationDetail: null,
+      acuseKey: null,
     });
 
     expect(invoice.id).toMatch(/^[0-9a-f-]{36}$/);
@@ -42,6 +48,13 @@ describe("D1CfdiInvoiceRepository", () => {
       "cfdi/acc-1/1.xml",
       "cfdi/acc-1/1.pdf",
       null,
+      // cancellation fields: motive, requested, resolved, expires, detail, acuse
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       toEpoch(invoice.createdAt),
       toEpoch(invoice.updatedAt),
     ]);
@@ -61,6 +74,12 @@ describe("D1CfdiInvoiceRepository", () => {
       xmlKey: null,
       pdfKey: null,
       failureReason: "El RFC del receptor no se encuentra en la lista de contribuyentes",
+      cancellationMotive: null,
+      cancellationRequestedAt: null,
+      cancellationResolvedAt: null,
+      cancellationExpiresAt: null,
+      cancellationDetail: null,
+      acuseKey: null,
     });
 
     expect(invoice.status).toBe("failed");
@@ -74,12 +93,18 @@ describe("D1CfdiInvoiceRepository", () => {
       null,
       null,
       "El RFC del receptor no se encuentra en la lista de contribuyentes",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       toEpoch(invoice.createdAt),
       toEpoch(invoice.updatedAt),
     ]);
   });
 
-  it("lists only issued invoices of the account, newest first", async () => {
+  it("lists every invoice of the account except failed ones, newest first", async () => {
     const db = new FakeD1Database(() => ({
       all: [
         {
@@ -121,7 +146,7 @@ describe("D1CfdiInvoiceRepository", () => {
     expect(page.items[0]?.createdAt).toEqual(new Date(1_700_000_200_000));
     expect(page.nextOffset).toBeNull();
     expect(normalizeSql(db.statements[0]?.sql)).toContain(
-      "WHERE account_id = ? AND status = 'issued' ORDER BY created_at DESC, id DESC",
+      "WHERE account_id = ? AND status <> 'failed' ORDER BY created_at DESC, id DESC",
     );
     expect(db.statements[0]?.params).toEqual(["acc-1", 20, 0]);
   });
@@ -151,7 +176,7 @@ describe("D1CfdiInvoiceRepository", () => {
     expect(page.nextOffset).toBe(1);
   });
 
-  it("scopes a single invoice lookup to its account and to issued rows", async () => {
+  it("scopes a single invoice lookup to its account, whatever its status", async () => {
     const db = new FakeD1Database(() => ({
       first: {
         id: "inv-1",
@@ -171,9 +196,7 @@ describe("D1CfdiInvoiceRepository", () => {
     const invoice = await new D1CfdiInvoiceRepository(db.db).getByIdForAccount("acc-1", "inv-1");
 
     expect(invoice).toMatchObject({ id: "inv-1", accountId: "acc-1", status: "issued" });
-    expect(normalizeSql(db.statements[0]?.sql)).toContain(
-      "WHERE id = ? AND account_id = ? AND status = 'issued'",
-    );
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE id = ? AND account_id = ?");
     expect(db.statements[0]?.params).toEqual(["inv-1", "acc-1"]);
   });
 

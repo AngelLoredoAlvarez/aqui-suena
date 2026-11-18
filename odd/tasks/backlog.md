@@ -181,10 +181,18 @@ explains.
       `00000022-00000000-00005126-66a9de4b5b8ffcc01aa66b6c9c0ad57a`, the SAT test
       CSD registered in the multiemisor API, and `FACTURAMA_USER` /
       `FACTURAMA_PASSWORD` uploaded as Worker secrets.
-- [ ] CFDI cancellation slice: the emitter requests cancellation with a motive and
-      the receiver accepts or rejects within 72 hours, so it needs
-      `issued` → `cancellation_pending` → `cancelled` | `cancellation_rejected`,
-      a reconciliation job and motive `01` substitution support.
+- [x] CFDI cancellation, phase 1 — DONE 2026-11-18 (`feat/cfdi-cancellation`).
+      `billing.invoices.cancel` claims the row with a compare-and-set before
+      calling the PAC, enforces the article 29-A window in Mexico City time,
+      maps the six provider states to four outcomes and archives the acuse in
+      R2. `billing.invoices.list` refreshes up to five pending rows per read, so
+      the positive ficta is not missed. Motives `02` and `03` are supported;
+      reason detail is kept for disputes. Details:
+      `odd/tasks/feat-cfdi-cancellation.md`.
+- [ ] CFDI cancellation, phase 2: a Worker `scheduled` handler with the sweep
+      every 15–30 minutes (moving reconciliation out of the listing query), and
+      motive `01` with the substitute CFDI (emit the replacement first, then
+      cancel the original with its UUID).
 - [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
       reaches the owner with the provider PDF and the archived XML attached, so
       the fiscal document travels with the message and no signed URL can expire.

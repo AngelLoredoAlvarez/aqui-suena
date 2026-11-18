@@ -115,6 +115,12 @@ export const cfdiInvoices = sqliteTable("cfdi_invoices", {
   xmlKey: text("xml_key"),
   pdfKey: text("pdf_key"),
   failureReason: text("failure_reason"),
+  cancellationMotive: text("cancellation_motive"),
+  cancellationRequestedAt: integer("cancellation_requested_at", { mode: "timestamp" }),
+  cancellationResolvedAt: integer("cancellation_resolved_at", { mode: "timestamp" }),
+  cancellationExpiresAt: integer("cancellation_expires_at", { mode: "timestamp" }),
+  cancellationDetail: text("cancellation_detail"),
+  acuseKey: text("acuse_key"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

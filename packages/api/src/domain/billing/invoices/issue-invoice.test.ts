@@ -75,6 +75,7 @@ class FakeInvoiceIssuer implements InvoiceIssuer {
 class FakeCfdiDocumentStore implements CfdiDocumentStore {
   readonly xmls: Array<{ accountId: string; xml: string }> = [];
   readonly pdfs: Array<{ accountId: string; pdf: Uint8Array }> = [];
+  readonly acuses: Array<{ accountId: string; xml: string }> = [];
 
   constructor(
     private readonly xmlFails = false,
@@ -89,6 +90,12 @@ class FakeCfdiDocumentStore implements CfdiDocumentStore {
     this.xmls.push(input);
 
     return `cfdi/${input.accountId}/${this.xmls.length}.xml`;
+  }
+
+  async saveAcuse(input: { accountId: string; xml: string }): Promise<string> {
+    this.acuses.push(input);
+
+    return `cfdi/${input.accountId}/${this.acuses.length}-acuse.xml`;
   }
 
   async savePdf(input: { accountId: string; pdf: Uint8Array }): Promise<string> {
