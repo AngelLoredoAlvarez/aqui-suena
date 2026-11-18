@@ -1,6 +1,6 @@
 # Business Plan Tiers Track — Task Checklist
 
-> Current source of truth: SPEC-memberships.md. Replaces the previous FREE/PREMIUM ads-tiers track. Radio playback stays independent; monetization and visibility use only the visual carousel and business directory.
+> Current source of truth: docs/specs/SPEC-memberships.md. Replaces the previous FREE/PREMIUM ads-tiers track. Radio playback stays independent; monetization and visibility use only the visual carousel and business directory.
 >
 > Last synced 2026-11-10 against `main`: Task 1 checkboxes re-verified against the code, and a duplicated block left over from two branch merges was consolidated. Items marked `[x]` carry the file that proves them; items marked partial say what is still missing.
 
@@ -58,4 +58,4 @@
 
 ## Open decisions
 
-None. All previously open decisions are recorded in SPEC-memberships.md and persistent memory.
+None. All previously open decisions are recorded in docs/specs/SPEC-memberships.md and persistent memory.

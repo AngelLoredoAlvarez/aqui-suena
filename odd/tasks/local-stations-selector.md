@@ -8,7 +8,7 @@ Scope the player station selector to local radio stations only. The selector mec
 
 ## Problem
 
-`SPEC-radio-playback.md` frames the stream as a temporary open-source placeholder for a future own station, with a generic `stations` list. That framing no longer matches the product decision: the catalog is local stations, not a placeholder stream and not national/foreign streams.
+`docs/specs/SPEC-radio-playback.md` frames the stream as a temporary open-source placeholder for a future own station, with a generic `stations` list. That framing no longer matches the product decision: the catalog is local stations, not a placeholder stream and not national/foreign streams.
 
 ## Why
 
@@ -29,7 +29,7 @@ Product decision (Engram id 157): the selector lists ONLY local stations. Mechan
 
 ## Authorized scope
 
-Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits, no push, no PRs.
+Docs only: this ODD file + `docs/specs/SPEC-radio-playback.md` updates. No code, no commits, no push, no PRs.
 
 ## Tasks
 
@@ -38,7 +38,7 @@ Docs only: this ODD file + `SPEC-radio-playback.md` updates. No code, no commits
 - [x] LS3 ~~Implementation prompt snippet ready for the future build slice~~ — CANCELLED (superseded 2026-10-13)
 - [x] LS4 ~~Implementation deferred until the real station list exists~~ — CANCELLED (superseded 2026-10-13: local list will not be requested)
 
-Claude prompt snippet (for LS3/LS4): "Implement the local-only station catalog per SPEC-radio-playback.md and odd/tasks/local-stations-selector.md: seed `stations` with the provided local list (id, name, locality, streamUrl), extend `StationRef` with `locality`, keep in-place switching with no station screens, render an honest empty message when the catalog is empty. Do not invent station names or URLs."
+Claude prompt snippet (for LS3/LS4): "Implement the local-only station catalog per docs/specs/SPEC-radio-playback.md and odd/tasks/local-stations-selector.md: seed `stations` with the provided local list (id, name, locality, streamUrl), extend `StationRef` with `locality`, keep in-place switching with no station screens, render an honest empty message when the catalog is empty. Do not invent station names or URLs."
 
 ## Acceptance criteria
 

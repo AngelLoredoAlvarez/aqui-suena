@@ -1,12 +1,12 @@
 # Implementation Plan: Ads Tiers (FREE vs PREMIUM Sheets)
 
-> **Superseded by the 2026-11-02 three-plan update.** The current model is Comunidad / Oficios & Servicios / Comercios & Catálogo (SPEC-memberships.md). This document remains as implementation history for the previous FREE/PREMIUM track; do not use it as the current requirements source. New implementation work is tracked in `tasks/todo-plan-tiers.md`.
+> **Superseded by the 2026-11-02 three-plan update.** The current model is Comunidad / Oficios & Servicios / Comercios & Catálogo (docs/specs/SPEC-memberships.md). This document remains as implementation history for the previous FREE/PREMIUM track; do not use it as the current requirements source. New implementation work is tracked in `tasks/todo-plan-tiers.md`.
 
 ## Overview
 
 Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. FREE registers basic business info only (logo, phone, WhatsApp, address, open/closed, delivery flag) plus one flyer upload; FREE allows zero structured products — the product list with prices and product images is PREMIUM-only. Structured listing DATA is the source of truth; the flyer IMAGE is decoration only and counts against the photo quota — the flyer never parses into products. Reference fixture: a flyer with 6 products, so FREE renders the basic sheet + flyer image with zero structured rows while PREMIUM shows all six as structured data. Directory caps, sheet contracts, ranked carousel, shared UI, and flyer policy are delivered as vertical slices with player-safe audio throughout.
 
-> Authoritative rule (2026-10-12): FREE = basic info + flyer decor, zero structured products; PREMIUM = full catalog. Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned.
+> Authoritative rule (2026-10-12): FREE = basic info + flyer decor, zero structured products; PREMIUM = full catalog. Resolved 2026-10-12: docs/specs/SPEC-memberships.md revised to free products 0; plan and SPEC aligned.
 
 ## Architecture Decisions
 
@@ -60,7 +60,7 @@ Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. F
 | ---------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Flyer bypass (products smuggled via flyer image instead of DATA)                                     | High   | DATA-truth rule enforced + 6-product flyer fixture test; products count only from structured data; FREE flyer renders as image only, zero structured rows    |
 | Free-product bypass via flyer (owner treats flyer as a product list to evade the zero-products rule) | High   | Image never becomes data: flyer pixels contribute zero structured rows by construction; fixture asserts 6-product flyer on FREE renders zero structured rows |
-| SPEC-memberships drift (prior `free.products: 5` vs authoritative `0`)                               | High   | Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned. Resolver implements 0                                            |
+| SPEC-memberships drift (prior `free.products: 5` vs authoritative `0`)                               | High   | Resolved 2026-10-12: docs/specs/SPEC-memberships.md revised to free products 0; plan and SPEC aligned. Resolver implements 0                                 |
 | Sheet open/close pauses audio                                                                        | High   | Player-safe sheets; AUDIO INVARIANT asserted in Tasks 5-6 acceptance and e2e                                                                                 |
 | Entitlement drift (limits duplicated across routers/UI)                                              | High   | Single resolver; no hardcoded limits elsewhere; matrix coverage 100%                                                                                         |
 | UI imports router internals                                                                          | Med    | Contract module has no router/UI imports; sheet DTOs only                                                                                                    |
@@ -79,7 +79,7 @@ Tiered ads sheets that make PREMIUM (= Monthly plan) visibly worth paying for. F
 - Category enum final list + hosting/media storage limits?
 - Free photo quota exact number for flyer/logo (currently assumed 3 — confirm)?
 - Does FREE get more than one flyer, or exactly one?
-- Resolved 2026-10-12: SPEC-memberships.md revised to free products 0; plan and SPEC aligned (prior revision-approval question closed).
+- Resolved 2026-10-12: docs/specs/SPEC-memberships.md revised to free products 0; plan and SPEC aligned (prior revision-approval question closed).
 
 ## Parallelization Opportunities
 

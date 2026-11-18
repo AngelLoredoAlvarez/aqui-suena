@@ -61,7 +61,7 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
   the agreed no-data state.
 - S7 (explanation): the chosen definition of "listeners" (concurrent stream
   listeners vs active app sessions) is documented in the feature doc and in
-  `SPEC-radio-playback.md`.
+  `docs/specs/SPEC-radio-playback.md`.
 
 ## Tasks
 
@@ -79,7 +79,7 @@ Delivery: one PR. Test runner: `pnpm --filter @aqui-suena/api test`.
       mock and its duplicate constant. DONE.
 - [ ] T5 (S3, S6): UI no-data state per D3; hide the counter when unavailable if
       that is the decision.
-- [ ] T6 (S7): update `SPEC-radio-playback.md` (remove the mock success criterion)
+- [ ] T6 (S7): update `docs/specs/SPEC-radio-playback.md` (remove the mock success criterion)
       and close the backlog item. SPEC updated; backlog pending.
 
 ## Licensing prerequisite
@@ -142,7 +142,7 @@ catalog metadata. "Staging" is not a licensing exemption.
   `chore/remove-fake-listeners`: `FAKE_LISTENERS`, its flag plumbing and the
   fake generator are gone. `listener.getStatus` now only sums real
   `listen_sessions`, so it reported `0` until the direct simulation returned.
-- L9 (2026-11-13): Heartbeat discarded for cost. `SPEC-live-listener-count.md` is
+- L9 (2026-11-13): Heartbeat discarded for cost. `docs/specs/SPEC-live-listener-count.md` is
   superseded: real heartbeats would add D1 writes per client per interval. The
   listener router now returns `simulatedListenerCount` directly (deterministic,
   smooth, no feature flag, zero writes). The `ListenSessionRepository` and its D1

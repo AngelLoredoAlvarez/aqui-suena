@@ -5,7 +5,7 @@ Branch: `feature/ads-carousel` · Delivery: `ask-on-risk` · Runner: `pnpm --fil
 Build the flyer card anatomy (full-bleed image + open-status badge + pagination
 dots + name + meta + CTA) for the ads carousel, rendered responsively across
 mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
-`SPEC-ads-display.md` → "Carousel visual anatomy (per platform)".
+`docs/specs/SPEC-ads-display.md` → "Carousel visual anatomy (per platform)".
 
 ## Specs
 
@@ -57,7 +57,7 @@ all platforms.
 L4 (2026-10-26): Requirement: no sponsorship disclosure on the card — no sponsorship badge.
 
 L5 (2026-10-26): Scope: card anatomy only; the
-directory list and contact detail panel belong to SPEC-business-directory.md.
+directory list and contact detail panel belong to docs/specs/SPEC-business-directory.md.
 
 L6 (2026-10-26, verification): `pnpm -r typecheck` green across all packages +
 apps. `@aqui-suena/ui` test 131 passed, `@aqui-suena/api` test 55 passed.

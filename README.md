@@ -88,48 +88,48 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ## Docs and planning
 
-| Doc                                | Purpose                                                       |
-| ---------------------------------- | ------------------------------------------------------------- |
-| `SPEC-ads-display.md`              | Sponsor carousel during listening                             |
-| `SPEC-business-directory.md`       | Listings: products, services, photos, hours, flyers           |
-| `SPEC-live-listener-count.md`      | Superseded decision record for the heartbeat                  |
-| `SPEC-media-storage.md`            | Media storage: R2 upload + image optimization (free tier)     |
-| `SPEC-memberships.md`              | Three business plans, entitlements, and carousel priority     |
-| `SPEC-notifications.md`            | Push notifications: web + mobile + desktop (free tier)        |
-| `SPEC-offline.md`                  | Offline/no-connection handling                                |
-| `SPEC-owner-portal.md`             | Owner portal for listings and billing                         |
-| `SPEC-radio-playback.md`           | MVP spec: autoplay, fallback, status, test-stations harness   |
-| `SPEC-radio-spots.md`              | Audio spots: Comercios & Catálogo only, flag off until launch |
-| `SPEC-support-chatbot.md`          | Support chatbot scope and constraints                         |
-| `CAPABILITY-MAP.md`                | Module map                                                    |
-| `odd/tasks/`                       | Per-task execution trackers                                   |
-| `odd/tasks/backlog.md`             | Cross-feature TODO list                                       |
-| `docs/archive/SPEC-admin-panel.md` | Retired staff-panel spec (no admin panel by product decision) |
-| `tasks/plan.md`, `tasks/todo.md`   | Historical radio-playback MVP plan (closed)                   |
+| Doc                                                        | Purpose                                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| `docs/specs/SPEC-ads-display.md`                           | Sponsor carousel during listening                             |
+| `docs/specs/SPEC-business-directory.md`                    | Listings: products, services, photos, hours, flyers           |
+| `docs/specs/SPEC-live-listener-count.md`                   | Superseded decision record for the heartbeat                  |
+| `docs/specs/SPEC-media-storage.md`                         | Media storage: R2 upload + image optimization (free tier)     |
+| `docs/specs/SPEC-memberships.md`                           | Three business plans, entitlements, and carousel priority     |
+| `docs/specs/SPEC-notifications.md`                         | Push notifications: web + mobile + desktop (free tier)        |
+| `docs/specs/SPEC-offline.md`                               | Offline/no-connection handling                                |
+| `docs/specs/SPEC-owner-portal.md`                          | Owner portal for listings and billing                         |
+| `docs/specs/SPEC-radio-playback.md`                        | MVP spec: autoplay, fallback, status, test-stations harness   |
+| `docs/specs/SPEC-radio-spots.md`                           | Audio spots: Comercios & Catálogo only, flag off until launch |
+| `docs/specs/SPEC-support-chatbot.md`                       | Support chatbot scope and constraints                         |
+| `CAPABILITY-MAP.md`                                        | Module map                                                    |
+| `odd/tasks/`                                               | Per-task execution trackers                                   |
+| `odd/tasks/backlog.md`                                     | Cross-feature TODO list                                       |
+| `docs/archive/SPEC-admin-panel.md`                         | Retired staff-panel spec (no admin panel by product decision) |
+| `docs/archive/tasks/plan.md`, `docs/archive/tasks/todo.md` | Historical radio-playback MVP plan (closed)                   |
 
 ## Status
 
-The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features tracked with their specs:
+The radio-playback MVP is done and published to main (scaffold, UI foundation, status API mock, player core, PlayerCard, web + native autoplay, headed e2e, visual design). The stack now matches the T4 Stack (Hono, Valibot, D1/SQLite, ts-pattern, jotai, Supabase; Million.js/PattyCake deferred — webpack-only, Turbopack-incompatible; revisit if compatible options emerge). Business-plan documentation now defines three tiers — Comunidad, Oficios & Servicios, and Comercios & Catálogo — with implementation migration tracked in `docs/archive/tasks/todo-plan-tiers.md`; the previous FREE/PREMIUM track is historical. New features tracked with their specs:
 
-- Push notifications (SPEC-notifications.md): Web Push + Expo + Tauri, delivery on free tiers with manual campaigns gated to Comercios & Catálogo — pending.
-- Offline/no-connection handling (SPEC-offline.md): player retry, TanStack Query offline cache, service worker — pending.
-- Cloudflare media storage (SPEC-media-storage.md): R2 upload, D1 media repository, `media` tRPC router — DONE.
+- Push notifications (docs/specs/SPEC-notifications.md): Web Push + Expo + Tauri, delivery on free tiers with manual campaigns gated to Comercios & Catálogo — pending.
+- Offline/no-connection handling (docs/specs/SPEC-offline.md): player retry, TanStack Query offline cache, service worker — pending.
+- Cloudflare media storage (docs/specs/SPEC-media-storage.md): R2 upload, D1 media repository, `media` tRPC router — DONE.
 - Chatbot with Cloudflare Workers AI: support domain, Vectorize index and AI Gateway wiring — DONE.
 - Image pipeline: `OptimizedImage` (lazy loading + blur placeholder) ships and is used by the ads carousel; responsive size variants and WebP/AVIF generation are still pending.
 
 Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
-- Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `SPEC-radio-playback.md` (Responsive composition).
+- Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `docs/specs/SPEC-radio-playback.md` (Responsive composition).
 - Ads carousel now serves real ranked inventory by plan (Comercios > Oficios > Comunidad, recency tie-break) via `ads.carousel` (F1+F2 complete); no static seed, empty state shown when no sponsors. Carousel now expands 1/2/3 appearances per cycle with consecutive-repeat avoidance (Task 1 (b)).
 - Business plan Task 1 complete (2026-11-09): business count caps, downgrade/grace helpers, DB schema (hiddenAt/retainedUntil, grace status + graceEnd), 90-day cleanup, email warnings (grace period), and renewal/downgrade notifications (EmailSender port + notifiers) all implemented. The sender is wired through the composition root and `subscriptions.cancel` is the only call site that sends today. Only plan selection/billing views (Task 2) and directory data/owner forms (Task 3) remain.
 - Directory security P0 complete (2026-11-10): every directory mutation requires business ownership (a foreign or missing resource answers `NOT_FOUND`), hidden businesses are excluded from public reads and child lists while their owner keeps access, and the eight child foreign keys cascade on business deletion so the 90-day retention cleanup works. The cascade migration was applied to the staging D1 on 2026-11-10, and the production D1 was created on 2026-11-16 with the full schema applied. See `odd/tasks/fix-p0-directory-security.md`.
 - Billing period math corrected (2026-11-10): subscription periods clamp month-end in UTC (`2026-01-31 + 1 month = 2026-02-28`, or February 29 in a leap year) and renewal reminders count UTC calendar days, so DST no longer shifts the `renewal_7d` boundary. See `odd/tasks/fix-billing-period-math.md`.
-- Plan resolution corrected (2026-11-10): `resolvePlan` no longer downgrades every non-active subscription to `community`. A cancellation keeps the paid plan until the end of the billing period (exclusive at `endsAt`) and a failed renewal keeps it while the 7-day grace window is open (inclusive at `graceEnd`), as `SPEC-memberships.md` requires; the resolver takes an injectable clock and its exhaustive status switch fails the build if a status is added. See `odd/tasks/fix-resolve-plan-grace.md`.
+- Plan resolution corrected (2026-11-10): `resolvePlan` no longer downgrades every non-active subscription to `community`. A cancellation keeps the paid plan until the end of the billing period (exclusive at `endsAt`) and a failed renewal keeps it while the 7-day grace window is open (inclusive at `graceEnd`), as `docs/specs/SPEC-memberships.md` requires; the resolver takes an injectable clock and its exhaustive status switch fails the build if a status is added. See `odd/tasks/fix-resolve-plan-grace.md`.
 - Persistence validation and API error codes corrected (2026-11-10): D1 mappers parse persisted plan/category/status enums and raise a logged `DataIntegrityError` instead of trusting casts; `media.confirm` verifies the owner/kind key prefix and the real object metadata before persisting; client-caused failures map to `BAD_REQUEST`/`NOT_FOUND`/`CONFLICT`, and missing or foreign entities no longer return `null`/`false`. See `odd/tasks/fix-persistence-validation.md`.
 - Production wiring closed (2026-11-10): `POST /admin/seed-plans` idempotently seeds the D1 plan catalog from the same constant the in-memory repository uses, and media storage is an explicit dependency — `/health` reports `media: configured|unconfigured`, missing storage answers `503`, and the Worker no longer falls back to an in-memory fake. See `odd/tasks/feat-production-wiring.md`.
 - Transactional email templates complete (2026-11-11): 11 templates (es-MX/en) live in `packages/api/design/email-templates/` with runtime rendering in `packages/api/src/infrastructure/email/`, migrated to a typed renderer with missing-variable guards and HTML escaping, and wired through domain notifiers for subscription lifecycle, account lifecycle and receipts. Accounts now persist `locale` (default `es-MX`). `ResendEmailSender` and the notifiers are instantiated in `packages/api/src/server/composition/email.ts` and wired through `createApp`/`createAppRouter`; `subscriptions.cancel` is the first live trigger, and the account, payment, renewal-reminder and downgrade call sites are still pending (blocked on auth, a payment provider and a Worker cron). `billing.requestInvoice` became the second live trigger on 2026-11-18 (see below).
-- Listener status is real (2026-11-13): `listener.getStatus` resolves the station and stream URL from D1 (or the in-memory harness locally), answers `NOT_FOUND` for unknown ids and serves a deterministic simulated count computed in the endpoint. A heartbeat was evaluated and discarded for D1 write cost; `SPEC-live-listener-count.md` records the decision.
+- Listener status is real (2026-11-13): `listener.getStatus` resolves the station and stream URL from D1 (or the in-memory harness locally), answers `NOT_FOUND` for unknown ids and serves a deterministic simulated count computed in the endpoint. A heartbeat was evaluated and discarded for D1 write cost; `docs/specs/SPEC-live-listener-count.md` records the decision.
 - API hygiene tracks closed (2026-11-13): keyset/offset pagination across the list endpoints, structured request logs with `x-request-id`, one shared admin guard, no repository singleton, and a shared `FakeD1Database` test double.
 - Mobile staging is demo-ready (2026-11-13): the app points at the staging Worker and Pages origins, Infisical session failures explain themselves, and EAS internal builds produce an installable Android APK. The iOS flow is documented in `apps/mobile/STAGING.md` but has not been built yet (it needs a paid Apple Developer account).
 - Native safe areas fixed and verified (2026-11-16): the landing and player dock respect the Android system bars through a native-only inset hook, and the web resolves to zero. Verified on a physical Android device with the `caf3c458` staging build. The same hook covers iOS, which cannot be verified without a Mac or a paid Apple Developer account.

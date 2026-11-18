@@ -17,7 +17,7 @@ The Task 2 scaffold left `/` as a placeholder home and `/player` as a separate s
 - `apps/native/app/index.tsx` (renders the shared landing; remove the `/player` Link)
 - Delete `apps/web/app/player/page.tsx` and `apps/native/app/player.tsx`
 - `packages/navigation` stays (route contracts return for Task 5 deep links) but must have zero usages in apps after this change
-- Docs/rules: `SPEC-radio-playback.md` first-visit experience, `tasks/todo.md` Tasks 6-7 (forward-looking refs to `/player` become landing `/`), `AGENTS.md` short Product invariants section
+- Docs/rules: `docs/specs/SPEC-radio-playback.md` first-visit experience, `tasks/todo.md` Tasks 6-7 (forward-looking refs to `/player` become landing `/`), `AGENTS.md` short Product invariants section
 - Do NOT rewrite Task 2 history in docs; do NOT touch review state (open lineage belongs to the parent)
 
 ## Constraints

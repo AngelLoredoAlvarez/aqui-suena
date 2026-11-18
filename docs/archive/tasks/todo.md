@@ -213,7 +213,7 @@
 
 - [x] Tests pass: `pnpm -r test -- --run`
 - [x] Build succeeds: `pnpm -r build`
-- [x] Manual check: SPEC-radio-playback.md success criteria checklist
+- [x] Manual check: docs/specs/SPEC-radio-playback.md success criteria checklist
 
 **Dependencies:** Tasks 6-7
 
