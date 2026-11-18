@@ -1,5 +1,5 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import { fiscalProfileSchema } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import { fiscalProfileSchema } from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { TRPCError } from "@trpc/server";

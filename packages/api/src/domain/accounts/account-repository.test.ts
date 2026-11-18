@@ -3,7 +3,7 @@ import {
   AccountEmailConflictError,
   InMemoryAccountRepository,
 } from "@aqui-suena/api/domain/accounts/account-repository";
-import type { FiscalProfile } from "@aqui-suena/api/domain/billing/fiscal/fiscal-profile";
+import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

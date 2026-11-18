@@ -65,6 +65,14 @@ module.exports = {
       to: { path: "^packages/api/src/domain/billing" },
     },
     {
+      name: "api-domain-accounts-must-not-depend-on-billing",
+      severity: "error",
+      comment:
+        "Fiscal data belongs to the account; billing depends on accounts (invoice issuing reads the fiscal profile), never the reverse.",
+      from: { path: "^packages/api/src/domain/accounts", pathNot: "\\.test\\.ts$" },
+      to: { path: "^packages/api/src/domain/billing" },
+    },
+    {
       name: "api-domain-plans-must-stay-lowest",
       severity: "error",
       comment:
