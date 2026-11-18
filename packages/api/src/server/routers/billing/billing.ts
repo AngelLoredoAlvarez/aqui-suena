@@ -8,6 +8,7 @@ import {
   type CfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
@@ -19,6 +20,7 @@ export type BillingRouterDeps = {
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;
   readonly cancelInvoice?: Pick<CancelInvoice, "execute">;
+  readonly reconcile?: Pick<ReconcileCancellations, "execute">;
 };
 
 const DOCUMENT_TYPES = {
@@ -99,6 +101,10 @@ export function createBillingRouter(deps: BillingRouterDeps) {
               message: "Invoice history is not configured",
             });
           }
+
+          // A pending cancellation resolves on the SAT's clock; reading the
+          // history is the cheapest moment to ask.
+          await deps.reconcile?.execute({ accountId: ctx.user.accountId });
 
           const page = await invoices.listByAccount({
             accountId: ctx.user.accountId,

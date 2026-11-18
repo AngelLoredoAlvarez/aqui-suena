@@ -6,6 +6,7 @@ import type {
   CfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
@@ -222,6 +223,11 @@ export type CancelInvoiceCompositionOptions = {
   readonly now?: () => Date;
 };
 
+export type CancellationChain = {
+  readonly cancelInvoice: CancelInvoice;
+  readonly reconcile: ReconcileCancellations;
+};
+
 /**
  * Builds the cancellation chain, or `undefined` when the deployment cannot
  * cancel. R2 is required as well: cancelling without keeping the acuse would
@@ -229,7 +235,7 @@ export type CancelInvoiceCompositionOptions = {
  */
 export function createCancelInvoice(
   options: CancelInvoiceCompositionOptions,
-): CancelInvoice | undefined {
+): CancellationChain | undefined {
   const settings = facturamaSettings(options.facturama);
   const { r2 } = options;
 
@@ -256,16 +262,32 @@ export function createCancelInvoice(
     fetch: fetchFn,
   });
 
-  return new CancelInvoice({
-    invoices: new D1CfdiInvoiceRepository(options.db),
-    canceller,
-    documents,
-    now: options.now,
-    onArchiveError: (error, accountId) => {
-      console.error("billing: CFDI acuse archive failed", {
-        accountId,
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
-      });
-    },
-  });
+  const invoices = new D1CfdiInvoiceRepository(options.db);
+
+  return {
+    cancelInvoice: new CancelInvoice({
+      invoices,
+      canceller,
+      documents,
+      now: options.now,
+      onArchiveError: (error, accountId) => {
+        console.error("billing: CFDI acuse archive failed", {
+          accountId,
+          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        });
+      },
+    }),
+    reconcile: new ReconcileCancellations({
+      invoices,
+      canceller,
+      documents,
+      now: options.now,
+      onError: (error, invoiceId) => {
+        console.error("billing: CFDI cancellation reconcile failed", {
+          invoiceId,
+          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        });
+      },
+    }),
+  };
 }

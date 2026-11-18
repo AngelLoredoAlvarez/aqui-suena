@@ -55,6 +55,7 @@ function setup(
     documents?: CfdiDocumentLinker;
     withoutHistory?: boolean;
     cancelInvoice?: Pick<CancelInvoice, "execute">;
+    reconcile?: { execute: () => Promise<{ checked: number; updated: number }> };
     withoutCancel?: boolean;
   } = {},
 ) {
@@ -67,6 +68,7 @@ function setup(
     invoices: options.withoutHistory ? undefined : invoices,
     documents: options.documents,
     cancelInvoice: options.withoutCancel ? undefined : options.cancelInvoice,
+    reconcile: options.reconcile,
   });
   const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
@@ -205,6 +207,23 @@ describe("billing.invoices.list", () => {
         cancellationDetail: null,
       },
     ]);
+  });
+
+  it("reconciles pending cancellations before answering", async () => {
+    const calls: string[] = [];
+    const { caller } = setup([account], null, {
+      reconcile: {
+        execute: async () => {
+          calls.push("reconcile");
+
+          return { checked: 1, updated: 0 };
+        },
+      },
+    });
+
+    await caller.invoices.list({ limit: 20, offset: 0 });
+
+    expect(calls).toEqual(["reconcile"]);
   });
 
   it("answers PRECONDITION_FAILED when the history is not configured", async () => {

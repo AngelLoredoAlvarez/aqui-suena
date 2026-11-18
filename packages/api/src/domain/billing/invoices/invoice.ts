@@ -64,6 +64,11 @@ export interface CfdiInvoiceRepository {
   /** Any status: the caller decides what each one may do. */
   getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null>;
   /**
+   * Rows waiting on the receiver, oldest check first. Reconciliation needs them
+   * ordered so a batch never starves the same invoice twice.
+   */
+  listPendingCancellations(input: { accountId: string; limit: number }): Promise<CfdiInvoice[]>;
+  /**
    * Compare-and-set to `cancellation_pending`. `false` means another request
    * already claimed it, so the provider must not be called twice.
    */
@@ -130,6 +135,16 @@ export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
     row.updatedAt = input.requestedAt;
 
     return true;
+  }
+
+  async listPendingCancellations(input: {
+    accountId: string;
+    limit: number;
+  }): Promise<CfdiInvoice[]> {
+    return this.rows
+      .filter((row) => row.accountId === input.accountId && row.status === "cancellation_pending")
+      .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
+      .slice(0, input.limit);
   }
 
   async recordCancellationOutcome(input: CancellationOutcomeUpdate): Promise<void> {

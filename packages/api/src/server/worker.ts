@@ -236,7 +236,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     },
   });
 
-  const cancelInvoice = createCancelInvoice({
+  const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
     facturama: {
       user: env.FACTURAMA_USER,
@@ -295,7 +295,8 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
       issueInvoice,
       invoices: invoiceHistory.invoices,
       documents: invoiceHistory.documents,
-      cancelInvoice,
+      cancelInvoice: cancellation?.cancelInvoice,
+      reconcile: cancellation?.reconcile,
     },
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,

@@ -5,6 +5,7 @@ import type {
   CfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -33,6 +34,7 @@ export type BillingSurfaces = {
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;
   readonly cancelInvoice?: Pick<CancelInvoice, "execute">;
+  readonly reconcile?: Pick<ReconcileCancellations, "execute">;
 };
 
 export function createAppRouter(
