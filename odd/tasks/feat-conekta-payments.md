@@ -32,7 +32,12 @@ the full gate. Commits only on explicit instruction.
   (annual) selects the annual price. Acceptance: one open intent per
   account + plan + interval + method, a repeated idempotency key returns the
   existing intent, foreign intents answer `NOT_FOUND`, and an unconfigured
-  provider answers `503 SERVICE_UNAVAILABLE`.
+  provider answers `503 SERVICE_UNAVAILABLE`. The mutation also accepts
+  `customerName` and an optional `customerPhone`; the account email is the
+  customer email. A card without a token uses the account's saved card, and a
+  card with a token creates or refreshes the saved card. The 3DS return URL is
+  the configured `EMAIL_APP_URL`, never a client value. A downgrade with paid
+  time is rejected and stays scheduled through the existing plan-change rules.
 - **S4 — Payment state machine.** Statuses are `pending`, `completed`, `failed`,
   `expired` and `refunded`. Only `pending` can move to `completed`, `failed` or
   `expired`; `refunded` is reserved for provider records and never auto-downgrades
@@ -81,7 +86,9 @@ the full gate. Commits only on explicit instruction.
   event id, type, payment id, payload hash, livemode and processing time; `accounts`
   stores the Conekta customer, the default card source and its brand, last four
   and expiry. Migration `0006` rebuilds `payments` and backfills legacy rows from
-  their subscription's `account_id`. Acceptance: schema tests cover every column,
+  their subscription's `account_id`. Account deletion clears the saved card
+  columns locally; deleting the Conekta customer at the provider is tracked in
+  the backlog. Acceptance: schema tests cover every column,
   the migration drift check is clean, and the staging row count is checked before
   applying.
 - **S9 — Emails.** A completed payment sends the receipt (template 7) with plan,
@@ -139,10 +146,12 @@ the full gate. Commits only on explicit instruction.
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
   route (S5). Route: inline. Risk: item 2 (credentials and guards). DONE
   2026-11-19 (pending review).
-- **T7** — tRPC checkout and payment status, composition and env wiring
-  (S3, S11). Wires the Conekta webhook handler from Worker/Node, saves the
-  Conekta customer and card source on the account, passes the 3DS return URL and
-  persists the card metadata from `CardSource.card`. Route: inline.
+- **T7** — tRPC checkout and payment status, Worker composition and env wiring
+  (S3, S11). Wires the Conekta webhook handler, saves the Conekta customer and
+  card source on the account, uses `EMAIL_APP_URL` as the 3DS return URL and
+  persists the card metadata from `CardSource.card`. The local Node server has
+  no D1 and keeps payments unconfigured. Route: inline. DONE 2026-11-19
+  (pending review).
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline.
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
@@ -188,3 +197,10 @@ the full gate. Commits only on explicit instruction.
   and `CONEKTA_LIVEMODE`. Verification: webhook tests 29/29, API suite
   1072/1072, typecheck 7/7, biome clean, arch 414 modules. Uncommitted pending
   review.
+- 2026-11-19: T7 adds the checkout service (period and upgrade rules, saved card
+  fallback, `EMAIL_APP_URL` 3DS return), the card-source save inside
+  `PaymentService.create`, account card storage and clearing on deletion,
+  `billing.checkout.create` and `billing.payments.get`, and the Worker
+  composition (Conekta provider, payment service, sandbox/livemode vars, webhook
+  handler). Verification: API suite 1097/1097, typecheck 7/7, biome clean,
+  arch 417 modules. Uncommitted pending review.

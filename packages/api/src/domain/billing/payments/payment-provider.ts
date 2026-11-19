@@ -70,3 +70,7 @@ export interface PaymentProvider {
   createCharge(input: CreateChargeInput): Promise<ChargeResult>;
   getOrder(providerOrderId: string): Promise<ChargeResult>;
 }
+
+export interface PaymentCardWriter {
+  save(accountId: string, card: CardSource): Promise<void>;
+}

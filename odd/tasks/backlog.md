@@ -168,6 +168,12 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       breaks the gross price down as subtotal + IVA so the stamped total equals
       the charge. Remaining: re-seed staging with `POST /admin/seed-plans` when
       the payments slice lands.
+- [ ] Delete the Conekta customer on account deletion — 2026-11-19: account
+      deletion clears the local card columns (`conekta_customer_id`, default
+      source, brand, last four, expiry), but the Conekta customer and payment
+      source remain at the provider. Add a `deleteCustomer` call (best effort,
+      logged) before anonymizing when payments are configured, and cover it with
+      a test.
 
 ## CFDI invoicing (opened 2026-11-16)
 

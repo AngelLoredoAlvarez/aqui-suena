@@ -2,12 +2,22 @@ import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profi
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 
+export type SavedCard = {
+  readonly customerId: string;
+  readonly sourceId: string;
+  readonly brand: string | null;
+  readonly last4: string | null;
+  readonly expMonth: number | null;
+  readonly expYear: number | null;
+};
+
 export interface Account {
   readonly id: string;
   readonly email: string;
   readonly planId: PlanId;
   readonly locale: EmailLocale;
   readonly fiscalProfile?: FiscalProfile | null;
+  readonly savedCard?: SavedCard | null;
   readonly deletedAt?: Date | null;
 }
 

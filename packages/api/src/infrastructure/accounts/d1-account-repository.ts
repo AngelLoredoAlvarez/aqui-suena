@@ -2,6 +2,7 @@ import {
   type Account,
   anonymizedAccountEmail,
   normalizeAccountEmail,
+  type SavedCard,
 } from "@aqui-suena/api/domain/accounts/account";
 import {
   AccountEmailConflictError,
@@ -26,6 +27,12 @@ type AccountRow = {
   tax_zip_code: string | null;
   cfdi_use: string | null;
   billing_email: string | null;
+  conekta_customer_id: string | null;
+  default_card_source_id: string | null;
+  card_brand: string | null;
+  card_last4: string | null;
+  card_exp_month: number | null;
+  card_exp_year: number | null;
   deleted_at: number | null;
 };
 
@@ -39,6 +46,8 @@ type FiscalRow = {
 };
 
 const FISCAL_COLUMNS = "rfc, legal_name, tax_regime, tax_zip_code, cfdi_use, billing_email";
+const CARD_COLUMNS =
+  "conekta_customer_id, default_card_source_id, card_brand, card_last4, card_exp_month, card_exp_year";
 
 export class D1AccountRepository implements AccountRepository {
   constructor(private readonly db: D1Database) {}
@@ -46,7 +55,7 @@ export class D1AccountRepository implements AccountRepository {
   async getById(id: string): Promise<Account | null> {
     const row = await this.db
       .prepare(
-        `SELECT id, email, plan_id, locale, deleted_at, ${FISCAL_COLUMNS} FROM accounts WHERE id = ?`,
+        `SELECT id, email, plan_id, locale, deleted_at, ${FISCAL_COLUMNS}, ${CARD_COLUMNS} FROM accounts WHERE id = ?`,
       )
       .bind(id)
       .first();
@@ -117,7 +126,9 @@ export class D1AccountRepository implements AccountRepository {
       .prepare(
         `UPDATE accounts
         SET email = ?, rfc = NULL, legal_name = NULL, tax_regime = NULL, tax_zip_code = NULL,
-        cfdi_use = NULL, billing_email = NULL, tax_data_updated_at = NULL,
+        cfdi_use = NULL, billing_email = NULL, conekta_customer_id = NULL,
+        default_card_source_id = NULL, card_brand = NULL, card_last4 = NULL,
+        card_exp_month = NULL, card_exp_year = NULL, tax_data_updated_at = NULL,
         deleted_at = COALESCE(deleted_at, ?), updated_at = ?
         WHERE id = ?`,
       )
@@ -172,10 +183,53 @@ export class D1AccountRepository implements AccountRepository {
     }
   }
 
+  async getSavedCard(id: string): Promise<SavedCard | null> {
+    const account = await this.getById(id);
+
+    return account?.savedCard ?? null;
+  }
+
+  async saveCard(id: string, card: SavedCard): Promise<void> {
+    const now = toEpoch(new Date());
+    const result = await this.db
+      .prepare(
+        `UPDATE accounts
+        SET conekta_customer_id = ?, default_card_source_id = ?, card_brand = ?,
+        card_last4 = ?, card_exp_month = ?, card_exp_year = ?, updated_at = ?
+        WHERE id = ?`,
+      )
+      .bind(
+        card.customerId,
+        card.sourceId,
+        card.brand,
+        card.last4,
+        card.expMonth,
+        card.expYear,
+        now,
+        id,
+      )
+      .run();
+
+    if ((result.meta?.changes ?? 0) === 0) {
+      throw new NotFoundError("Account not found");
+    }
+  }
+
   private mapRow(row: AccountRow): Account {
     const fiscalProfile = parseStoredFiscalProfile(row);
     // Nullable columns can be absent from a partially-shaped row; treat both as unset.
     const deletedAt = row.deleted_at == null ? null : fromEpoch(row.deleted_at);
+    const savedCard =
+      row.conekta_customer_id != null && row.default_card_source_id != null
+        ? {
+            customerId: row.conekta_customer_id,
+            sourceId: row.default_card_source_id,
+            brand: row.card_brand ?? null,
+            last4: row.card_last4 ?? null,
+            expMonth: row.card_exp_month ?? null,
+            expYear: row.card_exp_year ?? null,
+          }
+        : null;
 
     return {
       id: row.id,
@@ -183,6 +237,7 @@ export class D1AccountRepository implements AccountRepository {
       planId: parsePlanId(row.plan_id),
       locale: resolveEmailLocale(row.locale),
       ...(fiscalProfile === null ? {} : { fiscalProfile }),
+      ...(savedCard === null ? {} : { savedCard }),
       ...(deletedAt === null ? {} : { deletedAt }),
     };
   }

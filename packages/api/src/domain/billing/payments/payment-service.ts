@@ -6,6 +6,7 @@ import type {
 } from "@aqui-suena/api/domain/billing/payments/payment";
 import type {
   ChargeResult,
+  PaymentCardWriter,
   PaymentCustomer,
   PaymentProvider,
 } from "@aqui-suena/api/domain/billing/payments/payment-provider";
@@ -24,6 +25,7 @@ export type PaymentServiceDependencies = {
   readonly plans: PlanRepository;
   readonly provider: PaymentProvider;
   readonly subscriptions: PaymentSubscriptionWriter;
+  readonly cards?: PaymentCardWriter;
   readonly now?: () => Date;
 };
 
@@ -113,6 +115,22 @@ export class PaymentService {
       await this.deps.payments.markExpired(open.id, now);
     }
 
+    let savedCard = input.savedCard;
+    let cardToken = input.cardToken;
+
+    if (input.method === "card" && input.cardToken !== undefined && this.deps.cards !== undefined) {
+      const source = await this.deps.provider.createCardSource({
+        customer: input.customer,
+        token: input.cardToken,
+        idempotencyKey: `${input.idempotencyKey}:card`,
+      });
+
+      await this.deps.cards.save(input.accountId, source);
+
+      savedCard = { customerId: source.customerId, sourceId: source.sourceId };
+      cardToken = undefined;
+    }
+
     const payment = await this.deps.payments.create({
       accountId: input.accountId,
       planId: input.planId,
@@ -137,8 +155,8 @@ export class PaymentService {
         billingInterval: input.billingInterval,
         description: plan.name,
         customer: input.customer,
-        cardToken: input.cardToken,
-        savedCard: input.savedCard,
+        cardToken,
+        savedCard,
         expiresAt: input.expiresAt,
         returnUrl: input.returnUrl,
         idempotencyKey: input.idempotencyKey,

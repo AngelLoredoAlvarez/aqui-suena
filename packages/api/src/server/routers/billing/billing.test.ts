@@ -7,6 +7,12 @@ import {
   InMemoryCfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+import type {
+  CheckoutInput,
+  CheckoutService,
+} from "@aqui-suena/api/domain/billing/payments/checkout-service";
+import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
 import { UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
@@ -47,6 +53,31 @@ const issuedInvoice: CfdiInvoice = {
   updatedAt: new Date("2026-11-16T18:00:00Z"),
 };
 
+const payment: Payment = {
+  id: "pay-1",
+  accountId: "acc-1",
+  subscriptionId: null,
+  planId: "trades",
+  billingInterval: "monthly",
+  method: "card",
+  provider: "conekta",
+  providerOrderId: "ord-1",
+  providerChargeId: null,
+  idempotencyKey: "idem-1",
+  amount: 9900,
+  currency: "MXN",
+  status: "pending",
+  reference: null,
+  nextActionUrl: "https://3ds.conekta.com/session/1",
+  expiresAt: null,
+  failureReason: null,
+  periodStart: new Date("2026-11-19T12:00:00Z"),
+  periodEnd: new Date("2026-12-19T12:00:00Z"),
+  paidAt: null,
+  createdAt: new Date("2026-11-19T12:00:00Z"),
+  updatedAt: new Date("2026-11-19T12:00:00Z"),
+};
+
 function setup(
   accounts: Account[] = [account],
   issueInvoice: Pick<IssueInvoice, "execute"> | null = { execute: async () => issuedInvoice },
@@ -57,6 +88,8 @@ function setup(
     cancelInvoice?: Pick<CancelInvoice, "execute">;
     reconcile?: { execute: () => Promise<{ checked: number; updated: number }> };
     withoutCancel?: boolean;
+    checkout?: Pick<CheckoutService, "execute">;
+    payments?: PaymentRepository;
   } = {},
 ) {
   const repo = new InMemoryAccountRepository(accounts);
@@ -64,6 +97,8 @@ function setup(
 
   const router = createBillingRouter({
     account: repo,
+    checkout: options.checkout,
+    payments: options.payments,
     issueInvoice: issueInvoice ?? undefined,
     invoices: options.withoutHistory ? undefined : invoices,
     documents: options.documents,
@@ -326,6 +361,116 @@ describe("billing.invoices.cancel", () => {
 
     await expect(caller.invoices.cancel({ id: "cfdi-1", motive: "03" })).rejects.toMatchObject({
       code: "PRECONDITION_FAILED",
+    });
+  });
+});
+
+describe("billing.checkout.create", () => {
+  it("creates a checkout with the account email and customer data", async () => {
+    const calls: CheckoutInput[] = [];
+    const checkout: Pick<CheckoutService, "execute"> = {
+      execute: async (input) => {
+        calls.push(input);
+
+        return payment;
+      },
+    };
+    const { caller } = setup([account], null, { checkout });
+
+    const result = await caller.checkout.create({
+      planId: "trades",
+      billingInterval: "monthly",
+      method: "card",
+      idempotencyKey: "idem-1234",
+      cardToken: "tok-1",
+      customerName: "Ana",
+      customerPhone: "+5215555555555",
+    });
+
+    expect(calls[0]).toMatchObject({
+      accountId: "acc-1",
+      planId: "trades",
+      billingInterval: "monthly",
+      method: "card",
+      idempotencyKey: "idem-1234",
+      cardToken: "tok-1",
+      customer: {
+        name: "Ana",
+        email: "owner@example.com",
+        phone: "+5215555555555",
+      },
+    });
+    expect(result.payment).toMatchObject({
+      id: "pay-1",
+      status: "pending",
+      nextActionUrl: "https://3ds.conekta.com/session/1",
+    });
+  });
+
+  it("answers SERVICE_UNAVAILABLE when checkout is not configured", async () => {
+    const { caller } = setup();
+
+    await expect(
+      caller.checkout.create({
+        planId: "trades",
+        billingInterval: "monthly",
+        method: "card",
+        idempotencyKey: "idem-1234",
+        cardToken: "tok-1",
+        customerName: "Ana",
+      }),
+    ).rejects.toMatchObject({ code: "SERVICE_UNAVAILABLE" });
+  });
+
+  it("rejects an invalid checkout input", async () => {
+    const { caller } = setup([account], null, {
+      checkout: { execute: async () => payment },
+    });
+
+    await expect(
+      caller.checkout.create({
+        planId: "trades",
+        billingInterval: "monthly",
+        method: "card",
+        idempotencyKey: "short",
+        cardToken: "tok-1",
+        customerName: "Ana",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("billing.payments.get", () => {
+  it("returns an owned payment without provider internals", async () => {
+    const payments = new InMemoryPaymentRepository([payment]);
+    const { caller } = setup([account], null, { payments });
+
+    const result = await caller.payments.get({ id: "pay-1" });
+
+    expect(result.payment).toMatchObject({
+      id: "pay-1",
+      status: "pending",
+      amount: 9900,
+      method: "card",
+    });
+    expect(result.payment).not.toHaveProperty("idempotencyKey");
+    expect(result.payment).not.toHaveProperty("providerOrderId");
+  });
+
+  it("hides a payment owned by another account", async () => {
+    const payments = new InMemoryPaymentRepository([{ ...payment, accountId: "acc-2" }]);
+    const { caller } = setup([account], null, { payments });
+
+    await expect(caller.payments.get({ id: "pay-1" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("answers SERVICE_UNAVAILABLE when payments are not configured", async () => {
+    const { caller } = setup();
+
+    await expect(caller.payments.get({ id: "pay-1" })).rejects.toMatchObject({
+      code: "SERVICE_UNAVAILABLE",
     });
   });
 });

@@ -11,6 +11,7 @@ import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscripti
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { FakePaymentCardWriter } from "@aqui-suena/api/testing/payment-card-writer";
 import { FakePaymentProvider } from "@aqui-suena/api/testing/payment-provider";
 import { FakePaymentSubscriptionWriter } from "@aqui-suena/api/testing/payment-subscription-writer";
 import { describe, expect, it } from "vitest";
@@ -94,7 +95,6 @@ async function createPendingOxxo(
 describe("PaymentService.create", () => {
   it("charges the monthly price and completes a paid card payment", async () => {
     const { payments, provider, writer, service } = setup();
-
     const payment = await service.create(baseInput());
 
     expect(payment).toMatchObject({
@@ -151,6 +151,46 @@ describe("PaymentService.create", () => {
       reference: "ref-annual",
     });
     expect(writer.calls).toHaveLength(0);
+  });
+
+  it("creates and saves a card source before charging a token", async () => {
+    const payments = new InMemoryPaymentRepository();
+    const provider = new FakePaymentProvider();
+    const writer = new FakePaymentSubscriptionWriter();
+    const cards = new FakePaymentCardWriter();
+    const service = new PaymentService({
+      payments,
+      plans: new InMemoryPlanRepository(planFixtures),
+      provider,
+      subscriptions: writer,
+      cards,
+      now: () => NOW,
+    });
+
+    provider.cardSource = {
+      customerId: "cus-1",
+      sourceId: "src-1",
+      card: { brand: "visa", last4: "4242", expMonth: 12, expYear: 30 },
+    };
+
+    const payment = await service.create(baseInput());
+
+    expect(cards.calls).toEqual([
+      {
+        accountId: "acc-1",
+        card: {
+          customerId: "cus-1",
+          sourceId: "src-1",
+          card: { brand: "visa", last4: "4242", expMonth: 12, expYear: 30 },
+        },
+      },
+    ]);
+    expect(provider.calls[0]?.cardToken).toBeUndefined();
+    expect(provider.calls[0]?.savedCard).toEqual({
+      customerId: "cus-1",
+      sourceId: "src-1",
+    });
+    expect(payment.status).toBe("completed");
   });
 
   it("keeps a SPEI payment pending with its reference", async () => {

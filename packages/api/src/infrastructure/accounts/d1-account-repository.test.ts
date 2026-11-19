@@ -188,6 +188,88 @@ describe("D1AccountRepository ensure", () => {
   });
 });
 
+describe("D1AccountRepository saved card", () => {
+  const cardRow = {
+    ...sampleRow,
+    conekta_customer_id: "cus-1",
+    default_card_source_id: "src-1",
+    card_brand: "visa",
+    card_last4: "4242",
+    card_exp_month: 12,
+    card_exp_year: 30,
+  };
+
+  it("maps the saved card from the account row", async () => {
+    const fake = new FakeD1Database(() => ({ first: cardRow }));
+
+    const account = await new D1AccountRepository(fake.db).getById("acc-1");
+
+    expect(account?.savedCard).toEqual({
+      customerId: "cus-1",
+      sourceId: "src-1",
+      brand: "visa",
+      last4: "4242",
+      expMonth: 12,
+      expYear: 30,
+    });
+  });
+
+  it("returns the saved card through getSavedCard", async () => {
+    const fake = new FakeD1Database(() => ({ first: cardRow }));
+
+    expect(await new D1AccountRepository(fake.db).getSavedCard("acc-1")).toEqual({
+      customerId: "cus-1",
+      sourceId: "src-1",
+      brand: "visa",
+      last4: "4242",
+      expMonth: 12,
+      expYear: 30,
+    });
+  });
+
+  it("updates every card column", async () => {
+    const fake = new FakeD1Database(() => ({ run: { changes: 1 } }));
+
+    await new D1AccountRepository(fake.db).saveCard("acc-1", {
+      customerId: "cus-1",
+      sourceId: "src-1",
+      brand: "visa",
+      last4: "4242",
+      expMonth: 12,
+      expYear: 30,
+    });
+
+    const update = fake.statements[0];
+
+    expect(normalizeSql(update?.sql)).toContain("conekta_customer_id = ?");
+    expect(update?.params).toEqual([
+      "cus-1",
+      "src-1",
+      "visa",
+      "4242",
+      12,
+      30,
+      expect.any(Number),
+      "acc-1",
+    ]);
+  });
+
+  it("throws NotFoundError when the account does not exist", async () => {
+    const fake = new FakeD1Database(() => ({ run: { changes: 0 } }));
+
+    await expect(
+      new D1AccountRepository(fake.db).saveCard("missing", {
+        customerId: "cus-1",
+        sourceId: "src-1",
+        brand: null,
+        last4: null,
+        expMonth: null,
+        expYear: null,
+      }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
 describe("D1AccountRepository anonymize", () => {
   it("anonymizes in a single write that keeps the first deletion moment", async () => {
     const fake = new FakeD1Database(() => ({ run: { changes: 1 } }));
@@ -199,6 +281,8 @@ describe("D1AccountRepository anonymize", () => {
     expect(normalizeSql(update?.sql)).toMatch(/UPDATE accounts\s+SET/);
     expect(normalizeSql(update?.sql)).toContain("deleted_at = COALESCE(deleted_at, ?)");
     expect(normalizeSql(update?.sql)).toContain("rfc = NULL");
+    expect(normalizeSql(update?.sql)).toContain("conekta_customer_id = NULL");
+    expect(normalizeSql(update?.sql)).toContain("card_last4 = NULL");
     expect(update?.params[0]).toBe("deleted-acc-1@deleted.invalid");
     expect(update?.params.at(-1)).toBe("acc-1");
   });

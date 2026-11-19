@@ -71,6 +71,11 @@ FACTURAMA_ISSUER_RFC = "EKU9003173C9"
 FACTURAMA_ISSUER_NAME = "ESCUELA KEMPER URGATE"
 FACTURAMA_ISSUER_FISCAL_REGIME = "601"
 
+# Conekta sandbox: non-secret settings. CONEKTA_PRIVATE_KEY and
+# CONEKTA_WEBHOOK_PUBLIC_KEY are Worker secrets.
+CONEKTA_BASE_URL = "https://api.conekta.io"
+CONEKTA_LIVEMODE = "false"
+
 [[env.staging.d1_databases]]
 binding = "aqui_suena_db"
 database_name = "aqui-suena-db-staging"
