@@ -1,5 +1,4 @@
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { createIssueInvoice, type FacturamaEnv } from "@aqui-suena/api/server/composition/invoices";
@@ -27,7 +26,6 @@ function setup(overrides: { facturama?: Partial<FacturamaEnv>; r2?: Partial<type
       getFiscalProfile: async () => null,
       getById: async () => null,
     },
-    subscriptions: new InMemorySubscriptionRepository(),
     plans: new InMemoryPlanRepository([...DEFAULT_PLAN_CATALOG]),
     facturama: { ...facturama, ...overrides.facturama },
     r2: { ...r2, ...overrides.r2 },

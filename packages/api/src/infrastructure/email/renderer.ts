@@ -10,7 +10,19 @@ import type {
 import en from "@aqui-suena/api/infrastructure/email/en.json";
 import esMX from "@aqui-suena/api/infrastructure/email/es-MX.json";
 
-type TemplateKey = "t1" | "t2" | "t3" | "t4" | "t5" | "t6" | "t7" | "t8" | "t9" | "t10" | "t11";
+type TemplateKey =
+  | "t1"
+  | "t2"
+  | "t3"
+  | "t4"
+  | "t5"
+  | "t6"
+  | "t7"
+  | "t8"
+  | "t9"
+  | "t10"
+  | "t11"
+  | "t12";
 
 interface TemplateCopy {
   readonly s: string;
@@ -63,7 +75,7 @@ const TEMPLATE_META: Record<EmailTemplateId, TemplateMeta> = {
   receipt: {
     key: "t7",
     ctaUrl: "billingUrl",
-    rows: ["planName", "period", "amount", "paidAt", "paymentId"],
+    rows: ["planName", "period", "amount", "method", "paidAt", "paymentId"],
   },
   "invoice-cfdi": {
     key: "t8",
@@ -74,6 +86,11 @@ const TEMPLATE_META: Record<EmailTemplateId, TemplateMeta> = {
   welcome: { key: "t9", ctaUrl: "ownerPortalUrl", secondaryUrl: "billingUrl" },
   cancellation: { key: "t10", ctaUrl: "billingUrl", secondaryUrl: "billingUrl" },
   "cancellation-immediate": { key: "t11", ctaUrl: "billingUrl", secondaryUrl: "billingUrl" },
+  "payment-pending": {
+    key: "t12",
+    ctaUrl: "actionUrl",
+    rows: ["planName", "method", "amount", "reference", "expiresAt"],
+  },
 };
 
 const F = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";

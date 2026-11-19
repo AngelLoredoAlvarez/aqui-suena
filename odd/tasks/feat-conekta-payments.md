@@ -156,7 +156,8 @@ the full gate. Commits only on explicit instruction.
   (pending review).
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
   DONE 2026-11-19 (pending review).
-- **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline.
+- **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline. DONE
+  2026-11-19 (pending review).
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
 
 ## Log
@@ -215,3 +216,15 @@ the full gate. Commits only on explicit instruction.
   handler runs cancellation and payments independently. Verification: API suite
   1113/1113, typecheck 7/7, biome clean, arch 421 modules, wrangler dry-run.
   Uncommitted pending review.
+- 2026-11-19: T9 wires payment emails and turns the CFDI into a payment document.
+  `PaymentService` sends the receipt after a completed charge and pending
+  instructions (reference, expiry or 3DS link) right after a pending charge,
+  skipping deleted accounts and logging delivery failures without failing the
+  request. Template 7 gains the payment method row; template 12
+  `payment-pending` is new in both locales. `IssueInvoice` now invoices the
+  latest completed payment: it rejects an account without one, uses the paid
+  amount, plan and interval, stamps `payment_id` on issued and failed rows, and
+  sends `PUE` with the SAT form (`04` card, `01` OXXO, `03` SPEI). The invoice
+  composition builds the payment repository from D1 and no longer reads the
+  active subscription. Verification: API suite 1122/1122, all-package
+  typecheck 7/7, biome clean, arch 421 modules. Uncommitted pending review.

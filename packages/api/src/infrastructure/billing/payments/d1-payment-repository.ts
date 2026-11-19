@@ -215,6 +215,20 @@ export class D1PaymentRepository implements PaymentRepository {
     return result.results.map((row) => this.mapRow(row as PaymentRow));
   }
 
+  async getLatestCompletedByAccount(accountId: string): Promise<Payment | null> {
+    const row = await this.db
+      .prepare(
+        `SELECT ${COLUMNS} FROM payments
+        WHERE account_id = ? AND status = 'completed'
+        ORDER BY COALESCE(paid_at, created_at) DESC
+        LIMIT 1`,
+      )
+      .bind(accountId)
+      .first();
+
+    return row === null || row === undefined ? null : this.mapRow(row as PaymentRow);
+  }
+
   private async firstBy(
     column: "id" | "idempotency_key" | "provider_order_id",
     value: string,

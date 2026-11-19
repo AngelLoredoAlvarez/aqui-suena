@@ -1,3 +1,4 @@
+import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import {
   InMemoryPaymentRepository,
   type Payment,
@@ -11,6 +12,7 @@ import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscripti
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { FakePaymentNotifier } from "@aqui-suena/api/testing/notifiers";
 import { FakePaymentCardWriter } from "@aqui-suena/api/testing/payment-card-writer";
 import { FakePaymentProvider } from "@aqui-suena/api/testing/payment-provider";
 import { FakePaymentSubscriptionWriter } from "@aqui-suena/api/testing/payment-subscription-writer";
@@ -34,7 +36,7 @@ function paidResult(): ChargeResult {
   };
 }
 
-function pendingResult(reference: string, expiresAt: Date | null): ChargeResult {
+function pendingResult(reference: string | null, expiresAt: Date | null): ChargeResult {
   return {
     providerOrderId: "ord-1",
     providerChargeId: null,
@@ -61,19 +63,43 @@ function baseInput(overrides: Partial<CreatePaymentInput> = {}): CreatePaymentIn
   };
 }
 
-function setup() {
+function setup(
+  options: {
+    accountDeleted?: boolean;
+    notifier?: FakePaymentNotifier;
+    withoutAccount?: boolean;
+  } = {},
+) {
   const payments = new InMemoryPaymentRepository();
   const provider = new FakePaymentProvider();
   const writer = new FakePaymentSubscriptionWriter();
+  const notifier = options.notifier ?? new FakePaymentNotifier();
+  const deliveryErrors: Array<{ stage: string; paymentId: string }> = [];
+  const accounts = new InMemoryAccountRepository(
+    options.withoutAccount
+      ? []
+      : [
+          {
+            id: "acc-1",
+            email: "owner@example.com",
+            planId: "trades",
+            locale: "es-MX",
+            deletedAt: options.accountDeleted ? new Date("2026-11-18T00:00:00Z") : null,
+          },
+        ],
+  );
   const service = new PaymentService({
     payments,
     plans: new InMemoryPlanRepository(planFixtures),
     provider,
     subscriptions: writer,
+    accounts,
+    notifier,
+    onDeliveryError: (_error, stage, paymentId) => deliveryErrors.push({ stage, paymentId }),
     now: () => NOW,
   });
 
-  return { payments, provider, writer, service };
+  return { payments, provider, writer, notifier, deliveryErrors, service };
 }
 
 async function createPendingOxxo(
@@ -394,6 +420,89 @@ describe("PaymentService.complete", () => {
     const failed = await service.create(baseInput());
 
     await expect(service.complete(failed.id)).rejects.toBeInstanceOf(ConflictError);
+  });
+});
+
+describe("PaymentService notifications", () => {
+  it("emails a receipt after a paid charge", async () => {
+    const { notifier, service } = setup();
+    const payment = await service.create(baseInput());
+
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "payment-receipt",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: {
+        paymentId: payment.id,
+        planName: "Oficios & Servicios",
+        billingPeriod: "monthly",
+        amountMinorUnits: 9900,
+        currency: "MXN",
+        method: "card",
+        paidAt: NOW,
+      },
+    });
+  });
+
+  it("emails the reference and expiry of a pending OXXO payment", async () => {
+    const { provider, notifier, service } = setup();
+    const pending = await createPendingOxxo(service, provider);
+
+    expect(notifier.calls).toHaveLength(1);
+    expect(notifier.calls[0]).toMatchObject({
+      event: "payment-pending",
+      recipient: { email: "owner@example.com", locale: "es-MX" },
+      data: {
+        paymentId: pending.id,
+        planName: "Oficios & Servicios",
+        method: "oxxo",
+        amountMinorUnits: 9900,
+        currency: "MXN",
+        reference: "ref-1",
+        expiresAt: new Date("2026-11-26T12:00:00Z"),
+        nextActionUrl: null,
+      },
+    });
+  });
+
+  it("emails the 3DS link when the charge needs a challenge", async () => {
+    const { provider, notifier, service } = setup();
+
+    provider.result = {
+      ...pendingResult(null, null),
+      nextActionUrl: "https://3ds.conekta.com/session/1",
+    };
+
+    const payment = await service.create(baseInput());
+
+    expect(notifier.calls[0]).toMatchObject({
+      event: "payment-pending",
+      data: {
+        paymentId: payment.id,
+        method: "card",
+        reference: null,
+        nextActionUrl: "https://3ds.conekta.com/session/1",
+      },
+    });
+  });
+
+  it("never emails a deleted account", async () => {
+    const { notifier, service } = setup({ accountDeleted: true });
+
+    await service.create(baseInput());
+
+    expect(notifier.calls).toHaveLength(0);
+  });
+
+  it("completes the payment when email delivery fails", async () => {
+    const failing = new FakePaymentNotifier(new Error("Resend API error 500"));
+
+    const { deliveryErrors, service } = setup({ notifier: failing });
+
+    const payment = await service.create(baseInput());
+
+    expect(payment.status).toBe("completed");
+    expect(deliveryErrors).toEqual([{ stage: "receipt", paymentId: payment.id }]);
   });
 });
 

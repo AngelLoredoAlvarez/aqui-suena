@@ -24,6 +24,7 @@ import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import {
   createCfdiNotifier,
+  createPaymentNotifier,
   createSubscriptionNotifier,
   emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
@@ -173,12 +174,14 @@ async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
     baseUrl: env.CONEKTA_BASE_URL,
   });
 
-  const subscriptionNotifier = createSubscriptionNotifier({
+  const emailSettings = {
     apiKey: env.RESEND_API_KEY,
     from: env.RESEND_FROM,
     appUrl: env.EMAIL_APP_URL,
     supportEmail: env.EMAIL_SUPPORT_ADDRESS,
-  });
+  };
+  const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
+  const paymentNotifier = createPaymentNotifier(emailSettings);
 
   const subscriptionService = new SubscriptionService({
     subscriptionRepo: repositories.subscription,
@@ -199,6 +202,12 @@ async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
     plans,
     provider,
     subscriptions: subscriptionWriter,
+    accounts: repositories.account,
+    notifier: paymentNotifier,
+    onDeliveryError: (error, stage, paymentId) =>
+      console.error(
+        `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      ),
   });
 
   const refresh = new RefreshPendingPayments({
@@ -353,11 +362,11 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
   };
   const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
   const cfdiNotifier = createCfdiNotifier(emailSettings);
+  const paymentNotifier = createPaymentNotifier(emailSettings);
 
   const issueInvoice = createIssueInvoice({
     db: env.aqui_suena_db,
     account: directoryRepositories.account,
-    subscriptions: directoryRepositories.subscription,
     plans: planRepository,
     notifier: cfdiNotifier,
     downloadUrl: emailBillingUrl(env.EMAIL_APP_URL),
@@ -442,6 +451,12 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
         plans: planRepository,
         provider: conekta,
         subscriptions: subscriptionWriter,
+        accounts: directoryRepositories.account,
+        notifier: paymentNotifier,
+        onDeliveryError: (error, stage, paymentId) =>
+          console.error(
+            `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
+          ),
         cards: {
           async save(accountId, card) {
             await directoryRepositories.account.saveCard(accountId, {

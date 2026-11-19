@@ -1,9 +1,11 @@
+import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type {
   BillingInterval,
   Payment,
   PaymentMethod,
   PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
+import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
 import type {
   ChargeResult,
   PaymentCardWriter,
@@ -26,6 +28,13 @@ export type PaymentServiceDependencies = {
   readonly provider: PaymentProvider;
   readonly subscriptions: PaymentSubscriptionWriter;
   readonly cards?: PaymentCardWriter;
+  readonly accounts?: Pick<AccountRepository, "getById">;
+  readonly notifier?: PaymentNotifier;
+  readonly onDeliveryError?: (
+    error: unknown,
+    stage: "receipt" | "pending",
+    paymentId: string,
+  ) => void;
   readonly now?: () => Date;
 };
 
@@ -175,6 +184,10 @@ export class PaymentService {
       failureReason: charge.failureReason,
     });
 
+    if (charge.status === "pending") {
+      await this.notifyPending(payment.id);
+    }
+
     if (charge.status === "paid") {
       return this.complete(payment.id, now);
     }
@@ -226,7 +239,10 @@ export class PaymentService {
 
     await this.deps.payments.attachSubscription(payment.id, subscriptionId);
 
-    return this.requirePayment(payment.id);
+    const completed = await this.requirePayment(payment.id);
+    await this.notifyReceipt(completed);
+
+    return completed;
   }
 
   async fail(paymentId: string, reason: string, at: Date = this.currentDate()): Promise<Payment> {
@@ -241,6 +257,70 @@ export class PaymentService {
     await this.deps.payments.markExpired(paymentId, at);
 
     return this.requirePayment(paymentId);
+  }
+
+  private async notifyReceipt(payment: Payment): Promise<void> {
+    const { accounts, notifier } = this.deps;
+
+    if (accounts === undefined || notifier === undefined) return;
+
+    try {
+      const account = await accounts.getById(payment.accountId);
+
+      if (account === null || account.deletedAt) return;
+
+      const plan = payment.planId === null ? null : await this.deps.plans.getById(payment.planId);
+
+      await notifier.paymentReceipt(
+        { email: account.email, locale: account.locale },
+        {
+          paymentId: payment.id,
+          planName: plan?.name ?? payment.planId ?? "Plan",
+          billingPeriod: payment.billingInterval,
+          amountMinorUnits: payment.amount,
+          currency: payment.currency,
+          method: payment.method,
+          paidAt: payment.paidAt ?? this.currentDate(),
+        },
+      );
+    } catch (error) {
+      this.deps.onDeliveryError?.(error, "receipt", payment.id);
+    }
+  }
+
+  private async notifyPending(paymentId: string): Promise<void> {
+    const payment = await this.deps.payments.getById(paymentId);
+
+    if (payment === null) return;
+    if (payment.reference === null && payment.nextActionUrl === null) return;
+
+    const { accounts, notifier } = this.deps;
+
+    if (accounts === undefined || notifier === undefined) return;
+
+    try {
+      const account = await accounts.getById(payment.accountId);
+
+      if (account === null || account.deletedAt) return;
+
+      const plan = payment.planId === null ? null : await this.deps.plans.getById(payment.planId);
+
+      await notifier.paymentPending(
+        { email: account.email, locale: account.locale },
+        {
+          paymentId: payment.id,
+          planName: plan?.name ?? payment.planId ?? "Plan",
+          method: payment.method,
+          amountMinorUnits: payment.amount,
+          currency: payment.currency,
+          reference: payment.reference,
+          expiresAt: payment.expiresAt,
+          nextActionUrl: payment.nextActionUrl,
+        },
+      );
+    } catch (error) {
+      this.deps.onDeliveryError?.(error, "pending", payment.id);
+    }
   }
 
   private currentDate(): Date {

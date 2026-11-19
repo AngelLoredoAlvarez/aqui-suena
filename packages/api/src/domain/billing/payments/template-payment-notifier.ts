@@ -1,7 +1,9 @@
+import type { PaymentMethod } from "@aqui-suena/api/domain/billing/payments/payment";
 import type {
   BillingPeriod,
   PaymentNotificationRecipient,
   PaymentNotifier,
+  PaymentPendingNotification,
   PaymentReceiptNotification,
 } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
 import type { EmailSender } from "@aqui-suena/api/domain/email/email";
@@ -17,6 +19,11 @@ const PERIOD_LABELS: Record<EmailLocale, Record<BillingPeriod, string>> = {
   en: { monthly: "Monthly", annual: "Annual" },
 };
 
+const METHOD_LABELS: Record<EmailLocale, Record<PaymentMethod, string>> = {
+  "es-MX": { card: "Tarjeta", oxxo: "OXXO", spei: "SPEI" },
+  en: { card: "Card", oxxo: "OXXO", spei: "SPEI" },
+};
+
 /**
  * Renders payment emails from the transactional template catalog and hands
  * them to the transport.
@@ -25,6 +32,7 @@ export class TemplatePaymentNotifier implements PaymentNotifier {
   constructor(
     private readonly emailSender: EmailSender,
     private readonly renderer: EmailTemplateRenderer,
+    private readonly billingUrl: string,
   ) {}
 
   async paymentReceipt(
@@ -36,7 +44,22 @@ export class TemplatePaymentNotifier implements PaymentNotifier {
       planName: data.planName,
       period: PERIOD_LABELS[recipient.locale][data.billingPeriod],
       amount: formatEmailMoney(recipient.locale, data.amountMinorUnits, data.currency),
+      method: METHOD_LABELS[recipient.locale][data.method],
       paidAt: formatEmailDate(recipient.locale, data.paidAt),
+    });
+  }
+
+  async paymentPending(
+    recipient: PaymentNotificationRecipient,
+    data: PaymentPendingNotification,
+  ): Promise<void> {
+    await sendRenderedEmail(this.emailSender, this.renderer, "payment-pending", recipient, {
+      planName: data.planName,
+      method: METHOD_LABELS[recipient.locale][data.method],
+      amount: formatEmailMoney(recipient.locale, data.amountMinorUnits, data.currency),
+      reference: data.reference ?? "—",
+      expiresAt: data.expiresAt === null ? "—" : formatEmailDate(recipient.locale, data.expiresAt),
+      actionUrl: data.nextActionUrl ?? this.billingUrl,
     });
   }
 }

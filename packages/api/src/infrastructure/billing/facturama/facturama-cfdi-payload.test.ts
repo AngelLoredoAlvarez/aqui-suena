@@ -28,6 +28,7 @@ const request: IssueInvoiceRequest = {
     billingEmail: "facturas@example.com",
   },
   issuedAt: new Date("2026-11-16T18:00:00Z"),
+  paymentForm: "04",
 };
 
 describe("toFacturamaCfdiPayload", () => {
@@ -38,8 +39,8 @@ describe("toFacturamaCfdiPayload", () => {
       CfdiType: "I",
       ExpeditionPlace: "42501",
       Currency: "MXN",
-      PaymentMethod: "PPD",
-      PaymentForm: "99",
+      PaymentMethod: "PUE",
+      PaymentForm: "04",
       Receiver: {
         Rfc: "EKU9003173C9",
         Name: "ESCUELA KEMPER URGATE",

@@ -1,4 +1,7 @@
-import type { IssueInvoiceRequest } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+import type {
+  InvoicePaymentForm,
+  IssueInvoiceRequest,
+} from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
 
 export type FacturamaIssuer = {
   readonly rfc: string;
@@ -28,8 +31,8 @@ export type FacturamaCfdiPayload = {
   readonly CfdiType: "I";
   readonly ExpeditionPlace: string;
   readonly Currency: string;
-  readonly PaymentMethod: "PPD";
-  readonly PaymentForm: "99";
+  readonly PaymentMethod: "PUE";
+  readonly PaymentForm: InvoicePaymentForm;
   readonly Serie?: string;
   readonly Folio?: string;
   readonly Issuer?: {
@@ -102,8 +105,8 @@ export function toFacturamaCfdiPayload(
     CfdiType: "I",
     ExpeditionPlace: settings.expeditionPlace,
     Currency: request.currency,
-    PaymentMethod: "PPD",
-    PaymentForm: "99",
+    PaymentMethod: "PUE",
+    PaymentForm: request.paymentForm,
     ...emitterBlock,
     Receiver: {
       Rfc: fiscalProfile.rfc,

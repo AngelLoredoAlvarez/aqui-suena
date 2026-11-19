@@ -9,9 +9,10 @@ The runtime lives in `packages/api/src/infrastructure/email/`.
 ## Design artifacts (this folder)
 
 - `SPEC.md` — the visual specification in words (tokens, spacing, hierarchy).
-- `TEMPLATES.md` — the single source for the contract of the 10 templates:
+- `TEMPLATES.md` — the single source for the contract of the 12 templates:
   subject, preheader, CTA, secondary link and variables.
-- `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files).
+- `email-<n>-<slug>.{es-MX,en}.html` — pre-rendered output with sample data (20 files;
+  template 12 has no pre-rendered reference).
 - `logo-aqui-suena-noche.svg` — app logo for dark backgrounds.
 
 ## Runtime (packages/api/src/infrastructure/email/)
@@ -63,16 +64,19 @@ Rules:
 - Adding a language means extending `EMAIL_LOCALES`, adding `<code>.json` under
   `src/infrastructure/email/`, and registering it in the renderer's copy map.
 
-## Notifier owners (no production call sites yet)
+## Notifier owners
 
-Nothing below is called in production: the notifiers are tested but no entry point
-constructs them or a `ResendEmailSender`, so no email is sent.
+The Worker composition builds every notifier with `ResendEmailSender`; the local
+Node server has no mail transport and leaves them unconfigured.
 
-- Subscription lifecycle: `TemplateSubscriptionNotifier` — downgrade, failed-renewal,
-  grace-expired, renewal-7d, renewal-1d, cancellation.
+- Subscription lifecycle: `TemplateSubscriptionNotifier` — `SubscriptionService`
+  (downgrade, failed-renewal, grace-expired, cancellation) and the renewal-reminder
+  service.
 - Account lifecycle: `TemplateAccountNotifier` — verify-email, welcome.
-- Payments: `TemplatePaymentNotifier` — receipt.
-- Blocked: `invoice-cfdi`. See the "Blocked" section in `TEMPLATES.md`.
+- Payments: `TemplatePaymentNotifier` — receipt after a completed charge and
+  instructions for a pending OXXO/SPEI/3DS payment.
+- Fiscal: `TemplateCfdiNotifier` — `invoice-cfdi` with the stamped XML and optional
+  PDF attached.
 
 ## Logo caveat
 

@@ -17,13 +17,12 @@ import {
 } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import {
-  InMemorySubscriptionRepository,
-  type Subscription,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+  InMemoryPaymentRepository,
+  type Payment,
+} from "@aqui-suena/api/domain/billing/payments/payment";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
-import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { UpgradeRequired, ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-16T18:00:00Z");
@@ -123,25 +122,38 @@ class FakeCfdiNotifier implements CfdiNotifier {
   }
 }
 
-function paidSubscription(planId: PlanId = "commerce"): Subscription {
+function completedPayment(overrides: Partial<Payment> = {}): Payment {
   return {
-    id: "sub-1",
+    id: "pay-1",
     accountId: "acc-1",
-    planId,
+    subscriptionId: "sub-1",
+    planId: "commerce",
     billingInterval: "monthly",
-    status: "active",
-    startedAt: new Date("2026-11-01T00:00:00Z"),
-    endsAt: new Date("2026-12-01T00:00:00Z"),
-    graceEnd: null,
+    method: "card",
+    provider: "conekta",
+    providerOrderId: "ord-1",
+    providerChargeId: "chg-1",
+    idempotencyKey: "checkout:acc-1:commerce:monthly:card",
+    amount: 14900,
+    currency: "MXN",
+    status: "completed",
+    reference: null,
+    nextActionUrl: null,
+    expiresAt: null,
+    failureReason: null,
+    periodStart: new Date("2026-11-01T00:00:00Z"),
+    periodEnd: new Date("2026-12-01T00:00:00Z"),
+    paidAt: new Date("2026-11-01T00:05:00Z"),
     createdAt: new Date("2026-11-01T00:00:00Z"),
-    updatedAt: new Date("2026-11-01T00:00:00Z"),
+    updatedAt: new Date("2026-11-01T00:05:00Z"),
+    ...overrides,
   };
 }
 
 function setup(
   options: {
     profile?: FiscalProfile | null;
-    subscription?: Subscription | null;
+    payment?: Payment | null;
     issuerResult?: Error | IssuedCfdi;
     xmlSaveFails?: boolean;
     pdfSaveFails?: boolean;
@@ -190,13 +202,13 @@ function setup(
     options.profile === undefined ? completeProfile : options.profile,
   );
 
-  const subscriptions = new InMemorySubscriptionRepository(
-    options.subscription === null ? [] : [options.subscription ?? paidSubscription()],
+  const payments = new InMemoryPaymentRepository(
+    options.payment === null ? [] : [options.payment ?? completedPayment()],
   );
 
   const issueInvoice = new IssueInvoice({
     fiscalProfiles,
-    subscriptions,
+    payments,
     plans: new InMemoryPlanRepository([...DEFAULT_PLAN_CATALOG]),
     issuer,
     invoices,
@@ -213,7 +225,7 @@ function setup(
 }
 
 describe("IssueInvoice", () => {
-  it("issues a CFDI for the active paid plan and stores the XML", async () => {
+  it("issues a CFDI for the latest completed payment and stores the XML", async () => {
     const { issueInvoice, issuer, documents } = setup();
 
     const invoice = await issueInvoice.execute("acc-1");
@@ -226,9 +238,11 @@ describe("IssueInvoice", () => {
       currency: "MXN",
       fiscalProfile: completeProfile,
       issuedAt: NOW,
+      paymentForm: "04",
     });
     expect(invoice).toMatchObject({
       accountId: "acc-1",
+      paymentId: "pay-1",
       status: "issued",
       providerId: "fac-1",
       uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
@@ -237,26 +251,47 @@ describe("IssueInvoice", () => {
     expect(documents.xmls).toEqual([{ accountId: "acc-1", xml: "<cfdi:Comprobante/>" }]);
   });
 
-  it("rejects a community account without reaching the provider", async () => {
-    const { issueInvoice, issuer, invoices } = setup({ subscription: null });
+  it("rejects the request without a completed payment", async () => {
+    const { issueInvoice, issuer, invoices } = setup({ payment: null });
 
     const error = await issueInvoice.execute("acc-1").catch((caught: unknown) => caught);
 
-    expect(error).toBeInstanceOf(UpgradeRequired);
-    expect(error).toMatchObject({ hint: "billing.upgradeRequired.invoiceIssue" });
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error).toMatchObject({
+      message: "A completed payment is required before requesting an invoice",
+    });
     expect(issuer.requests).toHaveLength(0);
     expect(invoices.rows).toHaveLength(0);
   });
 
-  it("still invoices a cancelled subscription that has paid time left", async () => {
-    const { issueInvoice, issuer } = setup({
-      subscription: { ...paidSubscription(), status: "cancelled" },
+  it("uses the paid amount and interval of an annual payment", async () => {
+    const { issueInvoice, issuer, notifier } = setup({
+      payment: completedPayment({
+        billingInterval: "annual",
+        method: "oxxo",
+        amount: 99000,
+      }),
     });
 
     const invoice = await issueInvoice.execute("acc-1");
 
-    expect(issuer.requests).toHaveLength(1);
-    expect(invoice.status).toBe("issued");
+    expect(issuer.requests[0]).toMatchObject({
+      planId: "commerce",
+      amountCents: 99000,
+      paymentForm: "01",
+    });
+    expect(notifier?.sent[0]?.invoice).toMatchObject({ amountMinorUnits: 99000 });
+    expect(invoice.paymentId).toBe("pay-1");
+  });
+
+  it("maps a SPEI payment to the transfer payment form", async () => {
+    const { issueInvoice, issuer } = setup({
+      payment: completedPayment({ method: "spei", amount: 9900 }),
+    });
+
+    await issueInvoice.execute("acc-1");
+
+    expect(issuer.requests[0]).toMatchObject({ amountCents: 9900, paymentForm: "03" });
   });
 
   it("rejects the request when the account has no fiscal profile", async () => {
