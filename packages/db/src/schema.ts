@@ -37,6 +37,12 @@ export const accounts = sqliteTable("accounts", {
   taxZipCode: text("tax_zip_code"),
   cfdiUse: text("cfdi_use"),
   billingEmail: text("billing_email"),
+  conektaCustomerId: text("conekta_customer_id"),
+  defaultCardSourceId: text("default_card_source_id"),
+  cardBrand: text("card_brand"),
+  cardLast4: text("card_last4"),
+  cardExpMonth: integer("card_exp_month"),
+  cardExpYear: integer("card_exp_year"),
   taxDataUpdatedAt: integer("tax_data_updated_at", { mode: "timestamp" }),
   deletedAt: integer("deleted_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -73,6 +79,9 @@ export const subscriptions = sqliteTable("subscriptions", {
   planId: text("plan_id")
     .notNull()
     .references(() => plans.id),
+  billingInterval: text("billing_interval", { enum: ["monthly", "annual"] })
+    .notNull()
+    .default("monthly"),
   status: text("status").notNull().default("active"),
   startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
   endsAt: integer("ends_at", { mode: "timestamp" }),
@@ -87,18 +96,48 @@ export const subscriptions = sqliteTable("subscriptions", {
 
 export const payments = sqliteTable("payments", {
   id: text("id").primaryKey(),
-  subscriptionId: text("subscription_id")
+  accountId: text("account_id")
     .notNull()
-    .references(() => subscriptions.id),
+    .references(() => accounts.id),
+  subscriptionId: text("subscription_id").references(() => subscriptions.id),
   planId: text("plan_id").references(() => plans.id),
+  billingInterval: text("billing_interval", { enum: ["monthly", "annual"] })
+    .notNull()
+    .default("monthly"),
+  method: text("method", { enum: ["card", "oxxo", "spei"] }).notNull(),
+  provider: text("provider", { enum: ["conekta"] })
+    .notNull()
+    .default("conekta"),
+  providerOrderId: text("provider_order_id").unique(),
+  providerChargeId: text("provider_charge_id"),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
   amount: integer("amount").notNull(),
   currency: text("currency").notNull().default("MXN"),
   status: text("status").notNull().default("pending"),
+  reference: text("reference"),
+  nextActionUrl: text("next_action_url"),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  failureReason: text("failure_reason"),
+  periodStart: integer("period_start", { mode: "timestamp" }),
+  periodEnd: integer("period_end", { mode: "timestamp" }),
   paidAt: integer("paid_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const paymentEvents = sqliteTable("payment_events", {
+  id: text("id").primaryKey(),
+  providerEventId: text("provider_event_id").notNull().unique(),
+  type: text("type").notNull(),
+  paymentId: text("payment_id").references(() => payments.id),
+  payloadHash: text("payload_hash").notNull(),
+  livemode: integer("livemode", { mode: "boolean" }).notNull(),
+  processedAt: integer("processed_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
 });

@@ -27,6 +27,7 @@ const request: IssueInvoiceRequest = {
     billingEmail: "facturas@example.com",
   },
   issuedAt: new Date("2026-11-16T18:00:00Z"),
+  paymentForm: "04",
 };
 
 function setup(fakeFetch: typeof fetch) {

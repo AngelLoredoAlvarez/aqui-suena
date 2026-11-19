@@ -1,4 +1,5 @@
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
+import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { normalizeSql } from "@aqui-suena/api/testing/sql";
@@ -8,6 +9,7 @@ const sampleRow = {
   id: "sub-1",
   account_id: "acc-1",
   plan_id: "trades",
+  billing_interval: "monthly",
   status: "active",
   started_at: 1700000000,
   ends_at: 1702678400,
@@ -26,6 +28,7 @@ describe("D1SubscriptionRepository", () => {
     expect(sub?.id).toBe("sub-1");
     expect(sub?.accountId).toBe("acc-1");
     expect(sub?.planId).toBe("trades");
+    expect(sub?.billingInterval).toBe("monthly");
     expect(sub?.status).toBe("active");
     expect(sub?.startedAt).toBeInstanceOf(Date);
     expect(sub?.endsAt).toBeInstanceOf(Date);
@@ -60,6 +63,15 @@ describe("D1SubscriptionRepository", () => {
 
   it("throws DataIntegrityError when a stored plan id is unknown", async () => {
     const fake = new FakeD1Database(() => ({ first: { ...sampleRow, plan_id: "enterprise" } }));
+    const repo = new D1SubscriptionRepository(fake.db);
+
+    await expect(repo.getById("sub-1")).rejects.toBeInstanceOf(DataIntegrityError);
+  });
+
+  it("throws DataIntegrityError when a stored interval is unknown", async () => {
+    const fake = new FakeD1Database(() => ({
+      first: { ...sampleRow, billing_interval: "weekly" },
+    }));
     const repo = new D1SubscriptionRepository(fake.db);
 
     await expect(repo.getById("sub-1")).rejects.toBeInstanceOf(DataIntegrityError);
@@ -129,5 +141,82 @@ describe("D1SubscriptionRepository", () => {
     expect(normalizeSql(fake.statements[0]?.sql)).toContain("UPDATE subscriptions SET ends_at");
     expect(normalizeSql(fake.statements[0]?.sql)).toContain("WHERE id = ?");
     expect(fake.statements[0]?.params).toContain("sub-1");
+  });
+
+  it("creates an active subscription with its interval", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const startedAt = new Date("2026-11-19T12:00:00Z");
+    const endsAt = new Date("2027-11-19T12:00:00Z");
+
+    const sub = await repo.create("acc-1", "trades", startedAt, endsAt, "annual");
+
+    expect(sub).toMatchObject({
+      accountId: "acc-1",
+      planId: "trades",
+      billingInterval: "annual",
+      status: "active",
+      startedAt,
+      endsAt,
+      graceEnd: null,
+    });
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("billing_interval");
+    expect(fake.statements[0]?.params).toEqual([
+      sub.id,
+      "acc-1",
+      "trades",
+      "annual",
+      toEpoch(startedAt),
+      toEpoch(endsAt),
+      toEpoch(sub.createdAt),
+      toEpoch(sub.updatedAt),
+    ]);
+  });
+
+  it("renews a subscription to a new end and interval", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const endsAt = new Date("2027-11-19T12:00:00Z");
+
+    await repo.renew("sub-1", endsAt, "annual");
+
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'active'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("MAX(COALESCE(ends_at, 0), ?)");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("billing_interval = ?");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("grace_end = NULL");
+    expect(fake.statements[0]?.params).toEqual([
+      toEpoch(endsAt),
+      "annual",
+      expect.any(Number),
+      "sub-1",
+    ]);
+  });
+
+  it("lists active subscriptions ending before the deadline", async () => {
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const deadline = new Date("2026-11-26T12:00:00Z");
+
+    const list = await repo.listActiveEndingBefore(deadline, 5);
+
+    expect(list).toHaveLength(1);
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'active'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("ends_at <= ?");
+    expect(fake.statements[0]?.params).toEqual([toEpoch(deadline), 5]);
+  });
+
+  it("lists grace subscriptions past their deadline", async () => {
+    const fake = new FakeD1Database(() => ({
+      all: [{ ...sampleRow, status: "grace", grace_end: 1700000000 }],
+    }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const now = new Date("2026-11-26T12:00:00Z");
+
+    const list = await repo.listGraceExpired(now, 5);
+
+    expect(list).toHaveLength(1);
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'grace'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("grace_end <= ?");
+    expect(fake.statements[0]?.params).toEqual([toEpoch(now), 5]);
   });
 });

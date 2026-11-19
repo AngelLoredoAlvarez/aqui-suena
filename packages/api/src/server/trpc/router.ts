@@ -6,6 +6,8 @@ import type {
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
+import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
+import type { PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -30,6 +32,8 @@ import { type AiBinding, createSupportRouter } from "@aqui-suena/api/server/rout
 import { router } from "@aqui-suena/api/server/trpc/trpc";
 
 export type BillingSurfaces = {
+  readonly checkout?: Pick<CheckoutService, "execute">;
+  readonly payments?: PaymentRepository;
   readonly issueInvoice?: Pick<IssueInvoice, "execute">;
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;

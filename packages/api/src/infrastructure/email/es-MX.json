@@ -76,7 +76,7 @@
     "pre": "Recibo por {amount}.",
     "h": "Recibo de pago",
     "p": ["Gracias por tu pago.", "Puedes ver tu historial de pagos en tu cuenta."],
-    "rows": ["Plan", "Periodo", "Monto", "Fecha", "ID de pago"],
+    "rows": ["Plan", "Periodo", "Monto", "Método", "Fecha", "ID de pago"],
     "cta": "Ver mi suscripción"
   },
   "t8": {
@@ -140,5 +140,16 @@
     ],
     "cta": "Ver mi suscripción",
     "c2": "Ver planes"
+  },
+  "t12": {
+    "s": "Completa tu pago — Aquí Suena",
+    "pre": "Tu pago está pendiente.",
+    "h": "Completa tu pago",
+    "p": [
+      "Tu pago quedó pendiente. Usa la referencia para terminarlo.",
+      "Si ya pagaste, la confirmación puede tardar unos minutos."
+    ],
+    "rows": ["Plan", "Método", "Monto", "Referencia", "Vence"],
+    "cta": "Continuar con el pago"
   }
 }

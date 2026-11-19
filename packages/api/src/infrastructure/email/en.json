@@ -76,7 +76,7 @@
     "pre": "Receipt for {amount}.",
     "h": "Payment receipt",
     "p": ["Thank you for your payment.", "You can view your payment history in your account."],
-    "rows": ["Plan", "Period", "Amount", "Date", "Payment ID"],
+    "rows": ["Plan", "Period", "Amount", "Method", "Date", "Payment ID"],
     "cta": "View my subscription"
   },
   "t8": {
@@ -140,5 +140,16 @@
     ],
     "cta": "View my subscription",
     "c2": "View plans"
+  },
+  "t12": {
+    "s": "Complete your payment — Aquí Suena",
+    "pre": "Your payment is pending.",
+    "h": "Complete your payment",
+    "p": [
+      "Your payment is pending. Use the reference to finish it.",
+      "If you already paid, confirmation may take a few minutes."
+    ],
+    "rows": ["Plan", "Method", "Amount", "Reference", "Expires"],
+    "cta": "Continue with payment"
   }
 }

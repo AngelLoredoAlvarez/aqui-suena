@@ -15,6 +15,8 @@ const DDL = `
     locale TEXT DEFAULT 'es-MX' NOT NULL,
     rfc TEXT, legal_name TEXT, tax_regime TEXT, tax_zip_code TEXT, cfdi_use TEXT,
     billing_email TEXT, tax_data_updated_at INTEGER, deleted_at INTEGER,
+    conekta_customer_id TEXT, default_card_source_id TEXT, card_brand TEXT,
+    card_last4 TEXT, card_exp_month INTEGER, card_exp_year INTEGER,
     created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
   );
 

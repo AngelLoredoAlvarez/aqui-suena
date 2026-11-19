@@ -17,7 +17,7 @@ const request: IssueInvoiceRequest = {
   accountId: "acc-1",
   planId: "commerce",
   planName: "Comercios & Catálogo",
-  amountCents: 9900,
+  amountCents: 14900,
   currency: "MXN",
   fiscalProfile: {
     rfc: "EKU9003173C9",
@@ -28,6 +28,7 @@ const request: IssueInvoiceRequest = {
     billingEmail: "facturas@example.com",
   },
   issuedAt: new Date("2026-11-16T18:00:00Z"),
+  paymentForm: "04",
 };
 
 describe("toFacturamaCfdiPayload", () => {
@@ -38,8 +39,8 @@ describe("toFacturamaCfdiPayload", () => {
       CfdiType: "I",
       ExpeditionPlace: "42501",
       Currency: "MXN",
-      PaymentMethod: "PPD",
-      PaymentForm: "99",
+      PaymentMethod: "PUE",
+      PaymentForm: "04",
       Receiver: {
         Rfc: "EKU9003173C9",
         Name: "ESCUELA KEMPER URGATE",
@@ -54,21 +55,21 @@ describe("toFacturamaCfdiPayload", () => {
           UnitCode: "E48",
           Unit: "Unidad de servicio",
           Quantity: 1,
-          UnitPrice: 99,
-          Subtotal: 99,
+          UnitPrice: 128.45,
+          Subtotal: 128.45,
           TaxObject: "02",
-          Total: 114.84,
-          Taxes: [{ Name: "IVA", Rate: 0.16, Base: 99, Total: 15.84, IsRetention: false }],
+          Total: 149,
+          Taxes: [{ Name: "IVA", Rate: 0.16, Base: 128.45, Total: 20.55, IsRetention: false }],
         },
       ],
     });
   });
 
-  it("rounds the VAT once, in cents, so float drift never reaches the CFDI", () => {
+  it("breaks the gross amount down into subtotal and VAT without float drift", () => {
     const payload = toFacturamaCfdiPayload({ ...request, amountCents: 4999 }, settings);
 
-    expect(payload.Items[0]).toMatchObject({ UnitPrice: 49.99, Subtotal: 49.99, Total: 57.99 });
-    expect(payload.Items[0]?.Taxes[0]).toMatchObject({ Base: 49.99, Total: 8 });
+    expect(payload.Items[0]).toMatchObject({ UnitPrice: 43.09, Subtotal: 43.09, Total: 49.99 });
+    expect(payload.Items[0]?.Taxes[0]).toMatchObject({ Base: 43.09, Total: 6.9 });
   });
 
   it("adds the issuer, serie and folio for the multiemisor endpoint", () => {

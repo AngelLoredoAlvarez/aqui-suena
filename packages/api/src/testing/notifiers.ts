@@ -7,6 +7,7 @@ import type {
 import type {
   PaymentNotificationRecipient,
   PaymentNotifier,
+  PaymentPendingNotification,
   PaymentReceiptNotification,
 } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
 import type {
@@ -121,11 +122,17 @@ export class FakeAccountNotifier implements AccountNotifier {
   }
 }
 
-export type PaymentNotificationCall = {
-  readonly event: "payment-receipt";
-  readonly recipient: PaymentNotificationRecipient;
-  readonly data: PaymentReceiptNotification;
-};
+export type PaymentNotificationCall =
+  | {
+      readonly event: "payment-receipt";
+      readonly recipient: PaymentNotificationRecipient;
+      readonly data: PaymentReceiptNotification;
+    }
+  | {
+      readonly event: "payment-pending";
+      readonly recipient: PaymentNotificationRecipient;
+      readonly data: PaymentPendingNotification;
+    };
 
 /**
  * Test double that records payment notifications instead of sending them.
@@ -133,10 +140,27 @@ export type PaymentNotificationCall = {
 export class FakePaymentNotifier implements PaymentNotifier {
   readonly calls: PaymentNotificationCall[] = [];
 
+  constructor(private readonly failure?: Error) {}
+
   async paymentReceipt(
     recipient: PaymentNotificationRecipient,
     data: PaymentReceiptNotification,
   ): Promise<void> {
+    if (this.failure !== undefined) {
+      throw this.failure;
+    }
+
     this.calls.push({ event: "payment-receipt", recipient, data });
+  }
+
+  async paymentPending(
+    recipient: PaymentNotificationRecipient,
+    data: PaymentPendingNotification,
+  ): Promise<void> {
+    if (this.failure !== undefined) {
+      throw this.failure;
+    }
+
+    this.calls.push({ event: "payment-pending", recipient, data });
   }
 }

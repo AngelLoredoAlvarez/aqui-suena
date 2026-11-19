@@ -28,7 +28,7 @@ Carousel behavior: standard/low community rotation: 1 appearance per cycle.
 
 ### Oficios & Servicios — paid intermediate
 
-**Price:** $49 MXN/month or $490 MXN/year.
+**Price:** $99 MXN/month or $990 MXN/year.
 
 For service providers of any profession: electricians, plumbers, dentists, lawyers, educators and more.
 
@@ -49,7 +49,7 @@ Carousel behavior: 2 appearances per cycle, focused on reminders and trust by sp
 
 ### Comercios & Catálogo — paid top
 
-**Price:** $99 MXN/month or $990 MXN/year.
+**Price:** $149 MXN/month or $1,490 MXN/year.
 
 For established businesses that sell products or catalogs: hardware stores, restaurants, boutiques and more.
 
@@ -169,7 +169,8 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - Downgrade (manual, or automatic after the 7-day failed-renewal grace with email warning) applies limits within 1 minute without data loss (excess content hidden, not deleted); hidden content is retained for 90 days before permanent deletion. Plan changes are immediate on upgrade and scheduled for the end of the paid period on downgrade; V1 does not prorate charges. Cancellation stops renewal but keeps the paid plan active until the end of the billing period; V1 does not issue partial refunds for unused time. Cancelling during the failed-renewal grace period ends access immediately (there is no remaining paid period to keep) and notifies the customer with the immediate-cancellation email. Failed renewals use the 7-day grace period with email warning before downgrade.
 - Paid time is never lost. While an account still has paid time left (an `active` period, or a `cancelled` one whose `ends_at` is in the future), a new period starts where the paid one ends instead of restarting at `now`: re-subscribing to the same plan resumes the cancelled subscription and extends `ends_at` by one period, and an upgrade takes effect immediately while its `ends_at` is computed from the previous one. A downgrade keeps its existing shape — the lower plan is scheduled at the end of the paid period. Only an account with no paid time left starts a period at `now`. This is not proration: no charge is prorated and no unused time is refunded; it only stops the platform from discarding time the customer already paid for.
 - Every paywalled action returns a typed `UPGRADE_REQUIRED` error the UI maps to billing.
-- Paid plans are billed in MXN via Conekta with no trial period (Comunidad is the free entry point): Oficios & Servicios costs $49 MXN/month or $490 MXN/year; Comercios & Catálogo costs $99 MXN/month or $990 MXN/year. Annual billing is promoted as 10 months paid for 12 months of service.
+- Paid plans are billed in MXN via Conekta with no trial period (Comunidad is the free entry point): Oficios & Servicios costs $99 MXN/month or $990 MXN/year; Comercios & Catálogo costs $149 MXN/month or $1,490 MXN/year. Prices are final consumer prices with IVA included; the CFDI breaks the price down as subtotal + IVA (16%) so the total equals the amount charged. Annual billing is promoted as 10 months paid for 12 months of service.
+- Pricing basis (2026-11-19): reviewed against the production stack (~$1,611 MXN/month at 100 paying accounts, card payments, 30% ISR and a 15% reserve). The entry plan covers its share from ~29 paying accounts; the top plan from ~19.
 - Each account has at most one active subscription at any time; upgrades and downgrades replace the previous active subscription rather than creating a second active one.
 - The previous Premium plan at $159 MXN/month is discontinued; its price is not grandfathered into the new three-plan model. No account migration is required because no accounts are registered yet.
 - Plan screens show all three cards with i18n copy. Onboarding asks for `businessProfile` and preselects the corresponding recommendation: local community business → Comunidad, home services/trades → Oficios & Servicios, catalog-based commerce → Comercios & Catálogo. The user can change plans before confirming; an unanswered profile defaults to Comunidad.

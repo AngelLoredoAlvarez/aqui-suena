@@ -1,3 +1,4 @@
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
 import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/grace";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
@@ -19,6 +20,7 @@ export type Subscription = {
   id: string;
   accountId: string;
   planId: PlanId;
+  billingInterval: BillingInterval;
   status: SubscriptionStatus;
   startedAt: Date;
   endsAt: Date | null;
@@ -30,11 +32,20 @@ export type Subscription = {
 export interface SubscriptionRepository {
   getActive(accountId: string, now?: Date): Promise<Subscription | null>;
   getById(id: string): Promise<Subscription | null>;
-  create(accountId: string, planId: PlanId, startedAt: Date, endsAt: Date): Promise<Subscription>;
+  create(
+    accountId: string,
+    planId: PlanId,
+    startedAt: Date,
+    endsAt: Date,
+    billingInterval?: BillingInterval,
+  ): Promise<Subscription>;
   updateStatus(id: string, status: SubscriptionStatus): Promise<void>;
   updateEndsAt(id: string, endsAt: Date): Promise<void>;
+  renew(id: string, endsAt: Date, billingInterval: BillingInterval): Promise<void>;
   enterGrace(id: string, graceEnd: Date): Promise<void>;
   listByAccount(accountId: string): Promise<Subscription[]>;
+  listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]>;
+  listGraceExpired(now: Date, limit: number): Promise<Subscription[]>;
 }
 
 export class InMemorySubscriptionRepository implements SubscriptionRepository {
@@ -75,11 +86,13 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     planId: PlanId,
     startedAt: Date,
     endsAt: Date,
+    billingInterval: BillingInterval = "monthly",
   ): Promise<Subscription> {
     const subscription: Subscription = {
       id: crypto.randomUUID(),
       accountId,
       planId,
+      billingInterval,
       status: "active",
       startedAt,
       endsAt,
@@ -110,6 +123,18 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     }
   }
 
+  async renew(id: string, endsAt: Date, billingInterval: BillingInterval): Promise<void> {
+    const sub = this.store.find((s) => s.id === id);
+
+    if (sub) {
+      sub.status = "active";
+      sub.endsAt = sub.endsAt !== null && sub.endsAt > endsAt ? sub.endsAt : endsAt;
+      sub.billingInterval = billingInterval;
+      sub.graceEnd = null;
+      sub.updatedAt = new Date();
+    }
+  }
+
   async enterGrace(id: string, graceEnd: Date): Promise<void> {
     const sub = this.store.find((s) => s.id === id);
 
@@ -118,5 +143,19 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
       sub.graceEnd = graceEnd;
       sub.updatedAt = new Date();
     }
+  }
+
+  async listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]> {
+    return this.store
+      .filter((sub) => sub.status === "active" && sub.endsAt !== null && sub.endsAt <= deadline)
+      .sort((left, right) => (left.endsAt?.getTime() ?? 0) - (right.endsAt?.getTime() ?? 0))
+      .slice(0, limit);
+  }
+
+  async listGraceExpired(now: Date, limit: number): Promise<Subscription[]> {
+    return this.store
+      .filter((sub) => sub.status === "grace" && sub.graceEnd !== null && sub.graceEnd <= now)
+      .sort((left, right) => (left.graceEnd?.getTime() ?? 0) - (right.graceEnd?.getTime() ?? 0))
+      .slice(0, limit);
   }
 }

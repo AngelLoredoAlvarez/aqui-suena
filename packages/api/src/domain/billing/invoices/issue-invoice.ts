@@ -1,5 +1,4 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
 import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import type {
   CfdiDocumentStore,
@@ -8,20 +7,16 @@ import type {
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import {
   type InvoiceIssuer,
+  type InvoicePaymentForm,
   InvoiceProviderRejection,
 } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { UPGRADE_HINTS } from "@aqui-suena/api/domain/plans/entitlements";
+import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import {
-  DataIntegrityError,
-  UpgradeRequired,
-  ValidationError,
-} from "@aqui-suena/api/shared/domain-error";
+import { DataIntegrityError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 
 export type IssueInvoiceDependencies = {
   readonly fiscalProfiles: Pick<AccountRepository, "getFiscalProfile">;
-  readonly subscriptions: SubscriptionRepository;
+  readonly payments: Pick<PaymentRepository, "getLatestCompletedByAccount">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly issuer: InvoiceIssuer;
   readonly invoices: CfdiInvoiceRepository;
@@ -46,12 +41,20 @@ export class IssueInvoice {
   async execute(accountId: string): Promise<CfdiInvoice> {
     const now = this.deps.now?.() ?? new Date();
 
-    const subscription = await this.deps.subscriptions.getActive(accountId, now);
+    const payment = await this.deps.payments.getLatestCompletedByAccount(accountId);
 
-    const planId = resolvePlan(subscription, now);
+    if (payment === null) {
+      throw new ValidationError("A completed payment is required before requesting an invoice");
+    }
 
-    if (planId === "community") {
-      throw new UpgradeRequired(UPGRADE_HINTS.invoiceIssue);
+    if (payment.planId === null) {
+      throw new DataIntegrityError("planId", payment.planId);
+    }
+
+    const plan = await this.deps.plans.getById(payment.planId);
+
+    if (plan === null) {
+      throw new DataIntegrityError("planId", payment.planId);
     }
 
     const fiscalProfile = await this.deps.fiscalProfiles.getFiscalProfile(accountId);
@@ -62,21 +65,16 @@ export class IssueInvoice {
       );
     }
 
-    const plan = await this.deps.plans.getById(planId);
-
-    if (plan === null) {
-      throw new DataIntegrityError("planId", planId);
-    }
-
     try {
       const issued = await this.deps.issuer.issue({
         accountId,
-        planId,
+        planId: payment.planId,
         planName: plan.name,
-        amountCents: plan.priceMonthly,
-        currency: plan.currency,
+        amountCents: payment.amount,
+        currency: payment.currency,
         fiscalProfile,
         issuedAt: now,
+        paymentForm: paymentForm(payment.method),
       });
 
       const xmlKey = await this.tryArchiveXml(accountId, issued.xml);
@@ -85,7 +83,7 @@ export class IssueInvoice {
 
       const invoice = await this.deps.invoices.create({
         accountId,
-        paymentId: null,
+        paymentId: payment.id,
         status: "issued",
         uuid: issued.uuid,
         providerId: issued.providerId,
@@ -102,8 +100,8 @@ export class IssueInvoice {
 
       await this.tryNotify(invoice, {
         planName: plan.name,
-        amountMinorUnits: plan.priceMonthly,
-        currency: plan.currency,
+        amountMinorUnits: payment.amount,
+        currency: payment.currency,
         xml: issued.xml,
         pdf,
       });
@@ -116,7 +114,7 @@ export class IssueInvoice {
 
       await this.deps.invoices.create({
         accountId,
-        paymentId: null,
+        paymentId: payment.id,
         status: "failed",
         uuid: null,
         providerId: null,
@@ -216,5 +214,16 @@ export class IssueInvoice {
     } catch (error) {
       this.deps.onDeliveryError?.(error, "email", invoice.id);
     }
+  }
+}
+
+function paymentForm(method: Payment["method"]): InvoicePaymentForm {
+  switch (method) {
+    case "card":
+      return "04";
+    case "oxxo":
+      return "01";
+    case "spei":
+      return "03";
   }
 }

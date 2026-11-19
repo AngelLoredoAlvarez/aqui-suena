@@ -1,5 +1,7 @@
 import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import { TemplateCfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/template-cfdi-notifier";
+import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
+import { TemplatePaymentNotifier } from "@aqui-suena/api/domain/billing/payments/template-payment-notifier";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/template-subscription-notifier";
 import type { EmailTemplateRenderer } from "@aqui-suena/api/domain/email/email-template";
@@ -70,4 +72,16 @@ export function createCfdiNotifier(settings: EmailSettings): CfdiNotifier | unde
   }
 
   return new TemplateCfdiNotifier(createSender(settings), createRenderer(settings));
+}
+
+export function createPaymentNotifier(settings: EmailSettings): PaymentNotifier | undefined {
+  if (!settings.apiKey) {
+    return undefined;
+  }
+
+  return new TemplatePaymentNotifier(
+    createSender(settings),
+    createRenderer(settings),
+    emailBillingUrl(settings.appUrl),
+  );
 }

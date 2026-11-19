@@ -1,5 +1,6 @@
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
 import { graceDeadline, isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/grace";
-import { addMonths } from "@aqui-suena/api/domain/billing/subscriptions/period";
+import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type {
   Subscription,
   SubscriptionRepository,
@@ -19,8 +20,6 @@ import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 
-const PERIOD_MONTHS = 1;
-
 export interface SubscriptionServiceDependencies {
   readonly subscriptionRepo: SubscriptionRepository;
   readonly planRepo: PlanRepository;
@@ -35,6 +34,7 @@ export interface SubscriptionNotificationOptions {
 
 export interface SubscriptionPlanChangeOptions extends SubscriptionNotificationOptions {
   readonly visibleBusinessIds?: string[];
+  readonly billingInterval?: BillingInterval;
   readonly now?: Date;
 }
 
@@ -56,6 +56,7 @@ export class SubscriptionService {
     planId: PlanId,
     startedAt: Date,
     endsAt: Date,
+    billingInterval: BillingInterval = "monthly",
   ): Promise<Subscription> {
     const existing = await this.subscriptionRepo.listByAccount(accountId);
 
@@ -71,12 +72,11 @@ export class SubscriptionService {
     }
 
     if (cancelled && cancelled.endsAt !== null && cancelled.endsAt > startedAt) {
-      await this.subscriptionRepo.updateEndsAt(
+      await this.subscriptionRepo.renew(
         cancelled.id,
-        addMonths(cancelled.endsAt, PERIOD_MONTHS),
+        addInterval(cancelled.endsAt, billingInterval),
+        billingInterval,
       );
-
-      await this.subscriptionRepo.updateStatus(cancelled.id, "active");
 
       const resumed = await this.subscriptionRepo.getById(cancelled.id);
 
@@ -87,7 +87,35 @@ export class SubscriptionService {
       return resumed;
     }
 
-    return this.subscriptionRepo.create(accountId, planId, startedAt, endsAt);
+    return this.subscriptionRepo.create(accountId, planId, startedAt, endsAt, billingInterval);
+  }
+
+  async renew(
+    subscriptionId: string,
+    endsAt: Date,
+    billingInterval: BillingInterval,
+  ): Promise<Subscription> {
+    const current = await this.subscriptionRepo.getById(subscriptionId);
+
+    if (!current) {
+      throw new NotFoundError("Subscription not found");
+    }
+
+    if (current.status === "expired") {
+      throw new ConflictError("Cannot renew an expired subscription");
+    }
+
+    const nextEnd = current.endsAt !== null && current.endsAt > endsAt ? current.endsAt : endsAt;
+
+    await this.subscriptionRepo.renew(subscriptionId, nextEnd, billingInterval);
+
+    const renewed = await this.subscriptionRepo.getById(subscriptionId);
+
+    if (!renewed) {
+      throw new NotFoundError("Subscription not found");
+    }
+
+    return renewed;
   }
 
   async changePlan(
@@ -97,6 +125,7 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     const {
       visibleBusinessIds,
+      billingInterval,
       now = new Date(),
       recipientEmail,
       locale = DEFAULT_EMAIL_LOCALE,
@@ -107,6 +136,8 @@ export class SubscriptionService {
     if (!current) {
       throw new NotFoundError("Subscription not found");
     }
+
+    const interval = billingInterval ?? current.billingInterval;
 
     // The instant the current period still has paid time for; null once it is
     // over (or if it never ends). Paid time is never lost: a new period starts
@@ -136,9 +167,9 @@ export class SubscriptionService {
 
       // An upgrade takes effect now but chains its period from the paid end,
       // so the customer does not lose the days they already paid for.
-      const endsAt = addMonths(paidUntil ?? now, PERIOD_MONTHS);
+      const endsAt = addInterval(paidUntil ?? now, interval);
 
-      return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
+      return this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt, interval);
     }
 
     // Validate visible selection before any mutation.
@@ -156,7 +187,7 @@ export class SubscriptionService {
     await this.subscriptionRepo.updateStatus(subscriptionId, "cancelled");
 
     const startedAt = current.endsAt ?? now;
-    const endsAt = addMonths(startedAt, PERIOD_MONTHS);
+    const endsAt = addInterval(startedAt, interval);
 
     if (this.businessRepo && visibleBusinessIds !== undefined) {
       const businesses = await this.businessRepo.listAllByAccount(current.accountId);
@@ -169,7 +200,7 @@ export class SubscriptionService {
       }
     }
 
-    await this.subscriptionRepo.create(current.accountId, newPlanId, startedAt, endsAt);
+    await this.subscriptionRepo.create(current.accountId, newPlanId, startedAt, endsAt, interval);
 
     if (this.notifier && recipientEmail) {
       await this.notifier.planDowngraded(
@@ -284,8 +315,14 @@ export class SubscriptionService {
       }
     }
 
-    const endsAt = addMonths(now, PERIOD_MONTHS);
-    const newSub = await this.subscriptionRepo.create(current.accountId, newPlanId, now, endsAt);
+    const endsAt = addInterval(now, "monthly");
+    const newSub = await this.subscriptionRepo.create(
+      current.accountId,
+      newPlanId,
+      now,
+      endsAt,
+      "monthly",
+    );
 
     if (this.notifier && recipientEmail) {
       await this.notifier.graceExpired(

@@ -149,6 +149,51 @@ describe("SubscriptionService.changePlan", () => {
     expect(next?.endsAt?.toISOString()).toBe("2026-02-28T12:00:00.000Z");
   });
 
+  it("chains an annual upgrade by one year", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const current = await subRepo.create(
+      "acc-1",
+      "community",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2027-01-01T00:00:00Z"),
+      "annual",
+    );
+
+    const newSub = await service.changePlan(current.id, "trades", {
+      now: new Date("2026-06-01T00:00:00Z"),
+    });
+
+    expect(newSub.billingInterval).toBe("annual");
+    expect(newSub.endsAt?.toISOString()).toBe("2028-01-01T00:00:00.000Z");
+  });
+
+  it("schedules an annual downgrade one year out", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2027-01-01T00:00:00Z"),
+      "annual",
+    );
+
+    await service.changePlan(current.id, "trades", {
+      now: new Date("2026-06-01T00:00:00Z"),
+    });
+
+    const next = (await subRepo.listByAccount("acc-1")).find((sub) => sub.planId === "trades");
+
+    expect(next?.billingInterval).toBe("annual");
+    expect(next?.startedAt.toISOString()).toBe("2027-01-01T00:00:00.000Z");
+    expect(next?.endsAt?.toISOString()).toBe("2028-01-01T00:00:00.000Z");
+  });
+
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);

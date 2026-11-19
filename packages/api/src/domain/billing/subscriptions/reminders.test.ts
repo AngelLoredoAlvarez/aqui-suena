@@ -11,6 +11,7 @@ const activeSub: Subscription = {
   id: "sub-1",
   accountId: "acc-1",
   planId: "trades",
+  billingInterval: "monthly",
   status: "active",
   startedAt: new Date("2026-01-01"),
   endsAt: new Date("2026-02-08T00:00:00Z"),

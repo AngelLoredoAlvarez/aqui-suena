@@ -16,6 +16,7 @@ export const EMAIL_TEMPLATE_IDS = [
   "welcome",
   "cancellation",
   "cancellation-immediate",
+  "payment-pending",
 ] as const;
 
 export type EmailTemplateId = (typeof EMAIL_TEMPLATE_IDS)[number];

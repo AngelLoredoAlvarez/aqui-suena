@@ -9,6 +9,8 @@ import {
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
+import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
+import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";
@@ -16,6 +18,8 @@ import * as v from "valibot";
 
 export type BillingRouterDeps = {
   readonly account: AccountRepository;
+  readonly checkout?: Pick<CheckoutService, "execute">;
+  readonly payments?: PaymentRepository;
   readonly issueInvoice?: Pick<IssueInvoice, "execute">;
   readonly invoices?: CfdiInvoiceRepository;
   readonly documents?: CfdiDocumentLinker;
@@ -37,6 +41,39 @@ const cancelInput = v.object({
   id: v.pipe(v.string(), v.minLength(1)),
   motive: v.picklist(CFDI_CANCELLATION_MOTIVES),
 });
+
+const checkoutInput = v.object({
+  planId: v.picklist(["trades", "commerce"]),
+  billingInterval: v.picklist(["monthly", "annual"]),
+  method: v.picklist(["card", "oxxo", "spei"]),
+  idempotencyKey: v.pipe(v.string(), v.minLength(8), v.maxLength(128)),
+  cardToken: v.optional(v.pipe(v.string(), v.minLength(1))),
+  customerName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(120)),
+  customerPhone: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(32))),
+});
+
+const paymentIdInput = v.object({
+  id: v.pipe(v.string(), v.minLength(1)),
+});
+
+function toPaymentView(payment: Payment) {
+  return {
+    id: payment.id,
+    status: payment.status,
+    method: payment.method,
+    billingInterval: payment.billingInterval,
+    amount: payment.amount,
+    currency: payment.currency,
+    reference: payment.reference,
+    nextActionUrl: payment.nextActionUrl,
+    expiresAt: payment.expiresAt,
+    failureReason: payment.failureReason,
+    periodStart: payment.periodStart,
+    periodEnd: payment.periodEnd,
+    paidAt: payment.paidAt,
+    createdAt: payment.createdAt,
+  };
+}
 
 function toInvoiceSummary(invoice: CfdiInvoice) {
   return {
@@ -172,6 +209,62 @@ export function createBillingRouter(deps: BillingRouterDeps) {
           fileName,
           expiresInSeconds: 300,
         };
+      }),
+    }),
+
+    checkout: router({
+      create: protectedProcedure.input(checkoutInput).mutation(async ({ ctx, input }) => {
+        const checkout = deps.checkout;
+
+        if (checkout === undefined) {
+          throw new TRPCError({
+            code: "SERVICE_UNAVAILABLE",
+            message: "Payments are not configured",
+          });
+        }
+
+        const account = await deps.account.getById(ctx.user.accountId);
+
+        if (account === null) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Account not found" });
+        }
+
+        const payment = await checkout.execute({
+          accountId: ctx.user.accountId,
+          planId: input.planId,
+          billingInterval: input.billingInterval,
+          method: input.method,
+          idempotencyKey: input.idempotencyKey,
+          ...(input.cardToken === undefined ? {} : { cardToken: input.cardToken }),
+          customer: {
+            name: input.customerName,
+            email: account.email,
+            ...(input.customerPhone === undefined ? {} : { phone: input.customerPhone }),
+          },
+        });
+
+        return { payment: toPaymentView(payment) };
+      }),
+    }),
+
+    payments: router({
+      get: protectedProcedure.input(paymentIdInput).query(async ({ ctx, input }) => {
+        const payments = deps.payments;
+
+        if (payments === undefined) {
+          throw new TRPCError({
+            code: "SERVICE_UNAVAILABLE",
+            message: "Payments are not configured",
+          });
+        }
+
+        const payment = await payments.getById(input.id);
+
+        if (payment === null || payment.accountId !== ctx.user.accountId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Payment not found" });
+        }
+
+        return { payment: toPaymentView(payment) };
       }),
     }),
   });

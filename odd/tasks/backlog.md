@@ -161,6 +161,38 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       `status = 'grace'` and `graceEnd` in one operation, eliminating the transient
       `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
       removed.
+- [x] Plan catalog prices — DONE 2026-11-19: the catalog ships
+      Oficios & Servicios at 9900/99000 and Comercios & Catálogo at
+      14900/149000, final prices with IVA included; the CFDI breaks the gross
+      price down as subtotal + IVA. Staging was re-seeded with
+      `POST /admin/seed-plans` (3 rows).
+- [x] Cash payments — DONE 2026-11-19: Conekta rebranded OXXO Pay as Conekta
+      Efectivo and the direct API now takes `payment_method.type = "cash"`;
+      `oxxo_cash` answers HTTP 422 `order.provider_not_found`. The adapter sends
+      `cash`, and the staging probe completed end-to-end (auto-paid by the
+      sandbox, webhook activation, pending and receipt emails delivered).
+- [ ] Rename the cash method copy from "OXXO" to "Efectivo" — 2026-11-19: the
+      internal method stays `oxxo`, but the provider is Conekta Efectivo with
+      more than 19,000 cash points, not only OXXO. The email label and any UI
+      copy are a product decision.
+- [ ] Distinguish card 402 decline bodies from other card 402 failures —
+      2026-11-19: the adapter maps every card-method 402 to a declined charge.
+      A 402 caused by a token or field validation failure would be reported as
+      a customer decline instead of a provider rejection. Inspect the error code
+      before deciding.
+- [ ] Preserve paid time when a pending lower-tier payment completes after a
+      higher-tier payment — 2026-11-19: the API allows one open intent per
+      plan + interval + method, so a pending SPEI/OXXO reference and a card
+      payment for another plan can coexist. The second completion cancels the
+      active subscription through `SubscriptionService.subscribe`, losing the
+      already-paid period. Decide whether to reject a second pending checkout or
+      to apply the plan-change rules at completion.
+- [ ] Delete the Conekta customer on account deletion — 2026-11-19: account
+      deletion clears the local card columns (`conekta_customer_id`, default
+      source, brand, last four, expiry), but the Conekta customer and payment
+      source remain at the provider. Add a `deleteCustomer` call (best effort,
+      logged) before anonymizing when payments are configured, and cover it with
+      a test.
 
 ## CFDI invoicing (opened 2026-11-16)
 

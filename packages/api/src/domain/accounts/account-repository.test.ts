@@ -164,3 +164,37 @@ describe("InMemoryAccountRepository anonymize", () => {
     await expect(repo.anonymize("missing")).rejects.toBeInstanceOf(NotFoundError);
   });
 });
+
+describe("InMemoryAccountRepository saved card", () => {
+  const card = {
+    customerId: "cus-1",
+    sourceId: "src-1",
+    brand: "visa",
+    last4: "4242",
+    expMonth: 12,
+    expYear: 30,
+  };
+
+  it("stores and returns the card", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.saveCard("acc-1", card);
+
+    expect(await repo.getSavedCard("acc-1")).toEqual(card);
+  });
+
+  it("clears the card when the account is anonymized", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.saveCard("acc-1", card);
+    await repo.anonymize("acc-1");
+
+    expect(await repo.getSavedCard("acc-1")).toBeNull();
+  });
+
+  it("throws NotFoundError for an unknown account", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await expect(repo.saveCard("missing", card)).rejects.toBeInstanceOf(NotFoundError);
+  });
+});

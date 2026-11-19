@@ -2,6 +2,9 @@ import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profi
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DomainError } from "@aqui-suena/api/shared/domain-error";
 
+/** SAT payment form codes the checkout can produce. */
+export type InvoicePaymentForm = "01" | "03" | "04";
+
 export type IssueInvoiceRequest = {
   readonly accountId: string;
   readonly planId: PlanId;
@@ -10,6 +13,7 @@ export type IssueInvoiceRequest = {
   readonly currency: string;
   readonly fiscalProfile: FiscalProfile;
   readonly issuedAt: Date;
+  readonly paymentForm: InvoicePaymentForm;
 };
 
 export type IssuedCfdi = {

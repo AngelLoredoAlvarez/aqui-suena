@@ -7,12 +7,12 @@ import type {
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
 import { R2CfdiDocumentStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-document-store";
+import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import type { R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
 const DEFAULT_IVA_RATE = 0.16;
@@ -48,7 +48,6 @@ export type R2Env = {
 export type IssueInvoiceCompositionOptions = {
   readonly db: D1Database;
   readonly account: Pick<AccountRepository, "getFiscalProfile" | "getById">;
-  readonly subscriptions: SubscriptionRepository;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly facturama: FacturamaEnv;
   readonly r2: R2Env;
@@ -154,7 +153,7 @@ export function createIssueInvoice(
 
   return new IssueInvoice({
     fiscalProfiles: options.account,
-    subscriptions: options.subscriptions,
+    payments: new D1PaymentRepository(options.db),
     plans: options.plans,
     issuer,
     invoices: new D1CfdiInvoiceRepository(options.db),

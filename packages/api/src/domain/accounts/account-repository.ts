@@ -1,4 +1,4 @@
-import type { Account } from "@aqui-suena/api/domain/accounts/account";
+import type { Account, SavedCard } from "@aqui-suena/api/domain/accounts/account";
 import {
   anonymizedAccountEmail,
   DEFAULT_ACCOUNT_LOCALE,
@@ -26,6 +26,8 @@ export interface AccountRepository {
   updateLocale(id: string, locale: EmailLocale): Promise<void>;
   getFiscalProfile(id: string): Promise<FiscalProfile | null>;
   updateFiscalProfile(id: string, profile: FiscalProfile): Promise<void>;
+  getSavedCard(id: string): Promise<SavedCard | null>;
+  saveCard(id: string, card: SavedCard): Promise<void>;
 }
 
 export class InMemoryAccountRepository implements AccountRepository {
@@ -83,6 +85,16 @@ export class InMemoryAccountRepository implements AccountRepository {
 
   async updateFiscalProfile(id: string, profile: FiscalProfile): Promise<void> {
     this.replace(id, (account) => ({ ...account, fiscalProfile: profile }));
+  }
+
+  async getSavedCard(id: string): Promise<SavedCard | null> {
+    const account = this.store.find((candidate) => candidate.id === id);
+
+    return account?.savedCard ?? null;
+  }
+
+  async saveCard(id: string, card: SavedCard): Promise<void> {
+    this.replace(id, (account) => ({ ...account, savedCard: card }));
   }
 
   private findOrThrow(id: string): Account {

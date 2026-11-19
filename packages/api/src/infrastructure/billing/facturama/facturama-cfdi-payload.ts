@@ -1,4 +1,7 @@
-import type { IssueInvoiceRequest } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+import type {
+  InvoicePaymentForm,
+  IssueInvoiceRequest,
+} from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
 
 export type FacturamaIssuer = {
   readonly rfc: string;
@@ -28,8 +31,8 @@ export type FacturamaCfdiPayload = {
   readonly CfdiType: "I";
   readonly ExpeditionPlace: string;
   readonly Currency: string;
-  readonly PaymentMethod: "PPD";
-  readonly PaymentForm: "99";
+  readonly PaymentMethod: "PUE";
+  readonly PaymentForm: InvoicePaymentForm;
   readonly Serie?: string;
   readonly Folio?: string;
   readonly Issuer?: {
@@ -76,9 +79,14 @@ export function toFacturamaCfdiPayload(
   settings: FacturamaFiscalSettings,
 ): FacturamaCfdiPayload {
   const { fiscalProfile } = request;
-  const ivaCents = Math.round(request.amountCents * settings.ivaRate);
-  const totalCents = request.amountCents + ivaCents;
-  const subtotal = toAmount(request.amountCents);
+
+  // Plan prices are consumer prices with IVA included. Break the gross amount
+  // down instead of adding IVA on top, or the stamped total would exceed the
+  // amount actually charged.
+  const totalCents = request.amountCents;
+  const subtotalCents = Math.round(totalCents / (1 + settings.ivaRate));
+  const ivaCents = totalCents - subtotalCents;
+  const subtotal = toAmount(subtotalCents);
 
   const emitterBlock =
     settings.mode === "multiemisor" && settings.issuer !== undefined
@@ -97,8 +105,8 @@ export function toFacturamaCfdiPayload(
     CfdiType: "I",
     ExpeditionPlace: settings.expeditionPlace,
     Currency: request.currency,
-    PaymentMethod: "PPD",
-    PaymentForm: "99",
+    PaymentMethod: "PUE",
+    PaymentForm: request.paymentForm,
     ...emitterBlock,
     Receiver: {
       Rfc: fiscalProfile.rfc,

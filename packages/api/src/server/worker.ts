@@ -1,3 +1,9 @@
+import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
+import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
+import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
+import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
+import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { harnessStations } from "@aqui-suena/api/domain/radio/harness";
@@ -6,6 +12,9 @@ import {
   seedPlanVectors,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
+import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-payment-provider";
+import { D1PaymentEventRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-event-repository";
+import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
@@ -15,6 +24,7 @@ import { VectorizePlanVectorIndex } from "@aqui-suena/api/infrastructure/support
 import { WorkersAiEmbeddingModel } from "@aqui-suena/api/infrastructure/support/workers-ai-embedding-model";
 import {
   createCfdiNotifier,
+  createPaymentNotifier,
   createSubscriptionNotifier,
   emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
@@ -27,6 +37,7 @@ import { createD1Repositories } from "@aqui-suena/api/server/composition/reposit
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { isAdminAuthorized } from "@aqui-suena/api/server/http/admin-auth";
 import { createApp } from "@aqui-suena/api/server/http/app";
+import { createConektaWebhookHandler } from "@aqui-suena/api/server/http/conekta-webhook";
 import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 
@@ -86,6 +97,11 @@ export interface WorkerEnv {
   FACTURAMA_ISSUER_RFC?: string;
   FACTURAMA_ISSUER_NAME?: string;
   FACTURAMA_ISSUER_FISCAL_REGIME?: string;
+  CONEKTA_PRIVATE_KEY?: string;
+  CONEKTA_PUBLIC_KEY?: string;
+  CONEKTA_WEBHOOK_PUBLIC_KEY?: string;
+  CONEKTA_BASE_URL?: string;
+  CONEKTA_LIVEMODE?: string;
 }
 
 export default {
@@ -93,12 +109,19 @@ export default {
   scheduled: handleScheduled,
 };
 
-/**
- * Cron entry point. It builds only the cancellation chain — no router, no app —
- * and lets the platform wait for it, so a slow PAC does not count against the
- * request path.
- */
 async function handleScheduled(_controller: ScheduledController, env: WorkerEnv): Promise<void> {
+  try {
+    await runCancellationSweep(env);
+  } catch (error) {
+    console.error(
+      `worker: cancellation sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
+
+  await runPaymentSweeps(env);
+}
+
+async function runCancellationSweep(env: WorkerEnv): Promise<void> {
   const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
     facturama: {
@@ -125,7 +148,7 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   });
 
   if (cancellation === undefined) {
-    console.error("worker: scheduled sweep skipped, invoicing is unconfigured");
+    console.error("worker: cancellation sweep skipped, invoicing is unconfigured");
 
     return;
   }
@@ -133,6 +156,97 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   // Success stays quiet: the sweep reports failures through the reconcile hook,
   // and the lint config only allows console.error.
   await cancellation.reconcile.executeAll();
+}
+
+async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
+  if (env.CONEKTA_PRIVATE_KEY === undefined) {
+    console.error("worker: payment sweeps skipped, Conekta is unconfigured");
+
+    return;
+  }
+
+  const repositories = createD1Repositories(env.aqui_suena_db);
+
+  const plans = new D1PlanRepository(env.aqui_suena_db);
+
+  const provider = new ConektaPaymentProvider({
+    apiKey: env.CONEKTA_PRIVATE_KEY,
+    baseUrl: env.CONEKTA_BASE_URL,
+  });
+
+  const emailSettings = {
+    apiKey: env.RESEND_API_KEY,
+    from: env.RESEND_FROM,
+    appUrl: env.EMAIL_APP_URL,
+    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
+  };
+  const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
+  const paymentNotifier = createPaymentNotifier(emailSettings);
+
+  const subscriptionService = new SubscriptionService({
+    subscriptionRepo: repositories.subscription,
+    planRepo: plans,
+    businessRepo: repositories.business,
+    notifier: subscriptionNotifier,
+  });
+
+  const subscriptionWriter = new SubscriptionPaymentWriter({
+    subscriptions: repositories.subscription,
+    service: subscriptionService,
+  });
+
+  const payments = new D1PaymentRepository(env.aqui_suena_db);
+
+  const paymentService = new PaymentService({
+    payments,
+    plans,
+    provider,
+    subscriptions: subscriptionWriter,
+    accounts: repositories.account,
+    notifier: paymentNotifier,
+    onDeliveryError: (error, stage, paymentId) =>
+      console.error(
+        `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      ),
+  });
+
+  const refresh = new RefreshPendingPayments({
+    payments,
+    provider,
+    service: paymentService,
+    limit: 5,
+    onError: (message, paymentId) =>
+      console.error(`worker: refresh of payment ${paymentId} failed: ${message}`),
+  });
+
+  const renew = new RenewSubscriptions({
+    subscriptions: repositories.subscription,
+    payments,
+    paymentService,
+    accounts: repositories.account,
+    plans,
+    businesses: repositories.business,
+    service: subscriptionService,
+    limit: 5,
+    onError: (message, subscriptionId) =>
+      console.error(`worker: renewal of subscription ${subscriptionId} failed: ${message}`),
+  });
+
+  try {
+    await refresh.execute();
+  } catch (error) {
+    console.error(
+      `worker: pending payment refresh failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
+
+  try {
+    await renew.execute();
+  } catch (error) {
+    console.error(
+      `worker: subscription renewal failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
 }
 
 async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> {
@@ -248,11 +362,11 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
   };
   const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
   const cfdiNotifier = createCfdiNotifier(emailSettings);
+  const paymentNotifier = createPaymentNotifier(emailSettings);
 
   const issueInvoice = createIssueInvoice({
     db: env.aqui_suena_db,
     account: directoryRepositories.account,
-    subscriptions: directoryRepositories.subscription,
     plans: planRepository,
     notifier: cfdiNotifier,
     downloadUrl: emailBillingUrl(env.EMAIL_APP_URL),
@@ -315,6 +429,69 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     },
   });
 
+  const paymentRepository = new D1PaymentRepository(env.aqui_suena_db);
+  const paymentEvents = new D1PaymentEventRepository(env.aqui_suena_db);
+  const conekta = env.CONEKTA_PRIVATE_KEY
+    ? new ConektaPaymentProvider({
+        apiKey: env.CONEKTA_PRIVATE_KEY,
+        baseUrl: env.CONEKTA_BASE_URL,
+      })
+    : undefined;
+  const subscriptionWriter = new SubscriptionPaymentWriter({
+    subscriptions: directoryRepositories.subscription,
+    service: new SubscriptionService({
+      subscriptionRepo: directoryRepositories.subscription,
+      planRepo: planRepository,
+      notifier: subscriptionNotifier,
+    }),
+  });
+  const paymentService = conekta
+    ? new PaymentService({
+        payments: paymentRepository,
+        plans: planRepository,
+        provider: conekta,
+        subscriptions: subscriptionWriter,
+        accounts: directoryRepositories.account,
+        notifier: paymentNotifier,
+        onDeliveryError: (error, stage, paymentId) =>
+          console.error(
+            `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
+          ),
+        cards: {
+          async save(accountId, card) {
+            await directoryRepositories.account.saveCard(accountId, {
+              customerId: card.customerId,
+              sourceId: card.sourceId,
+              brand: card.card?.brand ?? null,
+              last4: card.card?.last4 ?? null,
+              expMonth: card.card?.expMonth ?? null,
+              expYear: card.card?.expYear ?? null,
+            });
+          },
+        },
+      })
+    : undefined;
+  const checkout = paymentService
+    ? new CheckoutService({
+        payments: paymentService,
+        subscriptions: directoryRepositories.subscription,
+        plans: planRepository,
+        accounts: directoryRepositories.account,
+        returnUrl: env.EMAIL_APP_URL,
+      })
+    : undefined;
+  const conektaWebhook =
+    paymentService !== undefined && env.CONEKTA_WEBHOOK_PUBLIC_KEY
+      ? createConektaWebhookHandler({
+          payments: paymentRepository,
+          events: paymentEvents,
+          service: paymentService,
+          publicKey: env.CONEKTA_WEBHOOK_PUBLIC_KEY,
+          livemode: env.CONEKTA_LIVEMODE === "true",
+          onError: (message) => console.error(message),
+        })
+      : undefined;
+
   if (issueInvoice === undefined) {
     console.error(
       "worker: invoicing is unconfigured (set FACTURAMA_* and R2_* to enable billing.requestInvoice)",
@@ -335,12 +512,15 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     mediaStorage,
     subscriptionNotifier,
     billing: {
+      checkout,
+      payments: paymentRepository,
       issueInvoice,
       invoices: invoiceHistory.invoices,
       documents: invoiceHistory.documents,
       cancelInvoice: cancellation?.cancelInvoice,
       reconcile: cancellation?.reconcile,
     },
+    conektaWebhook,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,
   });

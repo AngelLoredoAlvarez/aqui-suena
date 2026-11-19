@@ -37,6 +37,7 @@ const commerceSubscription: Subscription = {
   id: "sub-1",
   accountId: "acc-1",
   planId: "commerce",
+  billingInterval: "monthly",
   status: "active",
   startedAt: new Date("2024-01-01T00:00:00Z"),
   endsAt: null,

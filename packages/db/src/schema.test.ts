@@ -4,6 +4,8 @@ import {
   flyers,
   hours,
   listenSessions,
+  paymentEvents,
+  payments,
   photos,
   plans,
   products,
@@ -110,7 +112,20 @@ describe("hours", () => {
 describe("accounts", () => {
   it("exposes id, email, plan, locale and timestamps", () => {
     expect(columnNames(accounts)).toEqual(
-      expect.arrayContaining(["id", "email", "plan_id", "locale", "created_at", "updated_at"]),
+      expect.arrayContaining([
+        "id",
+        "email",
+        "plan_id",
+        "locale",
+        "conekta_customer_id",
+        "default_card_source_id",
+        "card_brand",
+        "card_last4",
+        "card_exp_month",
+        "card_exp_year",
+        "created_at",
+        "updated_at",
+      ]),
     );
   });
 });
@@ -136,18 +151,67 @@ describe("plans", () => {
 });
 
 describe("subscriptions", () => {
-  it("exposes id, account reference, plan reference, status, period timestamps and grace end", () => {
+  it("exposes id, account reference, plan reference, billing interval, status, period timestamps and grace end", () => {
     expect(columnNames(subscriptions)).toEqual(
       expect.arrayContaining([
         "id",
         "account_id",
         "plan_id",
+        "billing_interval",
         "status",
         "started_at",
         "ends_at",
         "grace_end",
         "created_at",
         "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("payments", () => {
+  it("exposes the checkout intent, provider, period and idempotency columns", () => {
+    expect(columnNames(payments)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "account_id",
+        "subscription_id",
+        "plan_id",
+        "billing_interval",
+        "method",
+        "provider",
+        "provider_order_id",
+        "provider_charge_id",
+        "idempotency_key",
+        "amount",
+        "currency",
+        "status",
+        "reference",
+        "next_action_url",
+        "expires_at",
+        "failure_reason",
+        "period_start",
+        "period_end",
+        "paid_at",
+        "created_at",
+        "updated_at",
+      ]),
+    );
+  });
+});
+
+describe("paymentEvents", () => {
+  it("exposes provider event identity, type, payment reference and processing state", () => {
+    expect(columnNames(paymentEvents)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "provider_event_id",
+        "type",
+        "payment_id",
+        "payload_hash",
+        "livemode",
+        "processed_at",
+        "created_at",
       ]),
     );
   });

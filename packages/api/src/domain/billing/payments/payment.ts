@@ -1,59 +1,144 @@
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 
-export const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"] as const;
+export {
+  BILLING_INTERVALS,
+  type BillingInterval,
+  parseBillingInterval,
+} from "@aqui-suena/api/domain/billing/billing-interval";
+
+export const PAYMENT_STATUSES = ["pending", "completed", "failed", "expired", "refunded"] as const;
 
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-/** Parses a persisted status; an unknown value is a data-integrity failure. */
-export function parsePaymentStatus(value: unknown): PaymentStatus {
-  if (typeof value === "string" && (PAYMENT_STATUSES as readonly string[]).includes(value)) {
-    return value as PaymentStatus;
+export const PAYMENT_METHODS = ["card", "oxxo", "spei"] as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const PAYMENT_PROVIDERS = ["conekta"] as const;
+
+export type PaymentProviderName = (typeof PAYMENT_PROVIDERS)[number];
+
+function parseMember<T extends string>(values: readonly T[], field: string, value: unknown): T {
+  if (typeof value === "string" && (values as readonly string[]).includes(value)) {
+    return value as T;
   }
 
-  throw new DataIntegrityError("status", value);
+  throw new DataIntegrityError(field, value);
 }
+
+export function parsePaymentStatus(value: unknown): PaymentStatus {
+  return parseMember(PAYMENT_STATUSES, "status", value);
+}
+
+export function parsePaymentMethod(value: unknown): PaymentMethod {
+  return parseMember(PAYMENT_METHODS, "method", value);
+}
+
+export function parsePaymentProvider(value: unknown): PaymentProviderName {
+  return parseMember(PAYMENT_PROVIDERS, "provider", value);
+}
+
+export type PaymentProviderDetails = {
+  readonly providerOrderId: string | null;
+  readonly providerChargeId: string | null;
+  readonly reference: string | null;
+  readonly nextActionUrl: string | null;
+  readonly expiresAt: Date | null;
+  readonly failureReason: string | null;
+};
 
 export type Payment = {
   id: string;
-  subscriptionId: string;
+  accountId: string;
+  subscriptionId: string | null;
   planId: PlanId | null;
+  billingInterval: BillingInterval;
+  method: PaymentMethod;
+  provider: PaymentProviderName;
+  providerOrderId: string | null;
+  providerChargeId: string | null;
+  idempotencyKey: string;
   amount: number;
   currency: string;
   status: PaymentStatus;
+  reference: string | null;
+  nextActionUrl: string | null;
+  expiresAt: Date | null;
+  failureReason: string | null;
+  periodStart: Date | null;
+  periodEnd: Date | null;
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type NewPayment = {
-  readonly subscriptionId: string;
+  readonly accountId: string;
   readonly planId: PlanId;
+  readonly billingInterval: BillingInterval;
+  readonly method: PaymentMethod;
+  readonly idempotencyKey: string;
   readonly amount: number;
   readonly currency: string;
+  readonly periodStart: Date;
+  readonly periodEnd: Date;
+};
+
+export type OpenPaymentIntentQuery = {
+  readonly accountId: string;
+  readonly planId: PlanId;
+  readonly billingInterval: BillingInterval;
+  readonly method: PaymentMethod;
 };
 
 export interface PaymentRepository {
   create(input: NewPayment): Promise<Payment>;
-  updateStatus(id: string, status: PaymentStatus, paidAt?: Date): Promise<void>;
-  listBySubscription(subscriptionId: string): Promise<Payment[]>;
   getById(id: string): Promise<Payment | null>;
+  getByIdempotencyKey(key: string): Promise<Payment | null>;
+  getByProviderOrderId(providerOrderId: string): Promise<Payment | null>;
+  findOpenIntent(query: OpenPaymentIntentQuery): Promise<Payment | null>;
+  applyProviderResult(id: string, details: PaymentProviderDetails): Promise<void>;
+  claimCompletion(id: string, paidAt: Date): Promise<boolean>;
+  markFailed(id: string, reason: string, at: Date): Promise<boolean>;
+  markExpired(id: string, at: Date): Promise<boolean>;
+  attachSubscription(id: string, subscriptionId: string): Promise<void>;
+  releaseCompletion(id: string): Promise<void>;
+  listPendingWithProviderOrder(limit: number): Promise<Payment[]>;
+  listBySubscription(subscriptionId: string): Promise<Payment[]>;
+  getLatestCompletedByAccount(accountId: string): Promise<Payment | null>;
 }
 
 export class InMemoryPaymentRepository implements PaymentRepository {
   constructor(private readonly store: Payment[] = []) {}
 
   async create(input: NewPayment): Promise<Payment> {
+    const now = new Date();
+
     const payment: Payment = {
       id: crypto.randomUUID(),
-      subscriptionId: input.subscriptionId,
+      accountId: input.accountId,
+      subscriptionId: null,
       planId: input.planId,
+      billingInterval: input.billingInterval,
+      method: input.method,
+      provider: "conekta",
+      providerOrderId: null,
+      providerChargeId: null,
+      idempotencyKey: input.idempotencyKey,
       amount: input.amount,
       currency: input.currency,
       status: "pending",
+      reference: null,
+      nextActionUrl: null,
+      expiresAt: null,
+      failureReason: null,
+      periodStart: input.periodStart,
+      periodEnd: input.periodEnd,
       paidAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     this.store.push(payment);
@@ -61,23 +146,124 @@ export class InMemoryPaymentRepository implements PaymentRepository {
     return payment;
   }
 
-  async updateStatus(id: string, status: PaymentStatus, paidAt?: Date): Promise<void> {
-    const payment = this.store.find((p) => p.id === id);
+  async getById(id: string): Promise<Payment | null> {
+    return this.store.find((payment) => payment.id === id) ?? null;
+  }
 
-    if (payment) {
-      payment.status = status;
+  async getByIdempotencyKey(key: string): Promise<Payment | null> {
+    return this.store.find((payment) => payment.idempotencyKey === key) ?? null;
+  }
 
-      if (paidAt) payment.paidAt = paidAt;
+  async getByProviderOrderId(providerOrderId: string): Promise<Payment | null> {
+    return this.store.find((payment) => payment.providerOrderId === providerOrderId) ?? null;
+  }
 
-      payment.updatedAt = new Date();
+  async findOpenIntent(query: OpenPaymentIntentQuery): Promise<Payment | null> {
+    const matches = this.store.filter(
+      (payment) =>
+        payment.status === "pending" &&
+        payment.accountId === query.accountId &&
+        payment.planId === query.planId &&
+        payment.billingInterval === query.billingInterval &&
+        payment.method === query.method,
+    );
+
+    return matches.at(-1) ?? null;
+  }
+
+  async applyProviderResult(id: string, details: PaymentProviderDetails): Promise<void> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (payment === undefined) return;
+
+    payment.providerOrderId = details.providerOrderId;
+    payment.providerChargeId = details.providerChargeId;
+    payment.reference = details.reference;
+    payment.nextActionUrl = details.nextActionUrl;
+    payment.expiresAt = details.expiresAt;
+    payment.failureReason = details.failureReason;
+    payment.updatedAt = new Date();
+  }
+
+  async claimCompletion(id: string, paidAt: Date): Promise<boolean> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (payment === undefined || payment.status !== "pending") return false;
+
+    payment.status = "completed";
+    payment.paidAt = paidAt;
+    payment.updatedAt = new Date();
+
+    return true;
+  }
+
+  async markFailed(id: string, reason: string, at: Date): Promise<boolean> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (payment === undefined || payment.status !== "pending") return false;
+
+    payment.status = "failed";
+    payment.failureReason = reason;
+    payment.updatedAt = at;
+
+    return true;
+  }
+
+  async markExpired(id: string, at: Date): Promise<boolean> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (payment === undefined || payment.status !== "pending") return false;
+
+    payment.status = "expired";
+    payment.updatedAt = at;
+
+    return true;
+  }
+
+  async attachSubscription(id: string, subscriptionId: string): Promise<void> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (payment === undefined || payment.subscriptionId !== null) return;
+
+    payment.subscriptionId = subscriptionId;
+    payment.updatedAt = new Date();
+  }
+
+  async releaseCompletion(id: string): Promise<void> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (
+      payment === undefined ||
+      payment.status !== "completed" ||
+      payment.subscriptionId !== null
+    ) {
+      return;
     }
+
+    payment.status = "pending";
+    payment.paidAt = null;
+    payment.updatedAt = new Date();
+  }
+
+  async listPendingWithProviderOrder(limit: number): Promise<Payment[]> {
+    return this.store
+      .filter((payment) => payment.status === "pending" && payment.providerOrderId !== null)
+      .slice(0, limit);
   }
 
   async listBySubscription(subscriptionId: string): Promise<Payment[]> {
-    return this.store.filter((p) => p.subscriptionId === subscriptionId);
+    return this.store.filter((payment) => payment.subscriptionId === subscriptionId);
   }
 
-  async getById(id: string): Promise<Payment | null> {
-    return this.store.find((p) => p.id === id) ?? null;
+  async getLatestCompletedByAccount(accountId: string): Promise<Payment | null> {
+    return (
+      this.store
+        .filter((payment) => payment.accountId === accountId && payment.status === "completed")
+        .sort(
+          (left, right) =>
+            (right.paidAt?.getTime() ?? right.createdAt.getTime()) -
+            (left.paidAt?.getTime() ?? left.createdAt.getTime()),
+        )[0] ?? null
+    );
   }
 }
