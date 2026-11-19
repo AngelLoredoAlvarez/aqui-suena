@@ -345,11 +345,28 @@ explains.
   re-indented list continuations in seven `odd/tasks/*.md` documents
   (whitespace only). `typecheck`, tests, `biome check`, `pnpm arch` and
   `pnpm check:singletons` stay green.
+- Patch/minor bumps applied 2026-11-19 (`chore/update-dependencies`), from a
+  fresh `pnpm outdated -r`: `@trpc/server`/`@trpc/client` 11.29.4,
+  `@tanstack/react-query` 5.108.0, `wrangler` 4.164.0, `turbo` 2.11.13,
+  `dependency-cruiser` 18.8.0, `@infisical/cli` 0.45.11, `expo` 58.0.26
+  (`babel-preset-expo` 58.0.26, `expo-router` 58.0.32), `@tauri-apps/api`
+  2.12.5, `@tauri-apps/cli` 2.12.6, `hono` 4.13.19, `@hono/node-server`
+  2.1.9, `@supabase/supabase-js` 2.119.1, `@cloudflare/workers-types`
+  5.20261118.1, `vitest`/`@vitest/coverage-v8` 5.1.1, `lint-staged` 17.6.1
+  and `react-native-reanimated` 4.7.2. `pnpm` moved 12.16.1 → 12.21.0 in
+  `packageManager`, README and the lockfile `packageManagerDependencies`.
+  `biome check`, `typecheck` 7/7, `pnpm test` 7/7, `check:singletons`,
+  `pnpm arch`, the web `next build` and the D1 migration drift check stay
+  green. The only new `expo install --check` signal is reanimated 4.7.2
+  against its expected 4.7.1, recorded with the accepted deviations below.
+  Mobile dev/release builds must be rebuilt to match the bumped native
+  modules.
 - Pinned ahead of `expo install --check` (SDK 58), all deliberate: `typescript`
   7.0.2 (expected `~6.0.3`), `react`/`react-dom` 19.3.1 (expected 19.3.0),
   `@react-native-async-storage/async-storage` 3.1.1 (expected 2.2.0; the
   Expo Go block is obsolete now that mobile runs development/release builds),
-  `react-native-gesture-handler` 3.5.0 (expected `~3.3.0`). `@types/node` is
+  `react-native-gesture-handler` 3.5.0 (expected `~3.3.0`),
+  `react-native-reanimated` 4.7.2 (expected 4.7.1). `@types/node` is
   26.6.6. Rust side: nothing pending.
 
 ## Discarded (T4 parity — not Turbopack-compatible, checked 2026-11-18)
