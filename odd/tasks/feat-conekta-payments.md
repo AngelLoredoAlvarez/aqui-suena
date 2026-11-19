@@ -130,11 +130,15 @@ the full gate. Commits only on explicit instruction.
   `PaymentSubscriptionWriter` adapter and regression tests (S6). Route: inline.
   DONE 2026-11-19 (pending review).
 - **T5** — Conekta adapter: orders for card/OXXO/SPEI, customer and card source,
-  order lookup, error mapping (S2, S3). Route: inline.
+  order lookup, error mapping (S2, S3). Extends the provider port with
+  `createCardSource`, `CardSource` and `CardDetails`. Route: inline. DONE
+  2026-11-19 (pending review).
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
   route (S5). Route: inline. Risk: item 2 (credentials and guards).
 - **T7** — tRPC checkout and payment status, composition and env wiring
-  (S3, S11). Route: inline.
+  (S3, S11). Saves the Conekta customer and card source on the account, passes
+  the 3DS return URL and persists the card metadata from `CardSource.card`.
+  Route: inline.
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline.
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
@@ -164,3 +168,9 @@ the full gate. Commits only on explicit instruction.
   adds `SubscriptionService.renew` and the `SubscriptionPaymentWriter` adapter.
   Verification: billing tests 299/299, API suite 1029/1029, typecheck 7/7,
   biome clean, arch 402 modules. Uncommitted pending review.
+- 2026-11-19: T5 adds `ConektaPaymentProvider`: orders for card (token or saved
+  source), OXXO and SPEI, 3DS `next_action`, order lookup, customer/card-source
+  creation and provider error mapping. The provider port gains
+  `createCardSource`, `CardSource` and `CardDetails`; the fake implements it.
+  Verification: adapter 14/14, API suite 1043/1043, typecheck 7/7, biome clean.
+  Uncommitted pending review.
