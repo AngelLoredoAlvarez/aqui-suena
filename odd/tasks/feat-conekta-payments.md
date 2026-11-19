@@ -72,11 +72,13 @@ the full gate. Commits only on explicit instruction.
   and seven days for OXXO/SPEI. A saved card is charged automatically; a 3DS
   challenge leaves a pending payment and an email with the link; a decline is
   retried up to three times. Without a saved card, the sweep creates an OXXO or
-  SPEI reference expiring at `endsAt + 7 days` and emails the instructions. The
-  idempotency key is `sub:<subscriptionId>:<periodStart>`, so repeated runs never
-  create a second charge for the same period. At `endsAt` without payment the
-  existing `failRenewal` enters grace; at `graceEnd` the existing
-  `downgradeExpiredGrace` drops the account to Comunidad. Acceptance: a fake
+  SPEI reference expiring at `endsAt + 7 days`; the method is the last completed
+  payment's method, with OXXO as the default. Deleted accounts are skipped. The
+  idempotency key is `sub:<subscriptionId>:<periodStart>:<attempt>`, so repeated
+  runs never create a second charge for the same period. At `endsAt` without
+  payment the existing `failRenewal` enters grace; at `graceEnd` the existing
+  `downgradeExpiredGrace` drops the account to Comunidad and keeps the community
+  business cap. Acceptance: a fake
   clock proves no duplicate per period, bounded batches, retry limits and the
   grace/downgrade handoff.
 - **S8 — Data model.** `subscriptions` gains `billing_interval`; `payments` gains
@@ -153,6 +155,7 @@ the full gate. Commits only on explicit instruction.
   no D1 and keeps payments unconfigured. Route: inline. DONE 2026-11-19
   (pending review).
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
+  DONE 2026-11-19 (pending review).
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline.
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
 
@@ -204,3 +207,11 @@ the full gate. Commits only on explicit instruction.
   composition (Conekta provider, payment service, sandbox/livemode vars, webhook
   handler). Verification: API suite 1097/1097, typecheck 7/7, biome clean,
   arch 417 modules. Uncommitted pending review.
+- 2026-11-19: T8 adds the scheduled payment sweeps: refresh pending orders
+  (paid/declined/expired), renew due subscriptions (saved card or the last
+  completed method, 3/7-day lead, three card attempts, idempotency key with the
+  attempt number), enter grace at `endsAt`, downgrade expired grace keeping the
+  community business cap, and skip deleted accounts. The Worker scheduled
+  handler runs cancellation and payments independently. Verification: API suite
+  1113/1113, typecheck 7/7, biome clean, arch 421 modules, wrangler dry-run.
+  Uncommitted pending review.

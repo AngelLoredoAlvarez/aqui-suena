@@ -1,5 +1,7 @@
 import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
 import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
+import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
@@ -106,12 +108,19 @@ export default {
   scheduled: handleScheduled,
 };
 
-/**
- * Cron entry point. It builds only the cancellation chain — no router, no app —
- * and lets the platform wait for it, so a slow PAC does not count against the
- * request path.
- */
 async function handleScheduled(_controller: ScheduledController, env: WorkerEnv): Promise<void> {
+  try {
+    await runCancellationSweep(env);
+  } catch (error) {
+    console.error(
+      `worker: cancellation sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
+
+  await runPaymentSweeps(env);
+}
+
+async function runCancellationSweep(env: WorkerEnv): Promise<void> {
   const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
     facturama: {
@@ -138,7 +147,7 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   });
 
   if (cancellation === undefined) {
-    console.error("worker: scheduled sweep skipped, invoicing is unconfigured");
+    console.error("worker: cancellation sweep skipped, invoicing is unconfigured");
 
     return;
   }
@@ -146,6 +155,89 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   // Success stays quiet: the sweep reports failures through the reconcile hook,
   // and the lint config only allows console.error.
   await cancellation.reconcile.executeAll();
+}
+
+async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
+  if (env.CONEKTA_PRIVATE_KEY === undefined) {
+    console.error("worker: payment sweeps skipped, Conekta is unconfigured");
+
+    return;
+  }
+
+  const repositories = createD1Repositories(env.aqui_suena_db);
+
+  const plans = new D1PlanRepository(env.aqui_suena_db);
+
+  const provider = new ConektaPaymentProvider({
+    apiKey: env.CONEKTA_PRIVATE_KEY,
+    baseUrl: env.CONEKTA_BASE_URL,
+  });
+
+  const subscriptionNotifier = createSubscriptionNotifier({
+    apiKey: env.RESEND_API_KEY,
+    from: env.RESEND_FROM,
+    appUrl: env.EMAIL_APP_URL,
+    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
+  });
+
+  const subscriptionService = new SubscriptionService({
+    subscriptionRepo: repositories.subscription,
+    planRepo: plans,
+    businessRepo: repositories.business,
+    notifier: subscriptionNotifier,
+  });
+
+  const subscriptionWriter = new SubscriptionPaymentWriter({
+    subscriptions: repositories.subscription,
+    service: subscriptionService,
+  });
+
+  const payments = new D1PaymentRepository(env.aqui_suena_db);
+
+  const paymentService = new PaymentService({
+    payments,
+    plans,
+    provider,
+    subscriptions: subscriptionWriter,
+  });
+
+  const refresh = new RefreshPendingPayments({
+    payments,
+    provider,
+    service: paymentService,
+    limit: 5,
+    onError: (message, paymentId) =>
+      console.error(`worker: refresh of payment ${paymentId} failed: ${message}`),
+  });
+
+  const renew = new RenewSubscriptions({
+    subscriptions: repositories.subscription,
+    payments,
+    paymentService,
+    accounts: repositories.account,
+    plans,
+    businesses: repositories.business,
+    service: subscriptionService,
+    limit: 5,
+    onError: (message, subscriptionId) =>
+      console.error(`worker: renewal of subscription ${subscriptionId} failed: ${message}`),
+  });
+
+  try {
+    await refresh.execute();
+  } catch (error) {
+    console.error(
+      `worker: pending payment refresh failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
+
+  try {
+    await renew.execute();
+  } catch (error) {
+    console.error(
+      `worker: subscription renewal failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
 }
 
 async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> {

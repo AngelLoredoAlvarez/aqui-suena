@@ -150,6 +150,36 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
       .run();
   }
 
+  async listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]> {
+    const result = await this.db
+      .prepare(
+        `SELECT id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at
+        FROM subscriptions
+        WHERE status = 'active' AND ends_at IS NOT NULL AND ends_at <= ?
+        ORDER BY ends_at ASC
+        LIMIT ?`,
+      )
+      .bind(toEpoch(deadline), limit)
+      .all();
+
+    return result.results.map((row) => this.mapRow(row as SubscriptionRow));
+  }
+
+  async listGraceExpired(now: Date, limit: number): Promise<Subscription[]> {
+    const result = await this.db
+      .prepare(
+        `SELECT id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at
+        FROM subscriptions
+        WHERE status = 'grace' AND grace_end IS NOT NULL AND grace_end <= ?
+        ORDER BY grace_end ASC
+        LIMIT ?`,
+      )
+      .bind(toEpoch(now), limit)
+      .all();
+
+    return result.results.map((row) => this.mapRow(row as SubscriptionRow));
+  }
+
   private mapRow(row: SubscriptionRow): Subscription {
     return {
       id: row.id,

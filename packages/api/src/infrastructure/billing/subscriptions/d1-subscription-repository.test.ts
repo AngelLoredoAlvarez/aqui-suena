@@ -191,4 +191,32 @@ describe("D1SubscriptionRepository", () => {
       "sub-1",
     ]);
   });
+
+  it("lists active subscriptions ending before the deadline", async () => {
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const deadline = new Date("2026-11-26T12:00:00Z");
+
+    const list = await repo.listActiveEndingBefore(deadline, 5);
+
+    expect(list).toHaveLength(1);
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'active'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("ends_at <= ?");
+    expect(fake.statements[0]?.params).toEqual([toEpoch(deadline), 5]);
+  });
+
+  it("lists grace subscriptions past their deadline", async () => {
+    const fake = new FakeD1Database(() => ({
+      all: [{ ...sampleRow, status: "grace", grace_end: 1700000000 }],
+    }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const now = new Date("2026-11-26T12:00:00Z");
+
+    const list = await repo.listGraceExpired(now, 5);
+
+    expect(list).toHaveLength(1);
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'grace'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("grace_end <= ?");
+    expect(fake.statements[0]?.params).toEqual([toEpoch(now), 5]);
+  });
 });

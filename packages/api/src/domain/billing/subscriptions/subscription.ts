@@ -44,6 +44,8 @@ export interface SubscriptionRepository {
   renew(id: string, endsAt: Date, billingInterval: BillingInterval): Promise<void>;
   enterGrace(id: string, graceEnd: Date): Promise<void>;
   listByAccount(accountId: string): Promise<Subscription[]>;
+  listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]>;
+  listGraceExpired(now: Date, limit: number): Promise<Subscription[]>;
 }
 
 export class InMemorySubscriptionRepository implements SubscriptionRepository {
@@ -141,5 +143,19 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
       sub.graceEnd = graceEnd;
       sub.updatedAt = new Date();
     }
+  }
+
+  async listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]> {
+    return this.store
+      .filter((sub) => sub.status === "active" && sub.endsAt !== null && sub.endsAt <= deadline)
+      .sort((left, right) => (left.endsAt?.getTime() ?? 0) - (right.endsAt?.getTime() ?? 0))
+      .slice(0, limit);
+  }
+
+  async listGraceExpired(now: Date, limit: number): Promise<Subscription[]> {
+    return this.store
+      .filter((sub) => sub.status === "grace" && sub.graceEnd !== null && sub.graceEnd <= now)
+      .sort((left, right) => (left.graceEnd?.getTime() ?? 0) - (right.graceEnd?.getTime() ?? 0))
+      .slice(0, limit);
   }
 }

@@ -184,7 +184,10 @@ describe("scheduled sweep", () => {
     ).resolves.toBeUndefined();
 
     expect(errorLog).toHaveBeenCalledWith(
-      "worker: scheduled sweep skipped, invoicing is unconfigured",
+      "worker: cancellation sweep skipped, invoicing is unconfigured",
+    );
+    expect(errorLog).toHaveBeenCalledWith(
+      "worker: payment sweeps skipped, Conekta is unconfigured",
     );
   });
 
