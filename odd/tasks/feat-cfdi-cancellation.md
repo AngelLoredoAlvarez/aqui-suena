@@ -99,7 +99,7 @@ Out of scope still: motive `01` with a substitute CFDI.
 
 ## Verification
 
-- `pnpm --filter @aqui-suena/api test` — 962 tests, 117 files, green.
+- `pnpm --filter @aqui-suena/api test` — 964 tests, 118 files, green.
 - `typecheck`, `biome check`, `pnpm arch`, `check:singletons` — clean.
 - Not exercised on staging yet: the adapter is covered by unit tests against the
   provider contract, and the happy path can be cancelled for real in sandbox
@@ -115,6 +115,12 @@ Out of scope still: motive `01` with a substitute CFDI.
   `getByIdForAccount` no longer filter on `issued`. A cancelled invoice is still
   fiscal history and must stay visible, and a download of a cancelled CFDI is
   still the legal record. Only `failed` rows are excluded from the list.
+- **L7** — Motive `01` is deferred until the payment provider lands. It needs no
+  payment integration to be built or tested (the sandbox cancels and substitutes
+  with `EKU9003173C9`), but it _exists_ for the case "a charge happened and its
+  invoice has the wrong fiscal data", which has no meaning while no charge exists.
+  Building it now would mean rewriting the substitute payload once `payment_id` and
+  the real payment form arrive.
 - **L6** — The first `[triggers]` block was placed right after `name`, which made
   every following top-level key (`main`, `compatibility_date`) belong to it. The
   `wrangler deploy --dry-run` caught it before CI: "Unexpected fields found in

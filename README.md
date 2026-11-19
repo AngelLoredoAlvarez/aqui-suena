@@ -111,11 +111,12 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ### Current state (2026-11-18)
 
-- **API** ships the public player surface, the business directory, memberships and billing, media storage, PDF/XML fiscal archives and transactional email. 900 tests across 113 files; `typecheck`, `biome`, `pnpm arch` and `check:singletons` are green on every commit.
+- **API** ships the public player surface, the business directory, memberships and billing, media storage, fiscal archives (XML, PDF and acuse) and transactional email. 964 tests across 118 files; `typecheck`, `biome`, `pnpm arch` and `check:singletons` are green on every commit.
 - **Clients**: web and mobile render the landing player and the ads carousel from shared `packages/ui` code; desktop is a dev-only Tauri shell. There is no owner portal, billing view or directory UI yet — `apps/web` has exactly one page.
 - **Environments**: staging only (Worker + D1 + R2 + Pages). Production has no deployment, no company CSD and no payment provider, so production-only work is not tracked here.
-- **Edge cases already proven on staging**: media round trip (presign → R2 → confirm → list → delete), account provisioning on a first request, account deletion with fiscal tombstone, and CFDI issuing against the Facturama sandbox. Delivery by email (migration `0004`) is merged but not yet exercised on staging.
-- **Not built**: signup and verification, payment provider, renewal cron, owner portal, push notifications, offline handling, CFDI cancellation and invoice history.
+- **Proven on staging**: media round trip (presign → R2 → confirm → list → delete), account provisioning on a first request, account deletion with fiscal tombstone, CFDI issuing through the sandbox PAC, delivery by email with both attachments, invoice history with signed downloads, cancellation with motive `03`, and the fifteen-minute cancellation sweep firing on its own.
+- **Not proven anywhere**: archiving a _real_ acuse (the sandbox returns a canned one, which the code now rejects), receiver acceptance or rejection, and the positive ficta.
+- **Not built**: signup and verification, payment provider, renewal-reminder cron wiring, owner portal, push notifications, offline handling, and CFDI motive `01` substitution.
 
 ### History
 
