@@ -161,6 +161,13 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       `status = 'grace'` and `graceEnd` in one operation, eliminating the transient
       `grace` + `graceEnd === null` shape. The dead `updateGraceEnd` method was
       removed.
+- [ ] Plan catalog prices — 2026-11-19: the spec sets Oficios & Servicios at
+      $99 MXN/month or $990 MXN/year and Comercios & Catálogo at $149
+      MXN/month or $1,490 MXN/year, final prices with IVA included. The catalog
+      constant and its tests still ship 4900/49000 and 9900/99000; updating them
+      and re-seeding staging with `POST /admin/seed-plans` belongs to the
+      payments slice. The CFDI must treat the price as gross (subtotal + IVA =
+      total), not as a subtotal with IVA added on top.
 
 ## CFDI invoicing (opened 2026-11-16)
 
