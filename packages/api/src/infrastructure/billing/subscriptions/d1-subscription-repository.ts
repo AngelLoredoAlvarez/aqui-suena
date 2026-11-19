@@ -1,3 +1,5 @@
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import { parseBillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
 import type {
   Subscription,
   SubscriptionRepository,
@@ -12,6 +14,7 @@ type SubscriptionRow = {
   id: string;
   account_id: string;
   plan_id: string;
+  billing_interval: string;
   status: string;
   started_at: number;
   ends_at: number | null;
@@ -26,7 +29,7 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async listByAccount(accountId: string): Promise<Subscription[]> {
     const result = await this.db
       .prepare(
-        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        `SELECT id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at
         FROM subscriptions
         WHERE account_id = ?
         ORDER BY started_at DESC`,
@@ -40,7 +43,7 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async getActive(accountId: string, now: Date = new Date()): Promise<Subscription | null> {
     const row = await this.db
       .prepare(
-        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        `SELECT id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at
         FROM subscriptions
         WHERE account_id = ? AND ((status = 'active' AND started_at <= ? AND (ends_at IS NULL OR ends_at > ?)) OR (status = 'grace' AND grace_end IS NOT NULL AND grace_end >= ?) OR (status = 'cancelled' AND ends_at > ?))
         ORDER BY CASE WHEN status = 'active' THEN 0 WHEN status = 'grace' THEN 1 ELSE 2 END
@@ -55,7 +58,7 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
   async getById(id: string): Promise<Subscription | null> {
     const row = await this.db
       .prepare(
-        `SELECT id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at
+        `SELECT id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at
         FROM subscriptions
         WHERE id = ?`,
       )
@@ -70,6 +73,7 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
     planId: PlanId,
     startedAt: Date,
     endsAt: Date,
+    billingInterval: BillingInterval = "monthly",
   ): Promise<Subscription> {
     const id = crypto.randomUUID();
 
@@ -77,16 +81,26 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
 
     await this.db
       .prepare(
-        `INSERT INTO subscriptions (id, account_id, plan_id, status, started_at, ends_at, grace_end, created_at, updated_at)
-        VALUES (?, ?, ?, 'active', ?, ?, NULL, ?, ?)`,
+        `INSERT INTO subscriptions (id, account_id, plan_id, billing_interval, status, started_at, ends_at, grace_end, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'active', ?, ?, NULL, ?, ?)`,
       )
-      .bind(id, accountId, planId, toEpoch(startedAt), toEpoch(endsAt), toEpoch(now), toEpoch(now))
+      .bind(
+        id,
+        accountId,
+        planId,
+        billingInterval,
+        toEpoch(startedAt),
+        toEpoch(endsAt),
+        toEpoch(now),
+        toEpoch(now),
+      )
       .run();
 
     return {
       id,
       accountId,
       planId,
+      billingInterval,
       status: "active",
       startedAt,
       endsAt,
@@ -114,6 +128,17 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
       .run();
   }
 
+  async renew(id: string, endsAt: Date, billingInterval: BillingInterval): Promise<void> {
+    const now = new Date();
+
+    await this.db
+      .prepare(
+        "UPDATE subscriptions SET status = 'active', ends_at = MAX(COALESCE(ends_at, 0), ?), billing_interval = ?, grace_end = NULL, updated_at = ? WHERE id = ?",
+      )
+      .bind(toEpoch(endsAt), billingInterval, toEpoch(now), id)
+      .run();
+  }
+
   async enterGrace(id: string, graceEnd: Date): Promise<void> {
     const now = new Date();
 
@@ -130,6 +155,7 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
       id: row.id,
       accountId: row.account_id,
       planId: parsePlanId(row.plan_id),
+      billingInterval: parseBillingInterval(row.billing_interval),
       status: parseSubscriptionStatus(row.status),
       startedAt: new Date(row.started_at * 1000),
       endsAt: fromEpoch(row.ends_at),

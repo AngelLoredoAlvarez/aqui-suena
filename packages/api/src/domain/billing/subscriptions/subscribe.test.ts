@@ -81,4 +81,49 @@ describe("SubscriptionService.subscribe", () => {
     expect(sub.planId).toBe("community");
     expect(sub.status).toBe("active");
   });
+
+  it("creates an annual subscription with its interval", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const sub = await service.subscribe(
+      "acc-1",
+      "trades",
+      new Date("2026-01-31T00:00:00Z"),
+      new Date("2027-01-31T00:00:00Z"),
+      "annual",
+    );
+
+    expect(sub.billingInterval).toBe("annual");
+    expect(sub.endsAt?.toISOString()).toBe("2027-01-31T00:00:00.000Z");
+  });
+
+  it("resumes a cancelled annual subscription by one year, not one month", async () => {
+    const subRepo = new InMemorySubscriptionRepository();
+    const planRepo = new InMemoryPlanRepository(plans);
+    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+
+    const current = await subRepo.create(
+      "acc-1",
+      "commerce",
+      new Date("2026-01-01T00:00:00Z"),
+      new Date("2027-01-01T00:00:00Z"),
+      "annual",
+    );
+
+    await subRepo.updateStatus(current.id, "cancelled");
+
+    const resumed = await service.subscribe(
+      "acc-1",
+      "commerce",
+      new Date("2026-06-01T00:00:00Z"),
+      new Date("2027-06-01T00:00:00Z"),
+      "annual",
+    );
+
+    expect(resumed.id).toBe(current.id);
+    expect(resumed.billingInterval).toBe("annual");
+    expect(resumed.endsAt?.toISOString()).toBe("2028-01-01T00:00:00.000Z");
+  });
 });

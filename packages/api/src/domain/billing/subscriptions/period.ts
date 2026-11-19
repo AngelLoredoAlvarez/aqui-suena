@@ -6,6 +6,8 @@
  * and writes use UTC, so the result is independent of the process time zone
  * (Node locally and the Cloudflare Worker). The input Date is not mutated.
  */
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+
 export function addMonths(date: Date, months: number): Date {
   const targetMonthIndex = date.getUTCMonth() + months;
   const targetYear = date.getUTCFullYear() + Math.floor(targetMonthIndex / 12);
@@ -19,4 +21,8 @@ export function addMonths(date: Date, months: number): Date {
   result.setUTCFullYear(targetYear, targetMonth, Math.min(date.getUTCDate(), lastDay));
 
   return result;
+}
+
+export function addInterval(date: Date, interval: BillingInterval): Date {
+  return interval === "annual" ? addMonths(date, 12) : addMonths(date, 1);
 }

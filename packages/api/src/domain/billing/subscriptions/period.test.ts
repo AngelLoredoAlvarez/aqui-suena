@@ -1,4 +1,4 @@
-import { addMonths } from "@aqui-suena/api/domain/billing/subscriptions/period";
+import { addInterval, addMonths } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import { describe, expect, it } from "vitest";
 
 function iso(date: Date): string {
@@ -71,5 +71,34 @@ describe("addMonths", () => {
     for (const result of results) {
       expect(result).toBe("2026-04-01T02:00:00.000Z");
     }
+  });
+});
+
+describe("addInterval", () => {
+  it("adds one month for the monthly interval", () => {
+    expect(iso(addInterval(new Date("2026-01-31T00:00:00Z"), "monthly"))).toBe(
+      "2026-02-28T00:00:00.000Z",
+    );
+  });
+
+  it("adds twelve months for the annual interval", () => {
+    expect(iso(addInterval(new Date("2026-01-31T00:00:00Z"), "annual"))).toBe(
+      "2027-01-31T00:00:00.000Z",
+    );
+  });
+
+  it("clamps a leap day to the last day of the next year", () => {
+    expect(iso(addInterval(new Date("2024-02-29T00:00:00Z"), "annual"))).toBe(
+      "2025-02-28T00:00:00.000Z",
+    );
+  });
+
+  it("does not mutate the input date", () => {
+    const input = new Date("2026-01-31T12:00:00Z");
+    const before = input.getTime();
+
+    addInterval(input, "annual");
+
+    expect(input.getTime()).toBe(before);
   });
 });

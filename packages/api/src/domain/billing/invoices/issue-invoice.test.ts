@@ -128,6 +128,7 @@ function paidSubscription(planId: PlanId = "commerce"): Subscription {
     id: "sub-1",
     accountId: "acc-1",
     planId,
+    billingInterval: "monthly",
     status: "active",
     startedAt: new Date("2026-11-01T00:00:00Z"),
     endsAt: new Date("2026-12-01T00:00:00Z"),

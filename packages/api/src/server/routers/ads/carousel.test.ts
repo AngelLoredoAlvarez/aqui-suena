@@ -54,6 +54,7 @@ function makeSubscription(accountId: string): Subscription {
     id: `s-${accountId}`,
     accountId,
     planId: "commerce",
+    billingInterval: "monthly",
     status: "active",
     startedAt: new Date(Date.now() - 1000),
     endsAt: new Date(Date.now() + 1000 * 60 * 60),

@@ -34,6 +34,7 @@ function setup() {
       id: "sub-1",
       accountId: "acc-1",
       planId: "trades",
+      billingInterval: "monthly",
       status: "active",
       startedAt: new Date("2025-01-01T00:00:00Z"),
       endsAt: null,

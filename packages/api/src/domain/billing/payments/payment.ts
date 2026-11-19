@@ -1,5 +1,12 @@
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
+
+export {
+  BILLING_INTERVALS,
+  type BillingInterval,
+  parseBillingInterval,
+} from "@aqui-suena/api/domain/billing/billing-interval";
 
 export const PAYMENT_STATUSES = ["pending", "completed", "failed", "expired", "refunded"] as const;
 
@@ -8,10 +15,6 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const PAYMENT_METHODS = ["card", "oxxo", "spei"] as const;
 
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
-
-export const BILLING_INTERVALS = ["monthly", "annual"] as const;
-
-export type BillingInterval = (typeof BILLING_INTERVALS)[number];
 
 export const PAYMENT_PROVIDERS = ["conekta"] as const;
 
@@ -31,10 +34,6 @@ export function parsePaymentStatus(value: unknown): PaymentStatus {
 
 export function parsePaymentMethod(value: unknown): PaymentMethod {
   return parseMember(PAYMENT_METHODS, "method", value);
-}
-
-export function parseBillingInterval(value: unknown): BillingInterval {
-  return parseMember(BILLING_INTERVALS, "billingInterval", value);
 }
 
 export function parsePaymentProvider(value: unknown): PaymentProviderName {

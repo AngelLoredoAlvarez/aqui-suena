@@ -128,6 +128,7 @@ the full gate. Commits only on explicit instruction.
   payment columns. Route: inline. DONE 2026-11-19 (pending review).
 - **T4** — Subscription interval generalization, `renew`, the
   `PaymentSubscriptionWriter` adapter and regression tests (S6). Route: inline.
+  DONE 2026-11-19 (pending review).
 - **T5** — Conekta adapter: orders for card/OXXO/SPEI, customer and card source,
   order lookup, error mapping (S2, S3). Route: inline.
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
@@ -158,3 +159,8 @@ the full gate. Commits only on explicit instruction.
   provider and writer, and the D1 adapter. RED on the missing service, then
   GREEN: payments tests 70/70, API suite 1006/1006, typecheck 7/7, biome clean,
   arch 398 modules. Uncommitted pending review.
+- 2026-11-19: T4 moves the billing interval to a neutral module, adds
+  `addInterval`, records the interval on subscriptions and the D1 repository,
+  adds `SubscriptionService.renew` and the `SubscriptionPaymentWriter` adapter.
+  Verification: billing tests 299/299, API suite 1029/1029, typecheck 7/7,
+  biome clean, arch 402 modules. Uncommitted pending review.
