@@ -164,10 +164,10 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
 - [ ] Plan catalog prices — 2026-11-19: the spec sets Oficios & Servicios at
       $99 MXN/month or $990 MXN/year and Comercios & Catálogo at $149
       MXN/month or $1,490 MXN/year, final prices with IVA included. The catalog
-      constant and its tests still ship 4900/49000 and 9900/99000; updating them
-      and re-seeding staging with `POST /admin/seed-plans` belongs to the
-      payments slice. The CFDI must treat the price as gross (subtotal + IVA =
-      total), not as a subtotal with IVA added on top.
+      constant and its tests now ship 9900/99000 and 14900/149000, and the CFDI
+      breaks the gross price down as subtotal + IVA so the stamped total equals
+      the charge. Remaining: re-seed staging with `POST /admin/seed-plans` when
+      the payments slice lands.
 
 ## CFDI invoicing (opened 2026-11-16)
 

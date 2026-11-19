@@ -76,9 +76,14 @@ export function toFacturamaCfdiPayload(
   settings: FacturamaFiscalSettings,
 ): FacturamaCfdiPayload {
   const { fiscalProfile } = request;
-  const ivaCents = Math.round(request.amountCents * settings.ivaRate);
-  const totalCents = request.amountCents + ivaCents;
-  const subtotal = toAmount(request.amountCents);
+
+  // Plan prices are consumer prices with IVA included. Break the gross amount
+  // down instead of adding IVA on top, or the stamped total would exceed the
+  // amount actually charged.
+  const totalCents = request.amountCents;
+  const subtotalCents = Math.round(totalCents / (1 + settings.ivaRate));
+  const ivaCents = totalCents - subtotalCents;
+  const subtotal = toAmount(subtotalCents);
 
   const emitterBlock =
     settings.mode === "multiemisor" && settings.issuer !== undefined
