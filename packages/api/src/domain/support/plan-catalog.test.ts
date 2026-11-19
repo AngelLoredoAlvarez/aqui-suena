@@ -33,10 +33,6 @@ function makeRepository(plans: Plan[]): PlanRepository {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Fakes (capture calls, like the D1 repository tests)
-// ---------------------------------------------------------------------------
-
 type EmbeddingCall = { texts: string[] };
 
 function makeEmbeddingModel(vector: number[], calls: EmbeddingCall[]) {
@@ -61,10 +57,6 @@ function makeVectorIndex(matches: { id: string; score: number }[], calls: QueryC
   };
 }
 
-// ---------------------------------------------------------------------------
-// FullCatalogRetriever
-// ---------------------------------------------------------------------------
-
 describe("FullCatalogRetriever", () => {
   it("returns every plan from the repository", async () => {
     const retriever = new FullCatalogRetriever(makeRepository(PLANS));
@@ -72,10 +64,6 @@ describe("FullCatalogRetriever", () => {
     expect(result).toEqual(PLANS);
   });
 });
-
-// ---------------------------------------------------------------------------
-// VectorPlanCatalogRetriever
-// ---------------------------------------------------------------------------
 
 describe("VectorPlanCatalogRetriever", () => {
   it("embeds the query, queries the index, and maps matches to plans in score order", async () => {
