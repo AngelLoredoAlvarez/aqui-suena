@@ -103,7 +103,7 @@ export class ConektaPaymentProvider implements PaymentProvider {
   }
 
   async createCharge(input: CreateChargeInput): Promise<ChargeResult> {
-    const response = await this.request("/orders", {
+    const response = await this.requestResult("/orders", {
       method: "POST",
       headers: this.headers(input.idempotencyKey),
       body: JSON.stringify({
@@ -120,7 +120,27 @@ export class ConektaPaymentProvider implements PaymentProvider {
       }),
     });
 
-    return mapOrder(response);
+    // A declined card is a business outcome, not a transport failure: Conekta
+    // answers 402 with the decline detail and no order to map.
+    if (!response.ok && response.status === 402 && input.method === "card") {
+      return {
+        providerOrderId: null,
+        providerChargeId: null,
+        status: "declined",
+        reference: null,
+        nextActionUrl: null,
+        expiresAt: null,
+        failureReason: errorDetail(response.body) ?? "Card declined",
+      };
+    }
+
+    if (!response.ok) {
+      throw new PaymentProviderRejection(
+        errorDetail(response.body) ?? `Conekta request failed with ${response.status}`,
+      );
+    }
+
+    return mapOrder(response.body);
   }
 
   async getOrder(providerOrderId: string): Promise<ChargeResult> {
@@ -154,23 +174,32 @@ export class ConektaPaymentProvider implements PaymentProvider {
       input.expiresAt === undefined ? undefined : Math.floor(input.expiresAt.getTime() / 1000);
 
     return {
-      type: input.method === "oxxo" ? "oxxo_cash" : "spei",
+      type: input.method === "oxxo" ? "cash" : "spei",
       ...(expiresAt === undefined ? {} : { expires_at: expiresAt }),
     };
   }
 
   private async request(path: string, init: RequestInit): Promise<unknown> {
+    const response = await this.requestResult(path, init);
+
+    if (!response.ok) {
+      throw new PaymentProviderRejection(
+        errorDetail(response.body) ?? `Conekta request failed with ${response.status}`,
+      );
+    }
+
+    return response.body;
+  }
+
+  private async requestResult(
+    path: string,
+    init: RequestInit,
+  ): Promise<{ readonly ok: boolean; readonly status: number; readonly body: unknown }> {
     const fetchImpl = this.injectedFetch ?? fetch;
     const response = await fetchImpl(`${this.baseUrl}${path}`, init);
     const body = await readJson(response);
 
-    if (!response.ok) {
-      throw new PaymentProviderRejection(
-        errorDetail(body) ?? `Conekta request failed with ${response.status}`,
-      );
-    }
-
-    return body;
+    return { ok: response.ok, status: response.status, body };
   }
 }
 
@@ -219,6 +248,8 @@ function mapStatus(value: unknown): ChargeStatus {
     case "declined":
       return "declined";
     case "expired":
+    case "canceled":
+    case "voided":
       return "expired";
     default:
       throw new PaymentProviderRejection("Malformed response from the payment provider");

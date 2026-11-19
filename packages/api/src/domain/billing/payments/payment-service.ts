@@ -222,6 +222,14 @@ export class PaymentService {
       throw new DataIntegrityError("period", payment.periodStart);
     }
 
+    // The compare-and-set runs before activation so concurrent provider events
+    // cannot both create a subscription.
+    const claimed = await this.deps.payments.claimCompletion(payment.id, paidAt);
+
+    if (!claimed) {
+      return this.requirePayment(payment.id);
+    }
+
     const subscriptionId = await this.deps.subscriptions.activate({
       paymentId: payment.id,
       accountId: payment.accountId,
@@ -230,12 +238,6 @@ export class PaymentService {
       periodStart: payment.periodStart,
       periodEnd: payment.periodEnd,
     });
-
-    const claimed = await this.deps.payments.claimCompletion(payment.id, paidAt);
-
-    if (!claimed) {
-      return this.requirePayment(payment.id);
-    }
 
     await this.deps.payments.attachSubscription(payment.id, subscriptionId);
 

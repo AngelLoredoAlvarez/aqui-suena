@@ -159,6 +159,11 @@ the full gate. Commits only on explicit instruction.
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline. DONE
   2026-11-19 (pending review).
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
+  Migration `0006` applied, Worker deployed, catalog seeded, webhook registered.
+  Real sandbox proof: 3DS frictionless, 3DS challenge, declined card, saved-card
+  decline, SPEI paid and SPEI expiry through the cron, and cash/efectivo paid
+  end-to-end with the current `cash` provider. Emails delivered. Pending
+  review.
 
 ## Log
 
@@ -228,3 +233,49 @@ the full gate. Commits only on explicit instruction.
   composition builds the payment repository from D1 and no longer reads the
   active subscription. Verification: API suite 1122/1122, all-package
   typecheck 7/7, biome clean, arch 421 modules. Uncommitted pending review.
+
+- 2026-11-19: T9 committed as `cf52a74` (T9 emails + payment-linked CFDI).
+- 2026-11-19: T10 staging proof. `deploy:api` applied migration `0006`
+  (bookmark `000000a6-00000000-00005128-750cbca976f4f244a852422fab4134b2`) and
+  deployed versions `bfd429e8`, `4c128b52`, `ec26cc7c` and `83ee6498`; the plan
+  catalog re-seeded 3 rows (`trades` 9900/99000, `commerce` 14900/149000).
+  Webhook `6aff7e575fd7bd00372f459a` is active and `listening` with
+  `order.paid`, `charge.paid`, `order.expired`, `charge.declined`,
+  `order.refunded`, `charge.refunded` and `order.charged_back`.
+- 2026-11-19: T10 real sandbox results. Card `4000000000002701` (frictionless
+  approved) completed and activated `commerce`; `4000000000001091` (challenge)
+  completed with OTP `1234` and renewed `trades`; `4000000000002925`
+  (frictionless rejected) failed with the provider reason and `charge.declined`;
+  saved card `5288512905315970` declined with a `200` and a failed payment.
+  SPEI reference `646180111812345678` paid through
+  `/sandbox/spei/payment_notifications`; `order.paid` and `charge.paid` arrived
+  and completed the payment. A canceled SPEI order expired through the
+  fifteen-minute scheduler. Resend reports every receipt and pending email as
+  `delivered`.
+- 2026-11-19: T10 found and fixed two defects. Concurrent `order.paid` and
+  `charge.paid` events both activated a subscription; `complete` now claims the
+  payment before activating, with a concurrency test. A card decline answered
+  by Conekta with `402` surfaced as a `500`; the adapter now maps card `402`
+  responses to a declined charge, so checkout returns a failed payment with the
+  provider reason. Canceled and voided orders now map to `expired` so the
+  refresh sweep can close them. Verification after the fixes: API suite
+  1127/1127, typecheck 7/7, biome clean, arch 421 modules.
+- 2026-11-19: T10 cleanup verified: zero accounts, payments, subscriptions,
+  payment events and CFDI rows; the 3 seeded plans remain; both probe users were
+  deleted. OXXO cannot be probed: Conekta answers
+  `conekta.errors.parameter_validation.order.provider_not_found` for
+  `oxxo_cash` (HTTP 422) because the sandbox merchant has no OXXO provider.
+  Superseded by the next entry: the old type was deprecated, not a missing
+  provider.
+
+- 2026-11-19: The OXXO blocker was the old type, not a missing provider.
+  Conekta rebranded OXXO Pay as Conekta Efectivo and now accepts
+  `payment_method.type = "cash"`; `oxxo_cash` answers `422 provider_not_found`.
+  The adapter now sends `cash` for the `oxxo` method (test updated). Deployed
+  version `1de76226`. A real checkout produced reference
+  `10001109036270656606`; the sandbox auto-paid the order after about thirty
+  seconds, `order.paid` and `charge.paid` completed the payment, activated
+  `trades`, and Resend delivered both the pending and receipt emails. The
+  product label still says "OXXO"; switching it to "Efectivo" is a copy decision
+  tracked in the backlog. Verification after the change: API suite 1127/1127,
+  typecheck 7/7, biome clean, arch 421 modules.

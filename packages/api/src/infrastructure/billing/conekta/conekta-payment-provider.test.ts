@@ -100,7 +100,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
     });
   });
 
-  it("creates an OXXO order with its expiry and maps the reference", async () => {
+  it("creates a cash order with its expiry and maps the reference", async () => {
     const { calls, provider } = setup({
       id: "ord_2",
       payment_status: "pending_payment",
@@ -110,7 +110,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
             id: "chg_2",
             status: "pending_payment",
             payment_method: {
-              type: "oxxo",
+              type: "cash",
               reference: "1234567890",
               expires_at: 1795000000,
             },
@@ -133,7 +133,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
       charges: [
         {
           payment_method: {
-            type: "oxxo_cash",
+            type: "cash",
             expires_at: Math.floor(expiresAt.getTime() / 1000),
           },
         },
@@ -232,6 +232,32 @@ describe("ConektaPaymentProvider.createCharge", () => {
     });
   });
 
+  it("maps a card decline reported as 402 to a declined charge", async () => {
+    const { provider } = setup(
+      { details: [{ message: "Tarjeta declinada. Intenta con otra tarjeta." }] },
+      402,
+    );
+
+    const result = await provider.createCharge(baseInput());
+
+    expect(result).toMatchObject({
+      providerOrderId: null,
+      status: "declined",
+      failureReason: "Tarjeta declinada. Intenta con otra tarjeta.",
+    });
+  });
+
+  it("still rejects a non-card 402 from the provider", async () => {
+    const { provider } = setup(
+      { details: [{ message: "No se pudo encontrar el proveedor." }] },
+      402,
+    );
+
+    await expect(
+      provider.createCharge(baseInput({ method: "oxxo", cardToken: undefined })),
+    ).rejects.toBeInstanceOf(PaymentProviderRejection);
+  });
+
   it("maps a pending payment without a 3DS URL", async () => {
     const { provider } = setup({
       id: "ord_7",
@@ -243,6 +269,18 @@ describe("ConektaPaymentProvider.createCharge", () => {
 
     expect(result.status).toBe("pending");
     expect(result.nextActionUrl).toBeNull();
+  });
+
+  it.each(["canceled", "voided"])("maps a %s order to expired", async (status) => {
+    const { provider } = setup({
+      id: "ord_canceled",
+      payment_status: status,
+      charges: { data: [{ id: "chg_canceled", status, payment_method: {} }] },
+    });
+
+    const result = await provider.getOrder("ord_canceled");
+
+    expect(result.status).toBe("expired");
   });
 
   it("maps an expired order", async () => {

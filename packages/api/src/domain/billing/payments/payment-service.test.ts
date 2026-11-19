@@ -408,6 +408,16 @@ describe("PaymentService.complete", () => {
     expect(writer.calls).toHaveLength(1);
   });
 
+  it("activates the subscription once when two completions race", async () => {
+    const { payments, provider, writer, service } = setup();
+    const pending = await createPendingOxxo(service, provider);
+
+    await Promise.all([service.complete(pending.id), service.complete(pending.id)]);
+
+    expect(writer.calls).toHaveLength(1);
+    expect((await payments.getById(pending.id))?.subscriptionId).toBe("sub-1");
+  });
+
   it("rejects a non-pending payment", async () => {
     const { provider, service } = setup();
 
