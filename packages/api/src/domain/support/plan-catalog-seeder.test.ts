@@ -9,8 +9,8 @@ function makePlan(id: string): Plan {
     audience: "electricistas y plomeros",
     description: "perfil profesional para servicios",
     benefits: ["Hasta 30 servicios", "Urgencias 24h"],
-    priceMonthly: 4900,
-    priceAnnual: 49000,
+    priceMonthly: 9900,
+    priceAnnual: 99000,
     currency: "MXN",
     active: true,
     entitlements: {} as Plan["entitlements"],
@@ -24,7 +24,7 @@ describe("planDocument", () => {
     expect(doc).toContain("electricistas y plomeros");
     expect(doc).toContain("perfil profesional para servicios");
     expect(doc).toContain("Hasta 30 servicios");
-    expect(doc).toContain("4900");
+    expect(doc).toContain("9900");
   });
 });
 

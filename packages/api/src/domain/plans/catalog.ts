@@ -26,8 +26,8 @@ export const DEFAULT_PLAN_CATALOG: readonly Plan[] = [
     description:
       "Muestra tu experiencia y llega a más clientes con un perfil profesional para servicios.",
     benefits: ["Hasta 30 servicios", "Galería de trabajos", "Urgencias 24h"],
-    priceMonthly: 4900,
-    priceAnnual: 49000,
+    priceMonthly: 9900,
+    priceAnnual: 99000,
     currency: "MXN",
     active: true,
     entitlements: ENTITLEMENTS.trades,
@@ -40,8 +40,8 @@ export const DEFAULT_PLAN_CATALOG: readonly Plan[] = [
     description:
       "Destaca con una vitrina digital completa para que los radioescuchas exploren todo lo que vendes.",
     benefits: ["Hasta 50 productos", "Catálogo por categorías", "Máxima prioridad"],
-    priceMonthly: 9900,
-    priceAnnual: 99000,
+    priceMonthly: 14900,
+    priceAnnual: 149000,
     currency: "MXN",
     active: true,
     entitlements: ENTITLEMENTS.commerce,

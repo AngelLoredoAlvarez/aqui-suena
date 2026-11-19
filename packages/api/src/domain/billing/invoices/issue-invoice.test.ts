@@ -221,7 +221,7 @@ describe("IssueInvoice", () => {
     expect(issuer.requests[0]).toMatchObject({
       accountId: "acc-1",
       planId: "commerce",
-      amountCents: 9900,
+      amountCents: 14900,
       currency: "MXN",
       fiscalProfile: completeProfile,
       issuedAt: NOW,
@@ -328,7 +328,7 @@ describe("IssueInvoice", () => {
       invoiceId: invoice.id,
       uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
       planName: "Comercios & Catálogo",
-      amountMinorUnits: 9900,
+      amountMinorUnits: 14900,
       currency: "MXN",
       downloadUrl: "https://aquisuena.mx/cuenta/suscripcion",
       xml: "<cfdi:Comprobante/>",

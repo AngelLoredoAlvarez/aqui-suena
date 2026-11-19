@@ -42,7 +42,8 @@ describe("seedPlans", () => {
 
     expect(seeded).toBe(DEFAULT_PLAN_CATALOG.length);
     expect([...store.keys()]).toEqual(["community", "trades", "commerce"]);
-    expect(store.get("trades")?.priceMonthly).toBe(4900);
+    expect(store.get("trades")?.priceMonthly).toBe(9900);
+    expect(store.get("commerce")?.priceMonthly).toBe(14900);
   });
 
   it("is idempotent when run twice", async () => {
