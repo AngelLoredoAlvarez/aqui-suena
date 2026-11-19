@@ -175,6 +175,11 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       internal method stays `oxxo`, but the provider is Conekta Efectivo with
       more than 19,000 cash points, not only OXXO. The email label and any UI
       copy are a product decision.
+- [ ] Distinguish card 402 decline bodies from other card 402 failures —
+      2026-11-19: the adapter maps every card-method 402 to a declined charge.
+      A 402 caused by a token or field validation failure would be reported as
+      a customer decline instead of a provider rejection. Inspect the error code
+      before deciding.
 - [ ] Preserve paid time when a pending lower-tier payment completes after a
       higher-tier payment — 2026-11-19: the API allows one open intent per
       plan + interval + method, so a pending SPEI/OXXO reference and a card

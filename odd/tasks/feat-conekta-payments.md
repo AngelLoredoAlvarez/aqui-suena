@@ -279,3 +279,14 @@ the full gate. Commits only on explicit instruction.
   product label still says "OXXO"; switching it to "Efectivo" is a copy decision
   tracked in the backlog. Verification after the change: API suite 1127/1127,
   typecheck 7/7, biome clean, arch 421 modules.
+
+- 2026-11-19: The RDD review found a blocker in the T10 completion reorder: a
+  claimed payment whose activation failed stayed completed without a
+  subscription, and a provider retry could not repair it. `complete` now
+  releases the claim when activation or attachment throws, and a completed
+  payment without a subscription is repaired by a later retry after a
+  five-minute window. Tests cover the release path, the delayed repair and the
+  D1 release query. The native review could not finish: the OpenCode transport
+  refused the refuter capture (`no Go-owned role capture contract`), so the
+  review authority remains non-terminal and no approval is claimed.
+

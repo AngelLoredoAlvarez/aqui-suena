@@ -239,6 +239,17 @@ describe("D1PaymentRepository", () => {
     expect(fake.statements[0]?.params).toEqual(["sub-1", expect.any(Number), "pay-1"]);
   });
 
+  it("releases a claimed completion only when no subscription is attached", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true } }));
+    const repo = new D1PaymentRepository(fake.db);
+
+    await repo.releaseCompletion("pay-1");
+
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'pending'");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("subscription_id IS NULL");
+    expect(fake.statements[0]?.params).toEqual([expect.any(Number), "pay-1"]);
+  });
+
   it("lists pending payments with a provider order up to the limit", async () => {
     const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
     const repo = new D1PaymentRepository(fake.db);

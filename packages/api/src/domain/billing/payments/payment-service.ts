@@ -22,6 +22,8 @@ import {
   ValidationError,
 } from "@aqui-suena/api/shared/domain-error";
 
+const COMPLETION_RECOVERY_DELAY_MS = 5 * 60 * 1000;
+
 export type PaymentServiceDependencies = {
   readonly payments: PaymentRepository;
   readonly plans: PlanRepository;
@@ -203,12 +205,20 @@ export class PaymentService {
 
   async complete(paymentId: string, paidAt: Date = this.currentDate()): Promise<Payment> {
     const payment = await this.requirePayment(paymentId);
+    const now = this.currentDate();
 
     if (payment.status === "completed") {
-      return payment;
-    }
+      if (payment.subscriptionId !== null) {
+        return payment;
+      }
 
-    if (payment.status !== "pending") {
+      // A claimed payment without a subscription is either being activated by
+      // another event or was interrupted. Give the first attempt time to finish,
+      // then let a retry repair it.
+      if (now.getTime() - payment.updatedAt.getTime() < COMPLETION_RECOVERY_DELAY_MS) {
+        return payment;
+      }
+    } else if (payment.status !== "pending") {
       throw new ConflictError(
         `Only a pending payment can be completed (current status: ${payment.status})`,
       );
@@ -223,23 +233,36 @@ export class PaymentService {
     }
 
     // The compare-and-set runs before activation so concurrent provider events
-    // cannot both create a subscription.
-    const claimed = await this.deps.payments.claimCompletion(payment.id, paidAt);
+    // cannot both create a subscription. If activation fails, the claim is
+    // released so a provider retry can try again.
+    let claimed = false;
 
-    if (!claimed) {
-      return this.requirePayment(payment.id);
+    if (payment.status === "pending") {
+      claimed = await this.deps.payments.claimCompletion(payment.id, paidAt);
+
+      if (!claimed) {
+        return this.requirePayment(payment.id);
+      }
     }
 
-    const subscriptionId = await this.deps.subscriptions.activate({
-      paymentId: payment.id,
-      accountId: payment.accountId,
-      planId: payment.planId,
-      billingInterval: payment.billingInterval,
-      periodStart: payment.periodStart,
-      periodEnd: payment.periodEnd,
-    });
+    try {
+      const subscriptionId = await this.deps.subscriptions.activate({
+        paymentId: payment.id,
+        accountId: payment.accountId,
+        planId: payment.planId,
+        billingInterval: payment.billingInterval,
+        periodStart: payment.periodStart,
+        periodEnd: payment.periodEnd,
+      });
 
-    await this.deps.payments.attachSubscription(payment.id, subscriptionId);
+      await this.deps.payments.attachSubscription(payment.id, subscriptionId);
+    } catch (error) {
+      if (claimed) {
+        await this.deps.payments.releaseCompletion(payment.id);
+      }
+
+      throw error;
+    }
 
     const completed = await this.requirePayment(payment.id);
     await this.notifyReceipt(completed);

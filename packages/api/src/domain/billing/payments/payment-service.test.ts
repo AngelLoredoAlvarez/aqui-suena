@@ -418,6 +418,43 @@ describe("PaymentService.complete", () => {
     expect((await payments.getById(pending.id))?.subscriptionId).toBe("sub-1");
   });
 
+  it("releases the claim when activation fails so a retry can complete", async () => {
+    const { payments, provider, writer, service } = setup();
+    const pending = await createPendingOxxo(service, provider);
+
+    writer.error = new Error("subscription store failed");
+
+    await expect(service.complete(pending.id)).rejects.toThrow("subscription store failed");
+
+    const released = await payments.getById(pending.id);
+
+    expect(released).toMatchObject({ status: "pending", paidAt: null });
+
+    writer.error = null;
+
+    const completed = await service.complete(pending.id);
+
+    expect(completed).toMatchObject({ status: "completed", subscriptionId: "sub-1" });
+  });
+
+  it("repairs a completed payment without a subscription after the delay", async () => {
+    const { payments, provider, writer, service } = setup();
+    const pending = await createPendingOxxo(service, provider);
+
+    await payments.claimCompletion(pending.id, NOW);
+
+    const claimed = await payments.getById(pending.id);
+
+    if (claimed === null) throw new Error("payment missing");
+
+    claimed.updatedAt = new Date(NOW.getTime() - 6 * 60 * 1000);
+
+    const completed = await service.complete(pending.id);
+
+    expect(writer.calls).toHaveLength(1);
+    expect(completed).toMatchObject({ status: "completed", subscriptionId: "sub-1" });
+  });
+
   it("rejects a non-pending payment", async () => {
     const { provider, service } = setup();
 

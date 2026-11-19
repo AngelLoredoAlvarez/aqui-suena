@@ -188,6 +188,16 @@ export class D1PaymentRepository implements PaymentRepository {
       .run();
   }
 
+  async releaseCompletion(id: string): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE payments SET status = 'pending', paid_at = NULL, updated_at = ?
+        WHERE id = ? AND status = 'completed' AND subscription_id IS NULL`,
+      )
+      .bind(toEpoch(new Date()), id)
+      .run();
+  }
+
   async listPendingWithProviderOrder(limit: number): Promise<Payment[]> {
     const result = await this.db
       .prepare(

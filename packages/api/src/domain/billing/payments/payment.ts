@@ -104,6 +104,7 @@ export interface PaymentRepository {
   markFailed(id: string, reason: string, at: Date): Promise<boolean>;
   markExpired(id: string, at: Date): Promise<boolean>;
   attachSubscription(id: string, subscriptionId: string): Promise<void>;
+  releaseCompletion(id: string): Promise<void>;
   listPendingWithProviderOrder(limit: number): Promise<Payment[]>;
   listBySubscription(subscriptionId: string): Promise<Payment[]>;
   getLatestCompletedByAccount(accountId: string): Promise<Payment | null>;
@@ -225,6 +226,22 @@ export class InMemoryPaymentRepository implements PaymentRepository {
     if (payment === undefined || payment.subscriptionId !== null) return;
 
     payment.subscriptionId = subscriptionId;
+    payment.updatedAt = new Date();
+  }
+
+  async releaseCompletion(id: string): Promise<void> {
+    const payment = this.store.find((candidate) => candidate.id === id);
+
+    if (
+      payment === undefined ||
+      payment.status !== "completed" ||
+      payment.subscriptionId !== null
+    ) {
+      return;
+    }
+
+    payment.status = "pending";
+    payment.paidAt = null;
     payment.updatedAt = new Date();
   }
 
