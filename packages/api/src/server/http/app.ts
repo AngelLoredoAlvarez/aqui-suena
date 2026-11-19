@@ -26,7 +26,7 @@ import type { BillingSurfaces } from "@aqui-suena/api/server/trpc/router";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";
 import { fetchProxiedStream } from "@aqui-suena/api/shared/stream-proxy";
 import { trpcServer } from "@hono/trpc-server";
-import { Hono } from "hono";
+import { type Handler, Hono } from "hono";
 
 export interface AppOptions {
   supabaseUrl?: string;
@@ -47,6 +47,7 @@ export interface AppOptions {
   logger?: RequestLogger;
   logRequests?: boolean;
   billing?: BillingSurfaces;
+  conektaWebhook?: Handler;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -130,6 +131,11 @@ export function createApp(options: AppOptions): Hono {
     const proxied = await fetchProxiedStream(upstreamFetch, c.req.query("url") ?? null);
     return new Response(proxied.body, { status: proxied.status, headers: proxied.headers });
   });
+
+  app.post(
+    "/webhooks/conekta",
+    options.conektaWebhook ?? ((c) => c.text("webhook not configured", 503)),
+  );
 
   app.use(
     "/trpc/*",

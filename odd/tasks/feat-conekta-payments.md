@@ -98,12 +98,15 @@ the full gate. Commits only on explicit instruction.
   Acceptance: a paid invoice carries the payment id and the correct total, and a
   request without a completed payment is rejected.
 - **S11 — Configuration.** `CONEKTA_PRIVATE_KEY`, `CONEKTA_PUBLIC_KEY`,
-  `CONEKTA_WEBHOOK_PUBLIC_KEY` and `CONEKTA_BASE_URL` are read from the
-  environment; the private key and the webhook public key live in Infisical and
-  as Worker secrets. The webhook URL is registered per environment in the Conekta
-  panel. Without the private key, checkout and webhook answer `503`. Secrets are
-  never written to the repository or logged. Acceptance: env parsing tests,
-  unconfigured responses, and a documented staging registration.
+  `CONEKTA_WEBHOOK_PUBLIC_KEY`, `CONEKTA_LIVEMODE` and `CONEKTA_BASE_URL` are
+  read from the environment; the private key and the webhook public key live in
+  Infisical and as Worker secrets. `CONEKTA_LIVEMODE` declares the expected event
+  mode (false for test keys, true for production). `POST /webhooks/conekta` is
+  registered on the app and answers `503` when no handler is configured. The
+  webhook URL is registered per environment in the Conekta panel. Without the
+  private key, checkout answers `503`. Secrets are never written to the
+  repository or logged. Acceptance: env parsing tests, unconfigured responses,
+  and a documented staging registration.
 - **S12 — Verification.** Unit tests cover the domain with a fake provider and
   clock; the webhook with signed fixtures; the adapter with a mocked `fetch`; the
   database with real SQLite (migration, CAS, unique keys). The sandbox probe
@@ -134,11 +137,12 @@ the full gate. Commits only on explicit instruction.
   `createCardSource`, `CardSource` and `CardDetails`. Route: inline. DONE
   2026-11-19 (pending review).
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
-  route (S5). Route: inline. Risk: item 2 (credentials and guards).
+  route (S5). Route: inline. Risk: item 2 (credentials and guards). DONE
+  2026-11-19 (pending review).
 - **T7** — tRPC checkout and payment status, composition and env wiring
-  (S3, S11). Saves the Conekta customer and card source on the account, passes
-  the 3DS return URL and persists the card metadata from `CardSource.card`.
-  Route: inline.
+  (S3, S11). Wires the Conekta webhook handler from Worker/Node, saves the
+  Conekta customer and card source on the account, passes the 3DS return URL and
+  persists the card metadata from `CardSource.card`. Route: inline.
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline.
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
@@ -174,3 +178,13 @@ the full gate. Commits only on explicit instruction.
   `createCardSource`, `CardSource` and `CardDetails`; the fake implements it.
   Verification: adapter 14/14, API suite 1043/1043, typecheck 7/7, biome clean.
   Uncommitted pending review.
+- 2026-11-19: T6 adds the Conekta webhook: RSA-SHA256 `DIGEST` verification with
+  the generated public key, the `payment_events` repository and D1 adapter,
+  dedupe by event id with retry of unprocessed events, livemode/amount/currency
+  guards, `order.paid`/`charge.paid` completion, `order.expired` expiry,
+  `charge.declined` failure, and no-op recording for refunds and chargebacks.
+  The app registers `POST /webhooks/conekta` and answers 503 without a handler;
+  Worker/Node wiring is T7. `.env.schema` declares `CONEKTA_WEBHOOK_PUBLIC_KEY`
+  and `CONEKTA_LIVEMODE`. Verification: webhook tests 29/29, API suite
+  1072/1072, typecheck 7/7, biome clean, arch 414 modules. Uncommitted pending
+  review.
