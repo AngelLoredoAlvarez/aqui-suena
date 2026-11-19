@@ -199,6 +199,10 @@ explains.
 - [ ] CFDI cancellation, motive `01`: emit the substitute CFDI first, then cancel
       the original with its UUID. Needs the substitution relation (`TipoRelacion`
       `04`) in the issuing payload, which the product does not model yet.
+      **Deliberately after the payment provider**: it needs no PAC change to be
+      built or tested, but its only real use case is correcting the invoice of a
+      charge that happened, and doing it before `payment_id` exists would mean
+      rewriting the substitute payload twice.
 - [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
       reaches the owner with the provider PDF and the archived XML attached, so
       the fiscal document travels with the message and no signed URL can expire.
@@ -215,7 +219,8 @@ explains.
       Resend was called with a bound `fetch` (Workers "Illegal invocation").
 - [x] Owner-portal invoice history and downloads — API DONE 2026-11-18
       (`feat/invoice-history`). `billing.invoices.list` returns the account's
-      `issued` invoices, newest first, with `hasXml`/`hasPdf`;
+      invoices except PAC rejections, newest first, with `status` and
+      `hasXml`/`hasPdf`;
       `billing.invoices.downloadUrl` authorises per invoice and returns a
       five-minute presigned URL whose signature carries
       `attachment; filename="CFDI-<uuid>.<ext>"`. The bytes never pass through the

@@ -13,17 +13,19 @@ expires. Branch `feat/invoice-history`; delivery through one pull request; runne
   holding it reads the document) and a streaming endpoint (would duplicate the
   Supabase auth seam outside tRPC for 55 KB responses).
 - **5 minutes** of validity, the expiry the signing helper already uses.
-- **Only `issued` invoices** are listed. `failed` rows are PAC rejections, not
-  documents the owner recognises as theirs.
+- **Every invoice except PAC rejections** is listed. A cancelled invoice is still
+  fiscal history and must stay visible; a `failed` row never was a document. (This
+  replaced an earlier "only `issued`" rule when cancellation shipped: hiding a
+  cancelled invoice from its owner was the wrong behaviour.)
 - The download URL **carries the filename** through a signed
   `response-content-disposition`.
 
 ## Specs
 
 - **S1 — The list is the owner's, newest first.** `billing.invoices.list` takes
-  offset pagination (`limit`, `offset`; default limit 20) and returns only rows of
-  the authenticated account with `status = issued`, ordered by `created_at`
-  descending. A tombstoned account cannot authenticate, so it sees nothing.
+  offset pagination (`limit`, `offset`; default limit 20) and returns the rows of
+  the authenticated account whose status is not `failed`, ordered by `created_at`
+  descending, so cancelled invoices keep appearing with their state. A tombstoned account cannot authenticate, so it sees nothing.
 - **S2 — A list item carries only what exists.** `id`, `uuid`, `issuedAt`,
   `hasXml` and `hasPdf`. No amount or plan: `cfdi_invoices` stores neither (it
   keeps `payment_id` null until a payment provider exists).
@@ -57,6 +59,11 @@ cancellation.
   (S1-S4, S6).
 - **T5** — Docs: backlog item closed, README and the API README state the
   surface.
+
+- **L3** — Cancellation changed S1. The list stopped filtering to `issued` so a
+  cancelled invoice stays visible with its status; only `failed` rows are hidden.
+  `cancellationMotive`, `cancellationResolvedAt`, `cancellationExpiresAt` and
+  `cancellationDetail` joined the summary at the same time.
 
 ## Verification
 

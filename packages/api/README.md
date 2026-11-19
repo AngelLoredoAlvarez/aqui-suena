@@ -98,8 +98,8 @@ the positive ficta recorded. Both are bounded to five rows per run.
 
 ## Invoice history
 
-`billing.invoices.list` returns the caller's `issued` invoices (offset
-pagination, newest first) with `hasXml`/`hasPdf`, and
+`billing.invoices.list` returns the caller's invoices except PAC rejections
+(offset pagination, newest first) with `status` and `hasXml`/`hasPdf`, and
 `billing.invoices.downloadUrl` authorises one invoice and returns a five-minute
 presigned R2 URL. The signature carries `response-content-disposition`, so R2
 serves `CFDI-<uuid>.pdf|xml` as a named download and no object byte crosses the
