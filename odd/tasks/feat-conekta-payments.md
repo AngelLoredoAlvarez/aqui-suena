@@ -38,9 +38,10 @@ the full gate. Commits only on explicit instruction.
   `expired`; `refunded` is reserved for provider records and never auto-downgrades
   in V1. The transition is a compare-and-set (`UPDATE ... WHERE status =
   'pending'`), so a webhook and a synchronous card answer cannot both activate
-  the subscription. Acceptance: duplicate completion is a no-op, an invalid
-  transition changes nothing, and the subscription is activated or extended
-  exactly once.
+  the subscription. The subscription writer is idempotent by payment id, so a
+  concurrent duplicate cannot extend the period twice. Acceptance: duplicate
+  completion is a no-op, an invalid transition changes nothing, and the
+  subscription is activated or extended exactly once.
 - **S5 — Webhook.** `POST /webhooks/conekta` reads the raw body, verifies the
   `DIGEST` header as an RSA-SHA256 signature with `CONEKTA_WEBHOOK_PUBLIC_KEY`
   through WebCrypto, and rejects an invalid signature with `401`. It deduplicates
@@ -123,10 +124,10 @@ the full gate. Commits only on explicit instruction.
   columns, schema tests and `0006`. Route: inline. Risk: item 1 (migration).
   DONE 2026-11-19 (pending review).
 - **T3** — Domain payment use cases and state machine, with fake provider and
-  clock (S4). Replaces the unwired `D1PaymentRepository`, which still targets the
-  old payment columns. Route: inline.
-- **T4** — Subscription interval generalization, `renew`, and regression tests
-  (S6). Route: inline.
+  clock (S4). Replaces the unwired `D1PaymentRepository`, which targeted the old
+  payment columns. Route: inline. DONE 2026-11-19 (pending review).
+- **T4** — Subscription interval generalization, `renew`, the
+  `PaymentSubscriptionWriter` adapter and regression tests (S6). Route: inline.
 - **T5** — Conekta adapter: orders for card/OXXO/SPEI, customer and card source,
   order lookup, error mapping (S2, S3). Route: inline.
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
@@ -149,5 +150,11 @@ the full gate. Commits only on explicit instruction.
   against a real SQLite database with a legacy payment row: `account_id` is
   backfilled from the subscription, legacy rows get `method = 'card'`,
   `provider = 'conekta'`, `billing_interval = 'monthly'` and
-  `idempotency_key = 'legacy-<id>'`, and both unique indexes are present. Nothing
-  is committed until review.
+  `idempotency_key = 'legacy-<id>'`, and both unique indexes are present. T1 and
+  T2 are committed as `afcf2ea` and `341f91d`.
+- 2026-11-19: T3 replaces the payment entity and repository with the intent
+  model, adds the provider and subscription-writer ports, the payment service
+  with create/complete/fail/expire and compare-and-set transitions, the fake
+  provider and writer, and the D1 adapter. RED on the missing service, then
+  GREEN: payments tests 70/70, API suite 1006/1006, typecheck 7/7, biome clean,
+  arch 398 modules. Uncommitted pending review.
