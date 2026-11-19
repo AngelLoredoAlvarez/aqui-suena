@@ -289,4 +289,3 @@ the full gate. Commits only on explicit instruction.
   D1 release query. The native review could not finish: the OpenCode transport
   refused the refuter capture (`no Go-owned role capture contract`), so the
   review authority remains non-terminal and no approval is claimed.
-
