@@ -69,10 +69,6 @@ export function validateMediaUpload(kind: string, contentType: string, sizeBytes
   }
 }
 
-// ---------------------------------------------------------------------------
-// Port: ObjectStorage
-// ---------------------------------------------------------------------------
-
 export interface PresignUploadInput {
   kind: string;
   contentType: string;

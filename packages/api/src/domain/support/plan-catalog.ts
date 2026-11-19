@@ -46,7 +46,6 @@ export interface PlanVectorIndex {
   upsert(vectors: { id: string; values: number[] }[]): Promise<void>;
 }
 
-/** Interface for logging errors. */
 export interface Logger {
   error(message: string, ...args: unknown[]): void;
 }

@@ -14,20 +14,12 @@ export interface AiBinding {
   ): Promise<{ response: string }>;
 }
 
-// ---------------------------------------------------------------------------
-// Locales
-// ---------------------------------------------------------------------------
-
 const SUPPORTED_LOCALES = ["es", "en"] as const;
 type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 function normalizeLocale(locale: string): SupportedLocale {
   return SUPPORTED_LOCALES.includes(locale as SupportedLocale) ? (locale as SupportedLocale) : "en";
 }
-
-// ---------------------------------------------------------------------------
-// Bilingual messages
-// ---------------------------------------------------------------------------
 
 const FALLBACK_NO_AI: Record<SupportedLocale, string> = {
   es: "El asistente no está disponible en este entorno.",
@@ -38,10 +30,6 @@ const FALLBACK_ERROR: Record<SupportedLocale, string> = {
   es: "No pude responder ahora. Intenta de nuevo o contacta soporte.",
   en: "I couldn't respond right now. Please try again or contact support.",
 };
-
-// ---------------------------------------------------------------------------
-// System prompts
-// ---------------------------------------------------------------------------
 
 const SYSTEM_PROMPTS: Record<SupportedLocale, (catalog: string) => string> = {
   es: (catalog) =>
@@ -65,10 +53,6 @@ function buildSystemPrompt(locale: SupportedLocale, catalog: string): string {
   return SYSTEM_PROMPTS[locale](catalog);
 }
 
-// ---------------------------------------------------------------------------
-// Catalog
-// ---------------------------------------------------------------------------
-
 const CATALOG_LABELS: Record<SupportedLocale, { benefits: string; price: string }> = {
   es: { benefits: "Beneficios", price: "Precio mensual" },
   en: { benefits: "Benefits", price: "Monthly price" },
@@ -86,10 +70,6 @@ function buildCatalog(plans: Plan[], locale: SupportedLocale): string {
     .join("\n");
 }
 
-// ---------------------------------------------------------------------------
-// Input parsing
-// ---------------------------------------------------------------------------
-
 type SupportInput = { message: string; locale: string };
 
 function parseSupportInput(value: unknown): SupportInput {
@@ -106,10 +86,6 @@ function parseSupportInput(value: unknown): SupportInput {
   const locale = typeof v.locale === "string" && v.locale.length > 0 ? v.locale : "es";
   return { message: v.message.trim(), locale };
 }
-
-// ---------------------------------------------------------------------------
-// Router
-// ---------------------------------------------------------------------------
 
 export function createSupportRouter(
   repository: PlanRepository,
