@@ -182,13 +182,11 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       responses without a decline code remain provider rejections. Tests cover
       `bank.declined`, `bank.insufficient_funds`, `tokenization.used` and a
       missing code.
-- [ ] Preserve paid time when a pending lower-tier payment completes after a
-      higher-tier payment — 2026-11-19: the API allows one open intent per
-      plan + interval + method, so a pending SPEI/cash reference and a card
-      payment for another plan can coexist. The second completion cancels the
-      active subscription through `SubscriptionService.subscribe`, losing the
-      already-paid period. Decide whether to reject a second pending checkout or
-      to apply the plan-change rules at completion.
+- [x] Prevent a second plan while another plan is pending — DONE 2026-11-19:
+      a new checkout is rejected when a payment for another plan is pending;
+      same-plan checkouts remain allowed and expired pending payments do not
+      block. The rule lives in `CheckoutService` and
+      `PaymentService.hasPendingForOtherPlan`.
 - [x] Delete the Conekta customer on account deletion — DONE 2026-11-19:
       `DeleteAccount` calls an optional `PaymentCustomerDeleter` for the saved
       card customer before anonymizing; a failure is logged and never blocks the

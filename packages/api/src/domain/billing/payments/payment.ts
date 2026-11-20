@@ -106,6 +106,7 @@ export interface PaymentRepository {
   attachSubscription(id: string, subscriptionId: string): Promise<void>;
   releaseCompletion(id: string): Promise<void>;
   listPendingWithProviderOrder(limit: number): Promise<Payment[]>;
+  listPendingByAccount(accountId: string): Promise<Payment[]>;
   listBySubscription(subscriptionId: string): Promise<Payment[]>;
   getLatestCompletedByAccount(accountId: string): Promise<Payment | null>;
 }
@@ -249,6 +250,12 @@ export class InMemoryPaymentRepository implements PaymentRepository {
     return this.store
       .filter((payment) => payment.status === "pending" && payment.providerOrderId !== null)
       .slice(0, limit);
+  }
+
+  async listPendingByAccount(accountId: string): Promise<Payment[]> {
+    return this.store.filter(
+      (payment) => payment.accountId === accountId && payment.status === "pending",
+    );
   }
 
   async listBySubscription(subscriptionId: string): Promise<Payment[]> {
