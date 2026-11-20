@@ -44,6 +44,15 @@ export type ListInvoicesInput = {
   readonly offset: number;
 };
 
+/** Keys recovered by one archive attempt; `null` leaves the stored key untouched. */
+export type ArchiveAttemptUpdate = {
+  readonly id: string;
+  readonly accountId: string;
+  readonly xmlKey: string | null;
+  readonly pdfKey: string | null;
+  readonly attemptedAt: Date;
+};
+
 /** What the provider answered, already normalised by the port. */
 export type CancellationOutcomeUpdate = {
   readonly id: string;
@@ -97,6 +106,18 @@ export interface CfdiInvoiceRepository {
     substitutionUuid: string;
     updatedAt: Date;
   }): Promise<void>;
+  /**
+   * Settled invoices that still owe a fiscal archive: a provider id exists but
+   * the XML or the PDF key is missing. Oldest attempt first, so a batch cannot
+   * starve the same row on every run.
+   */
+  listMissingArchivesForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]>;
+  /**
+   * Records what one recovery attempt archived and stamps the attempt even when
+   * nothing was recovered, so a provider outage rotates the batch instead of
+   * pinning it. A null key never erases an existing archive.
+   */
+  recordArchiveAttempt(input: ArchiveAttemptUpdate): Promise<void>;
 }
 
 export interface CfdiDocumentStore {
@@ -110,6 +131,12 @@ export interface CfdiDocumentStore {
 export interface CfdiDocumentLinker {
   signedDownloadUrl(input: { key: string; fileName: string; contentType: string }): Promise<string>;
 }
+
+const ARCHIVABLE_STATUSES = new Set<CfdiInvoiceStatus>([
+  "issued",
+  "cancelled",
+  "cancellation_rejected",
+]);
 
 export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
   constructor(readonly rows: CfdiInvoice[] = []) {}
@@ -200,6 +227,30 @@ export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
 
     row.substitutionUuid = input.substitutionUuid;
     row.updatedAt = input.updatedAt;
+  }
+
+  async listMissingArchivesForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]> {
+    return this.rows
+      .filter(
+        (row) =>
+          ARCHIVABLE_STATUSES.has(row.status) &&
+          row.providerId !== null &&
+          (row.xmlKey === null || row.pdfKey === null),
+      )
+      .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime() || a.id.localeCompare(b.id))
+      .slice(0, input.limit);
+  }
+
+  async recordArchiveAttempt(input: ArchiveAttemptUpdate): Promise<void> {
+    const row = this.rows.find(
+      (candidate) => candidate.id === input.id && candidate.accountId === input.accountId,
+    );
+
+    if (row === undefined) return;
+
+    row.xmlKey = input.xmlKey ?? row.xmlKey;
+    row.pdfKey = input.pdfKey ?? row.pdfKey;
+    row.updatedAt = input.attemptedAt;
   }
 
   async create(input: NewCfdiInvoice): Promise<CfdiInvoice> {

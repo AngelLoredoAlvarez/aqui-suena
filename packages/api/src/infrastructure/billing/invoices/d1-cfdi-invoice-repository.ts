@@ -1,4 +1,5 @@
 import type {
+  ArchiveAttemptUpdate,
   CancellationOutcomeUpdate,
   CfdiCancellationMotive,
   CfdiInvoice,
@@ -189,6 +190,32 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
       .all();
 
     return results.results.map((row) => mapRow(row as CfdiInvoiceRow));
+  }
+
+  async listMissingArchivesForAllAccounts(input: { limit: number }): Promise<CfdiInvoice[]> {
+    const results = await this.db
+      .prepare(
+        `SELECT ${COLUMNS}
+        FROM cfdi_invoices
+        WHERE status IN ('issued', 'cancelled', 'cancellation_rejected') AND provider_id IS NOT NULL AND (xml_key IS NULL OR pdf_key IS NULL)
+        ORDER BY updated_at ASC, id ASC
+        LIMIT ?`,
+      )
+      .bind(input.limit)
+      .all();
+
+    return results.results.map((row) => mapRow(row as CfdiInvoiceRow));
+  }
+
+  async recordArchiveAttempt(input: ArchiveAttemptUpdate): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE cfdi_invoices
+        SET xml_key = COALESCE(?, xml_key), pdf_key = COALESCE(?, pdf_key), updated_at = ?
+        WHERE id = ? AND account_id = ?`,
+      )
+      .bind(input.xmlKey, input.pdfKey, toEpoch(input.attemptedAt), input.id, input.accountId)
+      .run();
   }
 
   async getByIdForAccount(accountId: string, id: string): Promise<CfdiInvoice | null> {

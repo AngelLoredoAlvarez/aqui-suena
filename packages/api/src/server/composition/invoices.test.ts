@@ -1,10 +1,12 @@
 import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/recover-missing-archives";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   createInvoiceSubstituter,
   createIssueInvoice,
+  createRecoverMissingArchives,
   type FacturamaEnv,
 } from "@aqui-suena/api/server/composition/invoices";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
@@ -76,6 +78,31 @@ describe("createIssueInvoice", () => {
     });
 
     expect(issueInvoice).toBeInstanceOf(IssueInvoice);
+  });
+});
+
+describe("createRecoverMissingArchives", () => {
+  function recoverSetup(
+    overrides: { facturama?: Partial<FacturamaEnv>; r2?: Partial<typeof r2> } = {},
+  ) {
+    return createRecoverMissingArchives({
+      db: new FakeD1Database().db,
+      facturama: { ...facturama, ...overrides.facturama },
+      r2: { ...r2, ...overrides.r2 },
+      fetch: async () => new Response(null, { status: 200 }),
+    });
+  }
+
+  it("builds the recovery job when the PAC and R2 are fully configured", () => {
+    expect(recoverSetup()).toBeInstanceOf(RecoverMissingArchives);
+  });
+
+  it("returns undefined without the PAC password", () => {
+    expect(recoverSetup({ facturama: { password: undefined } })).toBeUndefined();
+  });
+
+  it("returns undefined without R2 credentials", () => {
+    expect(recoverSetup({ r2: { accessKeyId: undefined } })).toBeUndefined();
   });
 });
 

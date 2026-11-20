@@ -69,6 +69,10 @@ class FakeInvoiceIssuer implements InvoiceIssuer {
 
     return this.pdf;
   }
+
+  async downloadXml(): Promise<string> {
+    throw new Error("IssueInvoice never downloads the XML back from the provider");
+  }
 }
 
 class FakeCfdiDocumentStore implements CfdiDocumentStore {

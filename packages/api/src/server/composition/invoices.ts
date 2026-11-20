@@ -10,6 +10,7 @@ import type {
 } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
+import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/recover-missing-archives";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";
@@ -250,6 +251,58 @@ export function createInvoiceSubstituter(
       return { uuid: invoice.uuid };
     },
   };
+}
+
+export type RecoverMissingArchivesCompositionOptions = {
+  readonly db: D1Database;
+  readonly facturama: FacturamaEnv;
+  readonly r2: R2Env;
+  readonly fetch?: typeof fetch;
+  readonly now?: () => Date;
+};
+
+/**
+ * Builds the fiscal-archive recovery sweep, or `undefined` when the deployment
+ * cannot reach the PAC or R2: recovering a document needs both ends.
+ */
+export function createRecoverMissingArchives(
+  options: RecoverMissingArchivesCompositionOptions,
+): RecoverMissingArchives | undefined {
+  const settings = facturamaSettings(options.facturama);
+
+  const { r2 } = options;
+
+  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+    return undefined;
+  }
+
+  const fetchFn = options.fetch ?? fetch;
+
+  return new RecoverMissingArchives({
+    invoices: new D1CfdiInvoiceRepository(options.db),
+    provider: new FacturamaInvoiceIssuer({
+      credentials: settings.credentials,
+      fiscal: settings.fiscal,
+      fetch: fetchFn,
+    }),
+    documents: new R2CfdiDocumentStore({
+      r2: {
+        accountId: r2.accountId,
+        accessKeyId: r2.accessKeyId,
+        secretAccessKey: r2.secretAccessKey,
+        bucketName: r2.bucketName ?? DEFAULT_BUCKET,
+        endpoint: r2.endpoint,
+      },
+      fetch: fetchFn,
+    }),
+    now: options.now,
+    onError: (error, invoiceId, stage) => {
+      console.error(`billing: CFDI ${stage} archive recovery failed`, {
+        invoiceId,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
+  });
 }
 
 export type CancellationChain = {

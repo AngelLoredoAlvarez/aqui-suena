@@ -95,6 +95,31 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
    * how a JSON document once ended up archived as a PDF.
    */
   async downloadPdf(providerId: string): Promise<Uint8Array> {
+    const content = await this.downloadFile("pdf", providerId);
+    const bytes = decodeBase64Bytes(content);
+
+    // A 200 with no file is not a PDF; treating it as success would ship a
+    // zero-byte attachment and a bogus R2 object.
+    if (bytes.length === 0) {
+      throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
+    }
+
+    return bytes;
+  }
+
+  async downloadXml(providerId: string): Promise<string> {
+    const content = await this.downloadFile("xml", providerId);
+
+    const xml = decodeBase64Text(content);
+
+    if (xml.length === 0) {
+      throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
+    }
+
+    return xml;
+  }
+
+  private async downloadFile(format: "pdf" | "xml", providerId: string): Promise<string> {
     const { credentials, fiscal } = this.deps;
     const type = DOWNLOAD_TYPES[fiscal.mode];
     // Workers rejects native fetch when it is invoked as a method (`obj.fetch()`).
@@ -102,7 +127,7 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
     const id = encodeURIComponent(providerId);
 
     const response = await fetchFn(
-      `${trimTrailingSlash(credentials.baseUrl)}${DOWNLOAD_ENDPOINT}/pdf/${type}/${id}`,
+      `${trimTrailingSlash(credentials.baseUrl)}${DOWNLOAD_ENDPOINT}/${format}/${type}/${id}`,
       {
         headers: {
           Accept: "application/json",
@@ -121,14 +146,6 @@ export class FacturamaInvoiceIssuer implements InvoiceIssuer {
       throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
     }
 
-    const bytes = decodeBase64Bytes(body.Content);
-
-    // A 200 with no file is not a PDF; treating it as success would ship a
-    // zero-byte attachment and a bogus R2 object.
-    if (bytes.length === 0) {
-      throw new InvoiceProviderRejection(MALFORMED_RESPONSE);
-    }
-
-    return bytes;
+    return body.Content;
   }
 }

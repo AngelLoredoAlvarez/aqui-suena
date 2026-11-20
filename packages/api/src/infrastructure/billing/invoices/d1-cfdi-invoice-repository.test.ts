@@ -254,6 +254,43 @@ describe("D1CfdiInvoiceRepository substitution", () => {
   });
 });
 
+describe("D1CfdiInvoiceRepository archive recovery", () => {
+  it("selects settled invoices with a provider id and a missing document, oldest first", async () => {
+    const db = new FakeD1Database(() => ({ all: [] }));
+
+    await new D1CfdiInvoiceRepository(db.db).listMissingArchivesForAllAccounts({ limit: 5 });
+
+    expect(normalizeSql(db.statements[0]?.sql)).toContain(
+      "WHERE status IN ('issued', 'cancelled', 'cancellation_rejected') AND provider_id IS NOT NULL AND (xml_key IS NULL OR pdf_key IS NULL) ORDER BY updated_at ASC, id ASC LIMIT ?",
+    );
+    expect(db.statements[0]?.params).toEqual([5]);
+  });
+
+  it("records only the recovered keys, leaving an archived one untouched", async () => {
+    const db = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+
+    await new D1CfdiInvoiceRepository(db.db).recordArchiveAttempt({
+      id: "inv-1",
+      accountId: "acc-1",
+      xmlKey: "cfdi/acc-1/recovered.xml",
+      pdfKey: null,
+      attemptedAt: new Date(1_700_000_000_000),
+    });
+
+    expect(normalizeSql(db.statements[0]?.sql)).toContain(
+      "SET xml_key = COALESCE(?, xml_key), pdf_key = COALESCE(?, pdf_key), updated_at = ?",
+    );
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE id = ? AND account_id = ?");
+    expect(db.statements[0]?.params).toEqual([
+      "cfdi/acc-1/recovered.xml",
+      null,
+      1_700_000_000,
+      "inv-1",
+      "acc-1",
+    ]);
+  });
+});
+
 describe("D1CfdiInvoiceRepository cancellation claim", () => {
   it("claims only a row that is still issued", async () => {
     const db = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));

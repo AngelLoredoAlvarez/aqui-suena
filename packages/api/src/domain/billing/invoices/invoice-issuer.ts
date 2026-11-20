@@ -35,6 +35,8 @@ export interface InvoiceIssuer {
   issue(request: IssueInvoiceRequest): Promise<IssuedCfdi>;
   /** PDF of an already stamped CFDI, addressed by the provider id. */
   downloadPdf(providerId: string): Promise<Uint8Array>;
+  /** Stamped XML, addressed by the provider id. */
+  downloadXml(providerId: string): Promise<string>;
 }
 
 /**

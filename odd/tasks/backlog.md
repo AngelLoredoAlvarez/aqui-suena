@@ -3,7 +3,11 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last synced 2026-11-18 against `main` at the `refactor/project-hygiene` merge (CFDI delivery by email with the PDF and XML attached, the PDF archived in R2, account provisioning and deletion shipped, the id input contract normalized, and the specs moved under `docs/specs`; the owner-portal invoice history and download surface is the newest tracked gap).
+Last full sync 2026-11-18 against `main` at the `refactor/project-hygiene` merge
+(CFDI delivery by email with the PDF and XML attached, the PDF archived in R2,
+account provisioning and deletion shipped, the id input contract normalized, and
+the specs moved under `docs/specs`; the owner-portal invoice history and download
+surface is the newest tracked gap). Later entries carry their own date.
 
 ## Production wiring (closed 2026-11-10)
 
@@ -259,9 +263,18 @@ explains.
       Worker, a missing archive answers `CONFLICT` and a foreign invoice answers
       `NOT_FOUND`. The portal UI that consumes it is still pending. Details:
       `odd/tasks/feat-invoice-history.md`.
-- [ ] Recover missing XML archives: when the R2 upload fails, the row is recorded
-      as `issued` with `xmlKey: null`. A job can re-fetch the XML by `providerId`.
-      The same applies to `pdfKey` now that it exists.
+- [x] Recover missing fiscal archives — DONE 2026-11-20
+      (`feat/recover-fiscal-archives`). When an archive upload fails, the row is
+      recorded as `issued` with `xmlKey`/`pdfKey` null but keeps its
+      `provider_id`. The fifteen-minute cron now selects settled rows
+      (`issued`, `cancelled`, `cancellation_rejected`) with a provider id and a
+      missing key, re-fetches only what is missing from the PAC file endpoint
+      (`/cfdi/xml|pdf/{issued|issuedLite}/{id}`), archives it in R2 and writes
+      only the recovered keys (`COALESCE`), so a partial recovery never erases
+      an existing archive. Every attempt is stamped even when nothing was
+      recovered, so a provider outage rotates the batch instead of starving the
+      rest. Unit-tested (adapter, repository, use case, composition, cron);
+      staging proof still needs a forced archive failure.
 - [x] Hono double logging — DONE 2026-11-17 (`fix/hono-double-logging`).
       `silentErrorHandler` in `server/http/observability.ts` answers a bare 500 and
       `createApp` registers it with `app.onError`, so Hono's built-in handler no
