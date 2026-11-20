@@ -98,8 +98,9 @@ the full gate. Commits only on explicit instruction.
 - **S9 — Emails.** A completed payment sends the receipt (template 7) with plan,
   amount, period and method. A pending cash/SPEI payment sends the reference or
   CLABE and its expiry; add a template if none exists. Renewal reminders use the
-  existing service; until the preference is persisted, every paid owner receives
-  them. A delivery failure is logged and never fails the payment request. The
+  existing service and the persisted `renewalRemindersEnabled` preference, which
+  defaults to true. A delivery failure is logged and never fails the payment
+  request. The
   cron invokes the reminder service for active subscriptions ending within seven
   days, skips deleted accounts, and a persistent log prevents duplicate
   reminders. Acceptance: template tests cover both languages and a deleted
@@ -318,3 +319,7 @@ the full gate. Commits only on explicit instruction.
   seven days, skips deleted accounts and uses the existing
   `RenewalReminderService`; `renewalRemindersEnabled` stays true until the
   preference is persisted.
+
+- 2026-11-19: `accounts.renewal_reminders_enabled` persists the owner preference
+  (migration `0009`). `account.getPreferences` and `account.updatePreferences`
+  expose it, and the cron passes the account flag to the reminder service.

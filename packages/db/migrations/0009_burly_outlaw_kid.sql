@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `renewal_reminders_enabled` integer DEFAULT true NOT NULL;

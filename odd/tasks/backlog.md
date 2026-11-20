@@ -455,8 +455,10 @@ and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is se
       `ProcessRenewalReminders` processes active subscriptions ending within seven
       days, skips deleted accounts, and uses the D1 `subscription_reminders` log
       (migration `0008`) to prevent duplicates.
-- [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral
-      below). The reminder sweep is wired; the preference remains default true.
+- [x] Persist `renewalRemindersEnabled` — DONE 2026-11-19:
+      `accounts.renewal_reminders_enabled` defaults to true (migration `0009`);
+      `account.getPreferences` and `account.updatePreferences` expose it, and the
+      renewal sweep passes the account flag to the reminder service.
 - [x] CFDI email — DONE 2026-11-18 (`feat/cfdi-email`). `TemplateCfdiNotifier`
       delivers template 8 with the provider PDF and the archived XML attached;
       `IssueInvoice` archives the PDF beside the XML (`cfdi_invoices.pdf_key`,
@@ -471,8 +473,8 @@ and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is se
 ## Deferred (account preferences — revisit on the third preference)
 
 - Account preferences table (`account_preferences`). DEFERRED: `accounts` holds one
-  persisted preference (`locale`) and `renewalRemindersEnabled` is specified but not
-  persisted yet. A key/value table would lose type safety to solve a problem that does
+  persisted preferences (`locale`, `renewalRemindersEnabled`). A key/value table
+  would lose type safety to solve a problem that does
   not exist, and adding a column here is a cheap additive change (drizzle-diffed
   `ALTER TABLE`, no rewrite). Revisit when any of these holds: a third persisted
   preference; notification consent needs an audit trail (LFPDPPP) recording when and

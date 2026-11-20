@@ -39,6 +39,9 @@ export class ProcessRenewalReminders {
           now,
           recipientEmail: account.email,
           locale: account.locale,
+          preferences: {
+            renewalRemindersEnabled: account.renewalRemindersEnabled ?? true,
+          },
         });
 
         processed += 1;

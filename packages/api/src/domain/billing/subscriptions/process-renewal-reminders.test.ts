@@ -39,7 +39,12 @@ function setup(options: {
 }) {
   const calls: Array<{
     subscriptionId: string;
-    options: { now: Date; recipientEmail: string; locale?: string };
+    options: {
+      now: Date;
+      recipientEmail: string;
+      locale?: string;
+      preferences?: { renewalRemindersEnabled: boolean };
+    };
   }> = [];
   const errors: Array<{ message: string; subscriptionId: string }> = [];
   let listArgs: { deadline: Date; limit: number } | undefined;
@@ -47,7 +52,12 @@ function setup(options: {
   const reminders = {
     async processSubscription(
       subscriptionId: string,
-      processOptions: { now: Date; recipientEmail: string; locale?: string },
+      processOptions: {
+        now: Date;
+        recipientEmail: string;
+        locale?: string;
+        preferences?: { renewalRemindersEnabled: boolean };
+      },
     ): Promise<[]> {
       if (options.reminderErrorFor === subscriptionId) {
         throw new Error("mail down");
@@ -106,17 +116,37 @@ describe("ProcessRenewalReminders", () => {
     expect(calls).toEqual([
       {
         subscriptionId: "sub-1",
-        options: { now: NOW, recipientEmail: "acc-1@example.com", locale: "es-MX" },
+        options: {
+          now: NOW,
+          recipientEmail: "acc-1@example.com",
+          locale: "es-MX",
+          preferences: { renewalRemindersEnabled: true },
+        },
       },
       {
         subscriptionId: "sub-4",
-        options: { now: NOW, recipientEmail: "acc-4@example.com", locale: "es-MX" },
+        options: {
+          now: NOW,
+          recipientEmail: "acc-4@example.com",
+          locale: "es-MX",
+          preferences: { renewalRemindersEnabled: true },
+        },
       },
     ]);
     expect(listArgs()).toEqual({
       deadline: new Date(NOW.getTime() + 7 * DAY_MS),
       limit: 2,
     });
+  });
+
+  it("forwards a disabled reminder preference", async () => {
+    const { sweep, calls } = setup({
+      subscriptions: [subscription("sub-1", "acc-1")],
+      accounts: [account("acc-1", { renewalRemindersEnabled: false })],
+    });
+
+    expect(await sweep.execute()).toBe(1);
+    expect(calls[0]?.options.preferences).toEqual({ renewalRemindersEnabled: false });
   });
 
   it("logs a reminder failure and continues with the next subscription", async () => {
