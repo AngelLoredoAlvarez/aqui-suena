@@ -74,7 +74,7 @@ Node server has no mail transport and leaves them unconfigured.
   service.
 - Account lifecycle: `TemplateAccountNotifier` — verify-email, welcome.
 - Payments: `TemplatePaymentNotifier` — receipt after a completed charge and
-  instructions for a pending OXXO/SPEI/3DS payment.
+  instructions for a pending cash/SPEI/3DS payment.
 - Fiscal: `TemplateCfdiNotifier` — `invoice-cfdi` with the stamped XML and optional
   PDF attached.
 

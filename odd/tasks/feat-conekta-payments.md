@@ -1,6 +1,6 @@
 # Feature: Conekta payments (one-off charges with a local renewal scheduler)
 
-Objective: a verified owner can pay a paid plan with card, OXXO or SPEI, and the
+Objective: a verified owner can pay a paid plan with card, cash (Conekta Efectivo) or SPEI, and the
 subscription activates or renews only when Conekta confirms the charge. Each
 period is charged on demand by our own scheduler; D1 remains the source of
 truth. Branch `feat/conekta-payments`; delivery in work-unit commits and pull
@@ -19,11 +19,11 @@ the full gate. Commits only on explicit instruction.
   tests pin both.
 - **S2 — One-off charges, local scheduler.** Every billing period is a separate
   payment intent. The project never calls Conekta subscription or recurring
-  endpoints. Card, OXXO and SPEI are supported. Acceptance: no Conekta
+  endpoints. Card, cash (Conekta Efectivo) and SPEI are supported. Acceptance: no Conekta
   subscription call exists, and every period is identifiable by
   `period_start`/`period_end` and a unique idempotency key.
 - **S3 — Checkout surface.** `billing.checkout.create` is a protected mutation
-  with `{ planId, interval: "monthly" | "annual", method: "card" | "oxxo" |
+  with `{ planId, interval: "monthly" | "annual", method: "card" | "cash" |
   "spei", cardToken?, idempotencyKey }`. The card number and CVV never reach the
   server: the client tokenizes with the Conekta public key and sends the
   one-use token. The response is `{ paymentId, status, nextActionUrl?,
@@ -69,11 +69,11 @@ the full gate. Commits only on explicit instruction.
   Refresh: up to five `pending` payments with a provider order are queried and
   completed or expired. Renew: up to five active paid subscriptions ending within
   the lead window get a payment for the next period. Lead is three days for card
-  and seven days for OXXO/SPEI. A saved card is charged automatically; a 3DS
+  and seven days for cash/SPEI. A saved card is charged automatically; a 3DS
   challenge leaves a pending payment and an email with the link; a decline is
-  retried up to three times. Without a saved card, the sweep creates an OXXO or
+  retried up to three times. Without a saved card, the sweep creates a cash or
   SPEI reference expiring at `endsAt + 7 days`; the method is the last completed
-  payment's method, with OXXO as the default. Deleted accounts are skipped. The
+  payment's method, with cash as the default. Deleted accounts are skipped. The
   idempotency key is `sub:<subscriptionId>:<periodStart>:<attempt>`, so repeated
   runs never create a second charge for the same period. At `endsAt` without
   payment the existing `failRenewal` enters grace; at `graceEnd` the existing
@@ -94,7 +94,7 @@ the full gate. Commits only on explicit instruction.
   the migration drift check is clean, and the staging row count is checked before
   applying.
 - **S9 — Emails.** A completed payment sends the receipt (template 7) with plan,
-  amount, period and method. A pending OXXO/SPEI payment sends the reference or
+  amount, period and method. A pending cash/SPEI payment sends the reference or
   CLABE and its expiry; add a template if none exists. Renewal reminders use the
   existing service; until the preference is persisted, every paid owner receives
   them. A delivery failure is logged and never fails the payment request.
@@ -119,7 +119,7 @@ the full gate. Commits only on explicit instruction.
 - **S12 — Verification.** Unit tests cover the domain with a fake provider and
   clock; the webhook with signed fixtures; the adapter with a mocked `fetch`; the
   database with real SQLite (migration, CAS, unique keys). The sandbox probe
-  covers an approved card, a declined card, a 3DS challenge, OXXO and SPEI
+  covers an approved card, a declined card, a 3DS challenge, cash and SPEI
   simulation, expiry, and cleanup of rows, objects and test users. The full gate
   is `pnpm test`, `pnpm typecheck`, `biome check` and `pnpm arch`.
 - **S13 — Out of scope.** Signup and the owner portal UI, refunds and chargeback
@@ -141,7 +141,7 @@ the full gate. Commits only on explicit instruction.
 - **T4** — Subscription interval generalization, `renew`, the
   `PaymentSubscriptionWriter` adapter and regression tests (S6). Route: inline.
   DONE 2026-11-19 (pending review).
-- **T5** — Conekta adapter: orders for card/OXXO/SPEI, customer and card source,
+- **T5** — Conekta adapter: orders for card/cash/SPEI, customer and card source,
   order lookup, error mapping (S2, S3). Extends the provider port with
   `createCardSource`, `CardSource` and `CardDetails`. Route: inline. DONE
   2026-11-19 (pending review).
@@ -170,7 +170,7 @@ the full gate. Commits only on explicit instruction.
 - 2026-11-19: pricing closed at `$99/$149` with IVA included; the catalog and the
   CFDI gross breakdown are implemented and tested.
 - 2026-11-19: payment model decided as one-off Conekta charges with a local
-  scheduler; card, OXXO and SPEI; no Conekta subscriptions.
+  scheduler; card, cash (Conekta Efectivo) and SPEI; no Conekta subscriptions.
 - 2026-11-19: Conekta test keys stored in Infisical (`dev`, `staging`) and as
   staging Worker secrets; `.env.schema` declares both keys.
 - 2026-11-19: T1 written. T2 adds the schema and migration `0006`; verified
@@ -191,7 +191,7 @@ the full gate. Commits only on explicit instruction.
   Verification: billing tests 299/299, API suite 1029/1029, typecheck 7/7,
   biome clean, arch 402 modules. Uncommitted pending review.
 - 2026-11-19: T5 adds `ConektaPaymentProvider`: orders for card (token or saved
-  source), OXXO and SPEI, 3DS `next_action`, order lookup, customer/card-source
+  source), cash and SPEI, 3DS `next_action`, order lookup, customer/card-source
   creation and provider error mapping. The provider port gains
   `createCardSource`, `CardSource` and `CardDetails`; the fake implements it.
   Verification: adapter 14/14, API suite 1043/1043, typecheck 7/7, biome clean.
@@ -229,7 +229,7 @@ the full gate. Commits only on explicit instruction.
   `payment-pending` is new in both locales. `IssueInvoice` now invoices the
   latest completed payment: it rejects an account without one, uses the paid
   amount, plan and interval, stamps `payment_id` on issued and failed rows, and
-  sends `PUE` with the SAT form (`04` card, `01` OXXO, `03` SPEI). The invoice
+  sends `PUE` with the SAT form (`04` card, `01` cash (Conekta Efectivo), `03` SPEI). The invoice
   composition builds the payment repository from D1 and no longer reads the
   active subscription. Verification: API suite 1122/1122, all-package
   typecheck 7/7, biome clean, arch 421 modules. Uncommitted pending review.
@@ -271,13 +271,13 @@ the full gate. Commits only on explicit instruction.
 - 2026-11-19: The OXXO blocker was the old type, not a missing provider.
   Conekta rebranded OXXO Pay as Conekta Efectivo and now accepts
   `payment_method.type = "cash"`; `oxxo_cash` answers `422 provider_not_found`.
-  The adapter now sends `cash` for the `oxxo` method (test updated). Deployed
+  The adapter now sends `cash` for the cash method (test updated). Deployed
   version `1de76226`. A real checkout produced reference
   `10001109036270656606`; the sandbox auto-paid the order after about thirty
   seconds, `order.paid` and `charge.paid` completed the payment, activated
   `trades`, and Resend delivered both the pending and receipt emails. The
-  product label still says "OXXO"; switching it to "Efectivo" is a copy decision
-  tracked in the backlog. Verification after the change: API suite 1127/1127,
+  product label still said "OXXO" at that point; the follow-up switched it to
+  "Efectivo". Verification after the change: API suite 1127/1127,
   typecheck 7/7, biome clean, arch 421 modules.
 
 - 2026-11-19: The RDD review found a blocker in the T10 completion reorder: a
@@ -289,3 +289,10 @@ the full gate. Commits only on explicit instruction.
   D1 release query. The native review could not finish: the OpenCode transport
   refused the refuter capture (`no Go-owned role capture contract`), so the
   review authority remains non-terminal and no approval is claimed.
+
+- 2026-11-19: the cash method is now `cash` end to end. The user-facing copy
+  says "Efectivo" (es-MX) and "Cash" (en); the domain method, API picklist, DB
+  enum, provider mapping, tests and docs use `cash`. Migration
+  `0007_cash_payment_method.sql` backfills existing `oxxo` rows to `cash`.
+  Historical log entries keep the old provider name only to explain the
+  rebrand.
