@@ -56,7 +56,7 @@ type ConektaCustomer = {
 
 type ConektaError = {
   message?: string;
-  details?: Array<{ message?: string; debug_message?: string }>;
+  details?: Array<{ message?: string; debug_message?: string; code?: string }>;
 };
 
 export type ConektaPaymentProviderDependencies = {
@@ -128,8 +128,14 @@ export class ConektaPaymentProvider implements PaymentProvider {
     });
 
     // A declined card is a business outcome, not a transport failure: Conekta
-    // answers 402 with the decline detail and no order to map.
-    if (!response.ok && response.status === 402 && input.method === "card") {
+    // answers 402 with a bank decline code and no order to map. Other 402
+    // processing errors, such as a used token, stay provider rejections.
+    if (
+      !response.ok &&
+      response.status === 402 &&
+      input.method === "card" &&
+      isDeclineCode(errorCode(response.body))
+    ) {
       return {
         providerOrderId: null,
         providerChargeId: null,
@@ -301,4 +307,14 @@ function errorDetail(body: unknown): string | null {
   const detail = error.details?.[0];
 
   return detail?.message ?? error.message ?? detail?.debug_message ?? null;
+}
+
+function errorCode(body: unknown): string | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  return (body as ConektaError).details?.[0]?.code ?? null;
+}
+
+function isDeclineCode(code: string | null): boolean {
+  return code?.startsWith("conekta.errors.processing.bank.") === true;
 }

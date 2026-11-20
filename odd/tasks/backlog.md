@@ -176,11 +176,12 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       tests and docs use `cash`; user-facing copy says "Efectivo" (es-MX) and
       "Cash" (en). Migration `0007_cash_payment_method.sql` backfills existing
       `oxxo` rows.
-- [ ] Distinguish card 402 decline bodies from other card 402 failures —
-      2026-11-19: the adapter maps every card-method 402 to a declined charge.
-      A 402 caused by a token or field validation failure would be reported as
-      a customer decline instead of a provider rejection. Inspect the error code
-      before deciding.
+- [x] Distinguish card 402 decline bodies from other card 402 failures — DONE
+      2026-11-19: only 402 responses with a `conekta.errors.processing.bank.*`
+      code are mapped to a declined charge. Tokenization or validation 402s and
+      responses without a decline code remain provider rejections. Tests cover
+      `bank.declined`, `bank.insufficient_funds`, `tokenization.used` and a
+      missing code.
 - [ ] Preserve paid time when a pending lower-tier payment completes after a
       higher-tier payment — 2026-11-19: the API allows one open intent per
       plan + interval + method, so a pending SPEI/cash reference and a card
