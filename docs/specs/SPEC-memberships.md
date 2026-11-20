@@ -190,6 +190,7 @@ Conventions: single `entitlements.get(accountId)` resolver per account consumed 
 - The billing page defaults to annual billing with a monthly/annual toggle, highlights the annual savings as "2 meses gratis", and allows changing the billing period before payment.
 - The system sends renewal and expiration reminders: 7 days before charge, 1 day before charge, immediately on failed payment, and when a plan downgrades; non-critical reminders can be disabled by the owner.
 - Reminder timing counts UTC calendar days, not elapsed 24-hour blocks, so a seven-calendar-day window that crosses a DST transition still fires `renewal_7d`.
+- The reminder sweep reads only subscriptions with a reminder due in the current UTC day window: a recorded 7-day reminder removes the subscription from the batch until its 1-day window opens, and deleted accounts plus owners with reminders disabled are excluded in the query. A five-row batch therefore cannot starve subscriptions behind it.
 - Abuse prevention for the free plan requires email verification, phone verification before publishing, duplicate-account detection by email/phone/device, and manual review for suspicious signup patterns.
 - Owner onboarding uses an informational, non-blocking checklist: business name/category, phone/WhatsApp, address/hours, flyer upload, open/closed status, and plan-specific services/gallery/catalog steps. Steps are marked automatically and the checklist can be hidden when complete.
 
