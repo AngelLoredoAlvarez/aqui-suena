@@ -376,6 +376,20 @@ describe("PaymentService.create", () => {
   });
 });
 
+describe("PaymentService.hasPendingForOtherPlan", () => {
+  it("detects a pending payment for another plan", async () => {
+    const { provider, service } = setup();
+    const pending = await createPendingCash(service, provider);
+
+    expect(await service.hasPendingForOtherPlan("acc-1", "commerce", NOW)).toBe(true);
+    expect(await service.hasPendingForOtherPlan("acc-1", "trades", NOW)).toBe(false);
+
+    pending.expiresAt = new Date(NOW.getTime() - 1000);
+
+    expect(await service.hasPendingForOtherPlan("acc-1", "commerce", NOW)).toBe(false);
+  });
+});
+
 describe("PaymentService.complete", () => {
   it("activates the subscription and records it on the payment", async () => {
     const { provider, writer, service } = setup();

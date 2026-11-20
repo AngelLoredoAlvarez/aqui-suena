@@ -30,9 +30,11 @@ the full gate. Commits only on explicit instruction.
   reference?, expiresAt? }`. `billing.payments.get({ id })` returns the same
   status and payload for the owning account. A third parameter of the plan
   (annual) selects the annual price. Acceptance: one open intent per
-  account + plan + interval + method, a repeated idempotency key returns the
-  existing intent, foreign intents answer `NOT_FOUND`, and an unconfigured
-  provider answers `503 SERVICE_UNAVAILABLE`. The mutation also accepts
+  account + plan + interval + method, a new checkout for a different plan is
+  rejected while a payment for another plan is pending (expired pending
+  payments do not block), a repeated idempotency key returns the existing
+  intent, foreign intents answer `NOT_FOUND`, and an unconfigured provider
+  answers `503 SERVICE_UNAVAILABLE`. The mutation also accepts
   `customerName` and an optional `customerPhone`; the account email is the
   customer email. A card without a token uses the account's saved card, and a
   card with a token creates or refreshes the saved card. The 3DS return URL is
@@ -303,3 +305,7 @@ the full gate. Commits only on explicit instruction.
   (`af37e72`); `deploy-api` applied `0007`, and the staging smoke passed for
   `cash` and SPEI with Efectivo/Cash emails. The native review successor remains
   non-terminal; no approval is claimed.
+
+- 2026-11-19: checkout now rejects a new plan while a payment for another plan
+  is pending; same-plan checkouts remain allowed and expired pending payments
+  are ignored.

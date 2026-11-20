@@ -198,6 +198,19 @@ export class D1PaymentRepository implements PaymentRepository {
       .run();
   }
 
+  async listPendingByAccount(accountId: string): Promise<Payment[]> {
+    const result = await this.db
+      .prepare(
+        `SELECT ${COLUMNS} FROM payments
+        WHERE account_id = ? AND status = 'pending'
+        ORDER BY created_at ASC`,
+      )
+      .bind(accountId)
+      .all();
+
+    return result.results.map((row) => this.mapRow(row as PaymentRow));
+  }
+
   async listPendingWithProviderOrder(limit: number): Promise<Payment[]> {
     const result = await this.db
       .prepare(

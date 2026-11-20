@@ -22,7 +22,7 @@ const REFERENCE_TTL_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type CheckoutServiceDependencies = {
-  readonly payments: Pick<PaymentService, "create">;
+  readonly payments: Pick<PaymentService, "create" | "hasPendingForOtherPlan">;
   readonly subscriptions: Pick<SubscriptionRepository, "getActive">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly accounts: Pick<AccountRepository, "getSavedCard">;
@@ -50,6 +50,13 @@ export class CheckoutService {
   async execute(input: CheckoutInput): Promise<Payment> {
     const now = this.currentDate();
     const plan = await this.requireBillablePlan(input.planId);
+
+    if (await this.deps.payments.hasPendingForOtherPlan(input.accountId, input.planId, now)) {
+      throw new ConflictError(
+        "A payment for another plan is pending; finish it or wait for it to expire before changing plans",
+      );
+    }
+
     const current = await this.deps.subscriptions.getActive(input.accountId, now);
     const period = await this.resolvePeriod(input, plan, current, now);
 

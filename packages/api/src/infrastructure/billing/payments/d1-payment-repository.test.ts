@@ -250,6 +250,18 @@ describe("D1PaymentRepository", () => {
     expect(fake.statements[0]?.params).toEqual([expect.any(Number), "pay-1"]);
   });
 
+  it("lists pending payments for an account", async () => {
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repo = new D1PaymentRepository(fake.db);
+
+    const payments = await repo.listPendingByAccount("acc-1");
+
+    expect(payments).toHaveLength(1);
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("account_id = ?");
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("status = 'pending'");
+    expect(fake.statements[0]?.params).toEqual(["acc-1"]);
+  });
+
   it("lists pending payments with a provider order up to the limit", async () => {
     const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
     const repo = new D1PaymentRepository(fake.db);

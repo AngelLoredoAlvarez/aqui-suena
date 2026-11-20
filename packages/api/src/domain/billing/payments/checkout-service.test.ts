@@ -72,11 +72,16 @@ function buildPayment(input: CreatePaymentInput): Payment {
 
 class FakePayments {
   readonly inputs: CreatePaymentInput[] = [];
+  pendingForOtherPlan = false;
 
   async create(input: CreatePaymentInput): Promise<Payment> {
     this.inputs.push(input);
 
     return buildPayment(input);
+  }
+
+  async hasPendingForOtherPlan(): Promise<boolean> {
+    return this.pendingForOtherPlan;
   }
 }
 
@@ -111,6 +116,17 @@ function setup(options: { current?: Subscription[]; currentAccount?: Account } =
 }
 
 describe("CheckoutService", () => {
+  it("rejects a new plan while another plan is pending", async () => {
+    const { payments, service } = setup();
+
+    payments.pendingForOtherPlan = true;
+
+    await expect(service.execute(baseInput({ planId: "commerce" }))).rejects.toBeInstanceOf(
+      ConflictError,
+    );
+    expect(payments.inputs).toHaveLength(0);
+  });
+
   it("starts a new period at now for a new account", async () => {
     const { payments, service } = setup();
 

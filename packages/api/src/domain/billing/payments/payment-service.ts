@@ -203,6 +203,21 @@ export class PaymentService {
     return this.requirePayment(payment.id);
   }
 
+  async hasPendingForOtherPlan(
+    accountId: string,
+    planId: PlanId,
+    now: Date = this.currentDate(),
+  ): Promise<boolean> {
+    const pending = await this.deps.payments.listPendingByAccount(accountId);
+
+    return pending.some(
+      (payment) =>
+        payment.planId !== null &&
+        payment.planId !== planId &&
+        (payment.expiresAt === null || payment.expiresAt > now),
+    );
+  }
+
   async complete(paymentId: string, paidAt: Date = this.currentDate()): Promise<Payment> {
     const payment = await this.requirePayment(paymentId);
     const now = this.currentDate();
