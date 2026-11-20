@@ -22,7 +22,7 @@ const baseVars: EmailTemplateVars = {
   recommendedPlan: "Comercios & Catálogo",
   verifyUrl: "https://aquisuena.mx/verificar?token=abc123",
   downloadUrl: "https://aquisuena.mx/cuenta/facturas/A-000123",
-  method: "OXXO",
+  method: "Efectivo",
   reference: "1234567890",
   expiresAt: "26 de noviembre de 2026",
   actionUrl: "https://aquisuena.mx/cuenta/suscripcion",

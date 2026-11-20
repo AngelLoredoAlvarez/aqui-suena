@@ -211,11 +211,11 @@ describe("CheckoutService", () => {
     });
   });
 
-  it("sets a seven-day reference expiry for OXXO and SPEI", async () => {
+  it("sets a seven-day reference expiry for cash and SPEI", async () => {
     const { payments, service } = setup();
     const expiresAt = new Date(NOW.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    await service.execute(baseInput({ method: "oxxo", cardToken: undefined }));
+    await service.execute(baseInput({ method: "cash", cardToken: undefined }));
     await service.execute(
       baseInput({ method: "spei", cardToken: undefined, idempotencyKey: "idem-2" }),
     );

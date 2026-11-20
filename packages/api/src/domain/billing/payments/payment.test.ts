@@ -60,12 +60,12 @@ describe("parsePaymentStatus", () => {
 describe("payment enum parsers", () => {
   it("accepts every payment method", () => {
     expect(parsePaymentMethod("card")).toBe("card");
-    expect(parsePaymentMethod("oxxo")).toBe("oxxo");
+    expect(parsePaymentMethod("cash")).toBe("cash");
     expect(parsePaymentMethod("spei")).toBe("spei");
   });
 
   it("rejects an unknown payment method", () => {
-    expect(() => parsePaymentMethod("cash")).toThrow(DataIntegrityError);
+    expect(() => parsePaymentMethod("unknown")).toThrow(DataIntegrityError);
   });
 
   it("accepts both billing intervals", () => {

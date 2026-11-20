@@ -11,7 +11,7 @@ function newPayment(key: string): NewPayment {
     accountId: "acc-1",
     planId: "trades",
     billingInterval: "monthly",
-    method: "oxxo",
+    method: "cash",
     idempotencyKey: key,
     amount: 9900,
     currency: "MXN",

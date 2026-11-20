@@ -102,17 +102,17 @@ function setup(
   return { payments, provider, writer, notifier, deliveryErrors, service };
 }
 
-async function createPendingOxxo(
+async function createPendingCash(
   service: PaymentService,
   provider: FakePaymentProvider,
-  key = "idem-oxxo",
+  key = "idem-cash",
 ): Promise<Payment> {
   provider.result = pendingResult("ref-1", new Date("2026-11-26T12:00:00Z"));
 
   return service.create(
     baseInput({
       idempotencyKey: key,
-      method: "oxxo",
+      method: "cash",
       cardToken: undefined,
     }),
   );
@@ -155,7 +155,7 @@ describe("PaymentService.create", () => {
     expect((await payments.getById(payment.id))?.subscriptionId).toBe("sub-1");
   });
 
-  it("charges the annual price and keeps an OXXO payment pending", async () => {
+  it("charges the annual price and keeps a cash payment pending", async () => {
     const { provider, writer, service } = setup();
 
     provider.result = pendingResult("ref-annual", new Date("2026-12-26T12:00:00Z"));
@@ -163,7 +163,7 @@ describe("PaymentService.create", () => {
     const payment = await service.create(
       baseInput({
         billingInterval: "annual",
-        method: "oxxo",
+        method: "cash",
         cardToken: undefined,
         periodEnd: ANNUAL_END,
       }),
@@ -171,7 +171,7 @@ describe("PaymentService.create", () => {
 
     expect(payment).toMatchObject({
       billingInterval: "annual",
-      method: "oxxo",
+      method: "cash",
       amount: 99000,
       status: "pending",
       reference: "ref-annual",
@@ -285,11 +285,11 @@ describe("PaymentService.create", () => {
   it("returns the open intent instead of creating a second one", async () => {
     const { provider, service } = setup();
 
-    const first = await createPendingOxxo(service, provider);
+    const first = await createPendingCash(service, provider);
     const second = await service.create(
       baseInput({
-        idempotencyKey: "idem-oxxo-2",
-        method: "oxxo",
+        idempotencyKey: "idem-cash-2",
+        method: "cash",
         cardToken: undefined,
       }),
     );
@@ -306,7 +306,7 @@ describe("PaymentService.create", () => {
     const expired = await service.create(
       baseInput({
         idempotencyKey: "idem-old",
-        method: "oxxo",
+        method: "cash",
         cardToken: undefined,
       }),
     );
@@ -316,7 +316,7 @@ describe("PaymentService.create", () => {
     const replacement = await service.create(
       baseInput({
         idempotencyKey: "idem-new",
-        method: "oxxo",
+        method: "cash",
         cardToken: undefined,
       }),
     );
@@ -350,7 +350,7 @@ describe("PaymentService.create", () => {
 
     const payment = await service.create(
       baseInput({
-        method: "oxxo",
+        method: "cash",
         cardToken: undefined,
       }),
     );
@@ -379,7 +379,7 @@ describe("PaymentService.create", () => {
 describe("PaymentService.complete", () => {
   it("activates the subscription and records it on the payment", async () => {
     const { provider, writer, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     const completed = await service.complete(pending.id);
 
@@ -410,7 +410,7 @@ describe("PaymentService.complete", () => {
 
   it("activates the subscription once when two completions race", async () => {
     const { payments, provider, writer, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     await Promise.all([service.complete(pending.id), service.complete(pending.id)]);
 
@@ -420,7 +420,7 @@ describe("PaymentService.complete", () => {
 
   it("releases the claim when activation fails so a retry can complete", async () => {
     const { payments, provider, writer, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     writer.error = new Error("subscription store failed");
 
@@ -439,7 +439,7 @@ describe("PaymentService.complete", () => {
 
   it("repairs a completed payment without a subscription after the delay", async () => {
     const { payments, provider, writer, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     await payments.claimCompletion(pending.id, NOW);
 
@@ -491,9 +491,9 @@ describe("PaymentService notifications", () => {
     });
   });
 
-  it("emails the reference and expiry of a pending OXXO payment", async () => {
+  it("emails the reference and expiry of a pending cash payment", async () => {
     const { provider, notifier, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     expect(notifier.calls).toHaveLength(1);
     expect(notifier.calls[0]).toMatchObject({
@@ -502,7 +502,7 @@ describe("PaymentService notifications", () => {
       data: {
         paymentId: pending.id,
         planName: "Oficios & Servicios",
-        method: "oxxo",
+        method: "cash",
         amountMinorUnits: 9900,
         currency: "MXN",
         reference: "ref-1",
@@ -556,7 +556,7 @@ describe("PaymentService notifications", () => {
 describe("PaymentService.fail and expire", () => {
   it("marks a pending payment failed", async () => {
     const { provider, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     const failed = await service.fail(pending.id, "owner_cancelled");
 
@@ -566,7 +566,7 @@ describe("PaymentService.fail and expire", () => {
 
   it("marks a pending payment expired", async () => {
     const { provider, service } = setup();
-    const pending = await createPendingOxxo(service, provider);
+    const pending = await createPendingCash(service, provider);
 
     const expired = await service.expire(pending.id);
 

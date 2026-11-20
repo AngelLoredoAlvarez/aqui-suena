@@ -54,7 +54,7 @@ function payment(overrides: Partial<Payment> = {}): Payment {
     subscriptionId: "sub-1",
     planId: "trades",
     billingInterval: "monthly",
-    method: "oxxo",
+    method: "cash",
     provider: "conekta",
     providerOrderId: "ord-old",
     providerChargeId: null,

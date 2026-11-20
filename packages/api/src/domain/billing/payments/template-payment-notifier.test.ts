@@ -78,7 +78,7 @@ describe("TemplatePaymentNotifier", () => {
       {
         paymentId: "pay-1",
         planName: "Oficios & Servicios",
-        method: "oxxo",
+        method: "cash",
         amountMinorUnits: 9900,
         currency: "MXN",
         reference: "1234567890",
@@ -91,7 +91,7 @@ describe("TemplatePaymentNotifier", () => {
       to: "owner@example.com",
       subject: "Completa tu pago — Aquí Suena",
     });
-    expect(emailSender.sent[0]?.html).toContain("OXXO");
+    expect(emailSender.sent[0]?.html).toContain("Efectivo");
     expect(emailSender.sent[0]?.html).toContain("1234567890");
     expect(emailSender.sent[0]?.html).toContain("$99.00 MXN");
     expect(emailSender.sent[0]?.html).toContain('href="https://aquisuena.mx/cuenta/suscripcion"');

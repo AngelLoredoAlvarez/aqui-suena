@@ -12,7 +12,7 @@ export const PAYMENT_STATUSES = ["pending", "completed", "failed", "expired", "r
 
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-export const PAYMENT_METHODS = ["card", "oxxo", "spei"] as const;
+export const PAYMENT_METHODS = ["card", "cash", "spei"] as const;
 
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 

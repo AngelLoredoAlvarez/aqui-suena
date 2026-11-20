@@ -268,7 +268,7 @@ describe("IssueInvoice", () => {
     const { issueInvoice, issuer, notifier } = setup({
       payment: completedPayment({
         billingInterval: "annual",
-        method: "oxxo",
+        method: "cash",
         amount: 99000,
       }),
     });
