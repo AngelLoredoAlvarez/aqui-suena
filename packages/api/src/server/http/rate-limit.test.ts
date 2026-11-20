@@ -1,5 +1,5 @@
 import { createApp } from "@aqui-suena/api/server/http/app";
-import { rateLimitKey } from "@aqui-suena/api/server/http/rate-limit";
+import { isRateLimited, rateLimitKey } from "@aqui-suena/api/server/http/rate-limit";
 import { describe, expect, it } from "vitest";
 
 describe("rateLimitKey", () => {
@@ -45,5 +45,21 @@ describe("rate limiting middleware", () => {
     const response = await app.request("https://api.test/health");
 
     expect(response.status).toBe(200);
+  });
+});
+
+describe("isRateLimited", () => {
+  it("is false when no limiter is wired", async () => {
+    expect(await isRateLimited(undefined, new Request("https://api.test/"))).toBe(false);
+  });
+
+  it("is true when the limiter refuses", async () => {
+    const limiter = { limit: async () => ({ success: false }) };
+    expect(await isRateLimited(limiter, new Request("https://api.test/"))).toBe(true);
+  });
+
+  it("is false when the limiter allows", async () => {
+    const limiter = { limit: async () => ({ success: true }) };
+    expect(await isRateLimited(limiter, new Request("https://api.test/"))).toBe(false);
   });
 });
