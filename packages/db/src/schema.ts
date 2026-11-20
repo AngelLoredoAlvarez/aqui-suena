@@ -337,8 +337,9 @@ export const media = sqliteTable("media", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => accounts.id),
+  businessId: text("business_id").references(() => businesses.id),
   kind: text("kind").notNull(), // "product-photo" | "flyer" | "spot-audio" | "avatar"
-  r2Key: text("r2_key").notNull(),
+  r2Key: text("r2_key").notNull().unique(),
   mime: text("mime").notNull(),
   size: integer("size").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })

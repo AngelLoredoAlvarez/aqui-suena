@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-17).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. Missing: the shared upload picker, signed read URLs and responsive image variants (WebP/AVIF, `srcset`). Owner uploads still use the flat `{kind}/{accountId}/{uuid}` key; the planned `media/v1/...` layout, business scoping and lifecycle are specified in `odd/tasks/feat-owner-media-r2.md`. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). Missing: the shared upload picker, signed read URLs and responsive image variants (WebP/AVIF, `srcset`). Owner uploads still use the flat `{kind}/{accountId}/{uuid}` key; the planned `media/v1/...` layout, business scoping, ownership validation and lifecycle are specified in `odd/tasks/feat-owner-media-r2.md`, whose T1 slice is done. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -11,7 +11,7 @@ Centralize all media (product photos, sponsor flyers, spot audio, owner avatars)
 - Storage: Cloudflare R2 (free: 10GB, 1M Class A ops/month, 10M Class B ops/month, egress free)
 - Image optimization: Cloudflare Image Resizing (free tier on Workers Paid, but R2 + Workers AI free tier covers transforms via Worker) — client-side compression as fallback
 - Upload pattern: presigned URLs (R2 supports S3-compatible presigned PUT)
-- DB: Drizzle + SQLite/D1 (media metadata: key, owner, type, size, mime, createdAt)
+- DB: Drizzle + SQLite/D1 (media metadata: key, owner, optional business scope, kind, size, mime, createdAt; one row per object key)
 - Language: TypeScript strict
 - Lint/format: Biome (replaces ESLint + Prettier)
 
@@ -30,7 +30,7 @@ Typecheck: pnpm -r typecheck
 ```
 packages/api/src/server/routers/media/media.ts → media.presignUpload / media.confirm / media.list / media.delete
 packages/api/src/infrastructure/media/r2-client.ts → R2 S3-compatible client (presigned URLs, head, delete)
-packages/db/src/schema.ts          → media table (id, ownerId, type, r2Key, mime, size, createdAt)
+packages/db/src/schema.ts          → media table (id, ownerId, businessId?, kind, r2Key unique, mime, size, createdAt)
 packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy loading + blur placeholder
 packages/ui/src/media-picker.tsx   → shared upload + preview component (Tamagui) — not built yet
 apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
@@ -53,7 +53,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required).
 2. Server validates type/size limits, generates a unique R2 key, returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the R2 key and the declared type/size. The current implementation requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB. The planned layout replaces that prefix with `media/v1/{accountId}/{scope}/{kind}/` and adds business ownership and idempotency; see the feature document.
+4. Client calls `media.confirm` with the R2 key and the declared type/size. The current implementation requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB. The D1 unique index on `r2_key` is the foundation for the planned idempotent `confirm`: the router does not resolve a duplicate to the existing row yet (T2). The planned layout replaces that prefix with `media/v1/{accountId}/{scope}/{kind}/` and adds business ownership and idempotency; see the feature document.
 5. Client receives the public URL (R2 custom domain or worker proxy).
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
@@ -70,6 +70,28 @@ account-level media. The layout is versioned because it is changing now;
 coexist without moving objects. Business ownership, idempotent `confirm`, signed
 read URLs, deletion/retention and orphan cleanup are specified with their
 implementation slices in `odd/tasks/feat-owner-media-r2.md`.
+
+### Data model landed by T1
+
+Migration `0014_little_shadowcat` adds the storage foundation without touching
+existing rows:
+
+- `media.business_id` is nullable and references `businesses(id)` with no
+  cascade. Account-level media (avatars) keeps `NULL`; business media carries
+  the owning business. Deleting a business requires deleting its media objects
+  and rows explicitly first, so no object is orphaned behind a cascaded row.
+- `media.r2_key` has a unique index (`media_r2_key_unique`). It is what makes
+  idempotent `confirm` possible in T2: the same object cannot produce two rows.
+- Old flat keys such as `product-photo/acc_123/9f2c...` stay valid and are
+  stored unscoped (`business_id` NULL) because `r2_key` is absolute.
+- The migration is additive (`ALTER TABLE ... ADD COLUMN` plus a unique index),
+  so it preserves existing rows and does not rebuild the table.
+- Deployment precondition: a database that already ran the flat layout must
+  have no two `media` rows with the same `r2_key`, because `confirm` used to
+  insert on every call. Check and deduplicate (keep one row per key) before
+  applying; the migration never deletes data on its own. A duplicate `confirm`
+  now surfaces the unique violation until T2 turns it into the idempotent
+  response.
 
 ## Image Optimization (listeners)
 
