@@ -93,7 +93,7 @@ describe("createContext", () => {
     expect(await accounts.getById("u1")).toBeNull();
   });
 
-  it("propagates an email conflict and logs both account ids", async () => {
+  it("propagates an email conflict without logging account ids", async () => {
     const accounts = new InMemoryAccountRepository([
       { id: "acc-old", email: "taken@example.com", planId: "community", locale: "es-MX" },
     ]);
@@ -106,10 +106,7 @@ describe("createContext", () => {
       createContext(requestWith("Bearer good-token"), supabase, accounts),
     ).rejects.toBeInstanceOf(AccountEmailConflictError);
 
-    expect(log).toHaveBeenCalledWith("account provisioning: email already owned", {
-      accountId: "u1",
-      ownerId: "acc-old",
-    });
+    expect(log).toHaveBeenCalledWith("account provisioning: email already owned");
 
     log.mockRestore();
   });

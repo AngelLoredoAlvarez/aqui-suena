@@ -21,6 +21,7 @@ import {
   requestLogging,
   silentErrorHandler,
 } from "@aqui-suena/api/server/http/observability";
+import { rateLimitingMiddleware } from "@aqui-suena/api/server/http/rate-limit";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
 import type { BillingSurfaces } from "@aqui-suena/api/server/trpc/router";
@@ -50,6 +51,8 @@ export interface AppOptions {
   logRequests?: boolean;
   billing?: BillingSurfaces;
   conektaWebhook?: Handler;
+  // Cloudflare binding; absent in the Node dev server and tests.
+  rateLimiter?: RateLimit;
 }
 
 export function createApp(options: AppOptions): Hono {
@@ -117,6 +120,11 @@ export function createApp(options: AppOptions): Hono {
       c.res.headers.set(name, value);
     }
   });
+
+  // After CORS so a 429 still carries the CORS headers the browser needs.
+  if (options.rateLimiter) {
+    app.use("*", rateLimitingMiddleware(options.rateLimiter));
+  }
 
   app.get("/health", (c) =>
     c.json({

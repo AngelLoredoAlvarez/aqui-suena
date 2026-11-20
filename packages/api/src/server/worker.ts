@@ -65,6 +65,8 @@ export interface WorkerEnv {
   AI_GATEWAY_ID?: string;
   /** Required to call POST /admin/seed-vectors. */
   ADMIN_TOKEN?: string;
+  /** Cloudflare [[ratelimits]] binding; caps requests per client IP. */
+  RATE_LIMITER?: RateLimit;
   /**
    * Base URL that serves the owned harness files (`/test-streams/*.m4a`).
    * Required by POST /admin/seed-stations so a dev localhost URL is never
@@ -568,6 +570,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     conektaWebhook,
     paymentCustomerDeleter: conekta,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
+    rateLimiter: env.RATE_LIMITER,
     logRequests: false,
   });
 

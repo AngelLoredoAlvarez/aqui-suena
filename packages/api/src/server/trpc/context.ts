@@ -37,10 +37,7 @@ export async function createContext(
     await accounts.ensure(accountId, email);
   } catch (error) {
     if (error instanceof AccountEmailConflictError) {
-      console.error("account provisioning: email already owned", {
-        accountId: error.accountId,
-        ownerId: error.ownerId,
-      });
+      console.error("account provisioning: email already owned");
     }
 
     throw error;

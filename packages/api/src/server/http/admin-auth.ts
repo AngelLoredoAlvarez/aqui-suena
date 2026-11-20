@@ -6,5 +6,24 @@ export function isAdminAuthorized(request: Request, adminToken: string | undefin
     return false;
   }
 
-  return request.headers.get("authorization") === `${BEARER_PREFIX}${adminToken}`;
+  const authorization = request.headers.get("authorization");
+  if (authorization === null || !authorization.startsWith(BEARER_PREFIX)) {
+    return false;
+  }
+
+  return timingSafeEqual(authorization.slice(BEARER_PREFIX.length), adminToken);
+}
+
+// Compare without early exit so the runtime does not leak how many characters matched.
+function timingSafeEqual(provided: string, expected: string): boolean {
+  if (provided.length !== expected.length) {
+    return false;
+  }
+
+  let difference = 0;
+  for (let index = 0; index < provided.length; index += 1) {
+    difference |= provided.charCodeAt(index) ^ expected.charCodeAt(index);
+  }
+
+  return difference === 0;
 }
