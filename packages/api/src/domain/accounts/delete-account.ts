@@ -1,4 +1,6 @@
+import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { UserDirectory } from "@aqui-suena/api/domain/accounts/user-directory";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
@@ -11,6 +13,8 @@ export type DeleteAccountDependencies = {
   readonly media: MediaRepository;
   readonly storage: ObjectStorage;
   readonly businesses: BusinessRepository;
+  readonly paymentCustomers?: PaymentCustomerDeleter;
+  readonly onPaymentCustomerError?: (error: unknown, customerId: string) => void;
 };
 
 const MEDIA_PAGE_SIZE = 100;
@@ -39,7 +43,28 @@ export class DeleteAccount {
     await this.deps.users.deleteUser(accountId);
     await this.purgeMedia(accountId);
     await this.deps.businesses.deleteByAccount(accountId);
+    await this.deletePaymentCustomer(account);
     await this.deps.accounts.anonymize(accountId);
+  }
+
+  private async deletePaymentCustomer(account: Account): Promise<void> {
+    const customerId = account.savedCard?.customerId;
+
+    if (customerId === undefined || customerId.length === 0) {
+      return;
+    }
+
+    const deleter = this.deps.paymentCustomers;
+
+    if (deleter === undefined) {
+      return;
+    }
+
+    try {
+      await deleter.deleteCustomer(customerId);
+    } catch (error) {
+      this.deps.onPaymentCustomerError?.(error, customerId);
+    }
   }
 
   private async purgeMedia(accountId: string): Promise<void> {

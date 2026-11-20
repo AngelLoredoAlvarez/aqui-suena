@@ -389,3 +389,18 @@ describe("ConektaPaymentProvider.createCardSource", () => {
     );
   });
 });
+
+describe("ConektaPaymentProvider.deleteCustomer", () => {
+  it("deletes the customer by id", async () => {
+    const { calls, provider } = setup({});
+
+    await provider.deleteCustomer("cus_1");
+
+    expect(calls[0]?.url).toBe("https://api.conekta.io/customers/cus_1");
+    expect(calls[0]?.init.method).toBe("DELETE");
+    expect(calls[0]?.init.headers).toMatchObject({
+      Authorization: "Bearer key_test",
+      Accept: "application/vnd.conekta-v2.3.0+json",
+    });
+  });
+});

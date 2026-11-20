@@ -1,4 +1,5 @@
 import { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
+import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { SupabaseUserDirectory } from "@aqui-suena/api/infrastructure/accounts/supabase-user-directory";
 import { createSupabaseAdminClient } from "@aqui-suena/api/server/auth/supabase";
@@ -7,6 +8,7 @@ import type { DirectoryRepositories } from "@aqui-suena/api/server/composition/r
 export type DeleteAccountWiring = {
   readonly repositories: DirectoryRepositories;
   readonly storage?: ObjectStorage;
+  readonly paymentCustomers?: PaymentCustomerDeleter;
   readonly supabaseUrl?: string;
   readonly supabaseSecretKey?: string;
 };
@@ -30,5 +32,12 @@ export function createDeleteAccount(
     media: wiring.repositories.media,
     storage: wiring.storage,
     businesses: wiring.repositories.business,
+    paymentCustomers: wiring.paymentCustomers,
+    onPaymentCustomerError: (error, customerId) => {
+      console.error("account deletion: payment customer delete failed", {
+        customerId,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
   });
 }

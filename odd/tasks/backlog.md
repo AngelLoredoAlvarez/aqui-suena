@@ -188,12 +188,12 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       active subscription through `SubscriptionService.subscribe`, losing the
       already-paid period. Decide whether to reject a second pending checkout or
       to apply the plan-change rules at completion.
-- [ ] Delete the Conekta customer on account deletion — 2026-11-19: account
-      deletion clears the local card columns (`conekta_customer_id`, default
-      source, brand, last four, expiry), but the Conekta customer and payment
-      source remain at the provider. Add a `deleteCustomer` call (best effort,
-      logged) before anonymizing when payments are configured, and cover it with
-      a test.
+- [x] Delete the Conekta customer on account deletion — DONE 2026-11-19:
+      `DeleteAccount` calls an optional `PaymentCustomerDeleter` for the saved
+      card customer before anonymizing; a failure is logged and never blocks the
+      purge. `ConektaPaymentProvider.deleteCustomer` calls
+      `DELETE /customers/{id}`. Tests cover the success and best-effort failure
+      paths.
 
 ## CFDI invoicing (opened 2026-11-16)
 
