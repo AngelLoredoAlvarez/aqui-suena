@@ -4,6 +4,8 @@ import { InMemoryPaymentEventRepository } from "@aqui-suena/api/domain/billing/p
 import {
   type ConektaWebhookDependencies,
   handleConektaWebhook,
+  isWebhookBodyTooLarge,
+  MAX_WEBHOOK_BODY_BYTES,
   type PaymentWebhookService,
 } from "@aqui-suena/api/server/http/conekta-webhook";
 import { describe, expect, it } from "vitest";
@@ -295,5 +297,23 @@ describe("handleConektaWebhook", () => {
     expect(await handleConektaWebhook(body, signBody(body), deps)).toBe(200);
     expect(service.calls).toHaveLength(2);
     expect((await events.getByProviderEventId("evt-order.paid"))?.processedAt).toEqual(NOW);
+  });
+});
+
+describe("isWebhookBodyTooLarge", () => {
+  it("allows a body at or under the cap", () => {
+    expect(isWebhookBodyTooLarge("1000")).toBe(false);
+    expect(isWebhookBodyTooLarge(String(MAX_WEBHOOK_BODY_BYTES))).toBe(false);
+  });
+
+  it("rejects a body over the cap", () => {
+    expect(isWebhookBodyTooLarge(String(MAX_WEBHOOK_BODY_BYTES + 1))).toBe(true);
+  });
+
+  it("allows a missing or malformed content length", () => {
+    expect(isWebhookBodyTooLarge(undefined)).toBe(false);
+    expect(isWebhookBodyTooLarge(null)).toBe(false);
+    expect(isWebhookBodyTooLarge("")).toBe(false);
+    expect(isWebhookBodyTooLarge("not-a-number")).toBe(false);
   });
 });
