@@ -521,6 +521,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
       reconcile: cancellation?.reconcile,
     },
     conektaWebhook,
+    paymentCustomerDeleter: conekta,
     stationRepository: new D1StationRepository(env.aqui_suena_db),
     logRequests: false,
   });

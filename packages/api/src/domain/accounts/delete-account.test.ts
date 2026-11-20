@@ -1,6 +1,7 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
+import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { UserDirectory } from "@aqui-suena/api/domain/accounts/user-directory";
 import type { Business } from "@aqui-suena/api/domain/directory/business";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
@@ -15,6 +16,14 @@ const account: Account = {
   email: "owner@example.com",
   planId: "community",
   locale: "es-MX",
+  savedCard: {
+    customerId: "cus-1",
+    sourceId: "src-1",
+    brand: "visa",
+    last4: "4242",
+    expMonth: 12,
+    expYear: 30,
+  },
 };
 
 function makeMedia(id: string): Media {
@@ -68,7 +77,14 @@ function usersThatDelete(): UserDirectory & { calls: number } {
   return directory;
 }
 
-function setup(overrides: { users?: UserDirectory; storage?: ObjectStorage } = {}) {
+function setup(
+  overrides: {
+    users?: UserDirectory;
+    storage?: ObjectStorage;
+    paymentCustomers?: PaymentCustomerDeleter;
+    onPaymentCustomerError?: (error: unknown, customerId: string) => void;
+  } = {},
+) {
   const accounts = new InMemoryAccountRepository([{ ...account }]);
   const businesses = new InMemoryBusinessRepository([
     makeBusiness("b1"),
@@ -79,7 +95,15 @@ function setup(overrides: { users?: UserDirectory; storage?: ObjectStorage } = {
   const users = overrides.users ?? usersThatDelete();
   const storage = overrides.storage ?? new InMemoryObjectStorage();
 
-  const deleteAccount = new DeleteAccount({ accounts, businesses, media, storage, users });
+  const deleteAccount = new DeleteAccount({
+    accounts,
+    businesses,
+    media,
+    storage,
+    users,
+    paymentCustomers: overrides.paymentCustomers,
+    onPaymentCustomerError: overrides.onPaymentCustomerError,
+  });
 
   return { accounts, businesses, media, users, deleteAccount };
 }
@@ -101,6 +125,41 @@ describe("DeleteAccount", () => {
 
     expect(anonymized?.email).toBe("deleted-acc-1@deleted.invalid");
     expect(anonymized?.deletedAt).toBeInstanceOf(Date);
+  });
+
+  it("deletes the Conekta customer before anonymizing", async () => {
+    const calls: string[] = [];
+    const paymentCustomers: PaymentCustomerDeleter = {
+      deleteCustomer: async (id) => {
+        calls.push(id);
+      },
+    };
+
+    const { accounts, deleteAccount } = setup({ paymentCustomers });
+
+    await deleteAccount.execute("acc-1");
+
+    expect(calls).toEqual(["cus-1"]);
+    expect((await accounts.getById("acc-1"))?.savedCard).toBeUndefined();
+  });
+
+  it("anonymizes even when the Conekta customer deletion fails", async () => {
+    const errors: string[] = [];
+    const paymentCustomers: PaymentCustomerDeleter = {
+      deleteCustomer: async () => {
+        throw new Error("conekta down");
+      },
+    };
+
+    const { accounts, deleteAccount } = setup({
+      paymentCustomers,
+      onPaymentCustomerError: (_error, customerId) => errors.push(customerId),
+    });
+
+    await deleteAccount.execute("acc-1");
+
+    expect(errors).toEqual(["cus-1"]);
+    expect((await accounts.getById("acc-1"))?.deletedAt).toBeInstanceOf(Date);
   });
 
   it("fails closed when the login cannot be deleted", async () => {

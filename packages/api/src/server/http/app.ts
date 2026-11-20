@@ -1,3 +1,4 @@
+import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -43,6 +44,7 @@ export interface AppOptions {
   directoryRepositories?: DirectoryRepositories;
   stationRepository?: StationRepository;
   mediaStorage?: ObjectStorage;
+  paymentCustomerDeleter?: PaymentCustomerDeleter;
   subscriptionNotifier?: SubscriptionNotifier;
   logger?: RequestLogger;
   logRequests?: boolean;
@@ -63,6 +65,7 @@ export function createApp(options: AppOptions): Hono {
   const deleteAccount = createDeleteAccount({
     repositories: directoryRepositories,
     storage: options.mediaStorage,
+    paymentCustomers: options.paymentCustomerDeleter,
     supabaseUrl: options.supabaseUrl,
     supabaseSecretKey: options.supabaseSecretKey,
   });

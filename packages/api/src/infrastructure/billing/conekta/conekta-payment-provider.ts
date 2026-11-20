@@ -76,6 +76,13 @@ export class ConektaPaymentProvider implements PaymentProvider {
     this.injectedFetch = deps.fetch;
   }
 
+  async deleteCustomer(customerId: string): Promise<void> {
+    await this.request(`/customers/${encodeURIComponent(customerId)}`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+  }
+
   async createCardSource(input: CreateCardSourceInput): Promise<CardSource> {
     const response = await this.request("/customers", {
       method: "POST",
