@@ -21,9 +21,8 @@ const t = initTRPC.context<Context>().create();
 export const router = t.router;
 
 /**
- * Maps domain failures to tRPC codes. A persisted-value failure is a server
- * bug: it is logged with its field and value and answered with a generic
- * message so the offending value never reaches the client.
+ * Maps domain failures to tRPC codes. A persisted-value failure is logged by
+ * field name only and answered generically so the offending value never leaks.
  */
 const mapDomainErrors = t.middleware(async ({ next }) => {
   const result = await next();
@@ -34,7 +33,7 @@ const mapDomainErrors = t.middleware(async ({ next }) => {
     const error = result.error.cause;
 
     if (error instanceof DataIntegrityError) {
-      console.error("Data integrity error", { field: error.field, value: error.value });
+      console.error("Data integrity error", { field: error.field });
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Internal server error",
