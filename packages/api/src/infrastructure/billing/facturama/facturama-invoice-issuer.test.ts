@@ -211,6 +211,76 @@ describe("FacturamaInvoiceIssuer", () => {
     expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/cfdi/pdf/issuedLite/fac-2");
   });
 
+  it("downloads the stamped XML from the file endpoint and decodes its base64", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+
+    const fakeFetch: typeof fetch = async (input, init) => {
+      calls.push({ url: String(input), init: init ?? {} });
+
+      return new Response(
+        JSON.stringify({
+          ContentEncoding: "base64",
+          ContentType: "xml",
+          Content: btoa("<cfdi:Comprobante/>"),
+        }),
+        { status: 200 },
+      );
+    };
+
+    const xml = await setup(fakeFetch).downloadXml("fac-1");
+
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/cfdi/xml/issued/fac-1");
+    expect(calls[0]?.init.headers).toMatchObject({
+      Authorization: `Basic ${btoa("facturama-user:s3cr3t")}`,
+      Accept: "application/json",
+    });
+    expect(xml).toBe("<cfdi:Comprobante/>");
+  });
+
+  it("downloads XML from the multiemisor file endpoint when that mode is configured", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+
+    const fakeFetch: typeof fetch = async (input, init) => {
+      calls.push({ url: String(input), init: init ?? {} });
+
+      return new Response(
+        JSON.stringify({ ContentEncoding: "base64", ContentType: "xml", Content: btoa("<cfdi/>") }),
+        { status: 200 },
+      );
+    };
+
+    const multiemisor = new FacturamaInvoiceIssuer({
+      credentials: {
+        user: "facturama-user",
+        password: "s3cr3t",
+        baseUrl: "https://apisandbox.facturama.mx",
+      },
+      fiscal: {
+        ...settings,
+        mode: "multiemisor",
+        series: "A",
+        issuer: { rfc: "EKU9003173C9", name: "ESCUELA KEMPER URGATE", fiscalRegime: "601" },
+      },
+      fetch: fakeFetch,
+    });
+
+    await multiemisor.downloadXml("fac-2");
+
+    expect(calls[0]?.url).toBe("https://apisandbox.facturama.mx/cfdi/xml/issuedLite/fac-2");
+  });
+
+  it("throws InvoiceProviderRejection when the XML download answers no file", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      new Response(JSON.stringify({ ContentType: "xml" }), { status: 200 });
+
+    const error = await setup(fakeFetch)
+      .downloadXml("fac-1")
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(InvoiceProviderRejection);
+    expect(error).toMatchObject({ detail: "Malformed response from the invoice provider" });
+  });
+
   it("throws InvoiceProviderRejection when the PDF cannot be downloaded", async () => {
     const fakeFetch: typeof fetch = async () =>
       new Response(JSON.stringify({ Message: "El CFDI no existe" }), { status: 404 });
