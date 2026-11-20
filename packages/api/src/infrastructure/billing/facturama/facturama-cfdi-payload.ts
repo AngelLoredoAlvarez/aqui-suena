@@ -35,6 +35,10 @@ export type FacturamaCfdiPayload = {
   readonly PaymentForm: InvoicePaymentForm;
   readonly Serie?: string;
   readonly Folio?: string;
+  readonly Relations?: {
+    readonly Type: "04";
+    readonly Cfdis: ReadonlyArray<{ readonly Uuid: string }>;
+  };
   readonly Issuer?: {
     readonly Rfc: string;
     readonly Name: string;
@@ -88,6 +92,16 @@ export function toFacturamaCfdiPayload(
   const ivaCents = totalCents - subtotalCents;
   const subtotal = toAmount(subtotalCents);
 
+  const relationBlock =
+    request.substitutesUuid === undefined
+      ? {}
+      : {
+          Relations: {
+            Type: "04" as const,
+            Cfdis: [{ Uuid: request.substitutesUuid }],
+          },
+        };
+
   const emitterBlock =
     settings.mode === "multiemisor" && settings.issuer !== undefined
       ? {
@@ -107,6 +121,7 @@ export function toFacturamaCfdiPayload(
     Currency: request.currency,
     PaymentMethod: "PUE",
     PaymentForm: request.paymentForm,
+    ...relationBlock,
     ...emitterBlock,
     Receiver: {
       Rfc: fiscalProfile.rfc,

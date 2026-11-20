@@ -141,3 +141,8 @@ Out of scope still: motive `01` with a substitute CFDI.
   `rejected` keeps the invoice valid, and a second request after a rejection that
   goes unanswered ends as "plazo vencido" with the invoice still valid, which is
   why a rejected cancellation is not an automatic retry.
+
+- **L8** — Motive `01` closes in `feat/cfdi-substitution`
+  (`odd/tasks/feat-cfdi-substitution.md`): the substitute is stamped with relation
+  `04` and the original is cancelled with `uuidReplacement`; the replacement UUID
+  is persisted so a retry does not stamp twice.

@@ -12,11 +12,15 @@ import {
 } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
 import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { DataIntegrityError, ValidationError } from "@aqui-suena/api/shared/domain-error";
+import {
+  DataIntegrityError,
+  NotFoundError,
+  ValidationError,
+} from "@aqui-suena/api/shared/domain-error";
 
 export type IssueInvoiceDependencies = {
   readonly fiscalProfiles: Pick<AccountRepository, "getFiscalProfile">;
-  readonly payments: Pick<PaymentRepository, "getLatestCompletedByAccount">;
+  readonly payments: Pick<PaymentRepository, "getById" | "getLatestCompletedByAccount">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly issuer: InvoiceIssuer;
   readonly invoices: CfdiInvoiceRepository;
@@ -31,6 +35,13 @@ export type IssueInvoiceDependencies = {
   readonly onDeliveryError?: (error: unknown, stage: "pdf" | "email", subjectId: string) => void;
 };
 
+export type IssueInvoiceOptions = {
+  /** Stamps for this payment instead of the account's latest completed one. */
+  readonly paymentId?: string;
+  /** Relation `04`: the stamped CFDI substitutes this UUID. */
+  readonly substitutesUuid?: string;
+};
+
 export class IssueInvoice {
   private readonly deps: IssueInvoiceDependencies;
 
@@ -38,14 +49,10 @@ export class IssueInvoice {
     this.deps = deps;
   }
 
-  async execute(accountId: string): Promise<CfdiInvoice> {
+  async execute(accountId: string, options: IssueInvoiceOptions = {}): Promise<CfdiInvoice> {
     const now = this.deps.now?.() ?? new Date();
 
-    const payment = await this.deps.payments.getLatestCompletedByAccount(accountId);
-
-    if (payment === null) {
-      throw new ValidationError("A completed payment is required before requesting an invoice");
-    }
+    const payment = await this.resolvePayment(accountId, options);
 
     if (payment.planId === null) {
       throw new DataIntegrityError("planId", payment.planId);
@@ -75,6 +82,9 @@ export class IssueInvoice {
         fiscalProfile,
         issuedAt: now,
         paymentForm: paymentForm(payment.method),
+        ...(options.substitutesUuid === undefined
+          ? {}
+          : { substitutesUuid: options.substitutesUuid }),
       });
 
       const xmlKey = await this.tryArchiveXml(accountId, issued.xml);
@@ -96,6 +106,7 @@ export class IssueInvoice {
         cancellationExpiresAt: null,
         cancellationDetail: null,
         acuseKey: null,
+        substitutionUuid: null,
       });
 
       await this.tryNotify(invoice, {
@@ -127,10 +138,37 @@ export class IssueInvoice {
         cancellationExpiresAt: null,
         cancellationDetail: null,
         acuseKey: null,
+        substitutionUuid: null,
       });
 
       throw error;
     }
+  }
+
+  private async resolvePayment(accountId: string, options: IssueInvoiceOptions): Promise<Payment> {
+    if (options.substitutesUuid !== undefined && options.paymentId === undefined) {
+      throw new ValidationError("paymentId: a substitute CFDI needs the payment it corrects");
+    }
+
+    if (options.paymentId === undefined) {
+      const payment = await this.deps.payments.getLatestCompletedByAccount(accountId);
+
+      if (payment === null) {
+        throw new ValidationError("A completed payment is required before requesting an invoice");
+      }
+
+      return payment;
+    }
+
+    const payment = await this.deps.payments.getById(options.paymentId);
+
+    // A foreign payment answers like a missing one: the client never learns that
+    // another account owns the id.
+    if (payment === null || payment.accountId !== accountId) {
+      throw new NotFoundError("Payment not found");
+    }
+
+    return payment;
   }
 
   /** A stamped CFDI cannot be undone: a failed archive records `issued` with no key. */

@@ -13,7 +13,7 @@ import { type OffsetPage, paginateOffset } from "@aqui-suena/api/shared/paginati
 const COLUMNS =
   "id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, " +
   "cancellation_motive, cancellation_requested_at, cancellation_resolved_at, cancellation_expires_at, " +
-  "cancellation_detail, acuse_key, created_at, updated_at";
+  "cancellation_detail, acuse_key, substitution_uuid, created_at, updated_at";
 
 type CfdiInvoiceRow = {
   readonly id: string;
@@ -31,6 +31,7 @@ type CfdiInvoiceRow = {
   readonly cancellation_expires_at: number | null;
   readonly cancellation_detail: string | null;
   readonly acuse_key: string | null;
+  readonly substitution_uuid: string | null;
   readonly created_at: number;
   readonly updated_at: number;
 };
@@ -44,8 +45,8 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
 
     await this.db
       .prepare(
-        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, cancellation_motive, cancellation_requested_at, cancellation_resolved_at, cancellation_expires_at, cancellation_detail, acuse_key, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO cfdi_invoices (id, account_id, payment_id, status, uuid, provider_id, xml_key, pdf_key, failure_reason, cancellation_motive, cancellation_requested_at, cancellation_resolved_at, cancellation_expires_at, cancellation_detail, acuse_key, substitution_uuid, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -63,6 +64,7 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
         input.cancellationExpiresAt === null ? null : toEpoch(input.cancellationExpiresAt),
         input.cancellationDetail,
         input.acuseKey,
+        input.substitutionUuid,
         toEpoch(now),
         toEpoch(now),
       )
@@ -106,7 +108,7 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
       .prepare(
         `UPDATE cfdi_invoices
         SET status = 'cancellation_pending', cancellation_motive = ?, cancellation_requested_at = ?, updated_at = ?
-        WHERE id = ? AND account_id = ?`,
+        WHERE id = ? AND account_id = ? AND status = 'issued'`,
       )
       .bind(
         input.motive,
@@ -137,6 +139,22 @@ export class D1CfdiInvoiceRepository implements CfdiInvoiceRepository {
         input.id,
         input.accountId,
       )
+      .run();
+  }
+
+  async recordSubstitutionUuid(input: {
+    id: string;
+    accountId: string;
+    substitutionUuid: string;
+    updatedAt: Date;
+  }): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE cfdi_invoices
+        SET substitution_uuid = ?, updated_at = ?
+        WHERE id = ? AND account_id = ?`,
+      )
+      .bind(input.substitutionUuid, toEpoch(input.updatedAt), input.id, input.accountId)
       .run();
   }
 
@@ -212,6 +230,7 @@ function mapRow(row: CfdiInvoiceRow): CfdiInvoice {
     cancellationExpiresAt: fromEpoch(row.cancellation_expires_at),
     cancellationDetail: row.cancellation_detail,
     acuseKey: row.acuse_key,
+    substitutionUuid: row.substitution_uuid ?? null,
     createdAt,
     updatedAt,
   };

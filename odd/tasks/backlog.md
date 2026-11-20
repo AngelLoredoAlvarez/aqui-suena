@@ -228,13 +228,13 @@ explains.
       it sweeps pending rows across every account, oldest first, five per run, and
       stays silent when billing is unconfigured. The read-path refresh stays for
       first-read freshness. Details: `odd/tasks/feat-cfdi-cancellation.md`.
-- [ ] CFDI cancellation, motive `01`: emit the substitute CFDI first, then cancel
-      the original with its UUID. Needs the substitution relation (`TipoRelacion`
-      `04`) in the issuing payload, which the product does not model yet.
-      **Deliberately after the payment provider**: it needs no PAC change to be
-      built or tested, but its only real use case is correcting the invoice of a
-      charge that happened, and doing it before `payment_id` exists would mean
-      rewriting the substitute payload twice.
+- [x] CFDI cancellation, motive `01` — DONE 2026-11-19 (`feat/cfdi-substitution`):
+      the cancellation stamps a substitute CFDI first (relation `04` in the
+      payload) and then cancels the original with `uuidReplacement`; the
+      replacement UUID is persisted in `cfdi_invoices.substitution_uuid`
+      (migration `0011`) so a retry reuses it. A failed stamp returns the
+      original to `issued` and never reaches the PAC. Details:
+      `odd/tasks/feat-cfdi-substitution.md`.
 - [x] Send the CFDI by email — DONE 2026-11-18 (`feat/cfdi-email`). The CFDI
       reaches the owner with the provider PDF and the archived XML attached, so
       the fiscal document travels with the message and no signed URL can expire.

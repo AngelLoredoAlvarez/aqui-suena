@@ -30,6 +30,8 @@ export type CfdiInvoice = {
   cancellationExpiresAt: Date | null;
   cancellationDetail: string | null;
   acuseKey: string | null;
+  /** UUID of the CFDI that replaced this one; only set for motive `01`. */
+  substitutionUuid: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -85,6 +87,16 @@ export interface CfdiInvoiceRepository {
   }): Promise<boolean>;
   /** Records what the provider answered, without touching the motive. */
   recordCancellationOutcome(input: CancellationOutcomeUpdate): Promise<void>;
+  /**
+   * Stores the UUID of the stamped substitute. It is written before the
+   * cancellation request so a retry reuses it instead of stamping another CFDI.
+   */
+  recordSubstitutionUuid(input: {
+    id: string;
+    accountId: string;
+    substitutionUuid: string;
+    updatedAt: Date;
+  }): Promise<void>;
 }
 
 export interface CfdiDocumentStore {
@@ -171,6 +183,22 @@ export class InMemoryCfdiInvoiceRepository implements CfdiInvoiceRepository {
     row.cancellationExpiresAt = input.expiresAt;
     row.cancellationDetail = input.detail;
     row.acuseKey = input.acuseKey;
+    row.updatedAt = input.updatedAt;
+  }
+
+  async recordSubstitutionUuid(input: {
+    id: string;
+    accountId: string;
+    substitutionUuid: string;
+    updatedAt: Date;
+  }): Promise<void> {
+    const row = this.rows.find(
+      (candidate) => candidate.id === input.id && candidate.accountId === input.accountId,
+    );
+
+    if (row === undefined) return;
+
+    row.substitutionUuid = input.substitutionUuid;
     row.updatedAt = input.updatedAt;
   }
 

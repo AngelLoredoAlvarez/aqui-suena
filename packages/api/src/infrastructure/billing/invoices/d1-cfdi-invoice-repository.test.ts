@@ -25,6 +25,7 @@ describe("D1CfdiInvoiceRepository", () => {
       cancellationExpiresAt: null,
       cancellationDetail: null,
       acuseKey: null,
+      substitutionUuid: null,
     });
 
     expect(invoice.id).toMatch(/^[0-9a-f-]{36}$/);
@@ -48,7 +49,8 @@ describe("D1CfdiInvoiceRepository", () => {
       "cfdi/acc-1/1.xml",
       "cfdi/acc-1/1.pdf",
       null,
-      // cancellation fields: motive, requested, resolved, expires, detail, acuse
+      // cancellation fields: motive, requested, resolved, expires, detail, acuse, substitution
+      null,
       null,
       null,
       null,
@@ -80,6 +82,7 @@ describe("D1CfdiInvoiceRepository", () => {
       cancellationExpiresAt: null,
       cancellationDetail: null,
       acuseKey: null,
+      substitutionUuid: null,
     });
 
     expect(invoice.status).toBe("failed");
@@ -93,6 +96,7 @@ describe("D1CfdiInvoiceRepository", () => {
       null,
       null,
       "El RFC del receptor no se encuentra en la lista de contribuyentes",
+      null,
       null,
       null,
       null,
@@ -188,6 +192,7 @@ describe("D1CfdiInvoiceRepository", () => {
         xml_key: "cfdi/acc-1/1.xml",
         pdf_key: "cfdi/acc-1/1.pdf",
         failure_reason: null,
+        substitution_uuid: "11111111-2222-3333-4444-555555555555",
         created_at: 1_700_000_000,
         updated_at: 1_700_000_000,
       },
@@ -195,7 +200,12 @@ describe("D1CfdiInvoiceRepository", () => {
 
     const invoice = await new D1CfdiInvoiceRepository(db.db).getByIdForAccount("acc-1", "inv-1");
 
-    expect(invoice).toMatchObject({ id: "inv-1", accountId: "acc-1", status: "issued" });
+    expect(invoice).toMatchObject({
+      id: "inv-1",
+      accountId: "acc-1",
+      status: "issued",
+      substitutionUuid: "11111111-2222-3333-4444-555555555555",
+    });
     expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE id = ? AND account_id = ?");
     expect(db.statements[0]?.params).toEqual(["inv-1", "acc-1"]);
   });
@@ -219,5 +229,64 @@ describe("D1CfdiInvoiceRepository pending sweep", () => {
       "WHERE status = 'cancellation_pending' ORDER BY updated_at ASC LIMIT ?",
     );
     expect(db.statements[0]?.params).toEqual([25]);
+  });
+});
+
+describe("D1CfdiInvoiceRepository substitution", () => {
+  it("records the substitute UUID before the cancellation request", async () => {
+    const db = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+
+    await new D1CfdiInvoiceRepository(db.db).recordSubstitutionUuid({
+      id: "inv-1",
+      accountId: "acc-1",
+      substitutionUuid: "11111111-2222-3333-4444-555555555555",
+      updatedAt: new Date(1_700_000_000_000),
+    });
+
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("SET substitution_uuid = ?");
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE id = ? AND account_id = ?");
+    expect(db.statements[0]?.params).toEqual([
+      "11111111-2222-3333-4444-555555555555",
+      1_700_000_000,
+      "inv-1",
+      "acc-1",
+    ]);
+  });
+});
+
+describe("D1CfdiInvoiceRepository cancellation claim", () => {
+  it("claims only a row that is still issued", async () => {
+    const db = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+
+    const claimed = await new D1CfdiInvoiceRepository(db.db).markCancellationRequested({
+      id: "inv-1",
+      accountId: "acc-1",
+      motive: "01",
+      requestedAt: new Date(1_700_000_000_000),
+    });
+
+    expect(claimed).toBe(true);
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("WHERE id = ? AND account_id = ?");
+    expect(normalizeSql(db.statements[0]?.sql)).toContain("status = 'issued'");
+    expect(db.statements[0]?.params).toEqual([
+      "01",
+      1_700_000_000,
+      1_700_000_000,
+      "inv-1",
+      "acc-1",
+    ]);
+  });
+
+  it("loses the claim when another request already moved the row", async () => {
+    const db = new FakeD1Database(() => ({ run: { success: true, changes: 0 } }));
+
+    const claimed = await new D1CfdiInvoiceRepository(db.db).markCancellationRequested({
+      id: "inv-1",
+      accountId: "acc-1",
+      motive: "01",
+      requestedAt: new Date(1_700_000_000_000),
+    });
+
+    expect(claimed).toBe(false);
   });
 });

@@ -1,7 +1,13 @@
+import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/invoice";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { createIssueInvoice, type FacturamaEnv } from "@aqui-suena/api/server/composition/invoices";
+import {
+  createInvoiceSubstituter,
+  createIssueInvoice,
+  type FacturamaEnv,
+} from "@aqui-suena/api/server/composition/invoices";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
 
@@ -70,5 +76,56 @@ describe("createIssueInvoice", () => {
     });
 
     expect(issueInvoice).toBeInstanceOf(IssueInvoice);
+  });
+});
+
+describe("createInvoiceSubstituter", () => {
+  function stamped(uuid: string | null): CfdiInvoice {
+    return { uuid } as CfdiInvoice;
+  }
+
+  it("stamps through the issuing use case and returns the substitute UUID", async () => {
+    const calls: Array<{
+      accountId: string;
+      options: { paymentId?: string; substitutesUuid?: string } | undefined;
+    }> = [];
+    const substituter = createInvoiceSubstituter({
+      execute: async (accountId, options) => {
+        calls.push({ accountId, options });
+
+        return stamped("22222222-3333-4444-5555-666666666666");
+      },
+    });
+
+    await expect(
+      substituter.issue({
+        accountId: "acc-1",
+        paymentId: "pay-1",
+        substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      }),
+    ).resolves.toEqual({ uuid: "22222222-3333-4444-5555-666666666666" });
+    expect(calls).toEqual([
+      {
+        accountId: "acc-1",
+        options: {
+          paymentId: "pay-1",
+          substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+        },
+      },
+    ]);
+  });
+
+  it("refuses a stamped invoice without a UUID", async () => {
+    const substituter = createInvoiceSubstituter({
+      execute: async () => stamped(null),
+    });
+
+    await expect(
+      substituter.issue({
+        accountId: "acc-1",
+        paymentId: "pay-1",
+        substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      }),
+    ).rejects.toBeInstanceOf(DataIntegrityError);
   });
 });

@@ -95,3 +95,21 @@ describe("toFacturamaCfdiPayload", () => {
     expect(payload).not.toHaveProperty("Folio");
   });
 });
+
+describe("toFacturamaCfdiPayload substitution", () => {
+  it("relates the substitute to the CFDI it replaces", () => {
+    const payload = toFacturamaCfdiPayload(
+      { ...request, substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B" },
+      settings,
+    );
+
+    expect(payload.Relations).toEqual({
+      Type: "04",
+      Cfdis: [{ Uuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B" }],
+    });
+  });
+
+  it("omits the relation for a regular invoice", () => {
+    expect(toFacturamaCfdiPayload(request, settings)).not.toHaveProperty("Relations");
+  });
+});

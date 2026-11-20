@@ -1,5 +1,8 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
+import {
+  CancelInvoice,
+  type InvoiceSubstituter,
+} from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import type {
   CfdiDocumentLinker,
@@ -14,6 +17,7 @@ import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/
 import { R2CfdiDocumentStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-document-store";
 import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import type { R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
+import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 
 const DEFAULT_IVA_RATE = 0.16;
 // SAT: 01010101 = no match in the catalog; replace with the real service code.
@@ -218,9 +222,35 @@ export type CancelInvoiceCompositionOptions = {
   readonly db: D1Database;
   readonly facturama: FacturamaEnv;
   readonly r2: R2Env;
+  /** Required for motive `01`: the replacement is stamped before cancelling. */
+  readonly issueInvoice?: Pick<IssueInvoice, "execute">;
   readonly fetch?: typeof fetch;
   readonly now?: () => Date;
 };
+
+/**
+ * Adapts the issuing use case to the cancellation port. A stamped CFDI always
+ * has a UUID; a null one means the row is inconsistent, not that the fiscal act
+ * can continue.
+ */
+export function createInvoiceSubstituter(
+  issueInvoice: Pick<IssueInvoice, "execute">,
+): InvoiceSubstituter {
+  return {
+    issue: async (input) => {
+      const invoice = await issueInvoice.execute(input.accountId, {
+        paymentId: input.paymentId,
+        substitutesUuid: input.substitutesUuid,
+      });
+
+      if (invoice.uuid === null) {
+        throw new DataIntegrityError("uuid", invoice.uuid);
+      }
+
+      return { uuid: invoice.uuid };
+    },
+  };
+}
 
 export type CancellationChain = {
   readonly cancelInvoice: CancelInvoice;
@@ -262,16 +292,24 @@ export function createCancelInvoice(
   });
 
   const invoices = new D1CfdiInvoiceRepository(options.db);
+  const { issueInvoice } = options;
 
   return {
     cancelInvoice: new CancelInvoice({
       invoices,
       canceller,
       documents,
+      substituter: issueInvoice === undefined ? undefined : createInvoiceSubstituter(issueInvoice),
       now: options.now,
       onArchiveError: (error, accountId) => {
         console.error("billing: CFDI acuse archive failed", {
           accountId,
+          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        });
+      },
+      onStateError: (error, invoiceId) => {
+        console.error("billing: CFDI claim release failed", {
+          invoiceId,
           error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
         });
       },

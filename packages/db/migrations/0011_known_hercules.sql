@@ -1,0 +1,1 @@
+ALTER TABLE `cfdi_invoices` ADD `substitution_uuid` text;

@@ -22,7 +22,7 @@ import {
 } from "@aqui-suena/api/domain/billing/payments/payment";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import { ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-16T18:00:00Z");
@@ -154,6 +154,7 @@ function setup(
   options: {
     profile?: FiscalProfile | null;
     payment?: Payment | null;
+    payments?: Payment[];
     issuerResult?: Error | IssuedCfdi;
     xmlSaveFails?: boolean;
     pdfSaveFails?: boolean;
@@ -203,7 +204,7 @@ function setup(
   );
 
   const payments = new InMemoryPaymentRepository(
-    options.payment === null ? [] : [options.payment ?? completedPayment()],
+    options.payments ?? (options.payment === null ? [] : [options.payment ?? completedPayment()]),
   );
 
   const issueInvoice = new IssueInvoice({
@@ -418,5 +419,53 @@ describe("IssueInvoice", () => {
 
     expect(invoice.status).toBe("issued");
     expect(deliveryErrors).toHaveLength(0);
+  });
+});
+
+describe("IssueInvoice substitution", () => {
+  it("stamps a substitute for a specific payment and relates it to the original", async () => {
+    const { issueInvoice, issuer, invoices } = setup({
+      payments: [
+        completedPayment({ id: "pay-old", paidAt: new Date("2026-11-01T00:05:00Z") }),
+        completedPayment({ id: "pay-new", paidAt: new Date("2026-11-10T00:05:00Z") }),
+      ],
+    });
+
+    const invoice = await issueInvoice.execute("acc-1", {
+      paymentId: "pay-old",
+      substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+    });
+
+    expect(issuer.requests[0]).toMatchObject({
+      substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      amountCents: 14900,
+    });
+    expect(invoice.paymentId).toBe("pay-old");
+    expect(invoices.rows[0]?.substitutionUuid).toBeNull();
+  });
+
+  it("refuses a payment that belongs to another account", async () => {
+    const { issueInvoice, issuer } = setup({
+      payments: [completedPayment({ id: "pay-2", accountId: "acc-2" })],
+    });
+
+    await expect(
+      issueInvoice.execute("acc-1", {
+        paymentId: "pay-2",
+        substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(issuer.requests).toHaveLength(0);
+  });
+
+  it("requires the payment id when a substitute is requested", async () => {
+    const { issueInvoice, issuer } = setup();
+
+    await expect(
+      issueInvoice.execute("acc-1", {
+        substitutesUuid: "0F1B9C7A-3C4D-4E5F-8A9B-0C1D2E3F4A5B",
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(issuer.requests).toHaveLength(0);
   });
 });
