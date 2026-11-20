@@ -1,3 +1,4 @@
+import type { InvoiceSubstituter } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import {
   type CfdiDocumentStore,
@@ -38,6 +39,7 @@ function invoice(overrides: Partial<CfdiInvoice> = {}): CfdiInvoice {
     cancellationExpiresAt: null,
     cancellationDetail: null,
     acuseKey: null,
+    substitutionUuid: null,
     createdAt: new Date("2026-05-10T18:00:00Z"),
     updatedAt: new Date("2026-05-10T18:00:00Z"),
     ...overrides,
@@ -61,6 +63,28 @@ class FakeCanceller implements InvoiceCanceller {
 
   async cancellationStatus(): Promise<InvoiceCancellationResult> {
     throw new Error("not used in these tests");
+  }
+}
+
+const SUBSTITUTE_UUID = "22222222-3333-4444-5555-666666666666";
+
+class FakeSubstituter implements InvoiceSubstituter {
+  readonly calls: Array<{ accountId: string; paymentId: string; substitutesUuid: string }> = [];
+
+  constructor(private readonly answer: { uuid: string } | Error) {}
+
+  async issue(input: {
+    accountId: string;
+    paymentId: string;
+    substitutesUuid: string;
+  }): Promise<{ uuid: string }> {
+    this.calls.push(input);
+
+    if (this.answer instanceof Error) {
+      throw this.answer;
+    }
+
+    return this.answer;
   }
 }
 
@@ -103,21 +127,27 @@ function setup(
     answer?: InvoiceCancellationResult | Error;
     acuseFails?: boolean;
     onArchiveError?: (error: unknown, accountId: string) => void;
+    substituter?: InvoiceSubstituter | false;
   } = {},
 ) {
   const repository = new InMemoryCfdiInvoiceRepository(options.invoices ?? [invoice()]);
   const canceller = new FakeCanceller(options.answer ?? cancelled);
   const documents = new FakeDocumentStore(options.acuseFails ?? false);
+  const substituter =
+    options.substituter === false
+      ? undefined
+      : (options.substituter ?? new FakeSubstituter({ uuid: SUBSTITUTE_UUID }));
 
   const useCase = new CancelInvoice({
     invoices: repository,
     canceller,
     documents,
+    substituter,
     now: () => NOW,
     onArchiveError: options.onArchiveError,
   });
 
-  return { useCase, repository, canceller, documents };
+  return { useCase, repository, canceller, documents, substituter };
 }
 
 describe("CancelInvoice", () => {
@@ -288,6 +318,7 @@ describe("CancelInvoice", () => {
       status: "issued",
       cancellationDetail: "El CFDI no existe",
       acuseKey: null,
+      substitutionUuid: null,
     });
   });
 
@@ -346,5 +377,115 @@ describe("CancelInvoice acuse validation", () => {
     expect(result.cancellationDetail).toBe(
       "Cancelado sin aceptación (acuse does not match the invoice)",
     );
+  });
+});
+
+describe("CancelInvoice with a substitute", () => {
+  const paidInvoice = () => invoice({ paymentId: "pay-1" });
+
+  it("stamps the substitute before cancelling and sends its UUID to the PAC", async () => {
+    const { useCase, repository, canceller, substituter } = setup({
+      invoices: [paidInvoice()],
+    });
+
+    const result = await useCase.execute({
+      accountId: "acc-1",
+      invoiceId: "cfdi-1",
+      motive: "01",
+    });
+
+    expect(substituter).toBeInstanceOf(FakeSubstituter);
+    expect((substituter as FakeSubstituter).calls).toEqual([
+      {
+        accountId: "acc-1",
+        paymentId: "pay-1",
+        substitutesUuid: INVOICE_UUID,
+      },
+    ]);
+    expect(canceller.calls).toEqual([
+      {
+        providerId: "fac-1",
+        motive: "01",
+        substitutionUuid: SUBSTITUTE_UUID,
+      },
+    ]);
+    expect(result.status).toBe("cancelled");
+    expect(result.substitutionUuid).toBe(SUBSTITUTE_UUID);
+    expect((await repository.getByIdForAccount("acc-1", "cfdi-1"))?.substitutionUuid).toBe(
+      SUBSTITUTE_UUID,
+    );
+  });
+
+  it("reuses a recorded substitute instead of stamping another CFDI", async () => {
+    const { useCase, canceller, substituter } = setup({
+      invoices: [invoice({ paymentId: "pay-1", substitutionUuid: SUBSTITUTE_UUID })],
+    });
+
+    await useCase.execute({ accountId: "acc-1", invoiceId: "cfdi-1", motive: "01" });
+
+    expect((substituter as FakeSubstituter).calls).toHaveLength(0);
+    expect(canceller.calls).toEqual([
+      {
+        providerId: "fac-1",
+        motive: "01",
+        substitutionUuid: SUBSTITUTE_UUID,
+      },
+    ]);
+  });
+
+  it("returns the original to issued when the substitute cannot be stamped", async () => {
+    const rejection = new InvoiceProviderRejection("El RFC del receptor no es válido");
+    const { useCase, repository, canceller } = setup({
+      invoices: [paidInvoice()],
+      substituter: new FakeSubstituter(rejection),
+    });
+
+    const error = await useCase
+      .execute({ accountId: "acc-1", invoiceId: "cfdi-1", motive: "01" })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBe(rejection);
+    expect(canceller.calls).toHaveLength(0);
+    expect(await repository.getByIdForAccount("acc-1", "cfdi-1")).toMatchObject({
+      status: "issued",
+      cancellationDetail: "El RFC del receptor no es válido",
+      substitutionUuid: null,
+    });
+  });
+
+  it("refuses motive 01 for an invoice that has no payment", async () => {
+    const { useCase, canceller, substituter } = setup({ invoices: [invoice()] });
+
+    const error = await useCase
+      .execute({ accountId: "acc-1", invoiceId: "cfdi-1", motive: "01" })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((substituter as FakeSubstituter).calls).toHaveLength(0);
+    expect(canceller.calls).toHaveLength(0);
+  });
+
+  it("refuses motive 01 when the issuing chain is not configured", async () => {
+    const { useCase, canceller } = setup({
+      invoices: [paidInvoice()],
+      substituter: false,
+    });
+
+    const error = await useCase
+      .execute({ accountId: "acc-1", invoiceId: "cfdi-1", motive: "01" })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(canceller.calls).toHaveLength(0);
+  });
+
+  it("never stamps a substitute for motives 02 and 03", async () => {
+    for (const motive of ["02", "03"] as const) {
+      const { useCase, substituter } = setup({ invoices: [paidInvoice()] });
+
+      await useCase.execute({ accountId: "acc-1", invoiceId: "cfdi-1", motive });
+
+      expect((substituter as FakeSubstituter).calls).toHaveLength(0);
+    }
   });
 });

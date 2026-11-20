@@ -2,6 +2,7 @@ import {
   accountPreferences,
   accounts,
   businesses,
+  cfdiInvoices,
   flyers,
   hours,
   listenSessions,
@@ -134,6 +135,14 @@ describe("account_preferences", () => {
   it("exposes the account reference, locale, renewal reminders and update time", () => {
     expect(columnNames(accountPreferences)).toEqual(
       expect.arrayContaining(["account_id", "locale", "renewal_reminders_enabled", "updated_at"]),
+    );
+  });
+});
+
+describe("cfdi_invoices", () => {
+  it("exposes the cancellation audit fields and the substitution UUID", () => {
+    expect(columnNames(cfdiInvoices)).toEqual(
+      expect.arrayContaining(["status", "cancellation_motive", "acuse_key", "substitution_uuid"]),
     );
   });
 });

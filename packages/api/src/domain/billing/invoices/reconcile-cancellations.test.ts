@@ -35,6 +35,7 @@ function pending(overrides: Partial<CfdiInvoice> = {}): CfdiInvoice {
     cancellationExpiresAt: new Date("2026-11-23T10:00:00Z"),
     cancellationDetail: null,
     acuseKey: null,
+    substitutionUuid: null,
     createdAt: new Date("2026-11-20T10:00:00Z"),
     updatedAt: new Date("2026-11-20T10:00:00Z"),
     ...overrides,

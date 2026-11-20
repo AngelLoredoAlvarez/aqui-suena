@@ -190,6 +190,7 @@ export const cfdiInvoices = sqliteTable("cfdi_invoices", {
   cancellationExpiresAt: integer("cancellation_expires_at", { mode: "timestamp" }),
   cancellationDetail: text("cancellation_detail"),
   acuseKey: text("acuse_key"),
+  substitutionUuid: text("substitution_uuid"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -49,6 +49,7 @@ const issuedInvoice: CfdiInvoice = {
   cancellationExpiresAt: null,
   cancellationDetail: null,
   acuseKey: null,
+  substitutionUuid: null,
   createdAt: new Date("2026-11-16T18:00:00Z"),
   updatedAt: new Date("2026-11-16T18:00:00Z"),
 };
@@ -240,6 +241,7 @@ describe("billing.invoices.list", () => {
         cancellationResolvedAt: null,
         cancellationExpiresAt: null,
         cancellationDetail: null,
+        substitutionUuid: null,
       },
     ]);
   });
@@ -334,6 +336,7 @@ describe("billing.invoices.cancel", () => {
       cancellationRequestedAt: new Date("2026-11-18T20:00:00Z"),
       cancellationResolvedAt: new Date("2026-11-18T20:00:05Z"),
       acuseKey: "cfdi/acc-1/1-acuse.xml",
+      substitutionUuid: "22222222-3333-4444-5555-666666666666",
     };
     const calls: Array<{ accountId: string; invoiceId: string; motive: string }> = [];
     const { caller } = setup([account], null, {
@@ -353,6 +356,7 @@ describe("billing.invoices.cancel", () => {
       id: "cfdi-1",
       status: "cancelled",
       cancellationMotive: "03",
+      substitutionUuid: "22222222-3333-4444-5555-666666666666",
     });
   });
 

@@ -150,17 +150,16 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 - Project hygiene (2026-11-18): the directory child resources share one ownership protocol, the 17 single-id procedures take `{ id }` instead of a bare string, `FiscalProfile` moved to the account domain with a cruiser rule that forbids the reverse, the subscription suite split per use case, and specs and closed plans moved under `docs/`. See `odd/tasks/refactor-project-hygiene.md`.
 - CFDI cancellation (2026-11-18): an owner can cancel an issued invoice with motive `02` or `03`. The row is claimed with a compare-and-set before the PAC is called, the article 29-A window is enforced in Mexico City time, the provider's six states map to four outcomes, and the acuse is archived in R2. Reading the history refreshes pending rows, so the positive ficta is not missed. See `odd/tasks/feat-cfdi-cancellation.md`.
 - CFDI delivery by email (2026-11-18): a stamped invoice now reaches the owner with the provider PDF and the archived XML attached, so the fiscal document travels with the message instead of hanging from a link that expires. `IssueInvoice` downloads the PDF, archives it in R2 next to the XML (`cfdi_invoices.pdf_key`, migration `0004`), records both keys in one insert and then notifies; every delivery failure is logged and never fails the request, and a deleted account is never emailed. See `odd/tasks/feat-cfdi-email.md`.
+- CFDI substitution (2026-11-19): cancelling with motive `01` stamps a substitute CFDI first — relation `04` in the payload and `uuidReplacement` on the cancellation — and records the replacement in `cfdi_invoices.substitution_uuid` (migration `0011`), so a retry reuses it instead of stamping twice. A failed stamp returns the original to `issued` and never reaches the PAC. `billing.invoices.cancel` keeps its contract and the invoice summary exposes the replacement UUID. See `odd/tasks/feat-cfdi-substitution.md`.
 ### Next
 
 Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 
 1. **Signup and verification** (`create-account` with birthdate, T&C and an 18+ attestation). It unblocks the account emails, the owner portal and anything plan-selection related.
-2. **Payment provider** (Conekta). It unblocks receipts, renewal reminders and the `PUE` CFDI path.
-3. **CFDI cancellation, motive `01`**: emit the substitute CFDI (relation `04`) and then cancel the original with its UUID. The scheduled sweep already ships.
-4. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. The API it consumes already ships.
-5. **Recover missing fiscal archives** by `providerId` when `xmlKey`/`pdfKey` is null.
-6. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
-7. **Windows/macOS signing and publishing**; desktop stays dev-only until then.
+2. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. The API it consumes already ships.
+3. **Recover missing fiscal archives** by `providerId` when `xmlKey`/`pdfKey` is null.
+4. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
+5. **Windows/macOS signing and publishing**; desktop stays dev-only until then.
 
 ## Conventions
 

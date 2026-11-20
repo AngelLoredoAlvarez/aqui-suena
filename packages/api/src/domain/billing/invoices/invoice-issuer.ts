@@ -14,6 +14,11 @@ export type IssueInvoiceRequest = {
   readonly fiscalProfile: FiscalProfile;
   readonly issuedAt: Date;
   readonly paymentForm: InvoicePaymentForm;
+  /**
+   * When present, the CFDI is stamped as a substitute of this UUID with SAT
+   * relation `04`. Used only by a motive `01` cancellation.
+   */
+  readonly substitutesUuid?: string;
 };
 
 export type IssuedCfdi = {

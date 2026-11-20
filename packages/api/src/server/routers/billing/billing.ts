@@ -87,6 +87,7 @@ function toInvoiceSummary(invoice: CfdiInvoice) {
     cancellationResolvedAt: invoice.cancellationResolvedAt,
     cancellationExpiresAt: invoice.cancellationExpiresAt,
     cancellationDetail: invoice.cancellationDetail,
+    substitutionUuid: invoice.substitutionUuid,
   };
 }
 

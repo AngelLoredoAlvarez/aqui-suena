@@ -439,6 +439,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
 
   const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
+    issueInvoice,
     facturama: {
       user: env.FACTURAMA_USER,
       password: env.FACTURAMA_PASSWORD,
