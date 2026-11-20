@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads now use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side, and `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. Missing: business ownership and plan entitlement checks at presign/confirm (T3), signed read URLs (T4), deletion/retention (T5), listing links (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. Missing: signed read URLs (T4), deletion/retention (T5), listing links (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -52,9 +52,9 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 ## Upload Flow
 
 1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required) with `kind`, `contentType`, `sizeBytes` and, for business media, `businessId` (never for an avatar).
-2. Server validates the type/size limits and the scope, generates the `media/v1/...` key server-side (UUID and extension included), and returns the presigned URL.
+2. Server validates the type/size limits and the scope, checks that the business belongs to the authenticated account and that the plan allows the kind (otherwise `NOT_FOUND` or `FORBIDDEN: UPGRADE_REQUIRED`), generates the `media/v1/...` key server-side (UUID and extension included), and returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
+4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, revalidates business ownership and the plan entitlement, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
 5. The response carries the media row and its absolute key; a signed read contract is still pending (T4).
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
@@ -68,15 +68,24 @@ New owner uploads use `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`, where
 `scope` is `businesses/{businessId}` for business media or `account` for
 account-level media. The layout is versioned because it changed; `media.r2Key`
 stays absolute, so old keys remain valid and a future `v2` can coexist without
-moving objects. Business ownership and plan entitlement checks at presign and
-confirm are still pending (T3); signed read URLs, deletion/retention and orphan
-cleanup are specified with their implementation slices in
+moving objects. Business ownership and plan entitlement are enforced at presign
+and confirm; signed read URLs, deletion/retention and orphan cleanup are
+specified with their implementation slices in
 `odd/tasks/feat-owner-media-r2.md`.
 
 The builder and parser live in `packages/api/src/domain/media/key.ts` as pure
 functions. A client never chooses a key: it only chooses the kind, content type,
 size and (for business media) the business id. Avatars are always account-scoped
 and reject a `businessId`; the other kinds require one.
+
+### Plan entitlements (T3)
+
+`packages/api/src/domain/media/entitlement.ts` maps the existing plan tiers to
+media kinds: avatars are account-level and available to every plan; every tier
+includes flyers; `product-photo` requires the `full` media tier (paid plans);
+`spot-audio` requires `spotEligible`, which stays off until the top tier
+launches. A rejected upload answers `FORBIDDEN` with
+`UPGRADE_REQUIRED: billing.upgradeRequired.mediaUpload`.
 
 ### Data model landed by T1
 
@@ -133,13 +142,13 @@ Conventions: media keys are unique and immutable (UUID), never overwritten; the 
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for upload flows.
-- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
+- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/domain/media/entitlement.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
 - Coverage: 100% on key grammar, presign validation (type/size limits) and the confirm state machine.
 - Levels: unit (presign validation, size limits) → integration (presign → upload → confirm → metadata stored) → e2e (owner uploads photo, listener sees it optimized).
 
 ## Boundaries
 
-- Always: validate type and size before presigning, revalidate the real object metadata and the key prefix on `confirm` (never persist client-declared type/size), use unique immutable keys for caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
+- Always: validate type and size before presigning, verify business ownership and the plan media entitlement on presign and `confirm`, revalidate the real object metadata and the key grammar on `confirm` (never persist client-declared type/size), use unique immutable keys for caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
 - Ask first: add a new media type, change size limits, add video support, enable Cloudflare Image Resizing (paid tier).
 - Never: proxy uploads through the server (waste bandwidth), store raw uploads without validation, exceed R2 free tier (10GB), use Cloudflare Images (paid) without approval, block audio during upload, expose R2 credentials to client.
 

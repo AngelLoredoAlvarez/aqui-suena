@@ -1,3 +1,9 @@
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import {
+  type Business,
+  InMemoryBusinessRepository,
+} from "@aqui-suena/api/domain/directory/business";
+import { buildMediaKey } from "@aqui-suena/api/domain/media/key";
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
@@ -5,14 +11,68 @@ import { describe, expect, it } from "vitest";
 
 const UUID = "3c8f0a4e-1f3b-4a2c-9d5e-6b7a8c9d0e1f";
 
+const ownedBusiness: Business = {
+  id: "biz-1",
+  accountId: "acc-1",
+  name: "One",
+  category: "food",
+  phone: null,
+  email: null,
+  address: null,
+  timezone: "America/Mexico_City",
+  delivery: false,
+  hiddenAt: null,
+  retainedUntil: null,
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  updatedAt: new Date("2024-01-01T00:00:00Z"),
+};
+
 describe("media router", () => {
-  function setup() {
+  function setup(
+    options: { businesses?: Business[]; subscriptions?: InMemorySubscriptionRepository } = {},
+  ) {
     const repository = new InMemoryMediaRepository([]);
+
     const storage = new InMemoryObjectStorage();
-    const router = createMediaRouter(repository, storage);
+
+    const business = new InMemoryBusinessRepository(options.businesses ?? [ownedBusiness]);
+
+    const subscription = options.subscriptions ?? new InMemorySubscriptionRepository([]);
+
+    const router = createMediaRouter({
+      media: repository,
+      business,
+      subscription,
+      storage,
+    });
+
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    return { repository, storage, caller };
+    return { repository, storage, caller, subscription };
+  }
+
+  function withoutStorage() {
+    const router = createMediaRouter({
+      media: new InMemoryMediaRepository([]),
+      business: new InMemoryBusinessRepository([]),
+      subscription: new InMemorySubscriptionRepository([]),
+      storage: undefined,
+    });
+
+    return router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+  }
+
+  async function paidPlan(plan: "trades" | "commerce") {
+    const subscription = new InMemorySubscriptionRepository([]);
+
+    await subscription.create(
+      "acc-1",
+      plan,
+      new Date("2024-01-01T00:00:00Z"),
+      new Date("2999-01-01T00:00:00Z"),
+    );
+
+    return subscription;
   }
 
   it("presigns an account avatar under the v1 account prefix", async () => {
@@ -63,6 +123,78 @@ describe("media router", () => {
         businessId: "biz-1",
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects media for a business owned by another account on presign", async () => {
+    const { caller } = setup({
+      businesses: [{ ...ownedBusiness, accountId: "acc-2" }],
+    });
+
+    await expect(
+      caller.presignUpload({
+        kind: "flyer",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        businessId: "biz-1",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects media for a business that does not exist on presign", async () => {
+    const { caller } = setup({ businesses: [] });
+
+    await expect(
+      caller.presignUpload({
+        kind: "flyer",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        businessId: "biz-1",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a product photo on a plan without full media", async () => {
+    const { caller } = setup();
+
+    await expect(
+      caller.presignUpload({
+        kind: "product-photo",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        businessId: "biz-1",
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: expect.stringContaining("UPGRADE_REQUIRED"),
+    });
+  });
+
+  it("presigns a product photo on a full-media plan", async () => {
+    const { caller } = setup({ subscriptions: await paidPlan("trades") });
+
+    const result = await caller.presignUpload({
+      kind: "product-photo",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+
+    expect(result.key).toMatch(
+      /^media\/v1\/acc-1\/businesses\/biz-1\/product-photo\/[0-9a-f-]{36}\.jpg$/,
+    );
+  });
+
+  it("rejects spot audio while the spot entitlement is off", async () => {
+    const { caller } = setup({ subscriptions: await paidPlan("commerce") });
+
+    await expect(
+      caller.presignUpload({
+        kind: "spot-audio",
+        contentType: "audio/mpeg",
+        sizeBytes: 512,
+        businessId: "biz-1",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("rejects invalid mime on presign", async () => {
@@ -223,6 +355,131 @@ describe("media router", () => {
     expect((await repository.getById(media.id))?.businessId).toBe("biz-1");
   });
 
+  it("rejects confirming a key under a business owned by another account", async () => {
+    const { caller, storage, repository } = setup({
+      businesses: [ownedBusiness, { ...ownedBusiness, id: "biz-2", accountId: "acc-2" }],
+    });
+
+    const key = buildMediaKey({
+      accountId: "acc-1",
+      businessId: "biz-2",
+      kind: "flyer",
+      contentType: "image/jpeg",
+      objectId: UUID,
+    });
+
+    storage.confirm(key, 512, "image/jpeg");
+
+    await expect(
+      caller.confirm({ key, kind: "flyer", contentType: "image/jpeg", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await repository.findByR2Key(key)).toBeNull();
+  });
+
+  it("allows an owned hidden business and rejects a foreign hidden one", async () => {
+    const { caller } = setup({
+      businesses: [
+        { ...ownedBusiness, id: "biz-hidden", hiddenAt: new Date() },
+        { ...ownedBusiness, id: "biz-foreign", accountId: "acc-2", hiddenAt: new Date() },
+      ],
+    });
+
+    await expect(
+      caller.presignUpload({
+        kind: "flyer",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        businessId: "biz-hidden",
+      }),
+    ).resolves.toBeTruthy();
+
+    await expect(
+      caller.presignUpload({
+        kind: "flyer",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        businessId: "biz-foreign",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects malformed business ids at the boundary", async () => {
+    const { caller } = setup();
+
+    for (const businessId of ["../acc-2", "a/b", "..", "."]) {
+      await expect(
+        caller.presignUpload({
+          kind: "flyer",
+          contentType: "image/jpeg",
+          sizeBytes: 512,
+          businessId,
+        }),
+      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    }
+  });
+
+  it("revalidates the plan entitlement on confirm", async () => {
+    const subscription = await paidPlan("trades");
+
+    const { caller, storage } = setup({ subscriptions: subscription });
+
+    const { key } = await caller.presignUpload({
+      kind: "product-photo",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+
+    storage.confirm(key, 512, "image/jpeg");
+
+    const active = await subscription.getActive("acc-1");
+
+    if (active !== null) {
+      await subscription.updateStatus(active.id, "expired");
+    }
+
+    await expect(
+      caller.confirm({ key, kind: "product-photo", contentType: "image/jpeg", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("still returns an already confirmed row after a downgrade", async () => {
+    const subscription = await paidPlan("trades");
+
+    const { caller, storage } = setup({ subscriptions: subscription });
+
+    const { key } = await caller.presignUpload({
+      kind: "product-photo",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+
+    storage.confirm(key, 512, "image/jpeg");
+
+    const first = await caller.confirm({
+      key,
+      kind: "product-photo",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+    });
+
+    const active = await subscription.getActive("acc-1");
+
+    if (active !== null) {
+      await subscription.updateStatus(active.id, "expired");
+    }
+
+    const second = await caller.confirm({
+      key,
+      kind: "product-photo",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+    });
+
+    expect(second.id).toBe(first.id);
+  });
+
   it("returns the existing row when the same object is confirmed twice", async () => {
     const { caller, storage, repository } = setup();
     const { key } = await caller.presignUpload({
@@ -374,8 +631,7 @@ describe("media router", () => {
   });
 
   it("answers SERVICE_UNAVAILABLE on presign when storage is not configured", async () => {
-    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const caller = withoutStorage();
 
     await expect(
       caller.presignUpload({ kind: "avatar", contentType: "image/png", sizeBytes: 512 }),
@@ -386,8 +642,7 @@ describe("media router", () => {
   });
 
   it("answers SERVICE_UNAVAILABLE on confirm when storage is not configured", async () => {
-    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const caller = withoutStorage();
 
     await expect(
       caller.confirm({
@@ -400,8 +655,7 @@ describe("media router", () => {
   });
 
   it("answers SERVICE_UNAVAILABLE on delete when storage is not configured", async () => {
-    const router = createMediaRouter(new InMemoryMediaRepository([]), undefined);
-    const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
+    const caller = withoutStorage();
 
     await expect(caller.delete({ id: "media-1" })).rejects.toMatchObject({
       code: "SERVICE_UNAVAILABLE",

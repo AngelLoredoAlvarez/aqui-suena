@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t2` (T1 and T2 implemented; T3+ pending)
-Status: T2 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t3` (T1–T3 implemented; T4+ pending)
+Status: T3 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -18,8 +18,8 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
 - `media` row: `ownerId`, `businessId` (nullable), `kind`, `r2Key` (unique),
   `mime`, `size`, `createdAt`; `businessId` is parsed from the key on confirm.
 - `media.confirm` parses the v1 key, requires the account/kind/extension to
-  match, validates the real object metadata and is idempotent per key. Business
-  ownership and plan entitlement are not checked yet (T3).
+  match, validates the real object metadata and is idempotent per key. Presign
+  and confirm both enforce business ownership and the plan entitlement.
 - `photos.url` and `flyers.url` accept arbitrary client URLs; nothing links a listing row to a `media` row.
 - The bucket is private. There is no signed read endpoint; `confirm` returns only the key.
 - Presigned PUT lives 300 seconds and signs `host` only with an unsigned payload, so the PUT body type and size are not constrained by the signature.
@@ -102,6 +102,13 @@ Order rationale:
   prefix; a rollback keeps `v1` objects readable by their stored keys.
 - **Explicit `account` scope.** Avoids collisions with business ids and makes
   account-level media (avatars) explicit.
+- **Media entitlement mapping (T3).** Account avatars are not a business
+  entitlement, so every plan can upload them. Every tier includes flyers.
+  `product-photo` requires the `full` media tier (paid plans).
+  `spot-audio` requires `spotEligible`, which stays off until the top tier
+  launches, so no plan can upload audio spots yet. `logo` in the
+  `flyer+logo` tier is a directory photo, not a media kind, until T6 links
+  listings to media.
 - **CFDI stays outside `media/`.** Fiscal archives keep their own prefix and
   lifecycle.
 
@@ -172,8 +179,8 @@ Order rationale:
 | --- | ----------------------------------------------------------------------- | ---------- | ------ |
 | T1  | `media.businessId` + unique `r2Key` + migration                         | —          | done   |
 | T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | done   |
-| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | next   |
-| T4  | `media.signedUrl` with per-kind read authorization                      | T1         |        |
+| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | done   |
+| T4  | `media.signedUrl` with per-kind read authorization                      | T1         | next   |
 | T5  | Deletion, retention and orphan sweep                                    | T1         |        |
 | T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |        |
 | T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |        |
@@ -222,4 +229,21 @@ Order rationale:
   `Object.hasOwn`, a lowercase-only grammar and regression tests in the parser,
   the router and `validateMediaUpload`. Recheck: PASS, no new blocker; final
   gates api 1242/1242, db 32/32, typecheck 7/7, biome, arch and singletons
-  clean. No commit yet.
+  clean. No commit yet. Merged as PR #88 (commit `0edbbda`).
+- 2026-11-20: T3 implemented on `feat/owner-media-r2-t3`. Presign and confirm
+  now require the business to belong to the authenticated account
+  (`assertBusinessOwned`, NOT_FOUND for foreign or missing) and enforce the plan
+  media entitlement (`assertCanUploadMedia`, FORBIDDEN
+  `UPGRADE_REQUIRED: billing.upgradeRequired.mediaUpload`). The pure rule lives
+  in `domain/media/entitlement.ts` and maps the existing tiers: avatars are
+  account-level for every plan, flyers for every tier, `product-photo` only for
+  the `full` tier, and `spot-audio` only when `spotEligible` is on (currently
+  off everywhere). The media router now takes a dependency object with the
+  media, business and subscription repositories plus storage. RED evidence: the
+  entitlement module was missing and the router suite failed before the new
+  dependencies and checks. GREEN: api 1258/1258, db 32/32. Confirmed rows are
+  looked up before the plan check, so a repeat confirm still returns the
+  existing row after a downgrade while a new confirm is blocked. Independent
+  verification: PASS, no blockers; advisories led to stronger tests for a
+  foreign-owned business, a hidden business and malformed business ids. No
+  commit yet.

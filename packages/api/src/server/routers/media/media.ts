@@ -1,7 +1,16 @@
-import { mediaExtensionFor, parseMediaKey } from "@aqui-suena/api/domain/media/key";
+import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { assertCanUploadMedia } from "@aqui-suena/api/domain/media/entitlement";
+import {
+  mediaExtensionFor,
+  parseMediaKey,
+  resolveMediaScope,
+} from "@aqui-suena/api/domain/media/key";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
+import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { idInput } from "@aqui-suena/api/server/trpc/errors";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
@@ -40,10 +49,28 @@ function requireStorage(storage: ObjectStorage | undefined): ObjectStorage {
   return storage;
 }
 
-export function createMediaRouter(repository: MediaRepository, storage: ObjectStorage | undefined) {
+export type MediaRouterDeps = {
+  readonly media: MediaRepository;
+  readonly business: BusinessRepository;
+  readonly subscription: SubscriptionRepository;
+  readonly storage: ObjectStorage | undefined;
+};
+
+export function createMediaRouter(deps: MediaRouterDeps) {
+  const { media: repository, business, subscription, storage } = deps;
+
   return router({
     presignUpload: protectedProcedure.input(presignInput).mutation(async ({ input, ctx }) => {
       const activeStorage = requireStorage(storage);
+      const scope = resolveMediaScope(input.kind, input.businessId);
+
+      if (scope.type === "business") {
+        await assertBusinessOwned(business, ctx.user.accountId, scope.businessId);
+      }
+
+      const plan = resolvePlan(await subscription.getActive(ctx.user.accountId));
+      assertCanUploadMedia(plan, input.kind);
+
       const { key, uploadUrl } = await activeStorage.presignUpload({
         kind: input.kind,
         contentType: input.contentType,
@@ -69,6 +96,10 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
 
       if (parsed.extension !== mediaExtensionFor(input.kind, input.contentType)) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
+      }
+
+      if (parsed.scope.type === "business") {
+        await assertBusinessOwned(business, ctx.user.accountId, parsed.scope.businessId);
       }
 
       const meta = await activeStorage.head(input.key);
@@ -106,6 +137,9 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
       if (existing !== null) {
         return existing;
       }
+
+      const plan = resolvePlan(await subscription.getActive(ctx.user.accountId));
+      assertCanUploadMedia(plan, input.kind);
 
       try {
         return await repository.create({

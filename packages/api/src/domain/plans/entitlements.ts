@@ -9,6 +9,7 @@ export const UPGRADE_HINTS = {
   businessCreate: "billing.upgradeRequired.businessCreate",
   visibleSelection: "billing.upgradeRequired.visibleSelection",
   invoiceIssue: "billing.upgradeRequired.invoiceIssue",
+  mediaUpload: "billing.upgradeRequired.mediaUpload",
 } as const;
 
 export const ENTITLEMENTS = {
