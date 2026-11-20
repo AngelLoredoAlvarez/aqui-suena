@@ -131,39 +131,40 @@ the full gate. Commits only on explicit instruction.
 
 ## Tasks
 
-- **T1** — Feature document (S1–S13). Route: inline. DONE 2026-11-19.
+- **T1** — Feature document (S1–S13). Route: inline. DONE 2026-11-19; merged
+  in PR #68.
 - **T2** — Schema and migration: interval, payments, payment events, saved card
   columns, schema tests and `0006`. Route: inline. Risk: item 1 (migration).
-  DONE 2026-11-19 (pending review).
+  DONE 2026-11-19; merged in PR #68.
 - **T3** — Domain payment use cases and state machine, with fake provider and
   clock (S4). Replaces the unwired `D1PaymentRepository`, which targeted the old
-  payment columns. Route: inline. DONE 2026-11-19 (pending review).
+  payment columns. Route: inline. DONE 2026-11-19; merged in PR #68.
 - **T4** — Subscription interval generalization, `renew`, the
   `PaymentSubscriptionWriter` adapter and regression tests (S6). Route: inline.
-  DONE 2026-11-19 (pending review).
+  DONE 2026-11-19; merged in PR #68.
 - **T5** — Conekta adapter: orders for card/cash/SPEI, customer and card source,
   order lookup, error mapping (S2, S3). Extends the provider port with
   `createCardSource`, `CardSource` and `CardDetails`. Route: inline. DONE
-  2026-11-19 (pending review).
+  2026-11-19; merged in PR #68.
 - **T6** — Webhook: RSA verification, dedupe, livemode and amount checks, Hono
   route (S5). Route: inline. Risk: item 2 (credentials and guards). DONE
-  2026-11-19 (pending review).
+  2026-11-19; merged in PR #68.
 - **T7** — tRPC checkout and payment status, Worker composition and env wiring
   (S3, S11). Wires the Conekta webhook handler, saves the Conekta customer and
   card source on the account, uses `EMAIL_APP_URL` as the 3DS return URL and
   persists the card metadata from `CardSource.card`. The local Node server has
-  no D1 and keeps payments unconfigured. Route: inline. DONE 2026-11-19
-  (pending review).
+  no D1 and keeps payments unconfigured. Route: inline. DONE 2026-11-19;
+  merged in PR #68.
 - **T8** — Scheduler sweeps and grace/downgrade handoff (S7). Route: inline.
-  DONE 2026-11-19 (pending review).
+  DONE 2026-11-19; merged in PR #68.
 - **T9** — Emails and payment-linked CFDI (S9, S10). Route: inline. DONE
-  2026-11-19 (pending review).
+  2026-11-19; merged in PR #68.
 - **T10** — Staging proof, cleanup and catalog re-seed (S12). Route: inline.
   Migration `0006` applied, Worker deployed, catalog seeded, webhook registered.
   Real sandbox proof: 3DS frictionless, 3DS challenge, declined card, saved-card
   decline, SPEI paid and SPEI expiry through the cron, and cash/efectivo paid
-  end-to-end with the current `cash` provider. Emails delivered. Pending
-  review.
+  end-to-end with the current `cash` provider. Emails delivered. DONE
+  2026-11-19; merged in PR #68.
 
 ## Log
 
@@ -296,3 +297,9 @@ the full gate. Commits only on explicit instruction.
   `0007_cash_payment_method.sql` backfills existing `oxxo` rows to `cash`.
   Historical log entries keep the old provider name only to explain the
   rebrand.
+
+- 2026-11-19: T1–T10 merged in PR #68 (`1bd53bd`); the `deploy-api` workflow
+  deployed staging and applied `0006`. The cash method rename merged in PR #69
+  (`af37e72`); `deploy-api` applied `0007`, and the staging smoke passed for
+  `cash` and SPEI with Efectivo/Cash emails. The native review successor remains
+  non-terminal; no approval is claimed.
