@@ -28,6 +28,7 @@ export interface AccountRepository {
   updateFiscalProfile(id: string, profile: FiscalProfile): Promise<void>;
   getSavedCard(id: string): Promise<SavedCard | null>;
   saveCard(id: string, card: SavedCard): Promise<void>;
+  updateRenewalRemindersEnabled(id: string, enabled: boolean): Promise<void>;
 }
 
 export class InMemoryAccountRepository implements AccountRepository {
@@ -53,6 +54,7 @@ export class InMemoryAccountRepository implements AccountRepository {
         email: normalized,
         planId: DEFAULT_ACCOUNT_PLAN,
         locale: DEFAULT_ACCOUNT_LOCALE,
+        renewalRemindersEnabled: true,
       });
 
       return;
@@ -69,6 +71,7 @@ export class InMemoryAccountRepository implements AccountRepository {
       email: anonymizedAccountEmail(account.id),
       planId: account.planId,
       locale: account.locale,
+      renewalRemindersEnabled: account.renewalRemindersEnabled,
       deletedAt: account.deletedAt ?? new Date(),
     }));
   }
@@ -95,6 +98,10 @@ export class InMemoryAccountRepository implements AccountRepository {
 
   async saveCard(id: string, card: SavedCard): Promise<void> {
     this.replace(id, (account) => ({ ...account, savedCard: card }));
+  }
+
+  async updateRenewalRemindersEnabled(id: string, enabled: boolean): Promise<void> {
+    this.replace(id, (account) => ({ ...account, renewalRemindersEnabled: enabled }));
   }
 
   private findOrThrow(id: string): Account {

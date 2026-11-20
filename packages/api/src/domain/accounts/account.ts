@@ -18,6 +18,7 @@ export interface Account {
   readonly locale: EmailLocale;
   readonly fiscalProfile?: FiscalProfile | null;
   readonly savedCard?: SavedCard | null;
+  readonly renewalRemindersEnabled?: boolean;
   readonly deletedAt?: Date | null;
 }
 

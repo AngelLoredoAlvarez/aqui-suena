@@ -61,6 +61,7 @@ describe("createContext", () => {
       email: "owner@example.com",
       planId: "community",
       locale: "es-MX",
+      renewalRemindersEnabled: true,
     });
   });
 

@@ -102,7 +102,7 @@ export function createAppRouter(
       business: directoryRepositories.business,
     }),
     plans: createPlansRouter(planRepository),
-    account: createAccountRouter({ deleteAccount }),
+    account: createAccountRouter({ account: directoryRepositories.account, deleteAccount }),
     support: createSupportRouter(planRepository, ai, planCatalogRetriever, aiGatewayId),
   });
 }

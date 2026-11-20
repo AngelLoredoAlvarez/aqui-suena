@@ -9,6 +9,7 @@ const sampleRow = {
   email: "owner@example.com",
   plan_id: "trades",
   locale: "en",
+  renewal_reminders_enabled: 1,
 };
 
 describe("D1AccountRepository", () => {
@@ -22,6 +23,7 @@ describe("D1AccountRepository", () => {
       email: "owner@example.com",
       planId: "trades",
       locale: "en",
+      renewalRemindersEnabled: true,
     });
   });
 
@@ -38,6 +40,35 @@ describe("D1AccountRepository", () => {
 
     await expect(new D1AccountRepository(fake.db).getById("acc-1")).rejects.toBeInstanceOf(
       DataIntegrityError,
+    );
+  });
+
+  it("maps a disabled renewal reminder preference", async () => {
+    const fake = new FakeD1Database(() => ({
+      first: { ...sampleRow, renewal_reminders_enabled: 0 },
+    }));
+
+    const account = await new D1AccountRepository(fake.db).getById("acc-1");
+
+    expect(account?.renewalRemindersEnabled).toBe(false);
+  });
+
+  it("updates the renewal reminder preference", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+    const repo = new D1AccountRepository(fake.db);
+
+    await repo.updateRenewalRemindersEnabled("acc-1", false);
+
+    expect(normalizeSql(fake.statements[0]?.sql)).toContain("renewal_reminders_enabled = ?");
+    expect(fake.statements[0]?.params).toEqual([0, expect.any(Number), "acc-1"]);
+  });
+
+  it("throws when the account is missing on preference update", async () => {
+    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 0 } }));
+    const repo = new D1AccountRepository(fake.db);
+
+    await expect(repo.updateRenewalRemindersEnabled("missing", true)).rejects.toBeInstanceOf(
+      NotFoundError,
     );
   });
 

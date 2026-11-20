@@ -13,6 +13,7 @@ const DDL = `
     email TEXT NOT NULL,
     plan_id TEXT DEFAULT 'community' NOT NULL,
     locale TEXT DEFAULT 'es-MX' NOT NULL,
+    renewal_reminders_enabled INTEGER DEFAULT 1 NOT NULL,
     rfc TEXT, legal_name TEXT, tax_regime TEXT, tax_zip_code TEXT, cfdi_use TEXT,
     billing_email TEXT, tax_data_updated_at INTEGER, deleted_at INTEGER,
     conekta_customer_id TEXT, default_card_source_id TEXT, card_brand TEXT,

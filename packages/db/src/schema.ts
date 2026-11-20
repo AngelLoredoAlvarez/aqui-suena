@@ -31,6 +31,9 @@ export const accounts = sqliteTable("accounts", {
   locale: text("locale", { enum: ["es-MX", "en"] })
     .notNull()
     .default("es-MX"),
+  renewalRemindersEnabled: integer("renewal_reminders_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
   rfc: text("rfc"),
   legalName: text("legal_name"),
   taxRegime: text("tax_regime"),

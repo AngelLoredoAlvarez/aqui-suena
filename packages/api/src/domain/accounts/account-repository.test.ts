@@ -67,7 +67,16 @@ describe("InMemoryAccountRepository ensure", () => {
       email: "owner@example.com",
       planId: "community",
       locale: "es-MX",
+      renewalRemindersEnabled: true,
     });
+  });
+
+  it("updates the renewal reminder preference", async () => {
+    const repo = new InMemoryAccountRepository([account]);
+
+    await repo.updateRenewalRemindersEnabled("acc-1", false);
+
+    expect((await repo.getById("acc-1"))?.renewalRemindersEnabled).toBe(false);
   });
 
   it("normalizes the email before storing it", async () => {

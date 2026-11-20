@@ -21,6 +21,7 @@ type AccountRow = {
   email: string;
   plan_id: string;
   locale: string | null;
+  renewal_reminders_enabled: number | null;
   rfc: string | null;
   legal_name: string | null;
   tax_regime: string | null;
@@ -55,7 +56,7 @@ export class D1AccountRepository implements AccountRepository {
   async getById(id: string): Promise<Account | null> {
     const row = await this.db
       .prepare(
-        `SELECT id, email, plan_id, locale, deleted_at, ${FISCAL_COLUMNS}, ${CARD_COLUMNS} FROM accounts WHERE id = ?`,
+        `SELECT id, email, plan_id, locale, renewal_reminders_enabled, deleted_at, ${FISCAL_COLUMNS}, ${CARD_COLUMNS} FROM accounts WHERE id = ?`,
       )
       .bind(id)
       .first();
@@ -215,6 +216,17 @@ export class D1AccountRepository implements AccountRepository {
     }
   }
 
+  async updateRenewalRemindersEnabled(id: string, enabled: boolean): Promise<void> {
+    const result = await this.db
+      .prepare(`UPDATE accounts SET renewal_reminders_enabled = ?, updated_at = ? WHERE id = ?`)
+      .bind(enabled ? 1 : 0, toEpoch(new Date()), id)
+      .run();
+
+    if ((result.meta?.changes ?? 0) === 0) {
+      throw new NotFoundError("Account not found");
+    }
+  }
+
   private mapRow(row: AccountRow): Account {
     const fiscalProfile = parseStoredFiscalProfile(row);
     // Nullable columns can be absent from a partially-shaped row; treat both as unset.
@@ -236,6 +248,10 @@ export class D1AccountRepository implements AccountRepository {
       email: row.email,
       planId: parsePlanId(row.plan_id),
       locale: resolveEmailLocale(row.locale),
+      renewalRemindersEnabled:
+        row.renewal_reminders_enabled === null || row.renewal_reminders_enabled === undefined
+          ? true
+          : row.renewal_reminders_enabled !== 0,
       ...(fiscalProfile === null ? {} : { fiscalProfile }),
       ...(savedCard === null ? {} : { savedCard }),
       ...(deletedAt === null ? {} : { deletedAt }),
