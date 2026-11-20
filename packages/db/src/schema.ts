@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // SQLite/D1 (Cloudflare). Timestamps are integer seconds-since-epoch.
 // Audio never touches the DB. Includes radio metadata (stations/sessions)
@@ -128,6 +128,24 @@ export const payments = sqliteTable("payments", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+export const subscriptionReminders = sqliteTable(
+  "subscription_reminders",
+  {
+    id: text("id").primaryKey(),
+    subscriptionId: text("subscription_id")
+      .notNull()
+      .references(() => subscriptions.id, { onDelete: "cascade" }),
+    type: text("type", { enum: ["renewal_7d", "renewal_1d"] }).notNull(),
+    sentAt: integer("sent_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("subscription_reminders_subscription_type_unique").on(
+      table.subscriptionId,
+      table.type,
+    ),
+  ],
+);
 
 export const paymentEvents = sqliteTable("payment_events", {
   id: text("id").primaryKey(),
