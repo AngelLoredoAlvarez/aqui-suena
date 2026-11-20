@@ -6,6 +6,7 @@ import {
   flyers,
   hours,
   listenSessions,
+  media,
   paymentEvents,
   payments,
   photos,
@@ -30,6 +31,10 @@ function indexColumns(table: Parameters<typeof getTableConfig>[0], indexName: st
   )?.config;
 
   return (config?.columns ?? []).map((column) => ("name" in column ? column.name : "sql"));
+}
+
+function columnByName(table: Parameters<typeof getTableConfig>[0], name: string) {
+  return getTableConfig(table).columns.find((column) => column.name === name);
 }
 
 describe("subscription_reminders", () => {
@@ -324,5 +329,41 @@ describe("flyers", () => {
         "updated_at",
       ]),
     );
+  });
+});
+
+describe("media", () => {
+  it("exposes owner, optional business scope, kind, key, metadata and creation time", () => {
+    expect(columnNames(media)).toEqual(
+      expect.arrayContaining([
+        "id",
+        "owner_id",
+        "business_id",
+        "kind",
+        "r2_key",
+        "mime",
+        "size",
+        "created_at",
+      ]),
+    );
+  });
+
+  it("scopes a media row to a business without cascading the delete", () => {
+    const config = getTableConfig(media);
+    const businessId = config.columns.find((column) => column.name === "business_id");
+    const businessReference = config.foreignKeys.find(
+      (foreignKey) => foreignKey.reference().foreignTable === businesses,
+    );
+
+    expect(businessId?.notNull).toBe(false);
+    expect(businessReference).toBeDefined();
+    expect(businessReference?.onDelete).toBeUndefined();
+  });
+
+  it("stores one absolute object key per media row", () => {
+    const r2Key = columnByName(media, "r2_key");
+
+    expect(r2Key?.notNull).toBe(true);
+    expect(r2Key?.isUnique).toBe(true);
   });
 });

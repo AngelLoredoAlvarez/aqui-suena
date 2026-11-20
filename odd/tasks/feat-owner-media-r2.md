@@ -5,14 +5,16 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `docs/owner-media-r2-plan` (planning only; no implementation yet)
-Status: planning
+Branch: `feat/owner-media-r2-t1` (T1; T2+ pending)
+Status: T1 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
 
 - Key layout: `{kind}/{accountId}/{uuid}` (for example `product-photo/acc_123/9f2c...`).
-- `media` row: `ownerId`, `kind`, `r2Key`, `mime`, `size`, `createdAt`; no `businessId`.
+- `media` row: `ownerId`, `businessId` (nullable), `kind`, `r2Key` (unique),
+  `mime`, `size`, `createdAt`; `businessId` was added by T1 with no backfill, so
+  existing rows stay unscoped.
 - `media.confirm` requires the key to start with `<kind>/<accountId>/`.
 - `photos.url` and `flyers.url` accept arbitrary client URLs; nothing links a listing row to a `media` row.
 - The bucket is private. There is no signed read endpoint; `confirm` returns only the key.
@@ -160,16 +162,16 @@ Order rationale:
 
 ## Implementation slices
 
-| Id  | Slice                                                                   | Depends on |
-| --- | ----------------------------------------------------------------------- | ---------- |
-| T1  | `media.businessId` + unique `r2Key` + migration                         | —          |
-| T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         |
-| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     |
-| T4  | `media.signedUrl` with per-kind read authorization                      | T1         |
-| T5  | Deletion, retention and orphan sweep                                    | T1         |
-| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |
-| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |
-| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |
+| Id  | Slice                                                                   | Depends on | Status |
+| --- | ----------------------------------------------------------------------- | ---------- | ------ |
+| T1  | `media.businessId` + unique `r2Key` + migration                         | —          | done   |
+| T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | next   |
+| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     |        |
+| T4  | `media.signedUrl` with per-kind read authorization                      | T1         |        |
+| T5  | Deletion, retention and orphan sweep                                    | T1         |        |
+| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |        |
+| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |        |
+| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |        |
 
 ## Log
 
@@ -178,3 +180,18 @@ Order rationale:
   grammar, UUID immutability, business scope and the `v1` generation marker.
   Blockers identified: media-to-listing link, signed read URLs, idempotent
   confirm, deletion/retention and quota enforcement. No code changed.
+- 2026-11-20: T1 implemented on `feat/owner-media-r2-t1`. `media.businessId` is
+  now a nullable FK to `businesses` with no cascade, and `media.r2Key` carries a
+  unique index. Migration `0014_little_shadowcat` is additive:
+  `ALTER TABLE media ADD business_id text REFERENCES businesses(id)` plus
+  `CREATE UNIQUE INDEX media_r2_key_unique`. RED evidence: three schema tests
+  failed (nullable business FK, unique key) and four migration tests failed
+  before generation. GREEN: `pnpm --filter @aqui-suena/db test` 31/31.
+  `SPEC-media-storage.md` documents the data-model contract. No commit has been
+  created yet. Precondition before applying to staging or production: the flat
+  layout allowed duplicate `r2_key` rows (`confirm` inserted on every call); the
+  unique index fails if any exist, so duplicates must be checked and removed
+  manually first. Independent verification: PASS, no blockers; durable
+  assertions added for the FK blocking a business delete while a media row
+  points at it and for a duplicate pre-state failing without losing rows. Final
+  local run: db 32/32. No commit and no push yet.
