@@ -5,17 +5,21 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t1` (T1; T2+ pending)
-Status: T1 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t2` (T1 and T2 implemented; T3+ pending)
+Status: T2 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
 
-- Key layout: `{kind}/{accountId}/{uuid}` (for example `product-photo/acc_123/9f2c...`).
+- Key layout: new uploads use `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`
+  (built and parsed by `packages/api/src/domain/media/key.ts`). Legacy
+  `{kind}/{accountId}/{uuid}` keys remain valid for reads and deletes, but
+  `confirm` accepts only v1 keys.
 - `media` row: `ownerId`, `businessId` (nullable), `kind`, `r2Key` (unique),
-  `mime`, `size`, `createdAt`; `businessId` was added by T1 with no backfill, so
-  existing rows stay unscoped.
-- `media.confirm` requires the key to start with `<kind>/<accountId>/`.
+  `mime`, `size`, `createdAt`; `businessId` is parsed from the key on confirm.
+- `media.confirm` parses the v1 key, requires the account/kind/extension to
+  match, validates the real object metadata and is idempotent per key. Business
+  ownership and plan entitlement are not checked yet (T3).
 - `photos.url` and `flyers.url` accept arbitrary client URLs; nothing links a listing row to a `media` row.
 - The bucket is private. There is no signed read endpoint; `confirm` returns only the key.
 - Presigned PUT lives 300 seconds and signs `host` only with an unsigned payload, so the PUT body type and size are not constrained by the signature.
@@ -54,7 +58,8 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
   custom domain or Worker proxy is a later decision.
 - **S8 — Migration.** Existing `{kind}/{accountId}/{uuid}` keys remain valid:
   `media.r2Key` stores the absolute key, so reads and deletes need no rewrite.
-  New uploads use `media/v1/...`. No bulk object move is required.
+  New uploads use `media/v1/...`; `confirm` accepts only v1 keys. No bulk object
+  move is required.
 
 ## Key grammar
 
@@ -81,8 +86,9 @@ Order rationale:
 - Kind third: separates image and audio operations and leaves room for
   per-prefix lifecycle or cache rules.
 - `v1` is the **key-layout generation**, not the API, file or schema version.
-  It lets a future layout coexist without moving existing objects. The
-  application never parses it at runtime because `media.r2Key` is absolute.
+  It lets a future layout coexist without moving existing objects. Reads and
+  deletes always use the stored absolute `media.r2Key`; only `confirm` parses the
+  layout, to validate a new upload.
 
 ## Decisions
 
@@ -165,8 +171,8 @@ Order rationale:
 | Id  | Slice                                                                   | Depends on | Status |
 | --- | ----------------------------------------------------------------------- | ---------- | ------ |
 | T1  | `media.businessId` + unique `r2Key` + migration                         | —          | done   |
-| T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | next   |
-| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     |        |
+| T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | done   |
+| T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | next   |
 | T4  | `media.signedUrl` with per-kind read authorization                      | T1         |        |
 | T5  | Deletion, retention and orphan sweep                                    | T1         |        |
 | T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |        |
@@ -194,4 +200,26 @@ Order rationale:
   manually first. Independent verification: PASS, no blockers; durable
   assertions added for the FK blocking a business delete while a media row
   points at it and for a duplicate pre-state failing without losing rows. Final
-  local run: db 32/32. No commit and no push yet.
+  local run: db 32/32. Merged as PR #87 (commit `dc206eb`).
+- 2026-11-20: T2 implemented on `feat/owner-media-r2-t2`. New module
+  `packages/api/src/domain/media/key.ts` builds and parses
+  `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` with account scope for
+  avatars and business scope for the other kinds. The kind rules moved to
+  `media-kind.ts` so `storage.ts` and the key module do not form a cycle;
+  `storage.ts` re-exports them. `presignUpload` accepts an optional `businessId`,
+  builds the key server-side and both adapters share the builder. `confirm`
+  requires a v1 key for the authenticated account and declared kind, requires
+  the extension to match the declared content type, persists `businessId` parsed
+  from the key and returns the existing row on a repeated confirm (it re-reads
+  after a lost insert race). RED evidence: the key module was missing, then 21
+  focused API tests failed before the implementation. GREEN: api 1242/1242,
+  db 32/32. Legacy flat keys remain readable/deletable but `confirm` rejects
+  them. T3 (business ownership and plan entitlement) is the next slice and is
+  not implemented: a business id is shape-validated only. Independent
+  verification found one blocker before this fix: the parser used the `in`
+  operator for kind membership, so `toString`/`constructor`/`__proto__` reached
+  the limits lookup and threw `INTERNAL_SERVER_ERROR`. Fixed with
+  `Object.hasOwn`, a lowercase-only grammar and regression tests in the parser,
+  the router and `validateMediaUpload`. Recheck: PASS, no new blocker; final
+  gates api 1242/1242, db 32/32, typecheck 7/7, biome, arch and singletons
+  clean. No commit yet.

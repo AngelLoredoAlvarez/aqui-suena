@@ -1,79 +1,20 @@
-import { ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { buildMediaKey } from "@aqui-suena/api/domain/media/key";
+import { type MediaKind, validateMediaUpload } from "@aqui-suena/api/domain/media/media-kind";
 
-export type MediaKind = "product-photo" | "flyer" | "spot-audio" | "avatar";
-
-export interface MediaLimits {
-  maxSizeBytes: number;
-  allowedMimeTypes: readonly string[];
-}
-
-/**
- * Hard limits per media kind (see SPEC-media-storage "Free-Tier Limits").
- * These are domain rules: they do not depend on R2, the network, or any SDK.
- */
-export const MEDIA_LIMITS: Record<MediaKind, MediaLimits> = {
-  "product-photo": {
-    maxSizeBytes: 2 * 1024 * 1024,
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
-  },
-  flyer: {
-    maxSizeBytes: 1 * 1024 * 1024,
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
-  },
-  "spot-audio": {
-    maxSizeBytes: 5 * 1024 * 1024,
-    allowedMimeTypes: ["audio/mpeg"],
-  },
-  avatar: {
-    maxSizeBytes: 500 * 1024,
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
-  },
-};
-
-/**
- * Thrown when an upload request violates the media rules.
- * Callers (tRPC router) map this to a typed error the UI can show.
- */
-export class MediaValidationError extends ValidationError {
-  constructor(message: string) {
-    super(message);
-    this.name = "MediaValidationError";
-  }
-}
-
-/**
- * Validates an upload request against the kind's limits BEFORE any presigned
- * URL is generated. Pure function: no I/O, no side effects, fully testable.
- */
-export function validateMediaUpload(kind: string, contentType: string, sizeBytes: number): void {
-  const limits = (MEDIA_LIMITS as Record<string, MediaLimits | undefined>)[kind];
-
-  if (limits === undefined) {
-    throw new MediaValidationError(`Unknown media kind: ${String(kind)}`);
-  }
-
-  if (!limits.allowedMimeTypes.includes(contentType)) {
-    throw new MediaValidationError(
-      `Unsupported content type '${contentType}' for ${kind}. Allowed: ${limits.allowedMimeTypes.join(", ")}`,
-    );
-  }
-
-  if (sizeBytes < 0) {
-    throw new MediaValidationError("File size cannot be negative");
-  }
-
-  if (sizeBytes > limits.maxSizeBytes) {
-    throw new MediaValidationError(
-      `File size ${sizeBytes} exceeds limit ${limits.maxSizeBytes} for ${kind}`,
-    );
-  }
-}
+export {
+  MEDIA_LIMITS,
+  type MediaKind,
+  type MediaLimits,
+  MediaValidationError,
+  validateMediaUpload,
+} from "@aqui-suena/api/domain/media/media-kind";
 
 export interface PresignUploadInput {
-  kind: string;
+  kind: MediaKind;
   contentType: string;
   sizeBytes: number;
   ownerId: string;
+  businessId?: string;
 }
 
 export interface PresignUploadResult {
@@ -103,18 +44,23 @@ export interface ObjectStorage {
  * stored metadata via `confirm()`, validating input through `validateMediaUpload`.
  */
 export class InMemoryObjectStorage implements ObjectStorage {
-  private counter = 0;
   readonly presigned: PresignUploadInput[] = [];
   private readonly stored = new Map<string, ObjectMetadata>();
 
   async presignUpload(input: PresignUploadInput): Promise<PresignUploadResult> {
     validateMediaUpload(input.kind, input.contentType, input.sizeBytes);
 
-    this.counter += 1;
-    const key = `${input.kind}/${input.ownerId}/${this.counter}`;
+    const key = buildMediaKey({
+      accountId: input.ownerId,
+      businessId: input.businessId,
+      kind: input.kind,
+      contentType: input.contentType,
+    });
+
     const uploadUrl = `https://fake.r2/${key}`;
 
     this.presigned.push(input);
+
     return { key, uploadUrl };
   }
 

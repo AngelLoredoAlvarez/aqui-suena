@@ -3,6 +3,8 @@ import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { describe, expect, it } from "vitest";
 
+const UUID = "3c8f0a4e-1f3b-4a2c-9d5e-6b7a8c9d0e1f";
+
 describe("media router", () => {
   function setup() {
     const repository = new InMemoryMediaRepository([]);
@@ -13,7 +15,7 @@ describe("media router", () => {
     return { repository, storage, caller };
   }
 
-  it("presigns an upload", async () => {
+  it("presigns an account avatar under the v1 account prefix", async () => {
     const { caller, storage } = setup();
 
     const result = await caller.presignUpload({
@@ -22,9 +24,45 @@ describe("media router", () => {
       sizeBytes: 512,
     });
 
-    expect(result.key).toBeTruthy();
+    expect(result.key).toMatch(/^media\/v1\/acc-1\/account\/avatar\/[0-9a-f-]{36}\.png$/);
     expect(result.uploadUrl).toMatch(/^https:/);
     expect(storage.presigned).toHaveLength(1);
+    expect(storage.presigned[0]?.businessId).toBeUndefined();
+  });
+
+  it("presigns business media under the v1 business prefix", async () => {
+    const { caller, storage } = setup();
+
+    const result = await caller.presignUpload({
+      kind: "flyer",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+
+    expect(result.key).toMatch(/^media\/v1\/acc-1\/businesses\/biz-1\/flyer\/[0-9a-f-]{36}\.jpg$/);
+    expect(storage.presigned[0]?.businessId).toBe("biz-1");
+  });
+
+  it("rejects business media without a business id on presign", async () => {
+    const { caller } = setup();
+
+    await expect(
+      caller.presignUpload({ kind: "flyer", contentType: "image/jpeg", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects a business id for an avatar on presign", async () => {
+    const { caller } = setup();
+
+    await expect(
+      caller.presignUpload({
+        kind: "avatar",
+        contentType: "image/png",
+        sizeBytes: 512,
+        businessId: "biz-1",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("rejects invalid mime on presign", async () => {
@@ -54,12 +92,13 @@ describe("media router", () => {
     });
 
     expect(media.r2Key).toBe(key);
+    expect(media.businessId).toBeNull();
     expect(await repository.getById(media.id)).not.toBeNull();
   });
 
   it("rejects a key that belongs to another account with NOT_FOUND", async () => {
     const { caller, storage } = setup();
-    const key = "avatar/acc-2/1";
+    const key = `media/v1/acc-2/account/avatar/${UUID}.png`;
     storage.confirm(key, 512, "image/png");
 
     await expect(
@@ -67,13 +106,50 @@ describe("media router", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  it("rejects a key that does not use the declared kind prefix with NOT_FOUND", async () => {
+  it("rejects a key whose kind differs from the declared kind with NOT_FOUND", async () => {
     const { caller, storage } = setup();
-    const key = "flyer/acc-1/1";
+    const key = `media/v1/acc-1/businesses/biz-1/product-photo/${UUID}.webp`;
     storage.confirm(key, 512, "image/png");
 
     await expect(
       caller.confirm({ key, kind: "avatar", contentType: "image/png", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a key with a prototype-chain kind segment with NOT_FOUND", async () => {
+    const { caller } = setup();
+
+    await expect(
+      caller.confirm({
+        key: `media/v1/acc-1/businesses/biz-1/toString/${UUID}.png`,
+        kind: "avatar",
+        contentType: "image/png",
+        sizeBytes: 512,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a legacy flat key with NOT_FOUND", async () => {
+    const { caller, storage } = setup();
+    const key = `product-photo/acc-1/${UUID}`;
+    storage.confirm(key, 512, "image/webp");
+
+    await expect(
+      caller.confirm({ key, kind: "product-photo", contentType: "image/webp", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects a key whose extension differs from the declared content type", async () => {
+    const { caller, storage } = setup();
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+    storage.confirm(key, 512, "image/jpeg");
+
+    await expect(
+      caller.confirm({ key, kind: "avatar", contentType: "image/jpeg", sizeBytes: 512 }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
@@ -105,25 +181,74 @@ describe("media router", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
-  it("persists the real storage size and content type", async () => {
+  it("persists the real storage size instead of the presigned size", async () => {
     const { caller, storage, repository } = setup();
     const { key } = await caller.presignUpload({
       kind: "avatar",
       contentType: "image/png",
       sizeBytes: 512,
     });
-    storage.confirm(key, 600, "image/jpeg");
+    storage.confirm(key, 600, "image/png");
 
     const media = await caller.confirm({
       key,
       kind: "avatar",
-      contentType: "image/jpeg",
+      contentType: "image/png",
       sizeBytes: 600,
     });
 
     expect(media.size).toBe(600);
-    expect(media.mime).toBe("image/jpeg");
+    expect(media.mime).toBe("image/png");
     expect((await repository.getById(media.id))?.size).toBe(600);
+  });
+
+  it("persists the business scope parsed from the key", async () => {
+    const { caller, storage, repository } = setup();
+    const { key } = await caller.presignUpload({
+      kind: "flyer",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+    storage.confirm(key, 512, "image/jpeg");
+
+    const media = await caller.confirm({
+      key,
+      kind: "flyer",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+    });
+
+    expect(media.businessId).toBe("biz-1");
+    expect((await repository.getById(media.id))?.businessId).toBe("biz-1");
+  });
+
+  it("returns the existing row when the same object is confirmed twice", async () => {
+    const { caller, storage, repository } = setup();
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+    storage.confirm(key, 512, "image/png");
+
+    const first = await caller.confirm({
+      key,
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+    const second = await caller.confirm({
+      key,
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    expect(second.id).toBe(first.id);
+    expect(
+      (await repository.listByOwner({ ownerId: "acc-1", limit: 20, offset: 0 })).items,
+    ).toHaveLength(1);
   });
 
   it("rejects a real content type outside the kind limits with BAD_REQUEST", async () => {
@@ -145,7 +270,7 @@ describe("media router", () => {
 
     await expect(
       caller.confirm({
-        key: "avatar/acc-1/missing",
+        key: `media/v1/acc-1/account/avatar/${UUID}.png`,
         kind: "avatar",
         contentType: "image/png",
         sizeBytes: 512,
@@ -177,6 +302,7 @@ describe("media router", () => {
 
     await repository.create({
       ownerId: "acc-1",
+      businessId: null,
       kind: "avatar",
       r2Key: "k1",
       mime: "image/png",
@@ -184,6 +310,7 @@ describe("media router", () => {
     });
     await repository.create({
       ownerId: "acc-1",
+      businessId: null,
       kind: "avatar",
       r2Key: "k2",
       mime: "image/png",
@@ -191,6 +318,7 @@ describe("media router", () => {
     });
     await repository.create({
       ownerId: "acc-2",
+      businessId: null,
       kind: "avatar",
       r2Key: "k3",
       mime: "image/png",

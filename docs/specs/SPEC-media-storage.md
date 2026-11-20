@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). Missing: the shared upload picker, signed read URLs and responsive image variants (WebP/AVIF, `srcset`). Owner uploads still use the flat `{kind}/{accountId}/{uuid}` key; the planned `media/v1/...` layout, business scoping, ownership validation and lifecycle are specified in `odd/tasks/feat-owner-media-r2.md`, whose T1 slice is done. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads now use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side, and `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. Missing: business ownership and plan entitlement checks at presign/confirm (T3), signed read URLs (T4), deletion/retention (T5), listing links (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -29,7 +29,8 @@ Typecheck: pnpm -r typecheck
 
 ```
 packages/api/src/server/routers/media/media.ts → media.presignUpload / media.confirm / media.list / media.delete
-packages/api/src/infrastructure/media/r2-client.ts → R2 S3-compatible client (presigned URLs, head, delete)
+packages/api/src/domain/media/key.ts → media/v1 key builder and parser (account vs business scope)
+packages/api/src/infrastructure/media/r2-object-storage.ts → R2 S3-compatible client (presigned URLs, head, delete)
 packages/db/src/schema.ts          → media table (id, ownerId, businessId?, kind, r2Key unique, mime, size, createdAt)
 packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy loading + blur placeholder
 packages/ui/src/media-picker.tsx   → shared upload + preview component (Tamagui) — not built yet
@@ -50,26 +51,32 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 
 ## Upload Flow
 
-1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required).
-2. Server validates type/size limits, generates a unique R2 key, returns the presigned URL.
+1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required) with `kind`, `contentType`, `sizeBytes` and, for business media, `businessId` (never for an avatar).
+2. Server validates the type/size limits and the scope, generates the `media/v1/...` key server-side (UUID and extension included), and returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the R2 key and the declared type/size. The current implementation requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB. The D1 unique index on `r2_key` is the foundation for the planned idempotent `confirm`: the router does not resolve a duplicate to the existing row yet (T2). The planned layout replaces that prefix with `media/v1/{accountId}/{scope}/{kind}/` and adds business ownership and idempotency; see the feature document.
-5. Client receives the public URL (R2 custom domain or worker proxy).
+4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
+5. The response carries the media row and its absolute key; a signed read contract is still pending (T4).
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
 reports `media: "configured" | "unconfigured"`; when the R2 credentials are
 missing or only partially set, any media mutation answers
 `503 SERVICE_UNAVAILABLE` with `media storage is not configured`.
 
-## Planned key layout (2026-11-20)
+## Key layout (2026-11-20)
 
-Owner uploads move to `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`, where
+New owner uploads use `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`, where
 `scope` is `businesses/{businessId}` for business media or `account` for
-account-level media. The layout is versioned because it is changing now;
-`media.r2Key` stays absolute, so old keys remain valid and a future `v2` can
-coexist without moving objects. Business ownership, idempotent `confirm`, signed
-read URLs, deletion/retention and orphan cleanup are specified with their
-implementation slices in `odd/tasks/feat-owner-media-r2.md`.
+account-level media. The layout is versioned because it changed; `media.r2Key`
+stays absolute, so old keys remain valid and a future `v2` can coexist without
+moving objects. Business ownership and plan entitlement checks at presign and
+confirm are still pending (T3); signed read URLs, deletion/retention and orphan
+cleanup are specified with their implementation slices in
+`odd/tasks/feat-owner-media-r2.md`.
+
+The builder and parser live in `packages/api/src/domain/media/key.ts` as pure
+functions. A client never chooses a key: it only chooses the kind, content type,
+size and (for business media) the business id. Avatars are always account-scoped
+and reject a `businessId`; the other kinds require one.
 
 ### Data model landed by T1
 
@@ -81,17 +88,19 @@ existing rows:
   the owning business. Deleting a business requires deleting its media objects
   and rows explicitly first, so no object is orphaned behind a cascaded row.
 - `media.r2_key` has a unique index (`media_r2_key_unique`). It is what makes
-  idempotent `confirm` possible in T2: the same object cannot produce two rows.
+  idempotent `confirm` possible: the same object cannot produce two rows.
 - Old flat keys such as `product-photo/acc_123/9f2c...` stay valid and are
   stored unscoped (`business_id` NULL) because `r2_key` is absolute.
 - The migration is additive (`ALTER TABLE ... ADD COLUMN` plus a unique index),
   so it preserves existing rows and does not rebuild the table.
 - Deployment precondition: a database that already ran the flat layout must
-  have no two `media` rows with the same `r2_key`, because `confirm` used to
-  insert on every call. Check and deduplicate (keep one row per key) before
-  applying; the migration never deletes data on its own. A duplicate `confirm`
-  now surfaces the unique violation until T2 turns it into the idempotent
-  response.
+  have no two `media` rows with the same `r2_key`, because the old `confirm`
+  inserted on every call. Check and deduplicate (keep one row per key) before
+  applying; the migration never deletes data on its own.
+- Confirming the same object twice returns the existing row: the router looks
+  up the key first and re-reads it if a concurrent insert loses the race. Legacy
+  flat keys are no longer accepted by `confirm` (reads and deletes still work),
+  so only in-flight uploads from before the deploy can surface `NOT_FOUND`.
 
 ## Image Optimization (listeners)
 
@@ -104,27 +113,28 @@ existing rows:
 
 ## Code Style
 
-Presigned URL generation with validation:
+Server-generated key with validation:
 
 ```ts
-// packages/api/src/r2-client.ts
-export async function presignUpload(
-  key: string,
-  contentType: string,
-  maxSize: number,
-): Promise<string> {
-  // Validate contentType against allowlist and size against limit before signing
-  // Return a time-limited PUT URL (5 min expiry)
-}
+// packages/api/src/domain/media/key.ts
+buildMediaKey({
+  accountId,
+  businessId, // omitted for account media (avatars)
+  kind,
+  contentType,
+});
+// media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}
 ```
 
-Conventions: media keys are unique and immutable (UUID), never overwritten; uploads go directly to R2 (no server proxy); client-side compression before upload for images; audio normalized at upload; virus/size guards on server (reject oversized or wrong mime). Content-addressed keys and deduplication are deferred: the direct upload path cannot verify a content hash without downloading the object, and dedup would require reference counting for deletes.
+The builder validates the kind, its allowed content types and the scope, and generates the UUID. The client never supplies a key.
+
+Conventions: media keys are unique and immutable (UUID), never overwritten; the client never chooses a key; uploads go directly to R2 (no server proxy); client-side compression before upload for images; audio normalized at upload; virus/size guards on server (reject oversized or wrong mime). Content-addressed keys and deduplication are deferred: the direct upload path cannot verify a content hash without downloading the object, and dedup would require reference counting for deletes.
 
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for upload flows.
-- Locations: `packages/api/src/infrastructure/media/r2-client.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
-- Coverage: 100% on presign validation (type/size limits) and image state machine.
+- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
+- Coverage: 100% on key grammar, presign validation (type/size limits) and the confirm state machine.
 - Levels: unit (presign validation, size limits) → integration (presign → upload → confirm → metadata stored) → e2e (owner uploads photo, listener sees it optimized).
 
 ## Boundaries

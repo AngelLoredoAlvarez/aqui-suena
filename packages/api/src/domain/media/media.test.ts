@@ -7,6 +7,7 @@ describe("InMemoryMediaRepository", () => {
 
     const created = await repo.create({
       ownerId: "acc-1",
+      businessId: null,
       kind: "avatar",
       r2Key: "avatar/acc-1/1",
       mime: "image/png",
@@ -16,6 +17,7 @@ describe("InMemoryMediaRepository", () => {
     expect(created.id).toBeTruthy();
     expect(created.createdAt).toBeInstanceOf(Date);
     expect(created.r2Key).toBe("avatar/acc-1/1");
+    expect(created.businessId).toBeNull();
   });
 
   it("lists only the owner's media ordered by createdAt, id", async () => {
@@ -23,6 +25,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-2",
         ownerId: "acc-1",
+        businessId: null,
         kind: "avatar",
         r2Key: "k2",
         mime: "image/png",
@@ -32,6 +35,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-1",
         ownerId: "acc-1",
+        businessId: null,
         kind: "avatar",
         r2Key: "k1",
         mime: "image/png",
@@ -41,6 +45,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-foreign",
         ownerId: "acc-2",
+        businessId: null,
         kind: "avatar",
         r2Key: "k3",
         mime: "image/png",
@@ -59,6 +64,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-1",
         ownerId: "acc-1",
+        businessId: null,
         kind: "avatar",
         r2Key: "k1",
         mime: "image/png",
@@ -68,6 +74,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-2",
         ownerId: "acc-1",
+        businessId: null,
         kind: "avatar",
         r2Key: "k2",
         mime: "image/png",
@@ -87,6 +94,7 @@ describe("InMemoryMediaRepository", () => {
       {
         id: "m-1",
         ownerId: "acc-1",
+        businessId: null,
         kind: "avatar",
         r2Key: "k1",
         mime: "image/png",
@@ -112,6 +120,7 @@ describe("InMemoryMediaRepository", () => {
 
     const created = await repo.create({
       ownerId: "acc-1",
+      businessId: null,
       kind: "avatar",
       r2Key: "k1",
       mime: "image/png",
@@ -126,5 +135,36 @@ describe("InMemoryMediaRepository", () => {
     const repo = new InMemoryMediaRepository([]);
 
     expect(await repo.delete("nope")).toBe(false);
+  });
+
+  it("keeps the business scope of business media", async () => {
+    const repo = new InMemoryMediaRepository([]);
+
+    const created = await repo.create({
+      ownerId: "acc-1",
+      businessId: "biz-1",
+      kind: "flyer",
+      r2Key: "media/v1/acc-1/businesses/biz-1/flyer/key.jpg",
+      mime: "image/jpeg",
+      size: 1,
+    });
+
+    expect(created.businessId).toBe("biz-1");
+  });
+
+  it("finds a row by its absolute object key", async () => {
+    const repo = new InMemoryMediaRepository([]);
+
+    const created = await repo.create({
+      ownerId: "acc-1",
+      businessId: null,
+      kind: "avatar",
+      r2Key: "media/v1/acc-1/account/avatar/key.png",
+      mime: "image/png",
+      size: 1,
+    });
+
+    expect((await repo.findByR2Key(created.r2Key))?.id).toBe(created.id);
+    expect(await repo.findByR2Key("missing")).toBeNull();
   });
 });

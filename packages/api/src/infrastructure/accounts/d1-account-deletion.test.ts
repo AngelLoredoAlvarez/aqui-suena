@@ -46,6 +46,7 @@ const DDL = `
   CREATE TABLE media (
     id TEXT PRIMARY KEY NOT NULL,
     owner_id TEXT NOT NULL REFERENCES accounts(id),
+    business_id TEXT REFERENCES businesses(id),
     kind TEXT NOT NULL, r2_key TEXT NOT NULL, mime TEXT NOT NULL,
     size INTEGER NOT NULL, created_at INTEGER NOT NULL
   );

@@ -6,6 +6,7 @@ import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 export type Media = {
   id: string;
   ownerId: string;
+  businessId: string | null;
   kind: MediaKind;
   r2Key: string;
   mime: string;
@@ -15,6 +16,7 @@ export type Media = {
 
 export type CreateMediaInput = {
   ownerId: string;
+  businessId: string | null;
   kind: MediaKind;
   r2Key: string;
   mime: string;
@@ -34,6 +36,7 @@ function toMediaPoint(media: Media): CursorPoint {
 export interface MediaRepository {
   listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>>;
   getById(id: string): Promise<Media | null>;
+  findByR2Key(r2Key: string): Promise<Media | null>;
   create(input: CreateMediaInput): Promise<Media>;
   delete(id: string): Promise<boolean>;
 }
@@ -51,10 +54,15 @@ export class InMemoryMediaRepository implements MediaRepository {
     return this.items.find((media) => media.id === id) ?? null;
   }
 
+  async findByR2Key(r2Key: string): Promise<Media | null> {
+    return this.items.find((media) => media.r2Key === r2Key) ?? null;
+  }
+
   async create(input: CreateMediaInput): Promise<Media> {
     const media: Media = {
       id: crypto.randomUUID(),
       ownerId: input.ownerId,
+      businessId: input.businessId,
       kind: input.kind,
       r2Key: input.r2Key,
       mime: input.mime,

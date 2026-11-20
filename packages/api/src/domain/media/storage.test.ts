@@ -31,6 +31,7 @@ describe("validateMediaUpload", () => {
 
   it("rejects an unknown media kind", () => {
     expect(() => validateMediaUpload("video", "video/mp4", 1024)).toThrow(MediaValidationError);
+    expect(() => validateMediaUpload("toString", "image/png", 1024)).toThrow(MediaValidationError);
   });
 
   it("exposes the limits for each kind", () => {
@@ -41,7 +42,7 @@ describe("validateMediaUpload", () => {
 });
 
 describe("InMemoryObjectStorage", () => {
-  it("presigns a valid upload and records the request", async () => {
+  it("presigns a valid upload under the v1 business prefix", async () => {
     const storage = new InMemoryObjectStorage();
 
     const result = await storage.presignUpload({
@@ -49,11 +50,42 @@ describe("InMemoryObjectStorage", () => {
       contentType: "image/jpeg",
       sizeBytes: 1024,
       ownerId: "acc-1",
+      businessId: "biz-1",
     });
 
-    expect(result.key).toBeTruthy();
+    expect(result.key).toMatch(
+      /^media\/v1\/acc-1\/businesses\/biz-1\/product-photo\/[0-9a-f-]{36}\.jpg$/,
+    );
     expect(result.uploadUrl).toMatch(/^https:/);
     expect(storage.presigned).toHaveLength(1);
+  });
+
+  it("presigns an account avatar under the v1 account prefix", async () => {
+    const storage = new InMemoryObjectStorage();
+
+    const result = await storage.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+      ownerId: "acc-1",
+    });
+
+    expect(result.key).toMatch(/^media\/v1\/acc-1\/account\/avatar\/[0-9a-f-]{36}\.png$/);
+  });
+
+  it("rejects a business kind without a business id before presigning", async () => {
+    const storage = new InMemoryObjectStorage();
+
+    await expect(
+      storage.presignUpload({
+        kind: "flyer",
+        contentType: "image/jpeg",
+        sizeBytes: 512,
+        ownerId: "acc-1",
+      }),
+    ).rejects.toThrow(MediaValidationError);
+
+    expect(storage.presigned).toHaveLength(0);
   });
 
   it("rejects an invalid upload before presigning", async () => {
@@ -65,6 +97,7 @@ describe("InMemoryObjectStorage", () => {
         contentType: "image/gif",
         sizeBytes: 1024,
         ownerId: "acc-1",
+        businessId: "biz-1",
       }),
     ).rejects.toThrow(MediaValidationError);
 
@@ -102,6 +135,7 @@ describe("InMemoryObjectStorage", () => {
       contentType: "image/jpeg",
       sizeBytes: 512,
       ownerId: "acc-1",
+      businessId: "biz-1",
     });
 
     storage.confirm(key, 512, "image/jpeg");
