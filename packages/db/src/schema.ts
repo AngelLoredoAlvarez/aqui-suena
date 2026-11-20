@@ -104,7 +104,7 @@ export const payments = sqliteTable("payments", {
   billingInterval: text("billing_interval", { enum: ["monthly", "annual"] })
     .notNull()
     .default("monthly"),
-  method: text("method", { enum: ["card", "oxxo", "spei"] }).notNull(),
+  method: text("method", { enum: ["card", "cash", "spei"] }).notNull(),
   provider: text("provider", { enum: ["conekta"] })
     .notNull()
     .default("conekta"),

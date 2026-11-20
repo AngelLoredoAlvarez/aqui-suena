@@ -72,7 +72,7 @@ describe("D1PaymentRepository", () => {
 
   it.each([
     ["status", { status: "unknown" }],
-    ["method", { method: "cash" }],
+    ["method", { method: "unknown" }],
     ["billingInterval", { billing_interval: "weekly" }],
     ["provider", { provider: "stripe" }],
     ["planId", { plan_id: "enterprise" }],

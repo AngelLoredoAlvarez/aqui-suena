@@ -20,8 +20,8 @@ const PERIOD_LABELS: Record<EmailLocale, Record<BillingPeriod, string>> = {
 };
 
 const METHOD_LABELS: Record<EmailLocale, Record<PaymentMethod, string>> = {
-  "es-MX": { card: "Tarjeta", oxxo: "OXXO", spei: "SPEI" },
-  en: { card: "Card", oxxo: "OXXO", spei: "SPEI" },
+  "es-MX": { card: "Tarjeta", cash: "Efectivo", spei: "SPEI" },
+  en: { card: "Card", cash: "Cash", spei: "SPEI" },
 };
 
 /**

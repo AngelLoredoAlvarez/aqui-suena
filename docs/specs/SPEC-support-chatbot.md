@@ -29,7 +29,7 @@ services, products, plans, or any other entity stays a manual action in the UI.
 - Differences between plans, which plan fits a given need.
 - Subscription lifecycle: how to subscribe, cancel, change plan, grace period
   on failed renewal.
-- General billing help: payment methods (card, OXXO, SPEI), receipts, failed
+- General billing help: payment methods (card, cash (Conekta Efectivo), SPEI), receipts, failed
   payments, plan changes, downgrades and their affected fields.
 
 ### B. Business directory (public)

@@ -121,7 +121,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
     const expiresAt = new Date("2026-11-26T12:00:00Z");
 
     const result = await provider.createCharge(
-      baseInput({ method: "oxxo", cardToken: undefined, expiresAt }),
+      baseInput({ method: "cash", cardToken: undefined, expiresAt }),
     );
 
     expect(result).toMatchObject({
@@ -254,7 +254,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
     );
 
     await expect(
-      provider.createCharge(baseInput({ method: "oxxo", cardToken: undefined })),
+      provider.createCharge(baseInput({ method: "cash", cardToken: undefined })),
     ).rejects.toBeInstanceOf(PaymentProviderRejection);
   });
 
@@ -265,7 +265,7 @@ describe("ConektaPaymentProvider.createCharge", () => {
       charges: { data: [{ id: "chg_7", status: "pending_payment", payment_method: {} }] },
     });
 
-    const result = await provider.createCharge(baseInput({ method: "oxxo", cardToken: undefined }));
+    const result = await provider.createCharge(baseInput({ method: "cash", cardToken: undefined }));
 
     expect(result.status).toBe("pending");
     expect(result.nextActionUrl).toBeNull();

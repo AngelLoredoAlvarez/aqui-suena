@@ -178,7 +178,7 @@ function lastCompleted(history: Payment[]): Payment | null {
 function methodFor(hasSavedCard: boolean, last: Payment | null): PaymentMethod {
   if (hasSavedCard) return "card";
 
-  return last?.method === "spei" ? "spei" : "oxxo";
+  return last?.method === "spei" ? "spei" : "cash";
 }
 
 function isCompletedFor(payment: Payment, periodStart: Date): boolean {

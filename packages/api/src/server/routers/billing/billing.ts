@@ -45,7 +45,7 @@ const cancelInput = v.object({
 const checkoutInput = v.object({
   planId: v.picklist(["trades", "commerce"]),
   billingInterval: v.picklist(["monthly", "annual"]),
-  method: v.picklist(["card", "oxxo", "spei"]),
+  method: v.picklist(["card", "cash", "spei"]),
   idempotencyKey: v.pipe(v.string(), v.minLength(8), v.maxLength(128)),
   cardToken: v.optional(v.pipe(v.string(), v.minLength(1))),
   customerName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(120)),

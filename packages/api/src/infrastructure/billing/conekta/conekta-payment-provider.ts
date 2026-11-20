@@ -174,7 +174,7 @@ export class ConektaPaymentProvider implements PaymentProvider {
       input.expiresAt === undefined ? undefined : Math.floor(input.expiresAt.getTime() / 1000);
 
     return {
-      type: input.method === "oxxo" ? "cash" : "spei",
+      type: input.method === "cash" ? "cash" : "spei",
       ...(expiresAt === undefined ? {} : { expires_at: expiresAt }),
     };
   }

@@ -171,10 +171,11 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       `oxxo_cash` answers HTTP 422 `order.provider_not_found`. The adapter sends
       `cash`, and the staging probe completed end-to-end (auto-paid by the
       sandbox, webhook activation, pending and receipt emails delivered).
-- [ ] Rename the cash method copy from "OXXO" to "Efectivo" — 2026-11-19: the
-      internal method stays `oxxo`, but the provider is Conekta Efectivo with
-      more than 19,000 cash points, not only OXXO. The email label and any UI
-      copy are a product decision.
+- [x] Rename the cash method from "OXXO" to `cash` / "Efectivo" — DONE
+      2026-11-19: the domain method, API picklist, DB enum, provider mapping,
+      tests and docs use `cash`; user-facing copy says "Efectivo" (es-MX) and
+      "Cash" (en). Migration `0007_cash_payment_method.sql` backfills existing
+      `oxxo` rows.
 - [ ] Distinguish card 402 decline bodies from other card 402 failures —
       2026-11-19: the adapter maps every card-method 402 to a declined charge.
       A 402 caused by a token or field validation failure would be reported as
@@ -182,7 +183,7 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       before deciding.
 - [ ] Preserve paid time when a pending lower-tier payment completes after a
       higher-tier payment — 2026-11-19: the API allows one open intent per
-      plan + interval + method, so a pending SPEI/OXXO reference and a card
+      plan + interval + method, so a pending SPEI/cash reference and a card
       payment for another plan can coexist. The second completion cancels the
       active subscription through `SubscriptionService.subscribe`, losing the
       already-paid period. Decide whether to reject a second pending checkout or

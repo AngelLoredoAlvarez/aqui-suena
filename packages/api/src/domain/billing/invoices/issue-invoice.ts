@@ -221,7 +221,7 @@ function paymentForm(method: Payment["method"]): InvoicePaymentForm {
   switch (method) {
     case "card":
       return "04";
-    case "oxxo":
+    case "cash":
       return "01";
     case "spei":
       return "03";
