@@ -31,8 +31,11 @@ const DDL = `
     id TEXT PRIMARY KEY,
     subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
     type TEXT NOT NULL,
+    period_ends_at INTEGER NOT NULL,
     sent_at INTEGER NOT NULL
   );
+  CREATE UNIQUE INDEX subscription_reminders_subscription_type_period_unique
+    ON subscription_reminders (subscription_id, type, period_ends_at);
 `;
 
 function createD1Adapter(database: DatabaseSync): D1Database {
@@ -66,7 +69,7 @@ type SeedInput = {
   readonly status?: string;
   readonly deletedAt?: Date;
   readonly remindersEnabled?: boolean;
-  readonly reminders?: ReminderType[];
+  readonly reminders?: Array<{ readonly type: ReminderType; readonly periodEndsAt?: Date }>;
 };
 
 function seed(database: DatabaseSync, input: SeedInput): void {
@@ -100,12 +103,20 @@ function seed(database: DatabaseSync, input: SeedInput): void {
       toEpoch(startedAt),
     );
 
-  for (const type of input.reminders ?? []) {
+  for (const reminder of input.reminders ?? []) {
+    const periodEndsAt = reminder.periodEndsAt ?? input.endsAt;
+
     database
       .prepare(
-        "INSERT INTO subscription_reminders (id, subscription_id, type, sent_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO subscription_reminders (id, subscription_id, type, period_ends_at, sent_at) VALUES (?, ?, ?, ?, ?)",
       )
-      .run(`${input.id}-${type}`, input.id, type, toEpoch(NOW));
+      .run(
+        `${input.id}-${reminder.type}-${periodEndsAt.getTime()}`,
+        input.id,
+        reminder.type,
+        toEpoch(periodEndsAt),
+        toEpoch(NOW),
+      );
   }
 }
 
@@ -130,13 +141,13 @@ describe("D1SubscriptionRepository reminder candidates", () => {
         id: "sub-7d-sent",
         accountId: "acc-3",
         endsAt: new Date("2026-11-24T12:00:00Z"),
-        reminders: ["renewal_7d"],
+        reminders: [{ type: "renewal_7d" }],
       },
       {
         id: "sub-1d-sent",
         accountId: "acc-4",
         endsAt: new Date("2026-11-21T12:00:00Z"),
-        reminders: ["renewal_1d"],
+        reminders: [{ type: "renewal_1d" }],
       },
       {
         id: "sub-disabled",
@@ -254,31 +265,31 @@ describe("D1SubscriptionRepository reminder candidates", () => {
         id: "day5-7d-sent",
         accountId: "acc-1",
         endsAt: new Date("2026-11-25T12:00:00Z"),
-        reminders: ["renewal_7d"],
+        reminders: [{ type: "renewal_7d" }],
       },
       {
         id: "day5-1d-sent",
         accountId: "acc-2",
         endsAt: new Date("2026-11-25T12:00:00Z"),
-        reminders: ["renewal_1d"],
+        reminders: [{ type: "renewal_1d" }],
       },
       {
         id: "day1-1d-sent",
         accountId: "acc-3",
         endsAt: new Date("2026-11-21T12:00:00Z"),
-        reminders: ["renewal_1d"],
+        reminders: [{ type: "renewal_1d" }],
       },
       {
         id: "day1-7d-sent",
         accountId: "acc-4",
         endsAt: new Date("2026-11-21T12:00:00Z"),
-        reminders: ["renewal_7d"],
+        reminders: [{ type: "renewal_7d" }],
       },
       {
         id: "day0-both-sent",
         accountId: "acc-5",
         endsAt: new Date("2026-11-20T12:00:00Z"),
-        reminders: ["renewal_7d", "renewal_1d"],
+        reminders: [{ type: "renewal_7d" }, { type: "renewal_1d" }],
       },
     ]);
 
@@ -316,9 +327,14 @@ describe("D1SubscriptionRepository reminder candidates", () => {
     for (const subscription of first) {
       database
         .prepare(
-          "INSERT INTO subscription_reminders (id, subscription_id, type, sent_at) VALUES (?, ?, 'renewal_7d', ?)",
+          "INSERT INTO subscription_reminders (id, subscription_id, type, period_ends_at, sent_at) VALUES (?, ?, 'renewal_7d', ?, ?)",
         )
-        .run(`sent-${subscription.id}`, subscription.id, toEpoch(NOW));
+        .run(
+          `sent-${subscription.id}`,
+          subscription.id,
+          toEpoch(subscription.endsAt ?? NOW),
+          toEpoch(NOW),
+        );
     }
 
     const second = await repository.listReminderCandidates(NOW, 5);
@@ -350,13 +366,102 @@ describe("D1SubscriptionRepository reminder candidates", () => {
     for (const subscription of first) {
       database
         .prepare(
-          "INSERT INTO subscription_reminders (id, subscription_id, type, sent_at) VALUES (?, ?, 'renewal_1d', ?)",
+          "INSERT INTO subscription_reminders (id, subscription_id, type, period_ends_at, sent_at) VALUES (?, ?, 'renewal_1d', ?, ?)",
         )
-        .run(`sent-${subscription.id}`, subscription.id, toEpoch(NOW));
+        .run(
+          `sent-${subscription.id}`,
+          subscription.id,
+          toEpoch(subscription.endsAt ?? NOW),
+          toEpoch(NOW),
+        );
     }
 
     const second = await repository.listReminderCandidates(NOW, 5);
 
     expect(second.map((subscription) => subscription.id)).toEqual(["soon-6"]);
+  });
+
+  it("keeps a subscription when its reminder belongs to a previous period", async () => {
+    const endsAt = new Date("2026-11-25T12:00:00Z");
+    const database = prepareDatabase([
+      {
+        id: "renewed",
+        accountId: "acc-renewed",
+        endsAt,
+        reminders: [{ type: "renewal_7d", periodEndsAt: new Date("2026-10-25T12:00:00Z") }],
+      },
+    ]);
+    const repository = new D1SubscriptionRepository(createD1Adapter(database));
+
+    const candidates = await repository.listReminderCandidates(NOW, 10);
+
+    expect(candidates.map((subscription) => subscription.id)).toEqual(["renewed"]);
+  });
+
+  it("keeps previous-period reminders in both the 7-day and 1-day branches", async () => {
+    const database = prepareDatabase([
+      {
+        id: "day5-prev-7d",
+        accountId: "acc-1",
+        endsAt: new Date("2026-11-25T12:00:00Z"),
+        reminders: [{ type: "renewal_7d", periodEndsAt: new Date("2026-10-25T12:00:00Z") }],
+      },
+      {
+        id: "day1-prev-1d",
+        accountId: "acc-2",
+        endsAt: new Date("2026-11-21T12:00:00Z"),
+        reminders: [{ type: "renewal_1d", periodEndsAt: new Date("2026-10-21T12:00:00Z") }],
+      },
+    ]);
+    const repository = new D1SubscriptionRepository(createD1Adapter(database));
+
+    const candidates = await repository.listReminderCandidates(NOW, 10);
+
+    expect(candidates.map((subscription) => subscription.id)).toEqual([
+      "day1-prev-1d",
+      "day5-prev-7d",
+    ]);
+  });
+
+  it("does not let previous-period reminders starve the sixth subscription", async () => {
+    const endsAt = new Date("2026-11-25T12:00:00Z");
+    const database = prepareDatabase(
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `old-${index + 1}`,
+        accountId: `acc-old-${index + 1}`,
+        endsAt,
+        reminders: [
+          { type: "renewal_7d" as const, periodEndsAt: new Date("2026-10-25T12:00:00Z") },
+        ],
+      })),
+    );
+    const repository = new D1SubscriptionRepository(createD1Adapter(database));
+
+    const first = await repository.listReminderCandidates(NOW, 5);
+
+    expect(first.map((subscription) => subscription.id)).toEqual([
+      "old-1",
+      "old-2",
+      "old-3",
+      "old-4",
+      "old-5",
+    ]);
+
+    for (const subscription of first) {
+      database
+        .prepare(
+          "INSERT INTO subscription_reminders (id, subscription_id, type, period_ends_at, sent_at) VALUES (?, ?, 'renewal_7d', ?, ?)",
+        )
+        .run(
+          `sent-${subscription.id}`,
+          subscription.id,
+          toEpoch(subscription.endsAt ?? NOW),
+          toEpoch(NOW),
+        );
+    }
+
+    const second = await repository.listReminderCandidates(NOW, 5);
+
+    expect(second.map((subscription) => subscription.id)).toEqual(["old-6"]);
   });
 });

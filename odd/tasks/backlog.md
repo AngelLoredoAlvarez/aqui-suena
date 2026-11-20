@@ -219,6 +219,16 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       Proven with a real `node:sqlite` test that seeds six subscriptions in the
       same window: the second run returns the sixth after the first five are
       reminded.
+- [x] Reminders per billing period — DONE 2026-11-20
+      (`fix/renewal-reminders-per-period`). The log was unique per
+      `(subscription_id, type)`, so after the first renewal the subscription
+      never received the 7-day or 1-day reminder again. Migration `0013`
+      rebuilds `subscription_reminders` with `period_ends_at` and a unique key
+      on `(subscription_id, type, period_ends_at)`; existing rows backfill from
+      the subscription's current end, falling back to `sent_at`. The service and
+      the candidate query scope every check to the current period, and a real
+      SQLite test proves a reminder from the previous period no longer
+      suppresses the new one.
 
 ## CFDI invoicing (opened 2026-11-16)
 

@@ -79,7 +79,7 @@ describe("RenewalReminderService", () => {
     const { subRepo, reminderLog, notifier, service } = setup();
     const sub = await createSubscription(subRepo);
 
-    await reminderLog.record(sub.id, "renewal_7d", new Date("2026-02-01"));
+    await reminderLog.record(sub.id, "renewal_7d", ENDS_AT, new Date("2026-02-01"));
 
     const sent = await service.processSubscription(sub.id, {
       now: new Date("2026-02-01T00:00:00Z"),
@@ -125,6 +125,36 @@ describe("RenewalReminderService", () => {
       recipientEmail: "owner@example.com",
     });
 
-    expect(await reminderLog.sentAt(sub.id, "renewal_7d")).toBeDefined();
+    expect(await reminderLog.sentAt(sub.id, "renewal_7d", ENDS_AT)).toBeDefined();
+  });
+
+  it("sends the reminders again for the next billing period after a renewal", async () => {
+    const { subRepo, notifier, service } = setup();
+    const sub = await createSubscription(subRepo);
+    const nextEndsAt = new Date("2026-03-08T00:00:00Z");
+
+    await service.processSubscription(sub.id, {
+      now: new Date("2026-02-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
+    await service.processSubscription(sub.id, {
+      now: new Date("2026-02-07T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
+
+    await subRepo.renew(sub.id, nextEndsAt, "monthly");
+
+    const sevenDay = await service.processSubscription(sub.id, {
+      now: new Date("2026-03-01T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
+    const oneDay = await service.processSubscription(sub.id, {
+      now: new Date("2026-03-07T00:00:00Z"),
+      recipientEmail: "owner@example.com",
+    });
+
+    expect(sevenDay).toEqual(["renewal_7d"]);
+    expect(oneDay).toEqual(["renewal_1d"]);
+    expect(notifier.calls).toHaveLength(4);
   });
 });

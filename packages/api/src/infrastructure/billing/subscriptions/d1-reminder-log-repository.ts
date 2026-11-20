@@ -21,34 +21,42 @@ function parseReminderType(value: unknown): ReminderType {
 export class D1ReminderLogRepository implements ReminderLogRepository {
   constructor(private readonly db: D1Database) {}
 
-  async hasSent(subscriptionId: string, type: ReminderType): Promise<boolean> {
+  async hasSent(subscriptionId: string, type: ReminderType, periodEndsAt: Date): Promise<boolean> {
     const row = await this.db
       .prepare(
         `SELECT 1 AS sent FROM subscription_reminders
-        WHERE subscription_id = ? AND type = ?
+        WHERE subscription_id = ? AND type = ? AND period_ends_at = ?
         LIMIT 1`,
       )
-      .bind(subscriptionId, type)
+      .bind(subscriptionId, type, toEpoch(periodEndsAt))
       .first();
 
     return row !== null;
   }
 
-  async record(subscriptionId: string, type: ReminderType, sentAt: Date): Promise<void> {
+  async record(
+    subscriptionId: string,
+    type: ReminderType,
+    periodEndsAt: Date,
+    sentAt: Date,
+  ): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO subscription_reminders (id, subscription_id, type, sent_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(subscription_id, type) DO NOTHING`,
+        `INSERT INTO subscription_reminders (id, subscription_id, type, period_ends_at, sent_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(subscription_id, type, period_ends_at) DO NOTHING`,
       )
-      .bind(crypto.randomUUID(), subscriptionId, type, toEpoch(sentAt))
+      .bind(crypto.randomUUID(), subscriptionId, type, toEpoch(periodEndsAt), toEpoch(sentAt))
       .run();
   }
 
-  async sentTypes(subscriptionId: string): Promise<Set<ReminderType>> {
+  async sentTypes(subscriptionId: string, periodEndsAt: Date): Promise<Set<ReminderType>> {
     const result = await this.db
-      .prepare("SELECT type FROM subscription_reminders WHERE subscription_id = ?")
-      .bind(subscriptionId)
+      .prepare(
+        `SELECT type FROM subscription_reminders
+        WHERE subscription_id = ? AND period_ends_at = ?`,
+      )
+      .bind(subscriptionId, toEpoch(periodEndsAt))
       .all();
     const types = new Set<ReminderType>();
 
@@ -59,14 +67,18 @@ export class D1ReminderLogRepository implements ReminderLogRepository {
     return types;
   }
 
-  async sentAt(subscriptionId: string, type: ReminderType): Promise<Date | undefined> {
+  async sentAt(
+    subscriptionId: string,
+    type: ReminderType,
+    periodEndsAt: Date,
+  ): Promise<Date | undefined> {
     const row = await this.db
       .prepare(
         `SELECT sent_at FROM subscription_reminders
-        WHERE subscription_id = ? AND type = ?
+        WHERE subscription_id = ? AND type = ? AND period_ends_at = ?
         LIMIT 1`,
       )
-      .bind(subscriptionId, type)
+      .bind(subscriptionId, type, toEpoch(periodEndsAt))
       .first();
 
     if (row === null) {

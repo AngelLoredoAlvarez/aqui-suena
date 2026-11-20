@@ -220,6 +220,7 @@ describe("D1SubscriptionRepository", () => {
     expect(sql).toContain("s.ends_at >= ? AND s.ends_at < ?");
     expect(sql).toContain("r.type = 'renewal_7d'");
     expect(sql).toContain("r.type = 'renewal_1d'");
+    expect(sql).toContain("r.period_ends_at = s.ends_at");
     expect(sql).toContain("ORDER BY s.ends_at ASC, s.id ASC");
     expect(fake.statements[0]?.params).toEqual([
       toEpoch(new Date("2026-11-20T00:00:00Z")),
