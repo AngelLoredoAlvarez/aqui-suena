@@ -232,19 +232,51 @@ describe("ConektaPaymentProvider.createCharge", () => {
     });
   });
 
-  it("maps a card decline reported as 402 to a declined charge", async () => {
-    const { provider } = setup(
-      { details: [{ message: "Tarjeta declinada. Intenta con otra tarjeta." }] },
-      402,
-    );
+  it.each([
+    ["conekta.errors.processing.bank.declined", "Tarjeta declinada. Intenta con otra tarjeta."],
+    [
+      "conekta.errors.processing.bank.insufficient_funds",
+      "La tarjeta tiene fondos insuficientes. Intenta con otra tarjeta.",
+    ],
+  ])("maps a card 402 %s to a declined charge", async (code, message) => {
+    const { provider } = setup({ details: [{ message, code }] }, 402);
 
     const result = await provider.createCharge(baseInput());
 
     expect(result).toMatchObject({
       providerOrderId: null,
       status: "declined",
-      failureReason: "Tarjeta declinada. Intenta con otra tarjeta.",
+      failureReason: message,
     });
+  });
+
+  it("rejects a card 402 that is not a decline", async () => {
+    const { provider } = setup(
+      {
+        details: [
+          {
+            message: "La tarjeta no pudo ser procesada.",
+            code: "conekta.errors.processing.tokenization.used",
+          },
+        ],
+      },
+      402,
+    );
+
+    await expect(provider.createCharge(baseInput())).rejects.toBeInstanceOf(
+      PaymentProviderRejection,
+    );
+  });
+
+  it("rejects a card 402 without a decline code", async () => {
+    const { provider } = setup(
+      { details: [{ message: "La tarjeta no pudo ser procesada." }] },
+      402,
+    );
+
+    await expect(provider.createCharge(baseInput())).rejects.toBeInstanceOf(
+      PaymentProviderRejection,
+    );
   });
 
   it("still rejects a non-card 402 from the provider", async () => {
