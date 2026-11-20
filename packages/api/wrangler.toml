@@ -3,6 +3,16 @@ main = "src/server/worker.ts"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Workers Logs + Traces; the top-level flag alone does not enable traces.
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+
+[observability.traces]
+enabled = true
+
 [vars]
 # Supabase Auth: configured as secrets via `wrangler secret put SUPABASE_URL`
 # and `wrangler secret put SUPABASE_ANON_KEY` (not stored in this file).

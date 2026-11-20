@@ -42,6 +42,7 @@ import { isAdminAuthorized } from "@aqui-suena/api/server/http/admin-auth";
 import { createApp } from "@aqui-suena/api/server/http/app";
 import { createConektaWebhookHandler } from "@aqui-suena/api/server/http/conekta-webhook";
 import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
+import { isRateLimited } from "@aqui-suena/api/server/http/rate-limit";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
@@ -330,6 +331,13 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     console.error(
       "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
     );
+  }
+
+  // Admin endpoints run before the Hono app, so they apply the rate limiter here.
+  if (new URL(request.url).pathname.startsWith("/admin/")) {
+    if (await isRateLimited(env.RATE_LIMITER, request)) {
+      return new Response("too many requests", { status: 429 });
+    }
   }
 
   // One-off seeding endpoint for the Vectorize plan index. Returns 404

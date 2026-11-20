@@ -27,7 +27,7 @@ describe("protectedProcedure", () => {
 });
 
 describe("DataIntegrityError mapping", () => {
-  it("answers a generic INTERNAL_SERVER_ERROR and logs field and value", async () => {
+  it("answers a generic INTERNAL_SERVER_ERROR and logs the field, not the value", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const r = router({
       broken: publicProcedure.query(() => {
@@ -40,10 +40,7 @@ describe("DataIntegrityError mapping", () => {
       code: "INTERNAL_SERVER_ERROR",
       message: "Internal server error",
     });
-    expect(log).toHaveBeenCalledWith("Data integrity error", {
-      field: "planId",
-      value: "enterprise",
-    });
+    expect(log).toHaveBeenCalledWith("Data integrity error", { field: "planId" });
 
     log.mockRestore();
   });

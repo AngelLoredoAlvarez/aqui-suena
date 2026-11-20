@@ -112,8 +112,25 @@ export async function handleConektaWebhook(
   }
 }
 
+// Cap the buffered body so an oversized POST is rejected before reading it.
+export const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
+
+export function isWebhookBodyTooLarge(contentLength: string | null | undefined): boolean {
+  if (contentLength === null || contentLength === undefined || contentLength === "") {
+    return false;
+  }
+
+  const parsed = Number(contentLength);
+
+  return Number.isFinite(parsed) && parsed > MAX_WEBHOOK_BODY_BYTES;
+}
+
 export function createConektaWebhookHandler(deps: ConektaWebhookDependencies): Handler {
   return async (context) => {
+    if (isWebhookBodyTooLarge(context.req.header("content-length"))) {
+      return context.text("error", 413);
+    }
+
     const status = await handleConektaWebhook(
       await context.req.text(),
       context.req.header("digest"),
