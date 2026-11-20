@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-17).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. Missing: the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-17).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. Missing: the shared upload picker, signed read URLs and responsive image variants (WebP/AVIF, `srcset`). Owner uploads still use the flat `{kind}/{accountId}/{uuid}` key; the planned `media/v1/...` layout, business scoping and lifecycle are specified in `odd/tasks/feat-owner-media-r2.md`. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -53,7 +53,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required).
 2. Server validates type/size limits, generates a unique R2 key, returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the R2 key and the declared type/size. The server requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB.
+4. Client calls `media.confirm` with the R2 key and the declared type/size. The current implementation requires the key to start with `<kind>/<accountId>/` (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata in DB. The planned layout replaces that prefix with `media/v1/{accountId}/{scope}/{kind}/` and adds business ownership and idempotency; see the feature document.
 5. Client receives the public URL (R2 custom domain or worker proxy).
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
@@ -61,13 +61,23 @@ reports `media: "configured" | "unconfigured"`; when the R2 credentials are
 missing or only partially set, any media mutation answers
 `503 SERVICE_UNAVAILABLE` with `media storage is not configured`.
 
+## Planned key layout (2026-11-20)
+
+Owner uploads move to `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`, where
+`scope` is `businesses/{businessId}` for business media or `account` for
+account-level media. The layout is versioned because it is changing now;
+`media.r2Key` stays absolute, so old keys remain valid and a future `v2` can
+coexist without moving objects. Business ownership, idempotent `confirm`, signed
+read URLs, deletion/retention and orphan cleanup are specified with their
+implementation slices in `odd/tasks/feat-owner-media-r2.md`.
+
 ## Image Optimization (listeners)
 
 - Lazy loading: images load when entering viewport (IntersectionObserver).
 - Responsive sizes: serve appropriate width via `srcset` (320w, 640w, 960w).
 - Format: prefer WebP/AVIF via `Accept` header negotiation (Cloudflare does this automatically).
 - Blur placeholder: low-quality inline placeholder while loading.
-- Cache: `Cache-Control: public, max-age=31536000, immutable` (content-addressed keys).
+- Cache: `Cache-Control: public, max-age=31536000, immutable` (unique immutable keys).
 - Never block audio: images load asynchronously, player never waits for media.
 
 ## Code Style
@@ -86,7 +96,7 @@ export async function presignUpload(
 }
 ```
 
-Conventions: all media keys are content-addressed (hash of content + owner) for immutable caching; uploads go directly to R2 (no server proxy); client-side compression before upload for images; audio normalized at upload; virus/size guards on server (reject oversized or wrong mime).
+Conventions: media keys are unique and immutable (UUID), never overwritten; uploads go directly to R2 (no server proxy); client-side compression before upload for images; audio normalized at upload; virus/size guards on server (reject oversized or wrong mime). Content-addressed keys and deduplication are deferred: the direct upload path cannot verify a content hash without downloading the object, and dedup would require reference counting for deletes.
 
 ## Testing Strategy
 
@@ -97,7 +107,7 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 
 ## Boundaries
 
-- Always: validate type and size before presigning, revalidate the real object metadata and the key prefix on `confirm` (never persist client-declared type/size), use content-addressed keys for immutable caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
+- Always: validate type and size before presigning, revalidate the real object metadata and the key prefix on `confirm` (never persist client-declared type/size), use unique immutable keys for caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
 - Ask first: add a new media type, change size limits, add video support, enable Cloudflare Image Resizing (paid tier).
 - Never: proxy uploads through the server (waste bandwidth), store raw uploads without validation, exceed R2 free tier (10GB), use Cloudflare Images (paid) without approval, block audio during upload, expose R2 credentials to client.
 
@@ -108,7 +118,7 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 - Spot audio uploads (max 30s MP3) normalize loudness and store metadata.
 - R2 free tier is not exceeded (monitoring via Cloudflare dashboard).
 - Upload works on web, native (Expo) and desktop (Tauri) from shared `media-picker` component.
-- Content-addressed keys enable infinite cache TTL (immutable).
+- Immutable keys enable infinite cache TTL.
 - No third-party provider dependency (R2 + Workers only, all free tier).
 
 ## Open Questions
@@ -116,3 +126,4 @@ Conventions: all media keys are content-addressed (hash of content + owner) for 
 - Should we use Cloudflare Image Resizing (paid, $5/mo for 50k transforms) or client-side compression only? (Recommendation: client-side compression for V1, Image Resizing for V2 if budget allows.)
 - R2 custom domain vs Worker proxy for serving? (Recommendation: Worker proxy for dev/staging, custom domain later — both free.)
 - Should avatars be stored in R2 or Supabase Storage? (Recommendation: R2 for consistency.)
+- Owner upload lifecycle: quotas and concurrency, bucket CORS, orphan sweeps and variant naming are tracked in `odd/tasks/feat-owner-media-r2.md`.
