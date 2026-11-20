@@ -77,7 +77,12 @@ export function createAppRouter(
       business: directoryRepositories.business,
     }),
     listener: createListenerRouter(stationRepository),
-    media: createMediaRouter(directoryRepositories.media, mediaStorage),
+    media: createMediaRouter({
+      media: directoryRepositories.media,
+      business: directoryRepositories.business,
+      subscription: directoryRepositories.subscription,
+      storage: mediaStorage,
+    }),
     photos: createPhotosRouter({
       photo: directoryRepositories.photo,
       business: directoryRepositories.business,
