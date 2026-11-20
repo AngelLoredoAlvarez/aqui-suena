@@ -154,15 +154,16 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 - Conekta payments (2026-11-19): one-off Conekta charges per billing period with the project's own renewal scheduler (not Conekta recurring subscriptions). Card, cash (Conekta Efectivo) and SPEI flow through `billing.checkout`; the RSA-signed webhook confirms each charge with idempotency plus amount/currency checks; and the fifteen-minute cron refreshes pending payments and renews due subscriptions. See `odd/tasks/feat-conekta-payments.md`.
 - Renewal reminders and account preferences (2026-11-19): the fifteen-minute cron sends the 7-day, 1-day and failed-payment reminders through the renewal-reminder service with a D1 `subscription_reminders` log, and the `account_preferences` table now owns `locale` and `renewal_reminders_enabled` (migration `0010`).
 - Security hardening (2026-11-20): Cloudflare rate limiting on the Worker (per-IP, including the `/admin/*` seeding endpoints), a constant-time admin token comparison, PII scrubbed from logs, a 1 MB cap on the Conekta webhook body, and Workers Logs + Traces enabled.
+- Fiscal archive recovery (2026-11-20): the fifteen-minute cron re-fetches a stamped CFDI's XML and/or PDF from the PAC file endpoint when the row kept its `provider_id` but lost the R2 key (`xml_key`/`pdf_key` null). Only the recovered keys are written, so a partial recovery never erases an existing archive, and every attempt is stamped even on failure so a provider outage rotates the batch instead of pinning it. Unit-tested; a staging exercise still requires forcing an archive failure.
+
 ### Next
 
 Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 
 1. **Signup and verification** (`create-account` with birthdate, T&C and an 18+ attestation). It unblocks the account emails, the owner portal and anything plan-selection related.
 2. **Owner portal** (`/owner`, `/owner/listings`, `/owner/billing`): directory forms, plan selection and invoice history with downloads. The API it consumes already ships.
-3. **Recover missing fiscal archives** by `providerId` when `xmlKey`/`pdfKey` is null.
-4. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
-5. **Windows/macOS signing and publishing**; desktop stays dev-only until then.
+3. **Push notifications**, **offline handling**, responsive image variants, ads countdown state, system-following themes, `ZStack` overlay cleanup.
+4. **Windows/macOS signing and publishing**; desktop stays dev-only until then.
 
 ## Conventions
 
