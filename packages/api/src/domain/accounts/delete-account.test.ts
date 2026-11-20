@@ -30,6 +30,7 @@ function makeMedia(id: string): Media {
   return {
     id,
     ownerId: "acc-1",
+    businessId: null,
     kind: "avatar",
     r2Key: `avatar/acc-1/${id}`,
     mime: "image/png",

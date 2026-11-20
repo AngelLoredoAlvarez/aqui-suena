@@ -6,9 +6,10 @@ import { describe, expect, it } from "vitest";
 const sampleRow = {
   id: "m-1",
   owner_id: "acc-1",
-  kind: "avatar",
-  r2_key: "avatar/acc-1/1",
-  mime: "image/png",
+  business_id: "biz-1",
+  kind: "flyer",
+  r2_key: "media/v1/acc-1/businesses/biz-1/flyer/key.jpg",
+  mime: "image/jpeg",
   size: 512,
   created_at: 1700000000,
 };
@@ -23,9 +24,10 @@ describe("D1MediaRepository", () => {
     expect(page.items).toHaveLength(1);
     expect(page.items[0]?.id).toBe("m-1");
     expect(page.items[0]?.ownerId).toBe("acc-1");
-    expect(page.items[0]?.kind).toBe("avatar");
-    expect(page.items[0]?.r2Key).toBe("avatar/acc-1/1");
-    expect(page.items[0]?.mime).toBe("image/png");
+    expect(page.items[0]?.businessId).toBe("biz-1");
+    expect(page.items[0]?.kind).toBe("flyer");
+    expect(page.items[0]?.r2Key).toBe("media/v1/acc-1/businesses/biz-1/flyer/key.jpg");
+    expect(page.items[0]?.mime).toBe("image/jpeg");
     expect(page.items[0]?.size).toBe(512);
     expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
     expect(page.items[0]?.createdAt.getTime()).toBe(1700000000 * 1000);
@@ -56,20 +58,33 @@ describe("D1MediaRepository", () => {
 
     const media = await repository.create({
       ownerId: "acc-1",
-      kind: "avatar",
-      r2Key: "avatar/acc-1/1",
-      mime: "image/png",
+      businessId: "biz-1",
+      kind: "flyer",
+      r2Key: "media/v1/acc-1/businesses/biz-1/flyer/key.jpg",
+      mime: "image/jpeg",
       size: 512,
     });
 
     expect(media).not.toBeNull();
     expect(media.id).toBeTruthy();
     expect(media.ownerId).toBe("acc-1");
-    expect(media.kind).toBe("avatar");
-    expect(media.r2Key).toBe("avatar/acc-1/1");
-    expect(media.mime).toBe("image/png");
+    expect(media.businessId).toBe("biz-1");
+    expect(media.kind).toBe("flyer");
+    expect(media.r2Key).toBe("media/v1/acc-1/businesses/biz-1/flyer/key.jpg");
+    expect(media.mime).toBe("image/jpeg");
     expect(media.size).toBe(512);
     expect(media.createdAt).toBeInstanceOf(Date);
+  });
+
+  it("finds a row by its object key", async () => {
+    const fake = new FakeD1Database(() => ({ first: sampleRow }));
+    const repository = new D1MediaRepository(fake.db);
+
+    const media = await repository.findByR2Key(sampleRow.r2_key);
+
+    expect(media?.id).toBe("m-1");
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(/WHERE r2_key = \?/);
+    expect(fake.statements[0]?.params).toEqual([sampleRow.r2_key]);
   });
 
   it("deletes an existing media and returns true", async () => {

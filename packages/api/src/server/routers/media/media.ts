@@ -1,3 +1,4 @@
+import { mediaExtensionFor, parseMediaKey } from "@aqui-suena/api/domain/media/key";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { MediaValidationError, validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
@@ -14,6 +15,7 @@ const presignInput = v.object({
   kind: mediaKind,
   contentType: v.string(),
   sizeBytes: v.number(),
+  businessId: v.optional(v.pipe(v.string(), v.minLength(1))),
 });
 
 const confirmInput = v.object({
@@ -47,6 +49,7 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
         contentType: input.contentType,
         sizeBytes: input.sizeBytes,
         ownerId: ctx.user.accountId,
+        businessId: input.businessId,
       });
       return { key, uploadUrl };
     }),
@@ -54,10 +57,17 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
     confirm: protectedProcedure.input(confirmInput).mutation(async ({ input, ctx }) => {
       const activeStorage = requireStorage(storage);
 
-      // The key must belong to the authenticated account and the declared kind;
-      // anything else answers NOT_FOUND so a foreign object never leaks.
-      const expectedPrefix = `${input.kind}/${ctx.user.accountId}/`;
-      if (!input.key.startsWith(expectedPrefix)) {
+      const parsed = parseMediaKey(input.key);
+
+      if (
+        parsed === null ||
+        parsed.accountId !== ctx.user.accountId ||
+        parsed.kind !== input.kind
+      ) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
+      }
+
+      if (parsed.extension !== mediaExtensionFor(input.kind, input.contentType)) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
       }
 
@@ -90,14 +100,31 @@ export function createMediaRouter(repository: MediaRepository, storage: ObjectSt
         throw error;
       }
 
-      // Persist what storage actually holds, never the client's declarations.
-      return repository.create({
-        ownerId: ctx.user.accountId,
-        kind: input.kind,
-        r2Key: input.key,
-        mime: meta.contentType,
-        size: meta.size,
-      });
+      const businessId = parsed.scope.type === "business" ? parsed.scope.businessId : null;
+      const existing = await repository.findByR2Key(input.key);
+
+      if (existing !== null) {
+        return existing;
+      }
+
+      try {
+        return await repository.create({
+          ownerId: ctx.user.accountId,
+          businessId,
+          kind: input.kind,
+          r2Key: input.key,
+          mime: meta.contentType,
+          size: meta.size,
+        });
+      } catch (error) {
+        const raced = await repository.findByR2Key(input.key);
+
+        if (raced !== null) {
+          return raced;
+        }
+
+        throw error;
+      }
     }),
 
     list: protectedProcedure

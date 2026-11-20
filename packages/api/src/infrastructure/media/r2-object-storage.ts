@@ -1,3 +1,4 @@
+import { buildMediaKey } from "@aqui-suena/api/domain/media/key";
 import type {
   ObjectMetadata,
   ObjectStorage,
@@ -25,7 +26,13 @@ export class R2ObjectStorage implements ObjectStorage {
   async presignUpload(input: PresignUploadInput): Promise<PresignUploadResult> {
     validateMediaUpload(input.kind, input.contentType, input.sizeBytes);
 
-    const key = `${input.kind}/${input.ownerId}/${crypto.randomUUID()}`;
+    const key = buildMediaKey({
+      accountId: input.ownerId,
+      businessId: input.businessId,
+      kind: input.kind,
+      contentType: input.contentType,
+    });
+
     const uploadUrl = await presignR2ObjectUrl(this.options, "PUT", key);
 
     return { key, uploadUrl };
