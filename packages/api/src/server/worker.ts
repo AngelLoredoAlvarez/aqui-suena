@@ -35,6 +35,9 @@ import {
   createCancelInvoice,
   createInvoiceHistory,
   createIssueInvoice,
+  createRecoverMissingArchives,
+  type FacturamaEnv,
+  type R2Env,
 } from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
@@ -124,6 +127,8 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
     );
   }
 
+  await runArchiveRecovery(env);
+
   await runPaymentSweeps(env);
 
   try {
@@ -135,30 +140,42 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   }
 }
 
+/**
+ * The Worker env and the composition contract name the same settings
+ * differently; both mappings live here so a new call site cannot drift.
+ */
+function facturamaEnv(env: WorkerEnv): FacturamaEnv {
+  return {
+    user: env.FACTURAMA_USER,
+    password: env.FACTURAMA_PASSWORD,
+    baseUrl: env.FACTURAMA_BASE_URL,
+    mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
+    expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
+    ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
+    productCode: env.FACTURAMA_PRODUCT_CODE,
+    unitCode: env.FACTURAMA_UNIT_CODE,
+    series: env.FACTURAMA_SERIES,
+    issuerRfc: env.FACTURAMA_ISSUER_RFC,
+    issuerName: env.FACTURAMA_ISSUER_NAME,
+    issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
+  };
+}
+
+function r2Env(env: WorkerEnv): R2Env {
+  return {
+    accountId: env.R2_ACCOUNT_ID,
+    accessKeyId: env.R2_ACCESS_KEY_ID,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+    bucketName: env.R2_BUCKET_NAME,
+    endpoint: env.R2_ENDPOINT,
+  };
+}
+
 async function runCancellationSweep(env: WorkerEnv): Promise<void> {
   const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
-    facturama: {
-      user: env.FACTURAMA_USER,
-      password: env.FACTURAMA_PASSWORD,
-      baseUrl: env.FACTURAMA_BASE_URL,
-      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
-      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
-      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
-      productCode: env.FACTURAMA_PRODUCT_CODE,
-      unitCode: env.FACTURAMA_UNIT_CODE,
-      series: env.FACTURAMA_SERIES,
-      issuerRfc: env.FACTURAMA_ISSUER_RFC,
-      issuerName: env.FACTURAMA_ISSUER_NAME,
-      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
-    },
-    r2: {
-      accountId: env.R2_ACCOUNT_ID,
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-      bucketName: env.R2_BUCKET_NAME,
-      endpoint: env.R2_ENDPOINT,
-    },
+    facturama: facturamaEnv(env),
+    r2: r2Env(env),
   });
 
   if (cancellation === undefined) {
@@ -170,6 +187,28 @@ async function runCancellationSweep(env: WorkerEnv): Promise<void> {
   // Success stays quiet: the sweep reports failures through the reconcile hook,
   // and the lint config only allows console.error.
   await cancellation.reconcile.executeAll();
+}
+
+async function runArchiveRecovery(env: WorkerEnv): Promise<void> {
+  const recovery = createRecoverMissingArchives({
+    db: env.aqui_suena_db,
+    facturama: facturamaEnv(env),
+    r2: r2Env(env),
+  });
+
+  if (recovery === undefined) {
+    console.error("worker: archive recovery skipped, invoicing is unconfigured");
+
+    return;
+  }
+
+  try {
+    await recovery.execute();
+  } catch (error) {
+    console.error(
+      `worker: fiscal archive recovery failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
 }
 
 async function runRenewalReminders(env: WorkerEnv): Promise<void> {
@@ -424,64 +463,20 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     plans: planRepository,
     notifier: cfdiNotifier,
     downloadUrl: emailBillingUrl(env.EMAIL_APP_URL),
-    facturama: {
-      user: env.FACTURAMA_USER,
-      password: env.FACTURAMA_PASSWORD,
-      baseUrl: env.FACTURAMA_BASE_URL,
-      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
-      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
-      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
-      productCode: env.FACTURAMA_PRODUCT_CODE,
-      unitCode: env.FACTURAMA_UNIT_CODE,
-      series: env.FACTURAMA_SERIES,
-      issuerRfc: env.FACTURAMA_ISSUER_RFC,
-      issuerName: env.FACTURAMA_ISSUER_NAME,
-      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
-    },
-    r2: {
-      accountId: env.R2_ACCOUNT_ID,
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-      bucketName: env.R2_BUCKET_NAME,
-      endpoint: env.R2_ENDPOINT,
-    },
+    facturama: facturamaEnv(env),
+    r2: r2Env(env),
   });
 
   const cancellation = createCancelInvoice({
     db: env.aqui_suena_db,
     issueInvoice,
-    facturama: {
-      user: env.FACTURAMA_USER,
-      password: env.FACTURAMA_PASSWORD,
-      baseUrl: env.FACTURAMA_BASE_URL,
-      mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
-      expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
-      ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
-      productCode: env.FACTURAMA_PRODUCT_CODE,
-      unitCode: env.FACTURAMA_UNIT_CODE,
-      series: env.FACTURAMA_SERIES,
-      issuerRfc: env.FACTURAMA_ISSUER_RFC,
-      issuerName: env.FACTURAMA_ISSUER_NAME,
-      issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
-    },
-    r2: {
-      accountId: env.R2_ACCOUNT_ID,
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-      bucketName: env.R2_BUCKET_NAME,
-      endpoint: env.R2_ENDPOINT,
-    },
+    facturama: facturamaEnv(env),
+    r2: r2Env(env),
   });
 
   const invoiceHistory = createInvoiceHistory({
     db: env.aqui_suena_db,
-    r2: {
-      accountId: env.R2_ACCOUNT_ID,
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-      bucketName: env.R2_BUCKET_NAME,
-      endpoint: env.R2_ENDPOINT,
-    },
+    r2: r2Env(env),
   });
 
   const paymentRepository = new D1PaymentRepository(env.aqui_suena_db);
