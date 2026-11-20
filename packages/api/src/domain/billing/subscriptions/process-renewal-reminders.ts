@@ -2,12 +2,10 @@ import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-
 import type { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const LOOKAHEAD_DAYS = 7;
 const DEFAULT_LIMIT = 5;
 
 export type ProcessRenewalRemindersDependencies = {
-  readonly subscriptions: Pick<SubscriptionRepository, "listActiveEndingBefore">;
+  readonly subscriptions: Pick<SubscriptionRepository, "listReminderCandidates">;
   readonly accounts: Pick<AccountRepository, "getById">;
   readonly reminders: Pick<RenewalReminderService, "processSubscription">;
   readonly limit?: number;
@@ -20,9 +18,8 @@ export class ProcessRenewalReminders {
 
   async execute(): Promise<number> {
     const now = this.deps.now?.() ?? new Date();
-    const deadline = new Date(now.getTime() + LOOKAHEAD_DAYS * DAY_MS);
-    const subscriptions = await this.deps.subscriptions.listActiveEndingBefore(
-      deadline,
+    const subscriptions = await this.deps.subscriptions.listReminderCandidates(
+      now,
       this.deps.limit ?? DEFAULT_LIMIT,
     );
     let processed = 0;

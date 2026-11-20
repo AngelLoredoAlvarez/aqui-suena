@@ -4,7 +4,6 @@ import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 function subscription(id: string, accountId: string): Subscription {
   return {
@@ -47,7 +46,7 @@ function setup(options: {
     };
   }> = [];
   const errors: Array<{ message: string; subscriptionId: string }> = [];
-  let listArgs: { deadline: Date; limit: number } | undefined;
+  let listArgs: { now: Date; limit: number } | undefined;
 
   const reminders = {
     async processSubscription(
@@ -70,8 +69,8 @@ function setup(options: {
   };
 
   const subscriptions = {
-    async listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]> {
-      listArgs = { deadline, limit };
+    async listReminderCandidates(now: Date, limit: number): Promise<Subscription[]> {
+      listArgs = { now, limit };
 
       return options.subscriptions;
     },
@@ -133,10 +132,7 @@ describe("ProcessRenewalReminders", () => {
         },
       },
     ]);
-    expect(listArgs()).toEqual({
-      deadline: new Date(NOW.getTime() + 7 * DAY_MS),
-      limit: 2,
-    });
+    expect(listArgs()).toEqual({ now: NOW, limit: 2 });
   });
 
   it("forwards a disabled reminder preference", async () => {

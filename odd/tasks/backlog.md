@@ -198,6 +198,28 @@ Detected while fixing `resolvePlan`. Neither blocks anything today.
       `DELETE /customers/{id}`. Tests cover the success and best-effort failure
       paths.
 
+## Cron cost and reminder batching (closed 2026-11-20)
+
+- [x] Index the scheduled sweep filters — DONE 2026-11-20
+      (`fix/cron-sweep-indexes-and-reminders`). Migration
+      `0012_lowly_sinister_six` adds indexes only, no data change:
+      `cfdi_invoices(status, updated_at)`, `payments(status, created_at)`,
+      `payments(subscription_id, created_at)`, `subscriptions(status, ends_at)`,
+      `subscriptions(status, grace_end)`, `subscriptions(account_id, status)`
+      and `businesses(account_id)`. Every cron SELECT previously scanned the
+      whole table, so D1 rows read grew linearly with table size; the indexes
+      turn those scans into bounded range reads. An index adds one row written
+      per write to its columns, which the read savings offset.
+- [x] Batch reminders by due work — DONE 2026-11-20. The sweep now asks
+      `listReminderCandidates(now, limit)` for subscriptions that still owe the
+      reminder due in the current UTC day window. A recorded 7-day reminder
+      removes the subscription from the batch until the 1-day window opens, so
+      the five-row limit can no longer starve subscriptions behind it; deleted
+      accounts and owners with reminders disabled are filtered in the query.
+      Proven with a real `node:sqlite` test that seeds six subscriptions in the
+      same window: the second run returns the sixth after the first five are
+      reminded.
+
 ## CFDI invoicing (opened 2026-11-16)
 
 Issuing shipped in `feat/billing-cfdi` (PR #41) and runs against the Facturama
