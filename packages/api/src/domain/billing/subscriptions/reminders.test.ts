@@ -154,25 +154,28 @@ describe("dueReminders", () => {
 });
 
 describe("InMemoryReminderLogRepository", () => {
+  const PERIOD = new Date("2026-02-08T00:00:00Z");
+
   it("hasSent returns false initially", async () => {
     const repo = new InMemoryReminderLogRepository();
 
-    expect(await repo.hasSent("sub-1", "renewal_7d")).toBe(false);
+    expect(await repo.hasSent("sub-1", "renewal_7d", PERIOD)).toBe(false);
   });
 
   it("record marks a reminder as sent with timestamp", async () => {
     const repo = new InMemoryReminderLogRepository();
     const sentAt = new Date("2026-02-01T10:00:00Z");
 
-    await repo.record("sub-1", "renewal_7d", sentAt);
+    await repo.record("sub-1", "renewal_7d", PERIOD, sentAt);
+    await repo.record("sub-1", "renewal_7d", PERIOD, new Date("2026-02-02T10:00:00Z"));
 
-    expect(await repo.hasSent("sub-1", "renewal_7d")).toBe(true);
-    expect(await repo.sentAt("sub-1", "renewal_7d")).toEqual(sentAt);
+    expect(await repo.hasSent("sub-1", "renewal_7d", PERIOD)).toBe(true);
+    expect(await repo.sentAt("sub-1", "renewal_7d", PERIOD)).toEqual(sentAt);
   });
 
   it("sentTypes returns empty set initially", async () => {
     const repo = new InMemoryReminderLogRepository();
-    const types = await repo.sentTypes("sub-1");
+    const types = await repo.sentTypes("sub-1", PERIOD);
 
     expect(types.size).toBe(0);
   });
@@ -180,26 +183,29 @@ describe("InMemoryReminderLogRepository", () => {
   it("sentTypes returns recorded types", async () => {
     const repo = new InMemoryReminderLogRepository();
 
-    await repo.record("sub-1", "renewal_7d", new Date());
-    await repo.record("sub-1", "renewal_1d", new Date());
+    await repo.record("sub-1", "renewal_7d", PERIOD, new Date());
+    await repo.record("sub-1", "renewal_1d", PERIOD, new Date());
 
-    const types = await repo.sentTypes("sub-1");
+    const types = await repo.sentTypes("sub-1", PERIOD);
 
     expect(types.has("renewal_7d")).toBe(true);
     expect(types.has("renewal_1d")).toBe(true);
   });
 
-  it("tracks per subscription independently", async () => {
+  it("tracks per subscription and period independently", async () => {
     const repo = new InMemoryReminderLogRepository();
+    const nextPeriod = new Date("2026-03-08T00:00:00Z");
 
-    await repo.record("sub-1", "renewal_7d", new Date());
+    await repo.record("sub-1", "renewal_7d", PERIOD, new Date());
 
-    expect(await repo.hasSent("sub-2", "renewal_7d")).toBe(false);
+    expect(await repo.hasSent("sub-2", "renewal_7d", PERIOD)).toBe(false);
+    expect(await repo.hasSent("sub-1", "renewal_7d", nextPeriod)).toBe(false);
+    expect(await repo.sentTypes("sub-1", nextPeriod)).toEqual(new Set());
   });
 
   it("sentAt returns undefined for unsent reminder", async () => {
     const repo = new InMemoryReminderLogRepository();
 
-    expect(await repo.sentAt("sub-1", "renewal_7d")).toBeUndefined();
+    expect(await repo.sentAt("sub-1", "renewal_7d", PERIOD)).toBeUndefined();
   });
 });

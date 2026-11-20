@@ -60,7 +60,7 @@ export class RenewalReminderService {
       return [];
     }
 
-    const sent = await this.reminderLog.sentTypes(subscriptionId);
+    const sent = await this.reminderLog.sentTypes(subscriptionId, renewalDate);
 
     const due = dueReminders(subscription, now, sent, preferences);
 
@@ -72,7 +72,7 @@ export class RenewalReminderService {
         { daysBefore: type === "renewal_7d" ? 7 : 1, renewalDate },
       );
 
-      await this.reminderLog.record(subscriptionId, type, now);
+      await this.reminderLog.record(subscriptionId, type, renewalDate, now);
 
       sentThisRun.push(type);
     }

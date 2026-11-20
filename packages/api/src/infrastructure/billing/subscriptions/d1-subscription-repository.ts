@@ -185,11 +185,11 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
           AND (
             (s.ends_at >= ? AND NOT EXISTS (
               SELECT 1 FROM subscription_reminders r
-              WHERE r.subscription_id = s.id AND r.type = 'renewal_7d'
+              WHERE r.subscription_id = s.id AND r.type = 'renewal_7d' AND r.period_ends_at = s.ends_at
             ))
             OR (s.ends_at < ? AND NOT EXISTS (
               SELECT 1 FROM subscription_reminders r
-              WHERE r.subscription_id = s.id AND r.type = 'renewal_1d'
+              WHERE r.subscription_id = s.id AND r.type = 'renewal_1d' AND r.period_ends_at = s.ends_at
             ))
           )
         ORDER BY s.ends_at ASC, s.id ASC

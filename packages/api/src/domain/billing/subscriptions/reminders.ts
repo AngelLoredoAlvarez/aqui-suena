@@ -7,18 +7,23 @@ export interface ReminderPreferences {
 }
 
 export interface ReminderLogRepository {
-  hasSent(subscriptionId: string, type: ReminderType): Promise<boolean>;
-  record(subscriptionId: string, type: ReminderType, sentAt: Date): Promise<void>;
-  sentTypes(subscriptionId: string): Promise<Set<ReminderType>>;
-  sentAt(subscriptionId: string, type: ReminderType): Promise<Date | undefined>;
+  hasSent(subscriptionId: string, type: ReminderType, periodEndsAt: Date): Promise<boolean>;
+  record(
+    subscriptionId: string,
+    type: ReminderType,
+    periodEndsAt: Date,
+    sentAt: Date,
+  ): Promise<void>;
+  sentTypes(subscriptionId: string, periodEndsAt: Date): Promise<Set<ReminderType>>;
+  sentAt(subscriptionId: string, type: ReminderType, periodEndsAt: Date): Promise<Date | undefined>;
 }
 
 export class InMemoryReminderLogRepository implements ReminderLogRepository {
   private readonly store = new Map<string, Set<ReminderType>>();
   private readonly timestamps = new Map<string, Date>();
 
-  async hasSent(subscriptionId: string, type: ReminderType): Promise<boolean> {
-    const types = this.store.get(subscriptionId);
+  async hasSent(subscriptionId: string, type: ReminderType, periodEndsAt: Date): Promise<boolean> {
+    const types = this.store.get(periodKey(subscriptionId, periodEndsAt));
 
     if (types === undefined) {
       return false;
@@ -27,32 +32,42 @@ export class InMemoryReminderLogRepository implements ReminderLogRepository {
     return types.has(type);
   }
 
-  async record(subscriptionId: string, type: ReminderType, sentAt: Date): Promise<void> {
-    let types = this.store.get(subscriptionId);
+  async record(
+    subscriptionId: string,
+    type: ReminderType,
+    periodEndsAt: Date,
+    sentAt: Date,
+  ): Promise<void> {
+    const key = periodKey(subscriptionId, periodEndsAt);
+    let types = this.store.get(key);
 
     if (types === undefined) {
       types = new Set();
 
-      this.store.set(subscriptionId, types);
+      this.store.set(key, types);
     }
+
+    if (types.has(type)) return;
 
     types.add(type);
-    this.timestamps.set(`${subscriptionId}:${type}`, sentAt);
+    this.timestamps.set(`${key}:${type}`, sentAt);
   }
 
-  async sentTypes(subscriptionId: string): Promise<Set<ReminderType>> {
-    const types = this.store.get(subscriptionId);
-
-    if (types === undefined) {
-      return new Set();
-    }
-
-    return types;
+  async sentTypes(subscriptionId: string, periodEndsAt: Date): Promise<Set<ReminderType>> {
+    return this.store.get(periodKey(subscriptionId, periodEndsAt)) ?? new Set();
   }
 
-  async sentAt(subscriptionId: string, type: ReminderType): Promise<Date | undefined> {
-    return this.timestamps.get(`${subscriptionId}:${type}`);
+  async sentAt(
+    subscriptionId: string,
+    type: ReminderType,
+    periodEndsAt: Date,
+  ): Promise<Date | undefined> {
+    return this.timestamps.get(`${periodKey(subscriptionId, periodEndsAt)}:${type}`);
   }
+}
+
+function periodKey(subscriptionId: string, periodEndsAt: Date): string {
+  return `${subscriptionId}:${periodEndsAt.toISOString()}`;
 }
 
 /**
