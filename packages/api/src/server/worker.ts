@@ -2,6 +2,8 @@ import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkou
 import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
 import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
+import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscriptions/process-renewal-reminders";
+import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
@@ -15,6 +17,7 @@ import {
 import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-payment-provider";
 import { D1PaymentEventRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-event-repository";
 import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
+import { D1ReminderLogRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-reminder-log-repository";
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
@@ -119,6 +122,14 @@ async function handleScheduled(_controller: ScheduledController, env: WorkerEnv)
   }
 
   await runPaymentSweeps(env);
+
+  try {
+    await runRenewalReminders(env);
+  } catch (error) {
+    console.error(
+      `worker: renewal reminder sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
 }
 
 async function runCancellationSweep(env: WorkerEnv): Promise<void> {
@@ -156,6 +167,39 @@ async function runCancellationSweep(env: WorkerEnv): Promise<void> {
   // Success stays quiet: the sweep reports failures through the reconcile hook,
   // and the lint config only allows console.error.
   await cancellation.reconcile.executeAll();
+}
+
+async function runRenewalReminders(env: WorkerEnv): Promise<void> {
+  const repositories = createD1Repositories(env.aqui_suena_db);
+  const notifier = createSubscriptionNotifier({
+    apiKey: env.RESEND_API_KEY,
+    from: env.RESEND_FROM,
+    appUrl: env.EMAIL_APP_URL,
+    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
+  });
+
+  if (notifier === undefined) {
+    console.error("worker: renewal reminders skipped, email is unconfigured");
+
+    return;
+  }
+
+  const reminders = new RenewalReminderService({
+    subscriptionRepo: repositories.subscription,
+    reminderLog: new D1ReminderLogRepository(env.aqui_suena_db),
+    notifier,
+  });
+
+  const sweep = new ProcessRenewalReminders({
+    subscriptions: repositories.subscription,
+    accounts: repositories.account,
+    reminders,
+    limit: 5,
+    onError: (message, subscriptionId) =>
+      console.error(`worker: renewal reminder for ${subscriptionId} failed: ${message}`),
+  });
+
+  await sweep.execute();
 }
 
 async function runPaymentSweeps(env: WorkerEnv): Promise<void> {

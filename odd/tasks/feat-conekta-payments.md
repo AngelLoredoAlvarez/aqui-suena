@@ -99,9 +99,11 @@ the full gate. Commits only on explicit instruction.
   amount, period and method. A pending cash/SPEI payment sends the reference or
   CLABE and its expiry; add a template if none exists. Renewal reminders use the
   existing service; until the preference is persisted, every paid owner receives
-  them. A delivery failure is logged and never fails the payment request.
-  Acceptance: template tests cover both languages and a deleted account is never
-  emailed.
+  them. A delivery failure is logged and never fails the payment request. The
+  cron invokes the reminder service for active subscriptions ending within seven
+  days, skips deleted accounts, and a persistent log prevents duplicate
+  reminders. Acceptance: template tests cover both languages and a deleted
+  account is never emailed.
 - **S10 — CFDI.** An invoice is issued only for a completed payment, uses the paid
   amount, plan and interval, and records `payment_id`. The CFDI is `PUE` with the
   real payment form (`04` credit card, `28` debit card, `01` cash, `03` transfer)
@@ -309,3 +311,10 @@ the full gate. Commits only on explicit instruction.
 - 2026-11-19: checkout now rejects a new plan while a payment for another plan
   is pending; same-plan checkouts remain allowed and expired pending payments
   are ignored.
+
+- 2026-11-19: renewal reminders are wired to the fifteen-minute cron through
+  `ProcessRenewalReminders` and the D1 `subscription_reminders` log (migration
+  `0008`). The sweep processes up to five active subscriptions ending within
+  seven days, skips deleted accounts and uses the existing
+  `RenewalReminderService`; `renewalRemindersEnabled` stays true until the
+  preference is persisted.

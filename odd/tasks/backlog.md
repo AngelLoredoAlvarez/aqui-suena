@@ -451,7 +451,12 @@ and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is se
 - [ ] Account flows: call `AccountNotifier.emailVerificationRequested` and `.welcome` from signup and email verification once auth exists (only the null-safe Supabase seam exists today).
 - [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
 - [x] Cancellation: `subscriptions.cancel` is live and passes the account `recipientEmail` and `locale` into `SubscriptionService.cancel` (2026-11-11).
-- [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral below).
+- [x] Wire renewal reminders to the cron — DONE 2026-11-19:
+      `ProcessRenewalReminders` processes active subscriptions ending within seven
+      days, skips deleted accounts, and uses the D1 `subscription_reminders` log
+      (migration `0008`) to prevent duplicates.
+- [ ] Persist `renewalRemindersEnabled` (see the account preferences deferral
+      below). The reminder sweep is wired; the preference remains default true.
 - [x] CFDI email — DONE 2026-11-18 (`feat/cfdi-email`). `TemplateCfdiNotifier`
       delivers template 8 with the provider PDF and the archived XML attached;
       `IssueInvoice` archives the PDF beside the XML (`cfdi_invoices.pdf_key`,
