@@ -35,6 +35,15 @@ binding = "AI"
 binding = "PLAN_VECTORS"
 index_name = "aqui-suena-plan-catalog"
 
+# Coarse per-IP abuse cap (see packages/api/src/server/http/rate-limit.ts).
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 100
+  period = 60
+
 # ----------------------------------------------------------------------------
 # Staging environment. Deploy with: npx wrangler deploy --env staging
 # ----------------------------------------------------------------------------
