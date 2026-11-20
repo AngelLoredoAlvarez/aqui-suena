@@ -23,6 +23,41 @@ function columnNames(table: Parameters<typeof getTableConfig>[0]): string[] {
   return getTableConfig(table).columns.map((column) => column.name);
 }
 
+function indexColumns(table: Parameters<typeof getTableConfig>[0], indexName: string): string[] {
+  const config = getTableConfig(table).indexes.find(
+    (entry) => entry.config.name === indexName,
+  )?.config;
+
+  return (config?.columns ?? []).map((column) => ("name" in column ? column.name : "sql"));
+}
+
+describe("cron query indexes", () => {
+  it("indexes the filters every scheduled sweep reads", () => {
+    expect(indexColumns(cfdiInvoices, "cfdi_invoices_status_updated_idx")).toEqual([
+      "status",
+      "updated_at",
+    ]);
+    expect(indexColumns(payments, "payments_status_created_idx")).toEqual(["status", "created_at"]);
+    expect(indexColumns(payments, "payments_subscription_created_idx")).toEqual([
+      "subscription_id",
+      "created_at",
+    ]);
+    expect(indexColumns(subscriptions, "subscriptions_status_ends_idx")).toEqual([
+      "status",
+      "ends_at",
+    ]);
+    expect(indexColumns(subscriptions, "subscriptions_status_grace_idx")).toEqual([
+      "status",
+      "grace_end",
+    ]);
+    expect(indexColumns(subscriptions, "subscriptions_account_status_idx")).toEqual([
+      "account_id",
+      "status",
+    ]);
+    expect(indexColumns(businesses, "businesses_account_idx")).toEqual(["account_id"]);
+  });
+});
+
 describe("directory foreign keys", () => {
   it("cascades business children when a business is deleted", () => {
     for (const table of [services, workEntries, products, photos, flyers, hours]) {
