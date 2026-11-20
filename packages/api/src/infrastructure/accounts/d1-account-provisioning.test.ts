@@ -8,7 +8,6 @@ const DDL = `
     id TEXT PRIMARY KEY NOT NULL,
     email TEXT NOT NULL,
     plan_id TEXT DEFAULT 'community' NOT NULL,
-    locale TEXT DEFAULT 'es-MX' NOT NULL,
     rfc TEXT,
     legal_name TEXT,
     tax_regime TEXT,
@@ -27,6 +26,13 @@ const DDL = `
   );
 
   CREATE UNIQUE INDEX accounts_email_unique ON accounts (email);
+
+  CREATE TABLE account_preferences (
+    account_id TEXT PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    locale TEXT DEFAULT 'es-MX' NOT NULL,
+    renewal_reminders_enabled INTEGER DEFAULT 1 NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
 
   CREATE TABLE media (
     id TEXT PRIMARY KEY NOT NULL,

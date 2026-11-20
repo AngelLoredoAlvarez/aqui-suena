@@ -56,7 +56,13 @@ export class D1AccountRepository implements AccountRepository {
   async getById(id: string): Promise<Account | null> {
     const row = await this.db
       .prepare(
-        `SELECT id, email, plan_id, locale, renewal_reminders_enabled, deleted_at, ${FISCAL_COLUMNS}, ${CARD_COLUMNS} FROM accounts WHERE id = ?`,
+        `SELECT a.id, a.email, a.plan_id,
+        p.locale AS locale,
+        p.renewal_reminders_enabled AS renewal_reminders_enabled,
+        a.deleted_at, ${FISCAL_COLUMNS}, ${CARD_COLUMNS}
+        FROM accounts a
+        LEFT JOIN account_preferences p ON p.account_id = a.id
+        WHERE a.id = ?`,
       )
       .bind(id)
       .first();
@@ -91,6 +97,8 @@ export class D1AccountRepository implements AccountRepository {
 
         throw await this.conflict(id, normalized);
       }
+
+      await this.ensurePreferences(id, now);
 
       return;
     }
@@ -142,9 +150,19 @@ export class D1AccountRepository implements AccountRepository {
   }
 
   async updateLocale(id: string, locale: EmailLocale): Promise<void> {
+    await this.requireAccount(id);
+
+    const now = toEpoch(new Date());
+
     await this.db
-      .prepare("UPDATE accounts SET locale = ?, updated_at = ? WHERE id = ?")
-      .bind(locale, toEpoch(new Date()), id)
+      .prepare(
+        `INSERT INTO account_preferences (account_id, locale, updated_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(account_id) DO UPDATE SET
+          locale = excluded.locale,
+          updated_at = excluded.updated_at`,
+      )
+      .bind(id, locale, now)
       .run();
   }
 
@@ -217,14 +235,39 @@ export class D1AccountRepository implements AccountRepository {
   }
 
   async updateRenewalRemindersEnabled(id: string, enabled: boolean): Promise<void> {
-    const result = await this.db
-      .prepare(`UPDATE accounts SET renewal_reminders_enabled = ?, updated_at = ? WHERE id = ?`)
-      .bind(enabled ? 1 : 0, toEpoch(new Date()), id)
-      .run();
+    await this.requireAccount(id);
 
-    if ((result.meta?.changes ?? 0) === 0) {
+    const now = toEpoch(new Date());
+
+    await this.db
+      .prepare(
+        `INSERT INTO account_preferences (account_id, renewal_reminders_enabled, updated_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(account_id) DO UPDATE SET
+          renewal_reminders_enabled = excluded.renewal_reminders_enabled,
+          updated_at = excluded.updated_at`,
+      )
+      .bind(id, enabled ? 1 : 0, now)
+      .run();
+  }
+
+  private async requireAccount(id: string): Promise<void> {
+    const account = await this.db.prepare("SELECT id FROM accounts WHERE id = ?").bind(id).first();
+
+    if (account === null) {
       throw new NotFoundError("Account not found");
     }
+  }
+
+  private async ensurePreferences(id: string, now: number): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO account_preferences (account_id, updated_at)
+        VALUES (?, ?)
+        ON CONFLICT(account_id) DO NOTHING`,
+      )
+      .bind(id, now)
+      .run();
   }
 
   private mapRow(row: AccountRow): Account {
