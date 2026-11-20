@@ -13,6 +13,7 @@ import {
   products,
   services,
   stations,
+  subscriptionReminders,
   subscriptions,
   workEntries,
 } from "@aqui-suena/db/schema";
@@ -30,6 +31,17 @@ function indexColumns(table: Parameters<typeof getTableConfig>[0], indexName: st
 
   return (config?.columns ?? []).map((column) => ("name" in column ? column.name : "sql"));
 }
+
+describe("subscription_reminders", () => {
+  it("scopes every reminder to a billing period", () => {
+    expect(columnNames(subscriptionReminders)).toEqual(
+      expect.arrayContaining(["subscription_id", "type", "period_ends_at", "sent_at"]),
+    );
+    expect(
+      indexColumns(subscriptionReminders, "subscription_reminders_subscription_type_period_unique"),
+    ).toEqual(["subscription_id", "type", "period_ends_at"]);
+  });
+});
 
 describe("cron query indexes", () => {
   it("indexes the filters every scheduled sweep reads", () => {

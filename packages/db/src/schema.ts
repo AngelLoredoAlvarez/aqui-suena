@@ -164,12 +164,14 @@ export const subscriptionReminders = sqliteTable(
       .notNull()
       .references(() => subscriptions.id, { onDelete: "cascade" }),
     type: text("type", { enum: ["renewal_7d", "renewal_1d"] }).notNull(),
+    periodEndsAt: integer("period_ends_at", { mode: "timestamp" }).notNull(),
     sentAt: integer("sent_at", { mode: "timestamp" }).notNull(),
   },
   (table) => [
-    uniqueIndex("subscription_reminders_subscription_type_unique").on(
+    uniqueIndex("subscription_reminders_subscription_type_period_unique").on(
       table.subscriptionId,
       table.type,
+      table.periodEndsAt,
     ),
   ],
 );
