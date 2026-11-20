@@ -165,6 +165,42 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
     return result.results.map((row) => this.mapRow(row as SubscriptionRow));
   }
 
+  /** A recorded reminder drops the row until its next window opens. */
+  async listReminderCandidates(now: Date, limit: number): Promise<Subscription[]> {
+    const oneDay = 86_400;
+    const dayStart = Math.floor(toEpoch(now) / oneDay) * oneDay;
+    const sevenDayStart = dayStart + 2 * oneDay;
+    const windowEnd = dayStart + 8 * oneDay;
+
+    const result = await this.db
+      .prepare(
+        `SELECT s.id, s.account_id, s.plan_id, s.billing_interval, s.status, s.started_at, s.ends_at, s.grace_end, s.created_at, s.updated_at
+        FROM subscriptions s
+        JOIN accounts a ON a.id = s.account_id
+        LEFT JOIN account_preferences p ON p.account_id = s.account_id
+        WHERE s.status = 'active'
+          AND a.deleted_at IS NULL
+          AND COALESCE(p.renewal_reminders_enabled, 1) = 1
+          AND s.ends_at >= ? AND s.ends_at < ?
+          AND (
+            (s.ends_at >= ? AND NOT EXISTS (
+              SELECT 1 FROM subscription_reminders r
+              WHERE r.subscription_id = s.id AND r.type = 'renewal_7d'
+            ))
+            OR (s.ends_at < ? AND NOT EXISTS (
+              SELECT 1 FROM subscription_reminders r
+              WHERE r.subscription_id = s.id AND r.type = 'renewal_1d'
+            ))
+          )
+        ORDER BY s.ends_at ASC, s.id ASC
+        LIMIT ?`,
+      )
+      .bind(dayStart, windowEnd, sevenDayStart, sevenDayStart, limit)
+      .all();
+
+    return result.results.map((row) => this.mapRow(row as SubscriptionRow));
+  }
+
   async listGraceExpired(now: Date, limit: number): Promise<Subscription[]> {
     const result = await this.db
       .prepare(

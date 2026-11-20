@@ -205,6 +205,31 @@ describe("D1SubscriptionRepository", () => {
     expect(fake.statements[0]?.params).toEqual([toEpoch(deadline), 5]);
   });
 
+  it("lists reminder candidates inside the UTC day windows the sweep needs", async () => {
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repo = new D1SubscriptionRepository(fake.db);
+    const now = new Date("2026-11-20T12:00:00Z");
+
+    const list = await repo.listReminderCandidates(now, 5);
+
+    expect(list).toHaveLength(1);
+    const sql = normalizeSql(fake.statements[0]?.sql);
+    expect(sql).toContain("JOIN accounts a ON a.id = s.account_id");
+    expect(sql).toContain("a.deleted_at IS NULL");
+    expect(sql).toContain("COALESCE(p.renewal_reminders_enabled, 1) = 1");
+    expect(sql).toContain("s.ends_at >= ? AND s.ends_at < ?");
+    expect(sql).toContain("r.type = 'renewal_7d'");
+    expect(sql).toContain("r.type = 'renewal_1d'");
+    expect(sql).toContain("ORDER BY s.ends_at ASC, s.id ASC");
+    expect(fake.statements[0]?.params).toEqual([
+      toEpoch(new Date("2026-11-20T00:00:00Z")),
+      toEpoch(new Date("2026-11-28T00:00:00Z")),
+      toEpoch(new Date("2026-11-22T00:00:00Z")),
+      toEpoch(new Date("2026-11-22T00:00:00Z")),
+      5,
+    ]);
+  });
+
   it("lists grace subscriptions past their deadline", async () => {
     const fake = new FakeD1Database(() => ({
       all: [{ ...sampleRow, status: "grace", grace_end: 1700000000 }],

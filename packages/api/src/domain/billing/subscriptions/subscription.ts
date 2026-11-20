@@ -45,6 +45,8 @@ export interface SubscriptionRepository {
   enterGrace(id: string, graceEnd: Date): Promise<void>;
   listByAccount(accountId: string): Promise<Subscription[]>;
   listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]>;
+  /** Active subscriptions with a reminder due now, oldest first. */
+  listReminderCandidates(now: Date, limit: number): Promise<Subscription[]>;
   listGraceExpired(now: Date, limit: number): Promise<Subscription[]>;
 }
 
@@ -148,6 +150,22 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
   async listActiveEndingBefore(deadline: Date, limit: number): Promise<Subscription[]> {
     return this.store
       .filter((sub) => sub.status === "active" && sub.endsAt !== null && sub.endsAt <= deadline)
+      .sort((left, right) => (left.endsAt?.getTime() ?? 0) - (right.endsAt?.getTime() ?? 0))
+      .slice(0, limit);
+  }
+
+  async listReminderCandidates(now: Date, limit: number): Promise<Subscription[]> {
+    const dayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const windowEnd = dayStart + 8 * 24 * 60 * 60 * 1000;
+
+    return this.store
+      .filter(
+        (sub) =>
+          sub.status === "active" &&
+          sub.endsAt !== null &&
+          sub.endsAt.getTime() >= dayStart &&
+          sub.endsAt.getTime() < windowEnd,
+      )
       .sort((left, right) => (left.endsAt?.getTime() ?? 0) - (right.endsAt?.getTime() ?? 0))
       .slice(0, limit);
   }

@@ -166,4 +166,34 @@ describe("InMemorySubscriptionRepository", () => {
 
     expect(active).toBeNull();
   });
+
+  it("lists reminder candidates ending inside the seven-day window", async () => {
+    const repo = new InMemorySubscriptionRepository();
+
+    const startedAt = new Date("2026-11-01T00:00:00Z");
+
+    const inWindow = await repo.create(
+      "acc-1",
+      "community",
+      startedAt,
+      new Date("2026-11-25T12:00:00Z"),
+    );
+
+    await repo.create("acc-2", "community", startedAt, new Date("2026-11-19T12:00:00Z"));
+
+    await repo.create("acc-3", "community", startedAt, new Date("2026-11-29T12:00:00Z"));
+
+    const cancelled = await repo.create(
+      "acc-4",
+      "community",
+      startedAt,
+      new Date("2026-11-25T12:00:00Z"),
+    );
+
+    await repo.updateStatus(cancelled.id, "cancelled");
+
+    const candidates = await repo.listReminderCandidates(new Date("2026-11-20T12:00:00Z"), 10);
+
+    expect(candidates.map((subscription) => subscription.id)).toEqual([inWindow.id]);
+  });
 });
