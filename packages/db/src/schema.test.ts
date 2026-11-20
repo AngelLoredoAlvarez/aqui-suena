@@ -1,4 +1,5 @@
 import {
+  accountPreferences,
   accounts,
   businesses,
   flyers,
@@ -110,13 +111,12 @@ describe("hours", () => {
 });
 
 describe("accounts", () => {
-  it("exposes id, email, plan, locale and timestamps", () => {
+  it("exposes identity, plan, billing and timestamp columns", () => {
     expect(columnNames(accounts)).toEqual(
       expect.arrayContaining([
         "id",
         "email",
         "plan_id",
-        "locale",
         "conekta_customer_id",
         "default_card_source_id",
         "card_brand",
@@ -126,6 +126,14 @@ describe("accounts", () => {
         "created_at",
         "updated_at",
       ]),
+    );
+  });
+});
+
+describe("account_preferences", () => {
+  it("exposes the account reference, locale, renewal reminders and update time", () => {
+    expect(columnNames(accountPreferences)).toEqual(
+      expect.arrayContaining(["account_id", "locale", "renewal_reminders_enabled", "updated_at"]),
     );
   });
 });

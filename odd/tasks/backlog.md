@@ -456,9 +456,10 @@ and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is se
       days, skips deleted accounts, and uses the D1 `subscription_reminders` log
       (migration `0008`) to prevent duplicates.
 - [x] Persist `renewalRemindersEnabled` — DONE 2026-11-19:
-      `accounts.renewal_reminders_enabled` defaults to true (migration `0009`);
-      `account.getPreferences` and `account.updatePreferences` expose it, and the
-      renewal sweep passes the account flag to the reminder service.
+      the value now lives in `account_preferences.renewal_reminders_enabled`
+      (migration `0010`) with a default of true; `account.getPreferences` and
+      `account.updatePreferences` expose it, and the renewal sweep passes the
+      account flag to the reminder service.
 - [x] CFDI email — DONE 2026-11-18 (`feat/cfdi-email`). `TemplateCfdiNotifier`
       delivers template 8 with the provider PDF and the archived XML attached;
       `IssueInvoice` archives the PDF beside the XML (`cfdi_invoices.pdf_key`,
@@ -470,14 +471,8 @@ and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is se
       `invoices` table is closed history; `payments` still needs a `plan_id`
       snapshot before Conekta is wired.
 
-## Deferred (account preferences — revisit on the third preference)
+## Account preferences (closed 2026-11-19)
 
-- Account preferences table (`account_preferences`). DEFERRED: `accounts` holds one
-  persisted preferences (`locale`, `renewalRemindersEnabled`). A key/value table
-  would lose type safety to solve a problem that does
-  not exist, and adding a column here is a cheap additive change (drizzle-diffed
-  `ALTER TABLE`, no rewrite). Revisit when any of these holds: a third persisted
-  preference; notification consent needs an audit trail (LFPDPPP) recording when and
-  from where it was granted or revoked; preferences vary by plan; owners can define
-  their own rules. When it happens, prefer a typed one-row-per-account table with
-  explicit columns over a `key/value` store.
+- The typed one-row-per-account `account_preferences` table owns `locale` and
+  `renewal_reminders_enabled` (migration `0010`); `accounts` no longer carries either
+  column. Future preferences add explicit columns, never a `key/value` store.

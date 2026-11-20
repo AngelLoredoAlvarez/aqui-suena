@@ -12,8 +12,6 @@ const DDL = `
     id TEXT PRIMARY KEY NOT NULL,
     email TEXT NOT NULL,
     plan_id TEXT DEFAULT 'community' NOT NULL,
-    locale TEXT DEFAULT 'es-MX' NOT NULL,
-    renewal_reminders_enabled INTEGER DEFAULT 1 NOT NULL,
     rfc TEXT, legal_name TEXT, tax_regime TEXT, tax_zip_code TEXT, cfdi_use TEXT,
     billing_email TEXT, tax_data_updated_at INTEGER, deleted_at INTEGER,
     conekta_customer_id TEXT, default_card_source_id TEXT, card_brand TEXT,
@@ -22,6 +20,13 @@ const DDL = `
   );
 
   CREATE UNIQUE INDEX accounts_email_unique ON accounts (email);
+
+  CREATE TABLE account_preferences (
+    account_id TEXT PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    locale TEXT DEFAULT 'es-MX' NOT NULL,
+    renewal_reminders_enabled INTEGER DEFAULT 1 NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
 
   CREATE TABLE businesses (
     id TEXT PRIMARY KEY NOT NULL,
@@ -107,13 +112,12 @@ function seed(database: DatabaseSync): void {
     database.prepare(sql).run(...values);
 
   insert(
-    `INSERT INTO accounts (id, email, plan_id, locale, rfc, legal_name, tax_regime,
+    `INSERT INTO accounts (id, email, plan_id, rfc, legal_name, tax_regime,
        tax_zip_code, cfdi_use, billing_email, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     "acc-1",
     "owner@example.com",
     "trades",
-    "es-MX",
     "EKU9003173C9",
     "ESCUELA KEMPER URGARTE",
     "601",

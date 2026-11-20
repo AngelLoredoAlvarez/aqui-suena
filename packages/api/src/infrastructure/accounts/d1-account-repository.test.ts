@@ -53,14 +53,40 @@ describe("D1AccountRepository", () => {
     expect(account?.renewalRemindersEnabled).toBe(false);
   });
 
-  it("updates the renewal reminder preference", async () => {
-    const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
+  it("updates the renewal reminder preference in account_preferences", async () => {
+    const fake = new FakeD1Database((statement) =>
+      statement.sql.startsWith("SELECT")
+        ? { first: { id: "acc-1" } }
+        : { run: { success: true, changes: 1 } },
+    );
     const repo = new D1AccountRepository(fake.db);
 
     await repo.updateRenewalRemindersEnabled("acc-1", false);
 
-    expect(normalizeSql(fake.statements[0]?.sql)).toContain("renewal_reminders_enabled = ?");
-    expect(fake.statements[0]?.params).toEqual([0, expect.any(Number), "acc-1"]);
+    const upsert = fake.statements[1];
+
+    expect(normalizeSql(upsert?.sql)).toContain("INSERT INTO account_preferences");
+    expect(normalizeSql(upsert?.sql)).toContain(
+      "renewal_reminders_enabled = excluded.renewal_reminders_enabled",
+    );
+    expect(upsert?.params).toEqual(["acc-1", 0, expect.any(Number)]);
+  });
+
+  it("updates the locale in account_preferences", async () => {
+    const fake = new FakeD1Database((statement) =>
+      statement.sql.startsWith("SELECT")
+        ? { first: { id: "acc-1" } }
+        : { run: { success: true, changes: 1 } },
+    );
+    const repo = new D1AccountRepository(fake.db);
+
+    await repo.updateLocale("acc-1", "en");
+
+    const upsert = fake.statements[1];
+
+    expect(normalizeSql(upsert?.sql)).toContain("INSERT INTO account_preferences");
+    expect(normalizeSql(upsert?.sql)).toContain("locale = excluded.locale");
+    expect(upsert?.params).toEqual(["acc-1", "en", expect.any(Number)]);
   });
 
   it("throws when the account is missing on preference update", async () => {
@@ -194,6 +220,11 @@ describe("D1AccountRepository ensure", () => {
     expect(insert?.params[1]).toBe("owner@example.com");
     expect(typeof insert?.params[2]).toBe("number");
     expect(typeof insert?.params[3]).toBe("number");
+
+    const preferences = fake.statements[2];
+
+    expect(normalizeSql(preferences?.sql)).toContain("INSERT INTO account_preferences");
+    expect(preferences?.params).toEqual(["acc-new", expect.any(Number)]);
   });
 
   it("writes nothing when the account already has that email", async () => {

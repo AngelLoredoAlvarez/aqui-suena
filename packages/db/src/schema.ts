@@ -28,12 +28,6 @@ export const accounts = sqliteTable("accounts", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   planId: text("plan_id").notNull().default("community"),
-  locale: text("locale", { enum: ["es-MX", "en"] })
-    .notNull()
-    .default("es-MX"),
-  renewalRemindersEnabled: integer("renewal_reminders_enabled", { mode: "boolean" })
-    .notNull()
-    .default(true),
   rfc: text("rfc"),
   legalName: text("legal_name"),
   taxRegime: text("tax_regime"),
@@ -51,6 +45,21 @@ export const accounts = sqliteTable("accounts", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const accountPreferences = sqliteTable("account_preferences", {
+  accountId: text("account_id")
+    .primaryKey()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  locale: text("locale", { enum: ["es-MX", "en"] })
+    .notNull()
+    .default("es-MX"),
+  renewalRemindersEnabled: integer("renewal_reminders_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

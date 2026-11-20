@@ -323,3 +323,10 @@ the full gate. Commits only on explicit instruction.
 - 2026-11-19: `accounts.renewal_reminders_enabled` persists the owner preference
   (migration `0009`). `account.getPreferences` and `account.updatePreferences`
   expose it, and the cron passes the account flag to the reminder service.
+
+- 2026-11-19: `account_preferences` (migration `0010`) owns `locale` and
+  `renewal_reminders_enabled` with explicit columns. The migration backfills the
+  existing values and drops both legacy columns from `accounts`. The D1 account
+  repository reads the table through a left join, creates the row on provisioning
+  and upserts it on update; the renewal sweep reads the preference from the account
+  view.
