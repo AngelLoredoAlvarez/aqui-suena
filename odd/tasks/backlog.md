@@ -3,11 +3,10 @@
 Cross-feature TODO list. Items land here when they are out of scope for the
 active feature but must not be lost. Checked items move to Engram, not deleted.
 
-Last full sync 2026-11-18 against `main` at the `refactor/project-hygiene` merge
-(CFDI delivery by email with the PDF and XML attached, the PDF archived in R2,
-account provisioning and deletion shipped, the id input contract normalized, and
-the specs moved under `docs/specs`; the owner-portal invoice history and download
-surface is the newest tracked gap). Later entries carry their own date.
+Last full sync 2026-11-20 against `main` after the fiscal archive recovery
+(#81), cron indexes and reminder batching (#82), per-period renewal reminders
+(#83) and migration-test relocation (#84) merges. Later entries carry their own
+date.
 
 ## Production wiring (closed 2026-11-10)
 
@@ -24,19 +23,17 @@ surface is the newest tracked gap). Later entries carry their own date.
 
 Documented state, not fixed yet. Nothing below changes behavior today.
 
-- [ ] Email sender and triggers (partially done 2026-11-11, extended 2026-11-18):
-      `ResendEmailSender`, the subscription notifier and the CFDI notifier are
-      instantiated in the composition root (`feat/email-sender-wiring`,
-      `feat/cfdi-email`) and wired through `createApp`/`createAppRouter`;
-      `subscriptions.cancel` and `billing.requestInvoice` are the live call
-      sites. Remaining: wire the `AccountNotifier` and `PaymentNotifier`, and add
-      the signup/verification, payment receipt, renewal-reminder and downgrade
-      call sites (blocked on signup, a payment provider and a Worker cron). Until
-      those exist, only the cancellation and CFDI delivery emails are sent. **When the cron lands:** every
-      scheduled sender must resolve the recipient from an account row and skip
-      rows with `deleted_at` set — a deleted account keeps its financial records
-      but must never receive mail again (spec S8 of
-      `odd/tasks/feat-account-deletion.md`).
+- [ ] Email sender and triggers (partially done 2026-11-11, extended 2026-11-19):
+      `ResendEmailSender`, the subscription notifier, the payment notifier and the
+      CFDI notifier are instantiated in the composition root and wired through
+      `createApp`/`createAppRouter`. Live: `subscriptions.cancel`,
+      `billing.requestInvoice`, payment pending/receipt, renewal reminders, and
+      the renewal-failed/grace-expired/plan-downgrade notices. Remaining: wire the
+      `AccountNotifier` (welcome and email verification) once signup exists; until
+      then those two emails are not sent. Every scheduled sender resolves the
+      recipient from an account row and skips rows with `deleted_at` set — a
+      deleted account keeps its financial records but must never receive mail
+      again (spec S8 of `odd/tasks/feat-account-deletion.md`).
 - [ ] Real listener status — PARTIAL 2026-11-16. `listener.getStatus` now
       resolves the station from D1 (`D1StationRepository`, seeded by
       `POST /admin/seed-stations`) or the in-memory harness for local Node,
@@ -494,7 +491,7 @@ instantiates `ResendEmailSender`, the subscription notifier and the CFDI notifie
 and wires them through `createApp`/`createAppRouter` when `RESEND_API_KEY` is set.
 
 - [ ] Account flows: call `AccountNotifier.emailVerificationRequested` and `.welcome` from signup and email verification once auth exists (only the null-safe Supabase seam exists today).
-- [ ] Payment flow: call `PaymentNotifier.paymentReceipt` when a charge completes; no payment provider is integrated yet.
+- [x] Payment flow: `PaymentNotifier.paymentPending` and `.paymentReceipt` are live from `PaymentService` with Conekta (2026-11-19); both skip deleted accounts.
 - [x] Cancellation: `subscriptions.cancel` is live and passes the account `recipientEmail` and `locale` into `SubscriptionService.cancel` (2026-11-11).
 - [x] Wire renewal reminders to the cron — DONE 2026-11-19:
       `ProcessRenewalReminders` processes active subscriptions ending within seven

@@ -120,4 +120,4 @@ Cloudflare Workers AI free-tier models: Llama 3.1 8B (general), Mistral 7B (mult
 
 ## Open Questions
 
-- Image hosting provider for uploads (per-plan photo limits decided in SPEC-memberships)?
+- None. Uploads use the R2 media pipeline in `SPEC-media-storage.md`.
