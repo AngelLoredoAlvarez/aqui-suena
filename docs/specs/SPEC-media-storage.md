@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Missing: hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode or a paid pipeline. Missing: the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -30,6 +30,7 @@ Typecheck: pnpm -r typecheck
 ```
 packages/api/src/server/routers/media/media.ts → media.presignUpload / media.confirm / media.list / media.signedUrl / media.delete
 packages/api/src/domain/media/key.ts → media/v1 key builder and parser (account vs business scope)
+packages/api/src/domain/media/content-validation.ts → magic bytes, GPS EXIF and MP3 duration checks
 packages/api/src/infrastructure/media/r2-object-storage.ts → R2 S3-compatible client (presigned URLs, head, delete)
 packages/db/src/schema.ts          → media table (id, ownerId, businessId?, kind, r2Key unique, mime, size, createdAt)
 packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy loading + blur placeholder
@@ -46,7 +47,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 - Per-file limits (enforced client-side + server-side):
   - Product photos: max 2MB, JPG/PNG/WebP, auto-compressed client-side.
   - Sponsor flyers: max 1MB, JPG/PNG/WebP.
-  - Spot audio: max 30s MP3, loudness normalized at upload.
+  - Spot audio: max 30s MP3, loudness normalized at upload; the 30s limit is enforced at `confirm` from the stored bytes.
   - Owner avatars: max 500KB, JPG/PNG/WebP.
 
 ## Upload Flow
@@ -54,7 +55,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 1. Client requests a presigned PUT URL from `media.presignUpload` (tRPC, auth required) with `kind`, `contentType`, `sizeBytes` and, for business media, `businessId` (never for an avatar).
 2. Server validates the type/size limits and the scope, checks that the business belongs to the authenticated account and that the plan allows the kind (otherwise `NOT_FOUND` or `FORBIDDEN: UPGRADE_REQUIRED`), generates the `media/v1/...` key server-side (UUID and extension included), and returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
-4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, revalidates business ownership and the plan entitlement, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
+4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, revalidates business ownership and the plan entitlement, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, reads the stored bytes to verify magic bytes, rejects JPEGs carrying GPS EXIF and enforces the 30-second MP3 limit, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
 5. The response carries the media row and its absolute key. `media.signedUrl` returns a short-lived signed GET URL for the owner of the row; public listing reads are signed per request by the directory and ads endpoints when the media is attached to a visible listing.
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
@@ -129,6 +130,23 @@ endpoints sign the object key when the row has media and the business is
 visible, and return the legacy URL otherwise. There is no standalone public
 media endpoint; every signed URL is scoped to a listing response.
 
+### Content hardening (T7)
+
+`confirm` reads the stored object once for a new row and validates:
+
+- magic bytes for JPEG, PNG, WebP and MP3 before persisting;
+- JPEG EXIF: a GPS IFD in the JPEG APP1 EXIF directory rejects the upload
+  (`BAD_REQUEST`) so a listing image never publishes a location from camera
+  metadata. XMP metadata and PNG/WebP EXIF chunks are not inspected yet.
+- MP3: the frame stream is parsed and a duration over 30 seconds is rejected.
+  Spot audio is still plan-gated off, so this is defense in depth until the
+  entitlement opens.
+
+Full EXIF stripping (not just GPS rejection) needs an image re-encode or a paid
+image pipeline; it stays deferred. The R2 bucket CORS rules live in
+`packages/api/r2-cors.json` and are applied with
+`wrangler r2 bucket cors set <bucket> --file r2-cors.json`.
+
 ## Lifecycle (T5)
 
 - **Order.** Purges delete the object first and then its row, so a row never
@@ -183,7 +201,7 @@ Conventions: media keys are unique and immutable (UUID), never overwritten; the 
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for upload flows.
-- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/domain/media/entitlement.test.ts`, `packages/api/src/domain/media/sweep-orphans.test.ts`, `packages/api/src/domain/directory/purge-expired-businesses.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
+- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/domain/media/entitlement.test.ts`, `packages/api/src/domain/media/content-validation.test.ts`, `packages/api/src/domain/media/sweep-orphans.test.ts`, `packages/api/src/domain/directory/purge-expired-businesses.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
 - Coverage: 100% on key grammar, presign validation (type/size limits) and the confirm state machine.
 - Levels: unit (presign validation, size limits) → integration (presign → upload → confirm → metadata stored) → e2e (owner uploads photo, listener sees it optimized).
 

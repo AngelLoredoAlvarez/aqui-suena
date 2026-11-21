@@ -127,6 +127,38 @@ describe("R2ObjectStorage", () => {
     expect(url).not.toBe(put);
   });
 
+  it("reads the stored object bytes with their metadata", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      new Response(new Uint8Array([0x89, 0x50, 0x4e, 0x47]), {
+        status: 200,
+        headers: { "content-length": "4", "content-type": "image/png" },
+      });
+
+    const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: fakeFetch });
+
+    expect(await storage.readObject("media/v1/acc-1/account/avatar/key.png")).toEqual({
+      key: "media/v1/acc-1/account/avatar/key.png",
+      size: 4,
+      contentType: "image/png",
+      bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+    });
+  });
+
+  it("returns null when reading a missing object and throws on other errors", async () => {
+    const missing = new R2ObjectStorage({
+      ...baseOptions,
+      fetchFn: (async () => new Response(null, { status: 404 })) as typeof fetch,
+    });
+
+    const failing = new R2ObjectStorage({
+      ...baseOptions,
+      fetchFn: (async () => new Response(null, { status: 500 })) as typeof fetch,
+    });
+
+    await expect(missing.readObject("missing")).resolves.toBeNull();
+    await expect(failing.readObject("k")).rejects.toThrow("R2 read failed: 500");
+  });
+
   it("delete calls DELETE", async () => {
     let method = "";
 

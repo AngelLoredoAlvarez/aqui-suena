@@ -33,6 +33,10 @@ export interface StoredObject {
   lastModified: Date;
 }
 
+export interface StoredObjectContent extends ObjectMetadata {
+  bytes: Uint8Array;
+}
+
 /**
  * Port for object storage (R2, MinIO, or an in-memory fake).
  * The domain and routers depend on this abstraction, never on a concrete SDK.
@@ -41,8 +45,29 @@ export interface ObjectStorage {
   presignUpload(input: PresignUploadInput): Promise<PresignUploadResult>;
   signedUrl(key: string): Promise<string>;
   head(key: string): Promise<ObjectMetadata | null>;
+  readObject(key: string): Promise<StoredObjectContent | null>;
   list(prefix: string): Promise<StoredObject[]>;
   delete(key: string): Promise<void>;
+}
+
+function defaultBody(contentType: string): Uint8Array {
+  switch (contentType) {
+    case "image/jpeg":
+      return new Uint8Array([
+        0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xd9,
+      ]);
+    case "image/png":
+      return new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case "image/webp":
+      return new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
+    case "audio/mpeg": {
+      const frame = new Uint8Array(417);
+      frame.set([0xff, 0xfb, 0x90, 0x00]);
+      return frame;
+    }
+    default:
+      return new Uint8Array();
+  }
 }
 
 /**
@@ -54,6 +79,7 @@ export class InMemoryObjectStorage implements ObjectStorage {
   readonly presigned: PresignUploadInput[] = [];
   private readonly stored = new Map<string, ObjectMetadata>();
   private readonly storedAt = new Map<string, Date>();
+  private readonly bodies = new Map<string, Uint8Array>();
 
   async presignUpload(input: PresignUploadInput): Promise<PresignUploadResult> {
     validateMediaUpload(input.kind, input.contentType, input.sizeBytes);
@@ -76,6 +102,16 @@ export class InMemoryObjectStorage implements ObjectStorage {
     return this.stored.get(key) ?? null;
   }
 
+  async readObject(key: string): Promise<StoredObjectContent | null> {
+    const meta = this.stored.get(key);
+
+    if (meta === undefined) {
+      return null;
+    }
+
+    return { ...meta, bytes: this.bodies.get(key) ?? new Uint8Array() };
+  }
+
   async signedUrl(key: string): Promise<string> {
     return `https://fake.r2/${key}?signed=1`;
   }
@@ -89,11 +125,19 @@ export class InMemoryObjectStorage implements ObjectStorage {
   async delete(key: string): Promise<void> {
     this.stored.delete(key);
     this.storedAt.delete(key);
+    this.bodies.delete(key);
   }
 
   /** Simulates a client that finished uploading to `key`. */
-  confirm(key: string, size: number, contentType: string, storedAt: Date = new Date()): void {
+  confirm(
+    key: string,
+    size: number,
+    contentType: string,
+    storedAt: Date = new Date(),
+    body: Uint8Array = defaultBody(contentType),
+  ): void {
     this.stored.set(key, { key, size, contentType });
     this.storedAt.set(key, storedAt);
+    this.bodies.set(key, body);
   }
 }

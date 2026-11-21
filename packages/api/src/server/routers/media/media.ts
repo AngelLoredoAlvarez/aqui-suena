@@ -1,6 +1,7 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import { assertMediaContent } from "@aqui-suena/api/domain/media/content-validation";
 import { assertCanUploadMedia } from "@aqui-suena/api/domain/media/entitlement";
 import {
   mediaExtensionFor,
@@ -102,7 +103,8 @@ export function createMediaRouter(deps: MediaRouterDeps) {
         await assertBusinessOwned(business, ctx.user.accountId, parsed.scope.businessId);
       }
 
-      const meta = await activeStorage.head(input.key);
+      const meta = await activeStorage.readObject(input.key);
+
       if (meta === null) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Object not found" });
       }
@@ -136,6 +138,16 @@ export function createMediaRouter(deps: MediaRouterDeps) {
 
       if (existing !== null) {
         return existing;
+      }
+
+      try {
+        assertMediaContent(meta.contentType, meta.bytes);
+      } catch (error) {
+        if (error instanceof MediaValidationError) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
+        }
+
+        throw error;
       }
 
       const plan = resolvePlan(await subscription.getActive(ctx.user.accountId));
