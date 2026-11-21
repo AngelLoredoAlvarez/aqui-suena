@@ -5,7 +5,8 @@
 Scope defined on 2026-11-04. Partially implemented: `support.chat` ships the
 read-only plan-catalog path (bilingual es/en, prompt-injection guard, optional
 Vectorize RAG seeded by `POST /admin/seed-vectors`, optional AI Gateway), and the
-router is live for unauthenticated listeners. Still pending before it can cover
+router is live for unauthenticated listeners. The multimodal media retrieval
+design is documented below but not implemented. Still pending before it can cover
 the authenticated scope: Supabase Auth identities, per-account and global daily
 caps, and the sanitization rules for account, payment and invoice data. This
 document remains the source for the agreed scope and its architectural
@@ -38,7 +39,8 @@ services, products, plans, or any other entity stays a manual action in the UI.
   phone, email, timezone, delivery flag.
 - Hours of operation.
 - Services and products with descriptions and prices.
-- Work entries, photos, flyers (public ones).
+- Work entries, photos, flyers (public ones), including media search through the
+  multimodal `media-catalog` index when enabled.
 
 **Location/distance (explicitly out of chat scope):** the chat returns the
 business's textual address only. No latitude/longitude storage, no geocoding,
@@ -93,6 +95,96 @@ Two mechanisms, chosen by data type:
 Private data never enters the vector index. It is injected into the prompt only
 when the authenticated owner requests it, and only their own.
 
+### Multimodal media retrieval (planned, free tier)
+
+Owners upload photos and flyers; the assistant should be able to find relevant
+public media ("fotos de tacos", "el flyer de la promo") and, for the owner,
+mention their own unpublished images. The design below is chosen to stay inside
+the Cloudflare free tier and to keep private media out of the shared index.
+
+#### Decision
+
+- **Index public listing media only.** An image enters the media index when it is
+  attached to a visible listing. Owner-private, hidden or unpublished media is
+  read from D1 at answer time and never embedded; avatars and spot audio are not
+  indexed.
+- **Use `@cf/google/embeddinggemma-2` multimodal embeddings in a dedicated
+  `media-catalog` Vectorize index at 512 dimensions.** It maps text and images
+  into one space, so a text query retrieves image vectors directly; the image
+  bytes stay in R2 and Vectorize stores only vectors + metadata. Do not mix it
+  with the existing plan index, which uses `@cf/baai/bge-m3` at 1024 dimensions.
+- **No bulk vision captioning.** Captioning every photo with a vision model is
+  the most expensive free-tier path and loses detail. Photos are embedded from a
+  downscaled image derivative; flyers additionally get an OCR pass because their
+  text ("2x1", menu items, phone) is the searchable content.
+- **OCR only for flyers, lazily.** Run `@cf/moondream/moondream3.1-9B-A2B`
+  caption/OCR on public flyers in a throttled backfill (one flyer per business)
+  and store the text in D1. No OCR for every product photo.
+- **Vision at answer time only for a specific image.** If the user asks what a
+  particular image shows, the assistant may send that one selected image to a
+  vision model, with a strict per-request/per-day cap. This is not a second
+  indexing path.
+- **Paid AI Search, Cloudflare Images and models that require a paid billing
+  method are excluded.** The free-tier plan must not create a recurring charge.
+
+#### Data model (D1)
+
+`media_insights` (one row per media, new table):
+
+- `media_id` (PK, FK to `media`), `business_id`, `kind`, `visibility`
+  (`public`/`private`), `ocr_text`, `embedding_model`, `dimensions`,
+  `content_hash`, `status` (`pending`/`ready`/`failed`), `embedded_at`.
+- `content_hash` avoids re-embedding unchanged bytes; a changed object or
+  attachment invalidates the row.
+- Deletes cascade from `media`; business visibility changes update or delete the
+  insight, and the query still re-checks D1 before signing any URL.
+
+#### Ingest and retrieval flow
+
+1. After `confirm` + attach to a visible listing, or via the daily/scheduled
+   backfill, generate a **512px image derivative** (client-side or free Worker
+   WASM; never send the 2 MB original) and store the OCR text for flyers.
+2. Embed the derivative (and the OCR text + business/product context for
+   flyers) with `embeddinggemma-2` at 512 dimensions; upsert one vector per
+   media with metadata `{ mediaId, businessId, kind, visibility }`.
+3. At query time, embed the user text with the same model and task prefix,
+   query top-K with a public-visibility filter, then load the media/business
+   rows from D1, re-check visibility/ownership, and sign short-lived URLs. The
+   answer can cite/link the images; it never returns a raw R2 key.
+4. Owner scope ("my photos") is a direct D1 read filtered by `accountId` /
+   `businessId`, not a vector query; private data is never indexed.
+5. Delete the vector when the media row or business is deleted, or when it stops
+   being public.
+
+#### Free-tier budget
+
+| Resource          | Free allowance                        | Design impact                                                                                                                                                                                               |
+| ----------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workers AI        | 10,000 Neurons/day (resets 00:00 UTC) | `embeddinggemma-2` is 154 Neurons/M tokens, so ~1,000 public images cost well under 200 Neurons. Flyer OCR is the expensive part (~20-40 Neurons per flyer with Moondream); cap it to a small daily batch.  |
+| Vectorize stored  | 5M dimensions/month, 100 indexes      | At 512 dims, ~9,700 vectors. One `media-catalog` index plus the existing plan index stays within 100 indexes. If public media grows, move to 256 dims (~19,500 vectors) or prune before adding a paid plan. |
+| Vectorize queried | 30M dimensions/month                  | Cap assistant image queries and use top-K; monitor the dashboard.                                                                                                                                           |
+| R2                | 10 GB / free ops                      | Image bytes stay in R2; the derivative is small and the original remains the source for signed reads.                                                                                                       |
+
+Guardrails: a D1 daily neuron counter with a hard cutoff (for example 8,000/day,
+leaving room for chat), batch/backfill throttling, skip unchanged hashes, no
+indexing of avatars/audio, and a circuit breaker that falls back to D1/text
+answers when Vectorize or Workers AI is unavailable. Benchmarks for the image
+derivative and OCR must run before enabling the feature; if the free allowance is
+exceeded, the feature pauses rather than bills.
+
+#### Rejected alternatives
+
+- **Caption every image with a vision model and embed the caption:** accurate
+  for text but consumes far more Neurons and loses pixel-level visual detail.
+- **CLIP-style separate image index:** historically unavailable on Workers AI;
+  `embeddinggemma-2` now gives a native multimodal space without a second model.
+- **Vision model per query over many images:** higher latency and cost, and
+  exposes more bytes than needed.
+- **Cloudflare AI Search (GA):** it supports native image retrieval/OCR, but it
+  is a billed product beyond its free allotment and violates the zero-cost rule.
+- **Indexing private owner media in the shared index:** leaks across users;
+  private reads stay in D1.
+
 ## Refusal and no-hallucination policy
 
 - **Mutations or others' data:** refuse and point to the correct channel (UI for
@@ -113,6 +205,9 @@ when the authenticated owner requests it, and only their own.
 - The chat is a retrieval + answer layer only. It has no tools that mutate state.
 - Free-tier constraints (Cloudflare Workers AI neurons, Vectorize queried/stored
   dimensions) must be respected; do not vectorize everything by default.
+- Media retrieval is free-tier only: no Cloudflare AI Search, Cloudflare Images,
+  paid transform API or paid-billing model. Private/unpublished media is never
+  embedded; the shared index carries public listing media only.
 - Prompt size budget: tune top-K per domain; do not dump full catalogs when
   vector search is available.
 - Sanitization: never put personal, payment, or provider (Conekta) data into
@@ -121,6 +216,11 @@ when the authenticated owner requests it, and only their own.
 ## Open questions
 
 - Daily caps (per-account and global) and auto-cutoff thresholds (Level 1 guard).
+- Media index: 512 vs 256 dimensions, OCR only for flyers vs on-demand OCR, and
+  the exact daily Neuron budget split between embeddings and chat.
+- Media moderation before indexing: photos can contain people, plates or private
+  interiors; decide the rejection/review rule for public indexing.
+- Whether image results render inline in chat or as links to the listing.
 - Provider abstraction for swapping Workers AI (Groq/OpenRouter) — keep the
   `AiBinding` port.
 - Whether to add `support.feedback` logging of unresolved queries to discover
