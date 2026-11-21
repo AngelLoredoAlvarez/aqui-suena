@@ -157,6 +157,16 @@ zero-cost rule. The R2 bucket CORS rules live in
 `packages/api/r2-cors.json` and are applied with
 `wrangler r2 bucket cors set <bucket> --file r2-cors.json`.
 
+### AI image insights (support chat, planned)
+
+Public listing media may feed the support assistant's multimodal index: the bytes
+stay in R2, OCR text/insight rows go to D1, and `@cf/google/embeddinggemma-2`
+vectors (512 dimensions) go to a dedicated Vectorize index. Only public listing
+media is indexed; owner-private, hidden, avatar and spot audio media never enter
+the shared index. The design, free-tier budget and privacy rules live in
+`SPEC-support-chatbot.md`; no paid AI Search, Cloudflare Images or paid-billing
+model is allowed.
+
 ## Lifecycle (T5)
 
 - **Order.** Purges delete the object first and then its row, so a row never
