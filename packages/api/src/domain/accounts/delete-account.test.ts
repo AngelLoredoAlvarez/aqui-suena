@@ -62,9 +62,22 @@ function failingStorage(): ObjectStorage {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
     signedUrl: async () => "https://example.test/signed",
     head: async () => null,
+    list: async () => [],
     delete: async () => {
       throw new Error("R2 down");
     },
+  };
+}
+
+function failingListStorage(): ObjectStorage {
+  return {
+    presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
+    signedUrl: async () => "https://example.test/signed",
+    head: async () => null,
+    list: async () => {
+      throw new Error("R2 list down");
+    },
+    delete: async () => undefined,
   };
 }
 
@@ -85,6 +98,7 @@ function setup(
     storage?: ObjectStorage;
     paymentCustomers?: PaymentCustomerDeleter;
     onPaymentCustomerError?: (error: unknown, customerId: string) => void;
+    onMediaPurgeError?: (error: unknown) => void;
   } = {},
 ) {
   const accounts = new InMemoryAccountRepository([{ ...account }]);
@@ -105,6 +119,7 @@ function setup(
     users,
     paymentCustomers: overrides.paymentCustomers,
     onPaymentCustomerError: overrides.onPaymentCustomerError,
+    onMediaPurgeError: overrides.onMediaPurgeError,
   });
 
   return { accounts, businesses, media, users, deleteAccount };
@@ -127,6 +142,35 @@ describe("DeleteAccount", () => {
 
     expect(anonymized?.email).toBe("deleted-acc-1@deleted.invalid");
     expect(anonymized?.deletedAt).toBeInstanceOf(Date);
+  });
+
+  it("purges objects left under the account prefixes without a row", async () => {
+    const storage = new InMemoryObjectStorage();
+    storage.confirm("media/v1/acc-1/account/avatar/orphan.png", 1, "image/png");
+    storage.confirm("flyer/acc-1/orphan.jpg", 1, "image/jpeg");
+    storage.confirm("media/v1/acc-2/keep.png", 1, "image/png");
+
+    const { deleteAccount } = setup({ storage });
+
+    await deleteAccount.execute("acc-1");
+
+    expect(await storage.list("media/v1/acc-1/")).toEqual([]);
+    expect(await storage.list("flyer/acc-1/")).toEqual([]);
+    expect(await storage.list("media/v1/acc-2/")).toHaveLength(1);
+  });
+
+  it("finishes the deletion when the account prefix fail-safe fails", async () => {
+    const errors: unknown[] = [];
+
+    const { accounts, deleteAccount } = setup({
+      storage: failingListStorage(),
+      onMediaPurgeError: (error) => errors.push(error),
+    });
+
+    await deleteAccount.execute("acc-1");
+
+    expect(errors).toHaveLength(1);
+    expect((await accounts.getById("acc-1"))?.deletedAt).toBeInstanceOf(Date);
   });
 
   it("deletes the Conekta customer before anonymizing", async () => {

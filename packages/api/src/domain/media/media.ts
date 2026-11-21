@@ -29,12 +29,20 @@ export type ListMediaByOwnerInput = {
   offset: number;
 };
 
+export type ListMediaByBusinessInput = {
+  businessId: string;
+  limit: number;
+  offset: number;
+};
+
 function toMediaPoint(media: Media): CursorPoint {
   return { createdAt: toEpochSeconds(media.createdAt), id: media.id };
 }
 
 export interface MediaRepository {
   listByOwner(input: ListMediaByOwnerInput): Promise<OffsetPage<Media>>;
+  listByBusiness(input: ListMediaByBusinessInput): Promise<OffsetPage<Media>>;
+  listAllR2Keys(): Promise<string[]>;
   getById(id: string): Promise<Media | null>;
   findByR2Key(r2Key: string): Promise<Media | null>;
   create(input: CreateMediaInput): Promise<Media>;
@@ -48,6 +56,16 @@ export class InMemoryMediaRepository implements MediaRepository {
     const owned = this.items.filter((media) => media.ownerId === input.ownerId);
 
     return paginateOffsetRows(owned, input, toMediaPoint);
+  }
+
+  async listByBusiness(input: ListMediaByBusinessInput): Promise<OffsetPage<Media>> {
+    const owned = this.items.filter((media) => media.businessId === input.businessId);
+
+    return paginateOffsetRows(owned, input, toMediaPoint);
+  }
+
+  async listAllR2Keys(): Promise<string[]> {
+    return this.items.map((media) => media.r2Key);
   }
 
   async getById(id: string): Promise<Media | null> {

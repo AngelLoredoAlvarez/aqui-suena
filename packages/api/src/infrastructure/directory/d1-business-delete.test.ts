@@ -159,16 +159,18 @@ function expectEverythingDeleted(database: DatabaseSync): void {
 }
 
 describe("D1BusinessRepository cascade deletion", () => {
-  it("deleteExpired removes the business and every child", async () => {
+  it("lists expired businesses and delete removes one with every child", async () => {
     const database = new DatabaseSync(":memory:");
     database.exec("PRAGMA foreign_keys = ON");
     database.exec(DDL);
     seed(database, 1);
+
     const repository = new D1BusinessRepository(createD1Adapter(database));
 
-    const deleted = await repository.deleteExpired(new Date(2000));
+    const expired = await repository.listExpired(new Date(2000));
 
-    expect(deleted).toBe(1);
+    expect(expired.map((business) => business.id)).toEqual(["biz-1"]);
+    expect(await repository.delete("biz-1")).toBe(true);
     expectEverythingDeleted(database);
   });
 

@@ -9,6 +9,7 @@ const failingStorage: ObjectStorage = {
   head: async () => {
     throw new Error("R2 head failed: 403");
   },
+  list: async () => [],
   delete: async () => undefined,
 };
 

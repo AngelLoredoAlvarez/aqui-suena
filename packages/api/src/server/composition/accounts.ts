@@ -39,5 +39,10 @@ export function createDeleteAccount(
         error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
       });
     },
+    onMediaPurgeError: (error) => {
+      console.error("account deletion: media prefix fail-safe failed", {
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+    },
   });
 }

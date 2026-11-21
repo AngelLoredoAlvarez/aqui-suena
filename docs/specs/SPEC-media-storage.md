@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads stay disabled until T6 links listings to media rows. Missing: deletion/retention (T5), listing links and public reads (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads stay disabled until T6 links listings to media rows. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. Missing: listing links and public reads (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -111,6 +111,29 @@ existing rows:
   flat keys are no longer accepted by `confirm` (reads and deletes still work),
   so only in-flight uploads from before the deploy can surface `NOT_FOUND`.
 
+## Lifecycle (T5)
+
+- **Order.** Purges delete the object first and then its row, so a row never
+  points at a missing object. A retried delete tolerates `404` when the object
+  is already gone.
+- **Account deletion.** The paginated row purge runs first, then a fail-safe
+  lists and deletes the account prefixes (`media/v1/{accountId}/` plus the four
+  legacy `{kind}/{accountId}/` prefixes). A fail-safe error is reported and does
+  not abort the rest of the deletion.
+- **Retention.** The `*/15` cron keeps its existing jobs. A separate daily cron
+  (`0 3 * * *`) runs media maintenance: it calls `PurgeExpiredBusinesses`, which
+  lists businesses past `retained_until`, deletes their media objects and rows,
+  and only then deletes the business. The admin endpoint
+  `GET /admin/purge-expired-businesses` runs the same service and answers
+  `{ businesses, media }`; it answers `503` when media storage is unconfigured.
+- **Orphan uploads.** The same daily cron runs `SweepMediaOrphans`: it lists the
+  `media/` prefix, keeps every key with a row, and deletes unreferenced objects
+  older than 24 hours. Legacy presigns stopped with T2, so legacy orphan keys are
+  not swept automatically; account deletion still covers them per account.
+- **Legacy scope.** Retention purges media rows scoped to the business
+  (`business_id`). Legacy rows with `business_id NULL` stay tied only to the
+  account and are removed by account deletion; retention does not touch them.
+
 ## Image Optimization (listeners)
 
 - Lazy loading: images load when entering viewport (IntersectionObserver).
@@ -142,7 +165,7 @@ Conventions: media keys are unique and immutable (UUID), never overwritten; the 
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library; Playwright headed for upload flows.
-- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/domain/media/entitlement.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
+- Locations: `packages/api/src/domain/media/key.test.ts`, `packages/api/src/domain/media/entitlement.test.ts`, `packages/api/src/domain/media/sweep-orphans.test.ts`, `packages/api/src/domain/directory/purge-expired-businesses.test.ts`, `packages/api/src/infrastructure/media/r2-object-storage.test.ts`, `packages/api/src/server/routers/media/media.test.ts`, `packages/ui/src/optimized-image/optimized-image.test.tsx`; the media picker test lands with the picker.
 - Coverage: 100% on key grammar, presign validation (type/size limits) and the confirm state machine.
 - Levels: unit (presign validation, size limits) → integration (presign → upload → confirm → metadata stored) → e2e (owner uploads photo, listener sees it optimized).
 

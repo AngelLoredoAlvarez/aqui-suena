@@ -60,7 +60,7 @@ namespace_id = "1001"
 # Cancellation reconciliation: the SAT resolves a request on its own clock, so a
 # sweep is the only way to notice it without someone opening the history.
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/15 * * * *", "0 3 * * *"]
 
 [env.staging]
 name = "aqui-suena-api-staging"
@@ -109,4 +109,4 @@ binding = "PLAN_VECTORS"
 index_name = "aqui-suena-plan-catalog"
 
 [env.staging.triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/15 * * * *", "0 3 * * *"]

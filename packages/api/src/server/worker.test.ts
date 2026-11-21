@@ -15,6 +15,7 @@ beforeEach(() => {
 afterEach(() => {
   infoLog.mockRestore();
   errorLog.mockRestore();
+  vi.unstubAllGlobals();
 });
 
 function makeDb() {
@@ -192,7 +193,7 @@ describe("scheduled sweep", () => {
 
     await expect(
       worker.scheduled?.(
-        undefined as never,
+        { cron: "*/15 * * * *" } as never,
         {
           aqui_suena_db: db.db,
         } as unknown as WorkerEnv,
@@ -210,11 +211,21 @@ describe("scheduled sweep", () => {
     );
   });
 
+  it("skips the daily media maintenance when storage is unconfigured", async () => {
+    await expect(
+      worker.scheduled?.({ cron: "0 3 * * *" } as never, {} as unknown as WorkerEnv),
+    ).resolves.toBeUndefined();
+
+    expect(errorLog).toHaveBeenCalledWith(
+      "worker: media maintenance skipped, media storage is unconfigured",
+    );
+  });
+
   it("does not touch the database when there is nothing to cancel", async () => {
     const db = new FakeD1Database(() => ({ all: [] }));
 
     await worker.scheduled?.(
-      undefined as never,
+      { cron: "*/15 * * * *" } as never,
       {
         aqui_suena_db: db.db,
         ...invoicingEnv(),
@@ -228,7 +239,7 @@ describe("scheduled sweep", () => {
     const db = new FakeD1Database(() => ({ all: [] }));
 
     await worker.scheduled?.(
-      undefined as never,
+      { cron: "*/15 * * * *" } as never,
       {
         aqui_suena_db: db.db,
         ...invoicingEnv(),
@@ -238,5 +249,107 @@ describe("scheduled sweep", () => {
     const statements = db.statements.map((statement) => normalizeSql(statement.sql));
 
     expect(statements.some((sql) => sql.includes("xml_key IS NULL OR pdf_key IS NULL"))).toBe(true);
+  });
+});
+
+describe("admin retention purge", () => {
+  function purgeRequest(token?: string): Request {
+    const headers: Record<string, string> = {};
+
+    if (token !== undefined) headers.authorization = `Bearer ${token}`;
+
+    return new Request("https://worker.test/admin/purge-expired-businesses", { headers });
+  }
+
+  const r2Env = {
+    R2_ACCOUNT_ID: "acc",
+    R2_ACCESS_KEY_ID: "key",
+    R2_SECRET_ACCESS_KEY: "secret",
+  };
+
+  it("answers 404 without a matching admin token", async () => {
+    const { db } = makeDb();
+
+    const response = await worker.fetch(purgeRequest("wrong"), {
+      aqui_suena_db: db,
+      ADMIN_TOKEN: "secret",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(404);
+  });
+
+  it("answers 503 when media storage is unconfigured", async () => {
+    const { db } = makeDb();
+
+    const response = await worker.fetch(purgeRequest("secret"), {
+      aqui_suena_db: db,
+      ADMIN_TOKEN: "secret",
+    } as unknown as WorkerEnv);
+
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe("media storage is not configured");
+  });
+
+  it("returns the purge counts when storage is configured", async () => {
+    const db = new FakeD1Database(() => ({ all: [] }));
+
+    const response = await worker.fetch(purgeRequest("secret"), {
+      aqui_suena_db: db.db,
+      ADMIN_TOKEN: "secret",
+      ...r2Env,
+    } as unknown as WorkerEnv);
+
+    expect(await response.json()).toEqual({ businesses: 0, media: 0 });
+  });
+});
+
+describe("daily media maintenance", () => {
+  const r2Env = {
+    R2_ACCOUNT_ID: "acc",
+    R2_ACCESS_KEY_ID: "key",
+    R2_SECRET_ACCESS_KEY: "secret",
+  };
+
+  const emptyList = "<ListBucketResult><IsTruncated>false</IsTruncated></ListBucketResult>";
+
+  it("purges expired businesses and sweeps orphans without running billing jobs", async () => {
+    const db = new FakeD1Database(() => ({ all: [] }));
+
+    const fetchSpy = vi.fn(
+      async (_url: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(emptyList, { status: 200 }),
+    );
+
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await worker.scheduled?.(
+      { cron: "0 3 * * *" } as never,
+      {
+        aqui_suena_db: db.db,
+        ...r2Env,
+      } as unknown as WorkerEnv,
+    );
+
+    const statements = db.statements.map((statement) => normalizeSql(statement.sql));
+
+    expect(statements.some((sql) => sql.includes("retained_until"))).toBe(true);
+    expect(statements.some((sql) => sql.includes("SELECT r2_key FROM media"))).toBe(true);
+    expect(statements.some((sql) => sql.includes("cancellation_pending"))).toBe(false);
+    expect(new URL(String(fetchSpy.mock.calls[0]?.[0])).searchParams.get("prefix")).toBe("media/");
+  });
+
+  it("does not touch storage on the fifteen-minute cron", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await worker.scheduled?.(
+      { cron: "*/15 * * * *" } as never,
+      {
+        aqui_suena_db: new FakeD1Database().db,
+        ...r2Env,
+      } as unknown as WorkerEnv,
+    );
+
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

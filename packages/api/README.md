@@ -35,15 +35,15 @@ gate that proves the types, exactly like the other packages.
 
 ## Routes
 
-| Route                             | Method                        | Behavior                                                    |
-| --------------------------------- | ----------------------------- | ----------------------------------------------------------- |
-| `/health`                         | `GET`                         | `{"status":"ok","media":"configured"\|"unconfigured"}`.     |
-| `/trpc/*`                         | `GET,POST`                    | The shared `appRouter` from `./router`.                     |
-| `/stream?url=`                    | `GET`                         | Proxies an allowlisted radio mirror, streamed.              |
-| `/admin/seed-plans`               | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the plan catalog into D1.              |
-| `/admin/seed-stations`            | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the owned harness stations into D1.    |
-| `/admin/seed-vectors`             | any (Bearer `ADMIN_TOKEN`)    | Embeds active plans into the Vectorize index.               |
-| `/admin/purge-expired-businesses` | `POST` (Bearer `ADMIN_TOKEN`) | Permanently deletes businesses past their 90-day retention. |
+| Route                             | Method                        | Behavior                                                                                                       |
+| --------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `/health`                         | `GET`                         | `{"status":"ok","media":"configured"\|"unconfigured"}`.                                                        |
+| `/trpc/*`                         | `GET,POST`                    | The shared `appRouter` from `./router`.                                                                        |
+| `/stream?url=`                    | `GET`                         | Proxies an allowlisted radio mirror, streamed.                                                                 |
+| `/admin/seed-plans`               | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the plan catalog into D1.                                                                 |
+| `/admin/seed-stations`            | `POST` (Bearer `ADMIN_TOKEN`) | Idempotently upserts the owned harness stations into D1.                                                       |
+| `/admin/seed-vectors`             | any (Bearer `ADMIN_TOKEN`)    | Embeds active plans into the Vectorize index.                                                                  |
+| `/admin/purge-expired-businesses` | any (Bearer `ADMIN_TOKEN`)    | Deletes businesses past their 90-day retention, their media objects and rows; answers `{ businesses, media }`. |
 
 Media storage is explicit: the Worker passes `R2ObjectStorage` only when the
 three R2 credentials are complete. Missing or partial credentials leave media

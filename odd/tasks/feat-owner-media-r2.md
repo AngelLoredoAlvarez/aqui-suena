@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t4` (T1–T4 implemented; T5+ pending)
-Status: T4 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t5` (T1–T5 implemented; T6+ pending)
+Status: T5 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -52,7 +52,10 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
   objects as it does today, with the account prefix as a fail-safe. Business
   deletion and the 90-day retention purge delete objects before rows, without an
   R2-key-destroying cascade. Uploads that never reach `confirm` are swept by
-  age.
+  age. **T5 landing:** `PurgeExpiredBusinesses` runs from the daily cron and the
+  admin endpoint; `SweepMediaOrphans` deletes unreferenced `media/` objects older
+  than 24 hours; account deletion also lists the new and legacy account prefixes
+  as a fail-safe; object deletes tolerate `404`.
 - **S7 — Serving.** The bucket stays private. A signed read endpoint authorizes
   per kind: owner-only for avatars, readable for media attached to a published
   listing. Keys are immutable, so responses can cache aggressively. A public
@@ -184,8 +187,8 @@ Order rationale:
 | T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | done   |
 | T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | done   |
 | T4  | `media.signedUrl` with per-kind read authorization                      | T1         | done   |
-| T5  | Deletion, retention and orphan sweep                                    | T1         | next   |
-| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |        |
+| T5  | Deletion, retention and orphan sweep                                    | T1         | done   |
+| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         | next   |
 | T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |        |
 | T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |        |
 
@@ -262,3 +265,20 @@ Order rationale:
   api 1267/1267, db 32/32. Independent verification: PASS, no blockers; the
   foreign/missing tests were strengthened to assert the exact NOT_FOUND message
   and the R2 test now proves the signature is a GET, not a PUT. No commit yet.
+  Merged as PR #90 (commit `68a95ed`).
+- 2026-11-21: T5 implemented on `feat/owner-media-r2-t5`. The storage port gains
+  `list(prefix)` (R2 ListObjectsV2 with continuation tokens, in-memory backed by
+  stored timestamps) and object deletes tolerate `404`. `SweepMediaOrphans`
+  deletes unreferenced `media/` objects older than 24 hours, re-checking the row
+  before each delete. `PurgeExpiredBusinesses` lists businesses past
+  `retained_until`, purges their media objects and rows, and only then deletes
+  the business. The daily cron (`0 3 * * *`) runs both; the admin endpoint runs
+  the same purge and answers `{ businesses, media }` or `503` without storage.
+  Account deletion now lists the new and legacy account prefixes as a
+  best-effort fail-safe. RED evidence: four storage/list tests failed before the
+  port and adapters existed; repository tests failed before the new queries and
+  the retention services had no modules. GREEN: api 1290/1290, db 32/32.
+  Independent verification: PASS, no blockers; advisories led to durable
+  admin/cron tests, continuation-token decoding, removing a vacuous assertion
+  and documenting that retention does not touch legacy unscoped rows. No commit
+  yet.

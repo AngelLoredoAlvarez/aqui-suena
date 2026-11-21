@@ -167,4 +167,60 @@ describe("InMemoryMediaRepository", () => {
     expect((await repo.findByR2Key(created.r2Key))?.id).toBe(created.id);
     expect(await repo.findByR2Key("missing")).toBeNull();
   });
+
+  it("lists media for one business only", async () => {
+    const repo = new InMemoryMediaRepository([
+      {
+        id: "m-1",
+        ownerId: "acc-1",
+        businessId: "biz-1",
+        kind: "flyer",
+        r2Key: "k1",
+        mime: "image/jpeg",
+        size: 1,
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      },
+      {
+        id: "m-2",
+        ownerId: "acc-1",
+        businessId: "biz-2",
+        kind: "flyer",
+        r2Key: "k2",
+        mime: "image/jpeg",
+        size: 1,
+        createdAt: new Date("2024-01-02T00:00:00Z"),
+      },
+    ]);
+
+    const page = await repo.listByBusiness({ businessId: "biz-1", limit: 20, offset: 0 });
+
+    expect(page.items.map((item) => item.id)).toEqual(["m-1"]);
+  });
+
+  it("returns every stored object key", async () => {
+    const repo = new InMemoryMediaRepository([
+      {
+        id: "m-1",
+        ownerId: "acc-1",
+        businessId: null,
+        kind: "avatar",
+        r2Key: "k1",
+        mime: "image/png",
+        size: 1,
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      },
+      {
+        id: "m-2",
+        ownerId: "acc-2",
+        businessId: null,
+        kind: "avatar",
+        r2Key: "k2",
+        mime: "image/png",
+        size: 1,
+        createdAt: new Date("2024-01-02T00:00:00Z"),
+      },
+    ]);
+
+    expect(await repo.listAllR2Keys()).toEqual(["k1", "k2"]);
+  });
 });

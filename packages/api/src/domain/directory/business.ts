@@ -71,7 +71,7 @@ export interface BusinessRepository {
   update(id: string, input: UpdateBusinessInput): Promise<Business | null>;
   delete(id: string): Promise<boolean | null>;
   deleteByAccount(accountId: string): Promise<number>;
-  deleteExpired(now: Date): Promise<number>;
+  listExpired(now: Date): Promise<Business[]>;
 }
 
 export class InMemoryBusinessRepository implements BusinessRepository {
@@ -176,17 +176,10 @@ export class InMemoryBusinessRepository implements BusinessRepository {
     return deleted;
   }
 
-  async deleteExpired(now: Date): Promise<number> {
-    let deleted = 0;
-
-    for (let i = this.businesses.length - 1; i >= 0; i--) {
-      const business = this.businesses[i] as Business;
-      if (business.retainedUntil !== null && isRetentionExpired(business.retainedUntil, now)) {
-        this.businesses.splice(i, 1);
-        deleted++;
-      }
-    }
-
-    return deleted;
+  async listExpired(now: Date): Promise<Business[]> {
+    return this.businesses.filter(
+      (business) =>
+        business.retainedUntil !== null && isRetentionExpired(business.retainedUntil, now),
+    );
   }
 }
