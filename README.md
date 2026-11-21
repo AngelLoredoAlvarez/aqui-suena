@@ -97,7 +97,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 | `docs/specs/SPEC-memberships.md`                           | Three business plans, entitlements, and carousel priority       |
 | `docs/specs/SPEC-notifications.md`                         | Push notifications: campaigns and owner triggers Comercios-only |
 | `docs/specs/SPEC-offline.md`                               | Offline/no-connection handling                                  |
-| `docs/specs/SPEC-owner-portal.md`                          | Owner portal for listings and billing                           |
+| `docs/specs/SPEC-owner-portal.md`                          | Owner portal: listings, billing, media/PDF viewer, spot preview |
 | `docs/specs/SPEC-radio-playback.md`                        | MVP spec: autoplay, fallback, status, test-stations harness     |
 | `docs/specs/SPEC-radio-spots.md`                           | Audio spots: Comercios & Catálogo only, flag off until launch   |
 | `docs/specs/SPEC-support-chatbot.md`                       | Support chatbot scope and constraints                           |

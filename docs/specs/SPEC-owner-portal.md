@@ -40,6 +40,73 @@ packages/api/src/routers/owner.ts        → owner.createListing / updateListing
 packages/ui/src/listing-form.tsx         → shared form (valibot-driven)
 ```
 
+## Media and document viewer (planned)
+
+The owner app must let a client **view photos and flyers, open invoice PDFs and
+preview a spot's audio** without leaving the session. The media, photo, flyer and
+invoice procedures exist; spot management and the viewer UI do not. This section
+is the contract for that viewer.
+
+### Data and reads
+
+- **Photos:** `photos.listByBusiness` / `photos.getById` return a `url` resolved
+  to a short-lived signed URL when the row has `mediaId`; legacy rows return
+  their stored URL. These public reads only cover a visible business. The owner
+  gallery should also work for a hidden or unpublished business: use
+  `media.list` + `media.signedUrl` for the owner's rows, and add an owner-scoped
+  photo read if the gallery needs the photo metadata. Uploads use
+  `media.presignUpload` → direct R2 PUT → `media.confirm` → `photos.create` with
+  `mediaId`.
+- **Flyers:** the same write flow through `flyers.create`. The public
+  `flyers.list`/`flyers.getById` reads are visibility-filtered; the owner preview
+  for a hidden business needs the owner-scoped path described above or the media
+  row's signed URL.
+- **Invoices:** `billing.invoices.list` and `billing.invoices.downloadUrl`
+  already return a 300-second signed URL with the CFDI filename and the right
+  content type for `pdf` and `xml`. The viewer consumes those procedures; it
+  never reads R2 directly and never proxies the bytes through the Worker.
+- **Spots:** the planned `/owner/spots` flow uses the media pipeline with
+  `kind: "spot-audio"` and `media.signedUrl` for the owner preview. The spot
+  entitlement is exclusive to Comercios & Catálogo and the flag is off until
+  launch; until then the screen shows the plan gate.
+
+### Libraries and tools
+
+| Need                                     | Tool                                                                      | Status                              |
+| ---------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------- |
+| Lazy signed image with blur placeholder  | `@aqui-suena/ui/optimized-image` (Tamagui `Image` + IntersectionObserver) | installed                           |
+| Server data and signed-URL caching       | `@tanstack/react-query`                                                   | installed                           |
+| Native audio preview                     | `expo-audio`                                                              | installed (also used by the player) |
+| Client image resize/compression (web)    | `browser-image-compression` or Canvas API                                 | candidate                           |
+| Client image resize/compression (native) | `expo-image-manipulator`                                                  | candidate                           |
+| PDF viewer (web/Tauri)                   | `react-pdf` (`pdfjs-dist` worker), lazily imported                        | candidate                           |
+| PDF fallback (native/any)                | `expo-web-browser` / system viewer opened with the signed URL             | candidate                           |
+| Optional waveform for spot preview       | `wavesurfer.js` (web only)                                                | optional                            |
+| Server-side variants (AVIF/WebP/srcset)  | Cloudflare Image Resizing                                                 | paid; needs approval                |
+| Free server-side variants                | `@jsquash/webp` / `wasm-image-optimization` in a Worker                   | candidate; CPU-bound                |
+
+Rules: lazy-load the PDF bundle only when the viewer opens; use a single audio
+instance and stop it on close; never render an invoice or media object from a
+long-lived URL.
+
+### Performance rules
+
+- **Images:** compress before upload (max edge 1920 px, quality ~0.8, WebP when
+  the encoder is available); use the `OptimizedImage` lazy path above the fold
+  only with `priority`; reserve layout size; show the blur placeholder; prefer a
+  thumbnail grid and fetch the full object only when the item opens. Without a
+  variant pipeline, do not claim `srcset`; the plan is either client-generated
+  thumbnails or a paid resizing service.
+- **PDFs:** the CFDI PDF is small (~55 KB); open it in a modal/viewer, fetch on
+  demand, and keep the signed URL only for the session. No list prefetch of all
+  PDFs; no full-document download for a thumbnail.
+- **Audio:** stream the signed URL with `preload="metadata"`, no transcode, stop
+  on close. The 30-second cap is enforced at `confirm`; the preview never
+  replaces the listener's spot rotation.
+- **Caching:** media keys are immutable, so the browser/native image cache can be
+  long-lived; signed URLs expire in 300 seconds and are re-requested instead of
+  persisted. The gallery must not block audio playback.
+
 ## Code Style
 
 One schema drives form + API:
@@ -121,4 +188,7 @@ Cloudflare Workers AI free-tier models: Llama 3.1 8B (general), Mistral 7B (mult
 
 ## Open Questions
 
-- None. Uploads use the R2 media pipeline in `SPEC-media-storage.md`.
+- **Owner-scoped media reads:** the public photo/flyer reads hide unpublished businesses. The viewer needs a protected owner list/get (or must key the gallery off `media.list` + `media.signedUrl`) before it can show a hidden business.
+- **PDF viewer:** `react-pdf`/`pdfjs-dist` gives an in-app viewer but adds bundle weight; the system viewer via `expo-web-browser` is lighter but leaves the session. Decide per platform with the viewer bundle budget.
+- **Image variants:** client-generated thumbnails, a free Worker WASM pipeline (`@jsquash`), or paid Cloudflare Image Resizing. Until one lands, `OptimizedImage` serves the original signed object with lazy loading and a blur placeholder.
+- **Spot preview:** `expo-audio` on native and `HTMLAudioElement` on web/Tauri are the baseline; a waveform (`wavesurfer.js`) is optional and must not delay the preview.

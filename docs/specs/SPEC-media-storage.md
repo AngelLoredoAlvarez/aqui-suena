@@ -171,14 +171,49 @@ image pipeline; it stays deferred. The R2 bucket CORS rules live in
   (`business_id`). Legacy rows with `business_id NULL` stay tied only to the
   account and are removed by account deletion; retention does not touch them.
 
-## Image Optimization (listeners)
+## Image delivery and optimization
 
-- Lazy loading: images load when entering viewport (IntersectionObserver).
-- Responsive sizes: serve appropriate width via `srcset` (320w, 640w, 960w).
-- Format: prefer WebP/AVIF via `Accept` header negotiation (Cloudflare does this automatically).
-- Blur placeholder: low-quality inline placeholder while loading.
-- Cache: `Cache-Control: public, max-age=31536000, immutable` (unique immutable keys).
-- Never block audio: images load asynchronously, player never waits for media.
+The shared `packages/ui/src/optimized-image` component already provides lazy
+loading (IntersectionObserver), an optional blur placeholder, `priority` for
+above-the-fold media and a stable box with no layout shift. It does **not**
+generate `srcset` or thumbnails yet; the owner and listener views currently
+receive one signed object per row.
+
+- **Free-tier path (default):** compress/resize on the client before
+  `presignUpload` (`browser-image-compression` or Canvas on web,
+  `expo-image-manipulator` on native; max edge 1920 px, quality ~0.8, WebP when
+  available); enforce the kind's size cap; lazy-load with `OptimizedImage`;
+  request the full object only when the item opens. This keeps the 10 GB R2 free
+  tier and avoids a paid transform service.
+- **Thumbnails/variants:** honest `srcset` (320/640/960) needs a derivative
+  pipeline. Options, in order of cost: client-generated thumbnail uploaded as a
+  separate derivative; a free Worker using `@jsquash/webp`/
+  `wasm-image-optimization` (CPU-bound, evaluate against Worker limits); or
+  Cloudflare Image Resizing (paid, requires approval). Until one exists, do not
+  advertise `srcset` or AVIF/WebP negotiation in the UI.
+- **Format:** the stored object keeps the validated source type (JPEG/PNG/WebP);
+  browsers and native views negotiate what they can display. Cloudflare Image
+  Resizing would add AVIF/WebP variants automatically if approved.
+- **Cache:** keys are immutable, so image responses can cache for a long time;
+  signed URLs expire in 300 seconds and are re-requested. Use the browser/native
+  image cache rather than persisting signed URLs.
+- **Never block audio:** images load asynchronously; the player and spot preview
+  never wait for media.
+
+### Owner previews and documents
+
+- Photos and flyers use the same signed reads as the public views;
+  `media.signedUrl` covers the owner's own rows and the directory/ads endpoints
+  resolve media attached to visible listings.
+- Invoice PDFs use `billing.invoices.downloadUrl` (300 seconds, filename and
+  content type signed). The owner viewer should lazy-load `react-pdf`/
+  `pdfjs-dist` on web/Tauri and fall back to the signed URL in the system viewer
+  on native (`expo-web-browser`); the PDF is ~55 KB and never passes through the
+  Worker.
+- Spot preview uses the media pipeline with `expo-audio` on native and
+  `HTMLAudioElement` on web/Tauri, one shared instance, `preload="metadata"` and
+  no transcode. The 30-second limit is enforced at `confirm`; spot audio remains
+  exclusive to Comercios & Catálogo and flag-off until launch.
 
 ## Code Style
 

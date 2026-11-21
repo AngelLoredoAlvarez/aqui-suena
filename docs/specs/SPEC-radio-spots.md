@@ -11,7 +11,19 @@
 
 V1: recorded sponsor spots for Comercios & Catálogo members rotated automatically every 4 songs (backend-tunable). The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
 
-Future (V2, no design): announcer console with Premium request queue for live mentions.
+Future (V2, no design): announcer console with a Comercios & Catálogo request queue for live mentions.
+
+## Owner preview
+
+After uploading a spot, the owner must be able to listen to it before saving or
+attaching it to a business. The preview uses the signed read from the media
+pipeline (`media.signedUrl` on the confirmed `spot-audio` row), never the raw R2
+key and never a server proxy. On native, use `expo-audio` (already a dependency
+and shared with the player); on web/Tauri, use `HTMLAudioElement` with
+`preload="metadata"`. Reuse one audio instance, stop playback when the preview
+closes and do not transcode: the 30-second MP3 limit is enforced at `confirm`.
+The preview is owner-only; it does not schedule, rotate or log listener airings.
+A waveform (`wavesurfer.js`, web only) is optional and not required for V1.
 
 ## Tech Stack
 
@@ -81,4 +93,4 @@ Conventions: only Comercios & Catálogo eligibility schedules spots; every play 
 
 ## Open Questions
 
-- V2 announcer-console design (Premium request queue)?
+- V2 announcer-console design (Comercios & Catálogo request queue)?
