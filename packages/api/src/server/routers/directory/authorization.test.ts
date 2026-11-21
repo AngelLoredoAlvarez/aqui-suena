@@ -7,6 +7,8 @@ import { InMemoryPhotoRepository } from "@aqui-suena/api/domain/directory/photo"
 import { InMemoryProductRepository } from "@aqui-suena/api/domain/directory/product";
 import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/service";
 import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
+import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
+import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
@@ -59,6 +61,7 @@ function setup() {
       workEntryId: null,
       productId: null,
       kind: "logo",
+      mediaId: null,
       url: "https://example.com/foreign.jpg",
       createdAt: now,
     },
@@ -88,6 +91,7 @@ function setup() {
     {
       id: "flyer-b",
       businessId: "biz-b",
+      mediaId: null,
       url: "https://example.com/foreign-flyer.jpg",
       replacedAt: now,
       createdAt: now,
@@ -97,6 +101,8 @@ function setup() {
   const hour = new InMemoryHourRepository([
     { id: "hour-b", businessId: "biz-b", day: 1, openMinute: 480, closeMinute: 1080 },
   ]);
+  const media = new InMemoryMediaRepository([]);
+  const storage = new InMemoryObjectStorage();
 
   const callerA = { user: { id: "user-a", accountId: "acc-a" } };
   const callerB = { user: { id: "user-b", accountId: "acc-b" } };
@@ -110,6 +116,8 @@ function setup() {
     workEntry,
     flyer,
     hour,
+    media,
+    storage,
     callerA,
     callerB,
     anonymous,
@@ -167,18 +175,32 @@ describe("directory mutation authorization", () => {
 
   it("rejects updating or deleting a photo owned by another account", async () => {
     const s = setup();
-    const router = createPhotosRouter({ photo: s.photo, business: s.businessRepository });
+
+    const router = createPhotosRouter({
+      photo: s.photo,
+      business: s.businessRepository,
+      media: s.media,
+      storage: s.storage,
+    });
+
     const caller = router.createCaller(s.callerA);
 
-    await expect(
-      caller.update({ id: "photo-b", url: "https://example.com/stolen.jpg" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.update({ id: "photo-b", mediaId: "med-x" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
     await expect(caller.delete({ id: "photo-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a photo under a foreign business", async () => {
     const s = setup();
-    const router = createPhotosRouter({ photo: s.photo, business: s.businessRepository });
+
+    const router = createPhotosRouter({
+      photo: s.photo,
+      business: s.businessRepository,
+      media: s.media,
+      storage: s.storage,
+    });
+
     const caller = router.createCaller(s.callerA);
 
     await expect(
@@ -187,7 +209,7 @@ describe("directory mutation authorization", () => {
         workEntryId: null,
         productId: null,
         kind: "logo",
-        url: "https://example.com/injected.jpg",
+        mediaId: "med-x",
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
@@ -247,23 +269,37 @@ describe("directory mutation authorization", () => {
 
   it("rejects updating or deleting a flyer owned by another account", async () => {
     const s = setup();
-    const router = createFlyersRouter({ flyer: s.flyer, business: s.businessRepository });
+
+    const router = createFlyersRouter({
+      flyer: s.flyer,
+      business: s.businessRepository,
+      media: s.media,
+      storage: s.storage,
+    });
+
     const caller = router.createCaller(s.callerA);
 
-    await expect(
-      caller.update({ id: "flyer-b", url: "https://example.com/stolen.jpg" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.update({ id: "flyer-b", mediaId: "med-x" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
     await expect(caller.delete({ id: "flyer-b" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects creating a flyer under a foreign business", async () => {
     const s = setup();
-    const router = createFlyersRouter({ flyer: s.flyer, business: s.businessRepository });
+
+    const router = createFlyersRouter({
+      flyer: s.flyer,
+      business: s.businessRepository,
+      media: s.media,
+      storage: s.storage,
+    });
+
     const caller = router.createCaller(s.callerA);
 
-    await expect(
-      caller.create({ businessId: "biz-b", url: "https://example.com/injected.jpg" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(caller.create({ businessId: "biz-b", mediaId: "med-x" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("rejects updating or deleting an hour owned by another account", async () => {

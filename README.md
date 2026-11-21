@@ -111,7 +111,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 
 ### Current state (2026-11-20)
 
-- **API** ships the public player surface, the business directory, memberships and billing, media storage, fiscal archives (XML, PDF and acuse) and transactional email. 1290 tests across 140 files; `typecheck`, `biome`, `pnpm arch` and `check:singletons` are green on every commit.
+- **API** ships the public player surface, the business directory, memberships and billing, media storage, fiscal archives (XML, PDF and acuse) and transactional email. 1304 tests across 140 files; `typecheck`, `biome`, `pnpm arch` and `check:singletons` are green on every commit.
 - **Clients**: web and mobile render the landing player and the ads carousel from shared `packages/ui` code; desktop is a dev-only Tauri shell. There is no owner portal, billing view or directory UI yet — `apps/web` has exactly one page.
 - **Environments**: staging only (Worker + D1 + R2 + Pages). Production has no deployment, no company CSD and no payment provider, so production-only work is not tracked here.
 - **Proven on staging**: media round trip (presign → R2 → confirm → list → delete), account provisioning on a first request, account deletion with fiscal tombstone, CFDI issuing through the sandbox PAC, delivery by email with both attachments, invoice history with signed downloads, cancellation with motive `03`, the fifteen-minute cancellation sweep firing on its own, one-off Conekta charges (card, cash, SPEI) with the renewal scheduler, and cancellation with motive `01` (substitution).

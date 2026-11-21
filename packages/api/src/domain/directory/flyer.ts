@@ -6,7 +6,8 @@ import type { CursorPage } from "@aqui-suena/api/shared/pagination/page";
 export type Flyer = {
   id: string;
   businessId: string;
-  url: string;
+  mediaId: string | null;
+  url: string | null;
   replacedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -23,16 +24,17 @@ function toEpochSeconds(date: Date): number {
 
 export type CreateFlyerInput = {
   businessId: string;
-  url: string;
+  mediaId: string;
 };
 
 export type UpdateFlyerInput = {
-  url?: string;
+  mediaId?: string;
 };
 
 export interface FlyerRepository {
   list(input: ListFlyersInput): Promise<CursorPage<Flyer>>;
   getById(id: string): Promise<Flyer | null>;
+  findByMediaId(mediaId: string): Promise<Flyer | null>;
   listByBusiness(businessId: string): Promise<Flyer[]>;
   create(input: CreateFlyerInput): Promise<Flyer>;
   update(id: string, input: UpdateFlyerInput): Promise<Flyer | null>;
@@ -64,6 +66,10 @@ export class InMemoryFlyerRepository implements FlyerRepository {
     return this.flyers.find((flyer) => flyer.id === id) ?? null;
   }
 
+  async findByMediaId(mediaId: string): Promise<Flyer | null> {
+    return this.flyers.find((flyer) => flyer.mediaId === mediaId) ?? null;
+  }
+
   async listByBusiness(businessId: string): Promise<Flyer[]> {
     return this.flyers.filter((flyer) => flyer.businessId === businessId);
   }
@@ -73,7 +79,8 @@ export class InMemoryFlyerRepository implements FlyerRepository {
     const flyer: Flyer = {
       id: crypto.randomUUID(),
       businessId: input.businessId,
-      url: input.url,
+      mediaId: input.mediaId,
+      url: null,
       replacedAt: now,
       createdAt: now,
       updatedAt: now,
@@ -91,10 +98,11 @@ export class InMemoryFlyerRepository implements FlyerRepository {
 
     const current = this.flyers[index] as Flyer;
     const now = new Date();
-    const replaced = input.url !== undefined;
+    const replaced = input.mediaId !== undefined;
+
     const updated: Flyer = {
       ...current,
-      url: input.url ?? current.url,
+      mediaId: input.mediaId ?? current.mediaId,
       replacedAt: replaced ? now : current.replacedAt,
       updatedAt: now,
     };

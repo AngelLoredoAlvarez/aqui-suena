@@ -109,23 +109,19 @@ describe("createProductInputSchema", () => {
 });
 
 describe("addPhotoInputSchema", () => {
-  it("accepts a valid photo", () => {
-    expect(parse(addPhotoInputSchema, { kind: "flyer", url: "https://example.com/f.png" })).toEqual(
-      {
-        kind: "flyer",
-        url: "https://example.com/f.png",
-      },
-    );
+  it("accepts a valid photo linked to media", () => {
+    expect(parse(addPhotoInputSchema, { kind: "flyer", mediaId: "med-1" })).toEqual({
+      kind: "flyer",
+      mediaId: "med-1",
+    });
   });
 
   it("rejects an unknown kind", () => {
-    expect(() =>
-      parse(addPhotoInputSchema, { kind: "banner", url: "https://example.com/f.png" }),
-    ).toThrow();
+    expect(() => parse(addPhotoInputSchema, { kind: "banner", mediaId: "med-1" })).toThrow();
   });
 
-  it("rejects an invalid url", () => {
-    expect(() => parse(addPhotoInputSchema, { kind: "flyer", url: "not-a-url" })).toThrow();
+  it("rejects an empty media id", () => {
+    expect(() => parse(addPhotoInputSchema, { kind: "flyer", mediaId: "" })).toThrow();
   });
 });
 

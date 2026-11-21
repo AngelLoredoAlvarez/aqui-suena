@@ -59,6 +59,8 @@ export function createAppRouter(
       flyerRepository: directoryRepositories.flyer,
       hourRepository: directoryRepositories.hour,
       subscriptionRepository: directoryRepositories.subscription,
+      mediaRepository: directoryRepositories.media,
+      storage: mediaStorage,
     }),
     billing: createBillingRouter({
       account: directoryRepositories.account,
@@ -71,6 +73,8 @@ export function createAppRouter(
     flyers: createFlyersRouter({
       flyer: directoryRepositories.flyer,
       business: directoryRepositories.business,
+      media: directoryRepositories.media,
+      storage: mediaStorage,
     }),
     hours: createHoursRouter({
       hour: directoryRepositories.hour,
@@ -86,6 +90,8 @@ export function createAppRouter(
     photos: createPhotosRouter({
       photo: directoryRepositories.photo,
       business: directoryRepositories.business,
+      media: directoryRepositories.media,
+      storage: mediaStorage,
     }),
     products: createProductsRouter({
       product: directoryRepositories.product,

@@ -6,6 +6,9 @@ import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subs
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/media-url";
+import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
+import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { getEntitlements } from "@aqui-suena/api/domain/plans/entitlements";
 
 export type BusinessCarouselDeps = {
@@ -13,6 +16,8 @@ export type BusinessCarouselDeps = {
   readonly flyerRepository: FlyerRepository;
   readonly hourRepository: HourRepository;
   readonly subscriptionRepository: SubscriptionRepository;
+  readonly mediaRepository: MediaRepository;
+  readonly storage: ObjectStorage | undefined;
 };
 
 export async function getBusinessCarousel(
@@ -32,12 +37,16 @@ export async function getBusinessCarousel(
     ]);
 
     const flyer = flyers[0] ?? null;
+
+    const imageUrl =
+      flyer === null ? null : await resolveMediaUrl(deps.mediaRepository, deps.storage, flyer);
+
     const plan = resolvePlan(subscription);
     const priority = getEntitlements(plan).priority;
     const appearances = getEntitlements(plan).carouselAppearances;
-    const eligible = flyer !== null;
+    const eligible = flyer !== null && imageUrl !== null;
 
-    if (eligible && flyer) {
+    if (eligible && flyer !== null && imageUrl !== null) {
       const item = toCarouselItem(
         {
           business: {
@@ -49,7 +58,7 @@ export async function getBusinessCarousel(
           },
           hours,
         },
-        flyer.url,
+        imageUrl,
         now,
       );
       itemsById.set(business.id, item);

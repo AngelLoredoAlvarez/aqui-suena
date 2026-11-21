@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t5` (T1–T5 implemented; T6+ pending)
-Status: T5 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t6` (T1–T6 implemented; T7+ pending)
+Status: T6 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -20,7 +20,10 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
 - `media.confirm` parses the v1 key, requires the account/kind/extension to
   match, validates the real object metadata and is idempotent per key. Presign
   and confirm both enforce business ownership and the plan entitlement.
-- `photos.url` and `flyers.url` accept arbitrary client URLs; nothing links a listing row to a `media` row.
+- `photos.media_id` and `flyers.media_id` link listings to media (cascade on
+  media delete); legacy `url` stays nullable for pre-T6 rows. Writes require a
+  media id validated against owner, business and kind; public reads are signed
+  server-side for visible listings.
 - The bucket is private. `media.signedUrl` returns a short-lived signed GET for
   the owner of the row; public listing reads await the T6 links.
 - Presigned PUT lives 300 seconds and signs `host` only with an unsigned payload, so the PUT body type and size are not constrained by the signature.
@@ -59,9 +62,10 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
 - **S7 — Serving.** The bucket stays private. A signed read endpoint authorizes
   per kind: owner-only for avatars, readable for media attached to a published
   listing. Keys are immutable, so responses can cache aggressively. A public
-  custom domain or Worker proxy is a later decision. **T4 landing:** the endpoint
-  is owner-only for every kind; the listing-readable branch requires the T6
-  media-to-listing links, so public reads stay disabled until then.
+  custom domain or Worker proxy is a later decision. **T4/T6 landing:** the
+  signed endpoint stays owner-only; public reads are signed per request inside
+  the directory and ads endpoints when the media is attached to a visible
+  listing.
 - **S8 — Migration.** Existing `{kind}/{accountId}/{uuid}` keys remain valid:
   `media.r2Key` stores the absolute key, so reads and deletes need no rewrite.
   New uploads use `media/v1/...`; `confirm` accepts only v1 keys. No bulk object
@@ -188,8 +192,8 @@ Order rationale:
 | T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | done   |
 | T4  | `media.signedUrl` with per-kind read authorization                      | T1         | done   |
 | T5  | Deletion, retention and orphan sweep                                    | T1         | done   |
-| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         | next   |
-| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |        |
+| T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         | done   |
+| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     | next   |
 | T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |        |
 
 ## Log
@@ -281,4 +285,23 @@ Order rationale:
   Independent verification: PASS, no blockers; advisories led to durable
   admin/cron tests, continuation-token decoding, removing a vacuous assertion
   and documenting that retention does not touch legacy unscoped rows. No commit
-  yet.
+  yet. Merged as PR #91 (commit `a541caf`).
+- 2026-11-21: T6 implemented on `feat/owner-media-r2-t6`. Migration
+  `0015_unique_whiplash` rebuilds `photos` and `flyers` with a nullable
+  `media_id` FK to `media` (`ON DELETE CASCADE`), nullable `url`, and a check
+  requiring one of the two; the generated copy had to be corrected to write
+  `NULL` for the new column. Writes require `mediaId`: it is validated against
+  the owner, business and kind (`product-photo` for photos, `flyer` for flyers).
+  Public reads resolve media to signed URLs inside the directory and ads
+  endpoints when the business is visible; legacy URLs still pass through.
+  Replacing or deleting a photo/flyer deletes the old media object and row, and
+  updating with the same media id keeps it (a bug found while testing). RED
+  evidence: four schema tests failed before the columns existed; the generated
+  migration initially read a non-existent `media_id`. Independent verification
+  found one blocker: two photos could share one media row, and deleting one
+  cascaded the other. Fixed with a one-to-one attach rule (`CONFLICT`) and
+  `findByMediaId` on both repositories. A second recheck found the check was
+  not atomic: concurrent creates still attached one media to two photos. Fixed
+  with unique indexes on `photos.media_id`/`flyers.media_id` (migration
+  `0016_tense_hellfire_club`) and a `CONFLICT` mapping in the D1 adapters.
+  GREEN: api 1304/1304, db 38/38. No commit yet.

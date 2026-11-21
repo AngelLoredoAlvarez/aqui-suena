@@ -75,7 +75,7 @@ export function BusinessCard({
 }
 ```
 
-Conventions: valibot schemas shared between API and forms; hours stored as weekly ranges; `open` derived server-side from hours + now in the business timezone (stored IANA zone, never device time); no client-only open logic. Product photos stored on Cloudflare R2 (see SPEC-media-storage): presigned PUT upload, content-addressed keys, client-side compression (max 2MB, JPG/PNG/WebP), immutable cache.
+Conventions: valibot schemas shared between API and forms; hours stored as weekly ranges; `open` derived server-side from hours + now in the business timezone (stored IANA zone, never device time); no client-only open logic. Product photos and flyers link to the media row (`mediaId`) on Cloudflare R2 (see SPEC-media-storage): presigned PUT upload, server-generated immutable keys, client-side compression (max 2MB, JPG/PNG/WebP), immutable cache.
 
 ## Testing Strategy
 

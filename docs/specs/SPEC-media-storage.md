@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads stay disabled until T6 links listings to media rows. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. Missing: listing links and public reads (T6), hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Missing: hardening (T7), the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -55,7 +55,7 @@ apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 2. Server validates the type/size limits and the scope, checks that the business belongs to the authenticated account and that the plan allows the kind (otherwise `NOT_FOUND` or `FORBIDDEN: UPGRADE_REQUIRED`), generates the `media/v1/...` key server-side (UUID and extension included), and returns the presigned URL.
 3. Client uploads directly to R2 (no server proxy, saves bandwidth).
 4. Client calls `media.confirm` with the key and the declared kind/type/size. The server parses the v1 grammar, requires the account and kind to match the authenticated user, revalidates business ownership and the plan entitlement, requires the key extension to match the declared content type (otherwise `NOT_FOUND`), compares the declared values with the object's real metadata (`BAD_REQUEST` on mismatch), revalidates the real type/size against the kind limits, and stores only the stored metadata. Confirming the same object again returns the existing row instead of creating a duplicate.
-5. The response carries the media row and its absolute key. `media.signedUrl` returns a short-lived signed GET URL for the owner of the row; public listing reads stay disabled until T6 links listings to media rows.
+5. The response carries the media row and its absolute key. `media.signedUrl` returns a short-lived signed GET URL for the owner of the row; public listing reads are signed per request by the directory and ads endpoints when the media is attached to a visible listing.
 
 Storage is an explicit dependency, never a silent in-memory fake. `/health`
 reports `media: "configured" | "unconfigured"`; when the R2 credentials are
@@ -110,6 +110,24 @@ existing rows:
   up the key first and re-reads it if a concurrent insert loses the race. Legacy
   flat keys are no longer accepted by `confirm` (reads and deletes still work),
   so only in-flight uploads from before the deploy can surface `NOT_FOUND`.
+
+### Listing links (T6)
+
+`photos.media_id` and `flyers.media_id` are nullable FKs to `media` with
+`ON DELETE CASCADE`; `url` is now nullable and a check constraint requires at
+least one of the two. Existing rows keep their legacy URL with a null media id.
+Writes require a media id: the row is validated against the owner, the business
+and the expected kind (`product-photo` for photos, `flyer` for flyers), and the
+old media is deleted after a replacement. A media row attaches to at most one
+listing row; attaching it again answers `CONFLICT`, and unique indexes on
+`photos.media_id`/`flyers.media_id` (migration `0016_tense_hellfire_club`) make
+that rule hold under concurrent requests. Deleting a photo or flyer deletes its
+media row and object. Deleting media cascades the attachment row.
+
+Public reads resolve the media link at request time: the directory and ads
+endpoints sign the object key when the row has media and the business is
+visible, and return the legacy URL otherwise. There is no standalone public
+media endpoint; every signed URL is scoped to a listing response.
 
 ## Lifecycle (T5)
 

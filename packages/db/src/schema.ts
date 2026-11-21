@@ -1,4 +1,5 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // SQLite/D1 (Cloudflare). Timestamps are integer seconds-since-epoch.
 // Audio never touches the DB. Includes radio metadata (stations/sessions)
@@ -290,37 +291,53 @@ export const products = sqliteTable("products", {
     .$defaultFn(() => new Date()),
 });
 
-export const photos = sqliteTable("photos", {
-  id: text("id").primaryKey(),
-  businessId: text("business_id")
-    .notNull()
-    .references(() => businesses.id, { onDelete: "cascade" }),
-  workEntryId: text("work_entry_id").references(() => workEntries.id, { onDelete: "cascade" }),
-  productId: text("product_id").references(() => products.id, { onDelete: "cascade" }),
-  kind: text("kind").notNull(), // "logo" | "product" | "work"
-  url: text("url").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const photos = sqliteTable(
+  "photos",
+  {
+    id: text("id").primaryKey(),
+    businessId: text("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    workEntryId: text("work_entry_id").references(() => workEntries.id, { onDelete: "cascade" }),
+    productId: text("product_id").references(() => products.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // "logo" | "product" | "work"
+    mediaId: text("media_id").references(() => media.id, { onDelete: "cascade" }),
+    url: text("url"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("photos_media_id_unique").on(table.mediaId),
+    check("photos_media_or_url", sql`${table.mediaId} IS NOT NULL OR ${table.url} IS NOT NULL`),
+  ],
+);
 
-export const flyers = sqliteTable("flyers", {
-  id: text("id").primaryKey(),
-  businessId: text("business_id")
-    .notNull()
-    .unique()
-    .references(() => businesses.id, { onDelete: "cascade" }),
-  url: text("url").notNull(),
-  replacedAt: integer("replaced_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const flyers = sqliteTable(
+  "flyers",
+  {
+    id: text("id").primaryKey(),
+    businessId: text("business_id")
+      .notNull()
+      .unique()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    mediaId: text("media_id").references(() => media.id, { onDelete: "cascade" }),
+    url: text("url"),
+    replacedAt: integer("replaced_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("flyers_media_id_unique").on(table.mediaId),
+    check("flyers_media_or_url", sql`${table.mediaId} IS NOT NULL OR ${table.url} IS NOT NULL`),
+  ],
+);
 
 export const hours = sqliteTable("hours", {
   id: text("id").primaryKey(),
