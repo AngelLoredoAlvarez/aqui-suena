@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-21).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode or a paid pipeline. The staging round trip is verified end to end (27/27 checks: presign, PUT, confirm, owner and public reads, replace, delete, account deletion), and the retention purge was verified with a synthetic expired business. Missing: the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-21).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode; paid pipelines are excluded by the zero-cost rule. The staging round trip is verified end to end (27/27 checks: presign, PUT, confirm, owner and public reads, replace, delete, account deletion), and the retention purge was verified with a synthetic expired business. Missing: the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -9,7 +9,7 @@ Centralize all media (product photos, sponsor flyers, spot audio, owner avatars)
 ## Tech Stack
 
 - Storage: Cloudflare R2 (free: 10GB, 1M Class A ops/month, 10M Class B ops/month, egress free)
-- Image optimization: Cloudflare Image Resizing (free tier on Workers Paid, but R2 + Workers AI free tier covers transforms via Worker) — client-side compression as fallback
+- Image optimization: client-side compression and free-tier Workers only; no paid image or transform service (hard zero-cost rule)
 - Upload pattern: presigned URLs (R2 supports S3-compatible presigned PUT)
 - DB: Drizzle + SQLite/D1 (media metadata: key, owner, optional business scope, kind, size, mime, createdAt; one row per object key)
 - Language: TypeScript strict
@@ -37,6 +37,14 @@ packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy l
 packages/ui/src/media-picker.tsx   → shared upload + preview component (Tamagui) — not built yet
 apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)
 ```
+
+## Cost constraint (hard)
+
+Image optimization must cost **zero**: no Cloudflare Image Resizing, no
+Cloudflare Images, no paid thumbnail/transform API, and no add-on plan. Only the
+free-tier R2/Workers allowance, client-side compression, and browser/native
+built-ins are allowed. A paid option is out of scope even when it is faster;
+speed never justifies a recurring charge.
 
 ## Free-Tier Limits (hard)
 
@@ -144,7 +152,8 @@ media endpoint; every signed URL is scoped to a listing response.
   this is defense in depth until the entitlement opens.
 
 Full EXIF stripping (not just GPS rejection) needs an image re-encode or a paid
-image pipeline; it stays deferred. The R2 bucket CORS rules live in
+image pipeline; it stays deferred, and paid pipelines are excluded by the
+zero-cost rule. The R2 bucket CORS rules live in
 `packages/api/r2-cors.json` and are applied with
 `wrangler r2 bucket cors set <bucket> --file r2-cors.json`.
 
@@ -184,13 +193,14 @@ receive one signed object per row.
   `expo-image-manipulator` on native; max edge 1920 px, quality ~0.8, WebP when
   available); enforce the kind's size cap; lazy-load with `OptimizedImage`;
   request the full object only when the item opens. This keeps the 10 GB R2 free
-  tier and avoids a paid transform service.
+  tier and adds zero recurring cost.
 - **Thumbnails/variants:** honest `srcset` (320/640/960) needs a derivative
-  pipeline. Options, in order of cost: client-generated thumbnail uploaded as a
-  separate derivative; a free Worker using `@jsquash/webp`/
-  `wasm-image-optimization` (CPU-bound, evaluate against Worker limits); or
-  Cloudflare Image Resizing (paid, requires approval). Until one exists, do not
-  advertise `srcset` or AVIF/WebP negotiation in the UI.
+  pipeline, and both allowed options are free: client-generated thumbnails
+  uploaded as a separate derivative, or a free Worker using `@jsquash/webp`/
+  `wasm-image-optimization` (CPU-bound; evaluate against Worker limits). Paid
+  Cloudflare Image Resizing/Images is **rejected** by the cost constraint. Until
+  a free pipeline exists, do not advertise `srcset` or AVIF/WebP negotiation in
+  the UI.
 - **Format:** the stored object keeps the validated source type (JPEG/PNG/WebP);
   browsers and native views negotiate what they can display. Cloudflare Image
   Resizing would add AVIF/WebP variants automatically if approved.
@@ -244,8 +254,8 @@ Conventions: media keys are unique and immutable (UUID), never overwritten; the 
 ## Boundaries
 
 - Always: validate type and size before presigning, verify business ownership and the plan media entitlement on presign and `confirm`, revalidate the real object metadata and the key grammar on `confirm` (never persist client-declared type/size), use unique immutable keys for caching, compress images client-side, normalize audio at upload, run `typecheck + lint + test` before commit, keep audio playing during uploads.
-- Ask first: add a new media type, change size limits, add video support, enable Cloudflare Image Resizing (paid tier).
-- Never: proxy uploads through the server (waste bandwidth), store raw uploads without validation, serve objects without an authorization check (the bucket stays private), exceed R2 free tier (10GB), use Cloudflare Images (paid) without approval, block audio during upload, expose R2 credentials to client.
+- Ask first: add a new media type, change size limits, add video support.
+- Never: proxy uploads through the server (waste bandwidth), store raw uploads without validation, serve objects without an authorization check (the bucket stays private), exceed R2 free tier (10GB), use paid image services (Cloudflare Image Resizing, Cloudflare Images or any transform API), block audio during upload, expose R2 credentials to client.
 
 ## Success Criteria
 
@@ -255,11 +265,11 @@ Conventions: media keys are unique and immutable (UUID), never overwritten; the 
 - R2 free tier is not exceeded (monitoring via Cloudflare dashboard).
 - Upload works on web, native (Expo) and desktop (Tauri) from shared `media-picker` component.
 - Immutable keys enable infinite cache TTL.
-- No third-party provider dependency (R2 + Workers only, all free tier).
+- Image optimization and previews add **zero recurring cost**: no paid transform service or add-on plan.
 
 ## Open Questions
 
-- Should we use Cloudflare Image Resizing (paid, $5/mo for 50k transforms) or client-side compression only? (Recommendation: client-side compression for V1, Image Resizing for V2 if budget allows.)
+- Should we use a free derivative pipeline (client-generated thumbnails or Worker WASM) for `srcset`, or keep the original with lazy loading? Paid Cloudflare Image Resizing/Images is excluded by the zero-cost rule; benchmark CPU and object size before choosing the free option.
 - R2 custom domain vs Worker proxy for serving? (Recommendation: Worker proxy for dev/staging, custom domain later — both free.)
 - Should avatars be stored in R2 or Supabase Storage? (Recommendation: R2 for consistency.)
 - Owner upload lifecycle: quotas and concurrency, bucket CORS, orphan sweeps and variant naming are tracked in `odd/tasks/feat-owner-media-r2.md`.

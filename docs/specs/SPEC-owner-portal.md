@@ -82,12 +82,13 @@ is the contract for that viewer.
 | PDF viewer (web/Tauri)                   | `react-pdf` (`pdfjs-dist` worker), lazily imported                        | candidate                           |
 | PDF fallback (native/any)                | `expo-web-browser` / system viewer opened with the signed URL             | candidate                           |
 | Optional waveform for spot preview       | `wavesurfer.js` (web only)                                                | optional                            |
-| Server-side variants (AVIF/WebP/srcset)  | Cloudflare Image Resizing                                                 | paid; needs approval                |
+| Server-side variants (AVIF/WebP/srcset)  | Cloudflare Image Resizing                                                 | rejected: zero-cost rule            |
 | Free server-side variants                | `@jsquash/webp` / `wasm-image-optimization` in a Worker                   | candidate; CPU-bound                |
 
 Rules: lazy-load the PDF bundle only when the viewer opens; use a single audio
 instance and stop it on close; never render an invoice or media object from a
-long-lived URL.
+long-lived URL. All viewer and optimization tooling must stay on free tiers;
+paid image services are excluded.
 
 ### Performance rules
 
@@ -96,7 +97,7 @@ long-lived URL.
   only with `priority`; reserve layout size; show the blur placeholder; prefer a
   thumbnail grid and fetch the full object only when the item opens. Without a
   variant pipeline, do not claim `srcset`; the plan is either client-generated
-  thumbnails or a paid resizing service.
+  thumbnails or a free Worker WASM pipeline, never a paid service.
 - **PDFs:** the CFDI PDF is small (~55 KB); open it in a modal/viewer, fetch on
   demand, and keep the signed URL only for the session. No list prefetch of all
   PDFs; no full-document download for a thumbnail.
@@ -190,5 +191,5 @@ Cloudflare Workers AI free-tier models: Llama 3.1 8B (general), Mistral 7B (mult
 
 - **Owner-scoped media reads:** the public photo/flyer reads hide unpublished businesses. The viewer needs a protected owner list/get (or must key the gallery off `media.list` + `media.signedUrl`) before it can show a hidden business.
 - **PDF viewer:** `react-pdf`/`pdfjs-dist` gives an in-app viewer but adds bundle weight; the system viewer via `expo-web-browser` is lighter but leaves the session. Decide per platform with the viewer bundle budget.
-- **Image variants:** client-generated thumbnails, a free Worker WASM pipeline (`@jsquash`), or paid Cloudflare Image Resizing. Until one lands, `OptimizedImage` serves the original signed object with lazy loading and a blur placeholder.
+- **Image variants:** client-generated thumbnails or a free Worker WASM pipeline (`@jsquash`). Paid Cloudflare Image Resizing/Images is excluded by the zero-cost rule. Until one lands, `OptimizedImage` serves the original signed object with lazy loading and a blur placeholder.
 - **Spot preview:** `expo-audio` on native and `HTMLAudioElement` on web/Tauri are the baseline; a waveform (`wavesurfer.js`) is optional and must not delay the preview.

@@ -123,9 +123,13 @@ Order rationale:
 - **CFDI stays outside `media/`.** Fiscal archives keep their own prefix and
   lifecycle.
 - **EXIF policy (T7).** GPS EXIF is rejected at `confirm` instead of stripped:
-  stripping needs an image re-encode or a paid pipeline, and rejecting protects
-  listing location privacy without rewriting the immutable object. The upload
-  picker can strip metadata client-side before upload.
+  stripping needs an image re-encode, and paid pipelines are excluded by the
+  zero-cost rule. Rejecting protects listing location privacy without rewriting
+  the immutable object. The upload picker can strip metadata client-side.
+- **Zero-cost optimization.** Image work must not add recurring cost: no
+  Cloudflare Image Resizing, no Cloudflare Images, no paid thumbnail/transform
+  API, no add-on plan. Only client-side compression, free-tier Workers WASM and
+  the free R2 allowance are allowed. Variants wait for a free pipeline.
 
 ## Data model changes
 
@@ -179,8 +183,9 @@ Order rationale:
   client-controlled. Decide when to add magic-byte checks, EXIF/GPS stripping
   and real audio-duration validation (the spec says 30 seconds; the code only
   checks 5 MB).
-- **Variants:** `srcset`/WebP/AVIF needs a resize service. The `v1` layout does
-  not block it; decide later whether variants are separate keys or on-the-fly.
+- **Variants:** `srcset`/WebP/AVIF needs a derivative pipeline. The `v1` layout
+  does not block it; decide later between client-generated thumbnails and a free
+  Worker WASM pipeline. Paid image services are excluded by the zero-cost rule.
 - **Environment buckets:** verify whether staging and production share
   `R2_BUCKET_NAME`; they should not.
 - **`head` cost:** switch from a signed GET to a real HEAD to avoid transferring
@@ -316,7 +321,7 @@ Order rationale:
   new objects and validates magic bytes for JPEG/PNG/WebP/MP3, rejects JPEGs
   with a GPS EXIF directory and enforces the 30-second MP3 limit by parsing
   frame headers. The EXIF decision: reject GPS metadata rather than strip it,
-  because stripping needs an image re-encode or a paid pipeline; the upload
+  because stripping needs an image re-encode (paid pipelines excluded), the upload
   picker can strip client-side. R2 CORS is versioned in
   `packages/api/r2-cors.json` and applied with `wrangler r2 bucket cors set`.
   RED evidence: content tests failed before the module; the MP3 parser initially
