@@ -1,4 +1,4 @@
-import { presignR2ObjectUrl } from "@aqui-suena/api/infrastructure/r2/sigv4";
+import { presignR2ListUrl, presignR2ObjectUrl } from "@aqui-suena/api/infrastructure/r2/sigv4";
 import { describe, expect, it } from "vitest";
 
 const options = {
@@ -71,5 +71,22 @@ describe("presignR2ObjectUrl overrides", () => {
     );
     expect(parsed.searchParams.get("response-content-type")).toBe("application/pdf");
     expect(parsed.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("presignR2ListUrl", () => {
+  it("signs a bucket list request with the prefix and continuation token", async () => {
+    const first = new URL(await presignR2ListUrl(options, "media/v1/acc-1/"));
+    const second = new URL(await presignR2ListUrl(options, "media/v1/acc-1/", "next-token"));
+
+    expect(first.pathname).toBe("/my-bucket");
+    expect(first.searchParams.get("list-type")).toBe("2");
+    expect(first.searchParams.get("prefix")).toBe("media/v1/acc-1/");
+    expect(first.searchParams.get("continuation-token")).toBeNull();
+    expect(first.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
+    expect(second.searchParams.get("continuation-token")).toBe("next-token");
+    expect(second.searchParams.get("X-Amz-Signature")).not.toBe(
+      first.searchParams.get("X-Amz-Signature"),
+    );
   });
 });

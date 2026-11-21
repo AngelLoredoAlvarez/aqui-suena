@@ -141,4 +141,58 @@ describe("R2ObjectStorage", () => {
 
     expect(method).toBe("DELETE");
   });
+
+  it("tolerates a 404 when deleting an already missing object", async () => {
+    const fakeFetch: typeof fetch = async () => new Response(null, { status: 404 });
+    const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: fakeFetch });
+
+    await expect(storage.delete("missing")).resolves.toBeUndefined();
+  });
+
+  it("lists objects under a prefix and follows continuation tokens", async () => {
+    const urls: string[] = [];
+
+    const pages = [
+      `<?xml version="1.0" encoding="UTF-8"?>
+      <ListBucketResult>
+        <IsTruncated>true</IsTruncated>
+        <Contents>
+          <Key>media/v1/acc-1/account/avatar/one.png</Key>
+          <LastModified>2026-01-01T00:00:00.000Z</LastModified>
+        </Contents>
+        <NextContinuationToken>next</NextContinuationToken>
+      </ListBucketResult>`,
+      `<?xml version="1.0" encoding="UTF-8"?>
+      <ListBucketResult>
+        <IsTruncated>false</IsTruncated>
+        <Contents>
+          <Key>media/v1/acc-1/account/avatar/two.png</Key>
+          <LastModified>2026-01-02T00:00:00.000Z</LastModified>
+        </Contents>
+      </ListBucketResult>`,
+    ];
+
+    const fakeFetch: typeof fetch = async (url) => {
+      urls.push(String(url));
+      return new Response(pages.shift(), { status: 200 });
+    };
+
+    const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: fakeFetch });
+
+    const objects = await storage.list("media/v1/acc-1/");
+
+    expect(objects).toEqual([
+      {
+        key: "media/v1/acc-1/account/avatar/one.png",
+        lastModified: new Date("2026-01-01T00:00:00.000Z"),
+      },
+      {
+        key: "media/v1/acc-1/account/avatar/two.png",
+        lastModified: new Date("2026-01-02T00:00:00.000Z"),
+      },
+    ]);
+    expect(urls[0]).toContain("list-type=2");
+    expect(urls[0]).toContain("prefix=media%2Fv1%2Facc-1%2F");
+    expect(urls[1]).toContain("continuation-token=next");
+  });
 });

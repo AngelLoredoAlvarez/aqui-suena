@@ -28,6 +28,11 @@ export interface ObjectMetadata {
   contentType: string;
 }
 
+export interface StoredObject {
+  key: string;
+  lastModified: Date;
+}
+
 /**
  * Port for object storage (R2, MinIO, or an in-memory fake).
  * The domain and routers depend on this abstraction, never on a concrete SDK.
@@ -36,6 +41,7 @@ export interface ObjectStorage {
   presignUpload(input: PresignUploadInput): Promise<PresignUploadResult>;
   signedUrl(key: string): Promise<string>;
   head(key: string): Promise<ObjectMetadata | null>;
+  list(prefix: string): Promise<StoredObject[]>;
   delete(key: string): Promise<void>;
 }
 
@@ -47,6 +53,7 @@ export interface ObjectStorage {
 export class InMemoryObjectStorage implements ObjectStorage {
   readonly presigned: PresignUploadInput[] = [];
   private readonly stored = new Map<string, ObjectMetadata>();
+  private readonly storedAt = new Map<string, Date>();
 
   async presignUpload(input: PresignUploadInput): Promise<PresignUploadResult> {
     validateMediaUpload(input.kind, input.contentType, input.sizeBytes);
@@ -73,12 +80,20 @@ export class InMemoryObjectStorage implements ObjectStorage {
     return `https://fake.r2/${key}?signed=1`;
   }
 
+  async list(prefix: string): Promise<StoredObject[]> {
+    return [...this.stored.entries()]
+      .filter(([key]) => key.startsWith(prefix))
+      .map(([key]) => ({ key, lastModified: this.storedAt.get(key) ?? new Date(0) }));
+  }
+
   async delete(key: string): Promise<void> {
     this.stored.delete(key);
+    this.storedAt.delete(key);
   }
 
   /** Simulates a client that finished uploading to `key`. */
-  confirm(key: string, size: number, contentType: string): void {
+  confirm(key: string, size: number, contentType: string, storedAt: Date = new Date()): void {
     this.stored.set(key, { key, size, contentType });
+    this.storedAt.set(key, storedAt);
   }
 }

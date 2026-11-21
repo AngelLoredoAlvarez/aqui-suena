@@ -6,6 +6,8 @@ import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscrip
 import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
 import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
+import { PurgeExpiredBusinesses } from "@aqui-suena/api/domain/directory/purge-expired-businesses";
+import { SweepMediaOrphans } from "@aqui-suena/api/domain/media/sweep-orphans";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { harnessStations } from "@aqui-suena/api/domain/radio/harness";
@@ -118,7 +120,15 @@ export default {
   scheduled: handleScheduled,
 };
 
-async function handleScheduled(_controller: ScheduledController, env: WorkerEnv): Promise<void> {
+const MEDIA_SWEEP_CRON = "0 3 * * *";
+
+async function handleScheduled(controller: ScheduledController, env: WorkerEnv): Promise<void> {
+  if (controller.cron === MEDIA_SWEEP_CRON) {
+    await runMediaMaintenance(env);
+
+    return;
+  }
+
   try {
     await runCancellationSweep(env);
   } catch (error) {
@@ -159,6 +169,64 @@ function facturamaEnv(env: WorkerEnv): FacturamaEnv {
     issuerName: env.FACTURAMA_ISSUER_NAME,
     issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
   };
+}
+
+function mediaStorageFromEnv(env: WorkerEnv): R2ObjectStorage | undefined {
+  const credentials = {
+    accountId: env.R2_ACCOUNT_ID,
+    accessKeyId: env.R2_ACCESS_KEY_ID,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+  };
+
+  if (credentials.accountId && credentials.accessKeyId && credentials.secretAccessKey) {
+    return new R2ObjectStorage({
+      accountId: credentials.accountId,
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
+      endpoint: env.R2_ENDPOINT,
+    });
+  }
+
+  if (Object.values(credentials).some((value) => value !== undefined && value !== "")) {
+    console.error(
+      "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
+    );
+  }
+
+  return undefined;
+}
+
+async function runMediaMaintenance(env: WorkerEnv): Promise<void> {
+  const storage = mediaStorageFromEnv(env);
+
+  if (storage === undefined) {
+    console.error("worker: media maintenance skipped, media storage is unconfigured");
+
+    return;
+  }
+
+  const repositories = createD1Repositories(env.aqui_suena_db);
+
+  try {
+    await new PurgeExpiredBusinesses({
+      businesses: repositories.business,
+      media: repositories.media,
+      storage,
+    }).execute();
+  } catch (error) {
+    console.error(
+      `worker: expired business purge failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
+
+  try {
+    await new SweepMediaOrphans({ media: repositories.media, storage }).execute();
+  } catch (error) {
+    console.error(
+      `worker: media orphan sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  }
 }
 
 function r2Env(env: WorkerEnv): R2Env {
@@ -351,26 +419,7 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
 
   const directoryRepositories = createD1Repositories(env.aqui_suena_db);
 
-  const r2Credentials = {
-    accountId: env.R2_ACCOUNT_ID,
-    accessKeyId: env.R2_ACCESS_KEY_ID,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-  };
-
-  let mediaStorage: R2ObjectStorage | undefined;
-  if (r2Credentials.accountId && r2Credentials.accessKeyId && r2Credentials.secretAccessKey) {
-    mediaStorage = new R2ObjectStorage({
-      accountId: r2Credentials.accountId,
-      accessKeyId: r2Credentials.accessKeyId,
-      secretAccessKey: r2Credentials.secretAccessKey,
-      bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
-      endpoint: env.R2_ENDPOINT,
-    });
-  } else if (Object.values(r2Credentials).some((value) => value !== undefined && value !== "")) {
-    console.error(
-      "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
-    );
-  }
+  const mediaStorage = mediaStorageFromEnv(env);
 
   // Admin endpoints run before the Hono app, so they apply the rate limiter here.
   if (new URL(request.url).pathname.startsWith("/admin/")) {
@@ -399,8 +448,20 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     if (!isAdminAuthorized(request, env.ADMIN_TOKEN)) {
       return new Response("Not found", { status: 404 });
     }
-    const deleted = await directoryRepositories.business.deleteExpired(new Date());
-    return Response.json({ deleted });
+
+    if (mediaStorage === undefined) {
+      return new Response("media storage is not configured", { status: 503 });
+    }
+
+    const purge = new PurgeExpiredBusinesses({
+      businesses: directoryRepositories.business,
+      media: directoryRepositories.media,
+      storage: mediaStorage,
+    });
+
+    const result = await purge.execute(new Date());
+
+    return Response.json(result);
   }
 
   // Idempotent station seed for the owned harness. Refuses to run without

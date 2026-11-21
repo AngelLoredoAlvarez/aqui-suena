@@ -236,6 +236,7 @@ function setup() {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
     signedUrl: async () => "https://example.test/signed",
     head: async () => null,
+    list: async () => [],
     delete: async (key) => {
       deletedObjects.push(key);
     },

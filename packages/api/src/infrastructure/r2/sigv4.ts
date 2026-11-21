@@ -62,10 +62,35 @@ export async function presignR2ObjectUrl(
   key: string,
   presign: PresignOptions = {},
 ): Promise<string> {
+  const path = `/${options.bucketName}/${key}`;
+
+  return presignR2Request(options, method, path, {}, presign);
+}
+
+export async function presignR2ListUrl(
+  options: R2StorageOptions,
+  prefix: string,
+  continuationToken?: string,
+): Promise<string> {
+  const query: Record<string, string> = { "list-type": "2", prefix };
+
+  if (continuationToken !== undefined) {
+    query["continuation-token"] = continuationToken;
+  }
+
+  return presignR2Request(options, "GET", `/${options.bucketName}`, query);
+}
+
+async function presignR2Request(
+  options: R2StorageOptions,
+  method: string,
+  path: string,
+  extraQuery: Record<string, string>,
+  presign: PresignOptions = {},
+): Promise<string> {
   const endpoint = options.endpoint ?? `https://${options.accountId}.r2.cloudflarestorage.com`;
-  const { accessKeyId, secretAccessKey, bucketName } = options;
+  const { accessKeyId, secretAccessKey } = options;
   const host = new URL(endpoint).host;
-  const path = `/${bucketName}/${key}`;
   const { amzDate, dateStamp } = formatAmzDate(new Date());
 
   const credentialScope = `${dateStamp}/${REGION}/${SERVICE}/aws4_request`;
@@ -77,6 +102,7 @@ export async function presignR2ObjectUrl(
   );
 
   const queryParams: Record<string, string> = {
+    ...extraQuery,
     "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
     "X-Amz-Credential": credential,
     "X-Amz-Date": amzDate,

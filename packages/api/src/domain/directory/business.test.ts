@@ -42,10 +42,10 @@ describe("InMemoryBusinessRepository", () => {
     expect(business.retainedUntil).toBeNull();
   });
 
-  it("purges businesses whose retention has expired", async () => {
+  it("lists businesses whose retention has expired", async () => {
     const repo = new InMemoryBusinessRepository([]);
 
-    const visible = await repo.create({
+    await repo.create({
       accountId: "acc-1",
       name: "Visible",
       category: "food",
@@ -74,14 +74,12 @@ describe("InMemoryBusinessRepository", () => {
 
     const now = new Date("2026-02-01T00:00:00Z");
 
-    const deleted = await repo.deleteExpired(now);
+    const expiredBusinesses = await repo.listExpired(now);
 
-    expect(deleted).toBe(1);
-    expect(await repo.getById(expired.id)).toBeNull();
-    expect(await repo.getById(visible.id)).not.toBeNull();
+    expect(expiredBusinesses.map((business) => business.id)).toEqual([expired.id]);
   });
 
-  it("does not purge businesses still within their retention window", async () => {
+  it("does not list businesses still within their retention window", async () => {
     const repo = new InMemoryBusinessRepository([]);
 
     const retained = await repo.create({
@@ -102,11 +100,10 @@ describe("InMemoryBusinessRepository", () => {
 
     const now = new Date("2026-02-01T00:00:00Z");
 
-    const deleted = await repo.deleteExpired(now);
+    const expiredBusinesses = await repo.listExpired(now);
 
-    expect(deleted).toBe(0);
+    expect(expiredBusinesses).toEqual([]);
     expect(await repo.getByIdForOwner(retained.id)).not.toBeNull();
-    expect(await repo.getById(retained.id)).toBeNull();
   });
 });
 

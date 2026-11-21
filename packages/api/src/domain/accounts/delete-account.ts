@@ -15,9 +15,18 @@ export type DeleteAccountDependencies = {
   readonly businesses: BusinessRepository;
   readonly paymentCustomers?: PaymentCustomerDeleter;
   readonly onPaymentCustomerError?: (error: unknown, customerId: string) => void;
+  readonly onMediaPurgeError?: (error: unknown) => void;
 };
 
 const MEDIA_PAGE_SIZE = 100;
+const LEGACY_MEDIA_PREFIXES = ["avatar", "flyer", "product-photo", "spot-audio"] as const;
+
+function accountMediaPrefixes(accountId: string): string[] {
+  return [
+    `media/v1/${accountId}/`,
+    ...LEGACY_MEDIA_PREFIXES.map((kind) => `${kind}/${accountId}/`),
+  ];
+}
 
 /**
  * Erases what is personal and keeps what the law requires. The account row
@@ -78,6 +87,8 @@ export class DeleteAccount {
       });
 
       if (page.items.length === 0) {
+        await this.purgeAccountPrefixes(accountId);
+
         return;
       }
 
@@ -89,6 +100,18 @@ export class DeleteAccount {
           throw new Error(`Media row vanished during purge: ${item.id}`);
         }
       }
+    }
+  }
+
+  private async purgeAccountPrefixes(accountId: string): Promise<void> {
+    try {
+      for (const prefix of accountMediaPrefixes(accountId)) {
+        for (const object of await this.deps.storage.list(prefix)) {
+          await this.deps.storage.delete(object.key);
+        }
+      }
+    } catch (error) {
+      this.deps.onMediaPurgeError?.(error);
     }
   }
 }

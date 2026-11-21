@@ -237,13 +237,17 @@ export class D1BusinessRepository implements BusinessRepository {
     return result.success ? (result.meta?.changes ?? 0) : 0;
   }
 
-  async deleteExpired(now: Date): Promise<number> {
+  async listExpired(now: Date): Promise<Business[]> {
     const result = await this.db
-      .prepare("DELETE FROM businesses WHERE retained_until IS NOT NULL AND retained_until <= ?")
+      .prepare(
+        `SELECT ${BUSINESS_COLUMNS}
+        FROM businesses
+        WHERE retained_until IS NOT NULL AND retained_until <= ?`,
+      )
       .bind(toEpoch(now))
-      .run();
+      .all();
 
-    return result.success ? (result.meta?.changes ?? 0) : 0;
+    return result.results.map((row) => this.mapRow(row as BusinessRow));
   }
 
   private mapRow(row: BusinessRow): Business {

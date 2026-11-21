@@ -135,6 +135,17 @@ describe("InMemoryObjectStorage", () => {
     );
   });
 
+  it("lists stored objects under a prefix with their upload time", async () => {
+    const storage = new InMemoryObjectStorage();
+    const key = "media/v1/acc-1/account/avatar/key.png";
+    const storedAt = new Date("2026-01-01T00:00:00Z");
+
+    storage.confirm(key, 512, "image/png", storedAt);
+
+    expect(await storage.list("media/v1/acc-1/")).toEqual([{ key, lastModified: storedAt }]);
+    expect(await storage.list("cfdi/")).toEqual([]);
+  });
+
   it("delete removes the object", async () => {
     const storage = new InMemoryObjectStorage();
 

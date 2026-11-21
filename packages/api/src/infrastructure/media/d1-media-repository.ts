@@ -1,5 +1,6 @@
 import type {
   CreateMediaInput,
+  ListMediaByBusinessInput,
   ListMediaByOwnerInput,
   Media,
   MediaRepository,
@@ -50,6 +51,31 @@ export class D1MediaRepository implements MediaRepository {
       .first();
 
     return row ? this.mapRow(row as MediaRow) : null;
+  }
+
+  async listByBusiness(input: ListMediaByBusinessInput): Promise<OffsetPage<Media>> {
+    const result = await this.db
+      .prepare(
+        `SELECT ${MEDIA_COLUMNS}
+        FROM media
+        WHERE business_id = ?
+        ORDER BY created_at, id
+        LIMIT ? OFFSET ?`,
+      )
+      .bind(input.businessId, input.limit, input.offset)
+      .all();
+
+    return paginateOffset(
+      result.results.map((row) => this.mapRow(row as MediaRow)),
+      input.limit,
+      input.offset,
+    );
+  }
+
+  async listAllR2Keys(): Promise<string[]> {
+    const result = await this.db.prepare("SELECT r2_key FROM media").all();
+
+    return result.results.map((row) => (row as { r2_key: string }).r2_key);
   }
 
   async findByR2Key(r2Key: string): Promise<Media | null> {

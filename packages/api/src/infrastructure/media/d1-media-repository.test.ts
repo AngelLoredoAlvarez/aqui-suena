@@ -87,6 +87,29 @@ describe("D1MediaRepository", () => {
     expect(fake.statements[0]?.params).toEqual([sampleRow.r2_key]);
   });
 
+  it("pages media by business", async () => {
+    const fake = new FakeD1Database(() => ({ all: [sampleRow] }));
+    const repository = new D1MediaRepository(fake.db);
+
+    await repository.listByBusiness({ businessId: "biz-1", limit: 5, offset: 10 });
+
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(
+      /WHERE business_id = \? ORDER BY created_at, id LIMIT \? OFFSET \?/,
+    );
+    expect(fake.statements[0]?.params).toEqual(["biz-1", 5, 10]);
+  });
+
+  it("returns every stored object key", async () => {
+    const fake = new FakeD1Database(() => ({
+      all: [{ r2_key: "media/v1/a" }, { r2_key: "media/v1/b" }],
+    }));
+
+    const repository = new D1MediaRepository(fake.db);
+
+    expect(await repository.listAllR2Keys()).toEqual(["media/v1/a", "media/v1/b"]);
+    expect(normalizeSql(fake.statements[0]?.sql)).toMatch(/SELECT r2_key FROM media/);
+  });
+
   it("deletes an existing media and returns true", async () => {
     const fake = new FakeD1Database(() => ({ run: { success: true, changes: 1 } }));
     const repository = new D1MediaRepository(fake.db);
