@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-20).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode or a paid pipeline. Missing: the staging round trip (T8), the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-21).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode or a paid pipeline. The staging round trip is verified end to end (27/27 checks: presign, PUT, confirm, owner and public reads, replace, delete, account deletion), and the retention purge was verified with a synthetic expired business. Missing: the shared upload picker and responsive image variants (WebP/AVIF, `srcset`). Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -84,8 +84,9 @@ and reject a `businessId`; the other kinds require one.
 `packages/api/src/domain/media/entitlement.ts` maps the existing plan tiers to
 media kinds: avatars are account-level and available to every plan; every tier
 includes flyers; `product-photo` requires the `full` media tier (paid plans);
-`spot-audio` requires `spotEligible`, which stays off until the top tier
-launches. A rejected upload answers `FORBIDDEN` with
+`spot-audio` is exclusive to Comercios & Catálogo (the top, most expensive
+plan) and requires `spotEligible`, which stays off until it launches. A rejected
+upload answers `FORBIDDEN` with
 `UPGRADE_REQUIRED: billing.upgradeRequired.mediaUpload`.
 
 ### Data model landed by T1
@@ -139,8 +140,8 @@ media endpoint; every signed URL is scoped to a listing response.
   (`BAD_REQUEST`) so a listing image never publishes a location from camera
   metadata. XMP metadata and PNG/WebP EXIF chunks are not inspected yet.
 - MP3: the frame stream is parsed and a duration over 30 seconds is rejected.
-  Spot audio is still plan-gated off, so this is defense in depth until the
-  entitlement opens.
+  Spot audio is exclusive to Comercios & Catálogo and still switched off, so
+  this is defense in depth until the entitlement opens.
 
 Full EXIF stripping (not just GPS rejection) needs an image re-encode or a paid
 image pipeline; it stays deferred. The R2 bucket CORS rules live in

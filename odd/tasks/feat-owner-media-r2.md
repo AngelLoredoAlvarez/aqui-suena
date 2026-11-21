@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t7` (T1–T7 implemented; T8 pending)
-Status: T7 implemented and verified locally; no commit yet
+Branch: `main` (T8 is an operational staging round trip; no code branch)
+Status: T1–T8 complete; staging round trip 27/27, no commit
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -115,8 +115,9 @@ Order rationale:
 - **Media entitlement mapping (T3).** Account avatars are not a business
   entitlement, so every plan can upload them. Every tier includes flyers.
   `product-photo` requires the `full` media tier (paid plans).
-  `spot-audio` requires `spotEligible`, which stays off until the top tier
-  launches, so no plan can upload audio spots yet. `logo` in the
+  `spot-audio` is exclusive to Comercios & Catálogo (the top, most expensive
+  plan) and requires `spotEligible`, which stays off until it launches, so no
+  plan can upload audio spots yet. `logo` in the
   `flyer+logo` tier is a directory photo, not a media kind, until T6 links
   listings to media.
 - **CFDI stays outside `media/`.** Fiscal archives keep their own prefix and
@@ -198,7 +199,7 @@ Order rationale:
 | T5  | Deletion, retention and orphan sweep                                    | T1         | done   |
 | T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         | done   |
 | T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     | done   |
-| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      | next   |
+| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      | done   |
 
 ## Log
 
@@ -251,8 +252,8 @@ Order rationale:
   `UPGRADE_REQUIRED: billing.upgradeRequired.mediaUpload`). The pure rule lives
   in `domain/media/entitlement.ts` and maps the existing tiers: avatars are
   account-level for every plan, flyers for every tier, `product-photo` only for
-  the `full` tier, and `spot-audio` only when `spotEligible` is on (currently
-  off everywhere). The media router now takes a dependency object with the
+  the `full` tier, and `spot-audio` exclusive to Comercios & Catálogo only when
+  `spotEligible` is on (currently off everywhere). The media router now takes a dependency object with the
   media, business and subscription repositories plus storage. RED evidence: the
   entitlement module was missing and the router suite failed before the new
   dependencies and checks. GREEN: api 1258/1258, db 32/32. Confirmed rows are
@@ -323,4 +324,22 @@ Order rationale:
   Independent verification: PASS, no blockers; advisories led to a single-read
   `readObject` in confirm (instead of head + read), big-endian/ID3/boundary and
   truncated-EXIF tests, and documenting that only JPEG IFD0 EXIF is inspected.
-  GREEN: api 1316/1316, db 38/38. No commit yet.
+  GREEN: api 1316/1316, db 38/38. No commit yet. Merged as PR #93
+  (commit `7163c52`).
+- 2026-11-21: T8 staging round trip on `main`. Staging D1 already had
+  migrations 0014–0016 and the three unique indexes; the API Worker was
+  redeployed (version `c655ea10`), health reports media configured, and the R2
+  CORS rules from `packages/api/r2-cors.json` were applied to
+  `aqui-suena-media-staging`. An authenticated API probe ran 27/27 checks:
+  provisioning, business creation, avatar presign/PUT/confirm/list/signed
+  read/delete, magic-byte and GPS-EXIF rejection, flyer attach/public
+  read/carousel/replace/delete, community product-photo rejection, a seeded
+  paid subscription enabling product-photo attach, duplicate attach CONFLICT,
+  photo public read/replace/delete, object removal on delete, account deletion
+  and Supabase user cleanup. The retention purge was exercised with a synthetic
+  expired business: the admin endpoint answered `200 {businesses:1, media:1}`,
+  the business and media rows were gone, the object returned 404, and a request
+  without the admin token answered 404. Test data and objects were removed. Not
+  exercised on staging: the daily orphan sweep (cron verified and unit-tested;
+  no 24h-old orphan was left) and a real browser CORS preflight (the applied
+  rules were listed and match the versioned file).

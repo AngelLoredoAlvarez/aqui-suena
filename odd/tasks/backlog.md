@@ -478,7 +478,7 @@ solve in this repository. Both leave the pending list.
 
 ## New features (planned — docs/specs created 2026-10-23)
 
-- [ ] Push notifications (docs/specs/SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Delivery runs on free tiers; manual campaigns are a Comercios & Catálogo entitlement, while receiving and automatic publish triggers are universal. Depends on: none. NOT STARTED: no `notification_tokens` table or dispatch code yet.
+- [ ] Push notifications (docs/specs/SPEC-notifications.md) — Web Push (VAPID) + Expo Notifications + Tauri native. Cloudflare Worker dispatch. Delivery runs on free tiers; sending is exclusive to Comercios & Catálogo (manual campaigns and automatic publish triggers), while receiving is universal for listeners. Depends on: none. NOT STARTED: no `notification_tokens` table or dispatch code yet.
 - [ ] Offline/no-connection handling (docs/specs/SPEC-offline.md) — player retry, TanStack Query offline persistence, service worker. Free tier. Depends on: none. NOT STARTED: no service worker in `apps/web` yet.
 - [x] Cloudflare media storage (docs/specs/SPEC-media-storage.md) — DONE: `ObjectStorage` port + `R2ObjectStorage` (SigV4 presigned URLs), D1 media repository, `media` tRPC router, Worker wiring and R2 secrets configured on the Worker.
 - [x] Chatbot with Cloudflare Workers AI — DONE: support domain (plan catalog), Vectorize index seeder, Workers AI embeddings and AI Gateway wiring behind optional env vars.
