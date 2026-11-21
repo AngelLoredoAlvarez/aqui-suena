@@ -1,17 +1,29 @@
 # Spec: radio-spots — Aquí Suena (by 17Labs)
 
 > **Status: Comercios & Catálogo only, flag off until launch (2026-11-16).** The
-> entitlement belongs to the top tier: Comunidad and Oficios & Servicios never
-> enable spots, and the design shows the blocked state for them. The feature flag
-> stays off in every environment until that tier is live with real payments;
-> `ENTITLEMENTS.commerce.spotEligible` stays `false` until then so code and spec
-> agree. See `SPEC-memberships.md`.
+> entitlement belongs to the top, most expensive plan: Comunidad and Oficios &
+> Servicios never enable spots, and the design shows the blocked state for them.
+> The feature flag stays off in every environment until that tier is live with
+> real payments; `ENTITLEMENTS.commerce.spotEligible` stays `false` until then so
+> code and spec agree. See `SPEC-memberships.md`.
 
 ## Objective
 
 V1: recorded sponsor spots for Comercios & Catálogo members rotated automatically every 4 songs (backend-tunable). The owner uploads audio; the system schedules and logs plays. Users: owners supply audio; listeners hear it inline. Success = paid spots air reliably and provably.
 
-Future (V2, no design): announcer console with Premium request queue for live mentions.
+Future (V2, no design): announcer console with a Comercios & Catálogo request queue for live mentions.
+
+## Owner preview
+
+After uploading a spot, the owner must be able to listen to it before saving or
+attaching it to a business. The preview uses the signed read from the media
+pipeline (`media.signedUrl` on the confirmed `spot-audio` row), never the raw R2
+key and never a server proxy. On native, use `expo-audio` (already a dependency
+and shared with the player); on web/Tauri, use `HTMLAudioElement` with
+`preload="metadata"`. Reuse one audio instance, stop playback when the preview
+closes and do not transcode: the 30-second MP3 limit is enforced at `confirm`.
+The preview is owner-only; it does not schedule, rotate or log listener airings.
+A waveform (`wavesurfer.js`, web only) is optional and not required for V1.
 
 ## Tech Stack
 
@@ -57,7 +69,7 @@ export function nextSpot(opts: { songsSinceSpot: number; every: number; eligible
 }
 ```
 
-Conventions: only `spotEligible` (Premium) spots schedule; every play logs `{ spotId, at, platform }`; loudness normalized at upload.
+Conventions: only Comercios & Catálogo eligibility schedules spots; every play logs `{ spotId, at, platform }`; loudness normalized at upload.
 
 ## Testing Strategy
 
@@ -68,7 +80,7 @@ Conventions: only `spotEligible` (Premium) spots schedule; every play logs `{ sp
 
 ## Boundaries
 
-- Always: gate by Premium eligibility, log every airing, cap spots at 30s MP3 (upload-only, auto-approved with reactive takedowns on reports), normalize loudness, run `typecheck + lint + test` before commit.
+- Always: gate by Comercios & Catálogo eligibility, log every airing, cap spots at 30s MP3 (upload-only, auto-approved with reactive takedowns on reports), normalize loudness, run `typecheck + lint + test` before commit.
 - Ask first: change rotation cadence, auto-produce spots with TTS.
 - Never: air free-tier spots, interrupt a spot with fallback switching mid-play, lose a play log.
 
@@ -81,4 +93,4 @@ Conventions: only `spotEligible` (Premium) spots schedule; every play logs `{ sp
 
 ## Open Questions
 
-- V2 announcer-console design (Premium request queue)?
+- V2 announcer-console design (Comercios & Catálogo request queue)?
