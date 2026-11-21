@@ -27,6 +27,7 @@ function makeFlyer(id: string, businessId: string, createdAt: Date): Flyer {
   return {
     id,
     businessId,
+    mediaId: null,
     url: `https://example.com/${id}.png`,
     replacedAt: createdAt,
     createdAt,

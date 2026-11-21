@@ -10,7 +10,8 @@ export type Photo = {
   workEntryId: string | null;
   productId: string | null;
   kind: PhotoKind;
-  url: string;
+  mediaId: string | null;
+  url: string | null;
   createdAt: Date;
 };
 
@@ -19,14 +20,14 @@ export type CreatePhotoInput = {
   workEntryId: string | null;
   productId: string | null;
   kind: PhotoKind;
-  url: string;
+  mediaId: string;
 };
 
 export type UpdatePhotoInput = {
   workEntryId?: string | null;
   productId?: string | null;
   kind?: PhotoKind;
-  url?: string;
+  mediaId?: string;
 };
 
 export type ListPhotosByBusinessInput = {
@@ -41,6 +42,7 @@ function toPhotoPoint(photo: Photo): CursorPoint {
 
 export interface PhotoRepository {
   getById(id: string): Promise<Photo | null>;
+  findByMediaId(mediaId: string): Promise<Photo | null>;
   listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>>;
   create(input: CreatePhotoInput): Promise<Photo>;
   update(id: string, input: UpdatePhotoInput): Promise<Photo | null>;
@@ -52,6 +54,10 @@ export class InMemoryPhotoRepository implements PhotoRepository {
 
   async getById(id: string): Promise<Photo | null> {
     return this.photos.find((photo) => photo.id === id) ?? null;
+  }
+
+  async findByMediaId(mediaId: string): Promise<Photo | null> {
+    return this.photos.find((photo) => photo.mediaId === mediaId) ?? null;
   }
 
   async listByBusiness(input: ListPhotosByBusinessInput): Promise<OffsetPage<Photo>> {
@@ -67,7 +73,8 @@ export class InMemoryPhotoRepository implements PhotoRepository {
       workEntryId: input.workEntryId,
       productId: input.productId,
       kind: input.kind,
-      url: input.url,
+      mediaId: input.mediaId,
+      url: null,
       createdAt: new Date(),
     };
 
@@ -87,7 +94,7 @@ export class InMemoryPhotoRepository implements PhotoRepository {
       workEntryId: input.workEntryId !== undefined ? input.workEntryId : current.workEntryId,
       productId: input.productId !== undefined ? input.productId : current.productId,
       kind: input.kind ?? current.kind,
-      url: input.url ?? current.url,
+      mediaId: input.mediaId ?? current.mediaId,
     };
 
     this.photos[index] = updated;

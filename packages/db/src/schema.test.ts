@@ -150,8 +150,29 @@ describe("products", () => {
 describe("photos", () => {
   it("exposes id, business reference, optional work entry reference, optional product reference, kind and url", () => {
     expect(columnNames(photos)).toEqual(
-      expect.arrayContaining(["id", "business_id", "work_entry_id", "product_id", "kind", "url"]),
+      expect.arrayContaining([
+        "id",
+        "business_id",
+        "work_entry_id",
+        "product_id",
+        "kind",
+        "media_id",
+        "url",
+      ]),
     );
+  });
+
+  it("links a photo to media and keeps the legacy url optional", () => {
+    const config = getTableConfig(photos);
+    const mediaId = config.columns.find((column) => column.name === "media_id");
+    const url = config.columns.find((column) => column.name === "url");
+    const mediaReference = config.foreignKeys.find(
+      (foreignKey) => foreignKey.reference().foreignTable === media,
+    );
+
+    expect(mediaId?.notNull).toBe(false);
+    expect(url?.notNull).toBe(false);
+    expect(mediaReference?.onDelete).toBe("cascade");
   });
 });
 
@@ -318,17 +339,31 @@ describe("workEntries", () => {
 });
 
 describe("flyers", () => {
-  it("exposes id, business reference, url, replaced at and timestamps", () => {
+  it("exposes id, business reference, media link, optional url, replaced at and timestamps", () => {
     expect(columnNames(flyers)).toEqual(
       expect.arrayContaining([
         "id",
         "business_id",
+        "media_id",
         "url",
         "replaced_at",
         "created_at",
         "updated_at",
       ]),
     );
+  });
+
+  it("links a flyer to media and keeps the legacy url optional", () => {
+    const config = getTableConfig(flyers);
+    const mediaId = config.columns.find((column) => column.name === "media_id");
+    const url = config.columns.find((column) => column.name === "url");
+    const mediaReference = config.foreignKeys.find(
+      (foreignKey) => foreignKey.reference().foreignTable === media,
+    );
+
+    expect(mediaId?.notNull).toBe(false);
+    expect(url?.notNull).toBe(false);
+    expect(mediaReference?.onDelete).toBe("cascade");
   });
 });
 

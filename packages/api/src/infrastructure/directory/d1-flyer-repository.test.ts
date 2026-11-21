@@ -1,10 +1,12 @@
 import { D1FlyerRepository } from "@aqui-suena/api/infrastructure/directory/d1-flyer-repository";
+import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
 
 const sampleRow = {
   id: "fly-1",
   business_id: "biz-1",
+  media_id: "med-old",
   url: "https://example.com/flyer.jpg",
   replaced_at: 1700000000,
   created_at: 1700000000,
@@ -21,6 +23,7 @@ describe("D1FlyerRepository", () => {
     expect(page.items).toHaveLength(1);
     expect(page.items[0]?.id).toBe("fly-1");
     expect(page.items[0]?.businessId).toBe("biz-1");
+    expect(page.items[0]?.mediaId).toBe("med-old");
     expect(page.items[0]?.url).toBe("https://example.com/flyer.jpg");
     expect(page.items[0]?.replacedAt).toBeInstanceOf(Date);
     expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
@@ -31,6 +34,17 @@ describe("D1FlyerRepository", () => {
     const repository = new D1FlyerRepository(fake.db);
 
     expect(await repository.getById("nonexistent")).toBeNull();
+  });
+
+  it("finds a flyer by its media id", async () => {
+    const fake = new FakeD1Database(() => ({ first: sampleRow }));
+    const repository = new D1FlyerRepository(fake.db);
+
+    const flyer = await repository.findByMediaId("med-old");
+
+    expect(flyer?.id).toBe("fly-1");
+    expect(fake.statements[0]?.sql).toContain("WHERE media_id = ?");
+    expect(fake.statements[0]?.params).toEqual(["med-old"]);
   });
 
   it("lists only flyers belonging to the given business", async () => {
@@ -49,19 +63,31 @@ describe("D1FlyerRepository", () => {
 
     const flyer = await repository.create({
       businessId: "biz-1",
-      url: "https://example.com/flyer.jpg",
+      mediaId: "med-1",
     });
 
     expect(flyer).not.toBeNull();
     expect(flyer.id).toBeTruthy();
     expect(flyer.businessId).toBe("biz-1");
-    expect(flyer.url).toBe("https://example.com/flyer.jpg");
+    expect(flyer.mediaId).toBe("med-1");
+    expect(flyer.url).toBeNull();
     expect(flyer.replacedAt).toBeInstanceOf(Date);
     expect(flyer.createdAt).toBeInstanceOf(Date);
     expect(flyer.updatedAt).toBeInstanceOf(Date);
   });
 
-  it("updates url and bumps replacedAt, preserving the rest", async () => {
+  it("maps a duplicate media link to CONFLICT", async () => {
+    const fake = new FakeD1Database(() => {
+      throw new Error("UNIQUE constraint failed: flyers.media_id");
+    });
+    const repository = new D1FlyerRepository(fake.db);
+
+    await expect(
+      repository.create({ businessId: "biz-1", mediaId: "med-1" }),
+    ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it("updates media and bumps replacedAt, preserving the rest", async () => {
     const fake = new FakeD1Database(({ sql }) => {
       if (sql.includes("WHERE id = ?")) return { first: sampleRow };
 
@@ -69,10 +95,11 @@ describe("D1FlyerRepository", () => {
     });
     const repository = new D1FlyerRepository(fake.db);
 
-    const updated = await repository.update("fly-1", { url: "https://example.com/new.jpg" });
+    const updated = await repository.update("fly-1", { mediaId: "med-new" });
 
     expect(updated).not.toBeNull();
-    expect(updated?.url).toBe("https://example.com/new.jpg");
+    expect(updated?.mediaId).toBe("med-new");
+    expect(updated?.url).toBe("https://example.com/flyer.jpg");
     expect(updated?.replacedAt.getTime()).toBeGreaterThan(1700000000 * 1000);
     expect(updated?.createdAt.getTime()).toBe(1700000000 * 1000);
     expect(updated?.updatedAt).toBeInstanceOf(Date);
@@ -82,7 +109,7 @@ describe("D1FlyerRepository", () => {
     const fake = new FakeD1Database(() => ({ first: null }));
     const repository = new D1FlyerRepository(fake.db);
 
-    expect(await repository.update("nonexistent", { url: "https://example.com/x.jpg" })).toBeNull();
+    expect(await repository.update("nonexistent", { mediaId: "med-x" })).toBeNull();
   });
 
   it("deletes an existing flyer and returns true", async () => {

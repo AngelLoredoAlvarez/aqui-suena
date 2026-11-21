@@ -1,4 +1,5 @@
 import { D1PhotoRepository } from "@aqui-suena/api/infrastructure/directory/d1-photo-repository";
+import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";
 
@@ -8,6 +9,7 @@ const sampleRow = {
   work_entry_id: "we-1",
   product_id: "pdct-1",
   kind: "product",
+  media_id: "med-old",
   url: "https://example.com/photo.jpg",
   created_at: 1700000000,
 };
@@ -25,6 +27,7 @@ describe("D1PhotoRepository", () => {
     expect(page.items[0]?.workEntryId).toBe("we-1");
     expect(page.items[0]?.productId).toBe("pdct-1");
     expect(page.items[0]?.kind).toBe("product");
+    expect(page.items[0]?.mediaId).toBe("med-old");
     expect(page.items[0]?.url).toBe("https://example.com/photo.jpg");
     expect(page.items[0]?.createdAt).toBeInstanceOf(Date);
   });
@@ -34,6 +37,17 @@ describe("D1PhotoRepository", () => {
     const repository = new D1PhotoRepository(fake.db);
 
     expect(await repository.getById("nonexistent")).toBeNull();
+  });
+
+  it("finds a photo by its media id", async () => {
+    const fake = new FakeD1Database(() => ({ first: sampleRow }));
+    const repository = new D1PhotoRepository(fake.db);
+
+    const photo = await repository.findByMediaId("med-old");
+
+    expect(photo?.id).toBe("ph-1");
+    expect(fake.statements[0]?.sql).toContain("WHERE media_id = ?");
+    expect(fake.statements[0]?.params).toEqual(["med-old"]);
   });
 
   it("lists only photos belonging to the given business", async () => {
@@ -57,7 +71,7 @@ describe("D1PhotoRepository", () => {
       workEntryId: null,
       productId: "pdct-1",
       kind: "product",
-      url: "https://example.com/photo.jpg",
+      mediaId: "med-1",
     });
 
     expect(photo).not.toBeNull();
@@ -66,8 +80,27 @@ describe("D1PhotoRepository", () => {
     expect(photo.workEntryId).toBeNull();
     expect(photo.productId).toBe("pdct-1");
     expect(photo.kind).toBe("product");
-    expect(photo.url).toBe("https://example.com/photo.jpg");
+    expect(photo.mediaId).toBe("med-1");
+    expect(photo.url).toBeNull();
     expect(photo.createdAt).toBeInstanceOf(Date);
+  });
+
+  it("maps a duplicate media link to CONFLICT", async () => {
+    const fake = new FakeD1Database(() => {
+      throw new Error("UNIQUE constraint failed: photos.media_id");
+    });
+
+    const repository = new D1PhotoRepository(fake.db);
+
+    await expect(
+      repository.create({
+        businessId: "biz-1",
+        workEntryId: null,
+        productId: null,
+        kind: "logo",
+        mediaId: "med-1",
+      }),
+    ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("updates only the provided fields and preserves the rest", async () => {
@@ -79,12 +112,13 @@ describe("D1PhotoRepository", () => {
     const repository = new D1PhotoRepository(fake.db);
 
     const updated = await repository.update("ph-1", {
-      url: "https://example.com/new.jpg",
+      mediaId: "med-new",
       kind: "logo",
     });
 
     expect(updated).not.toBeNull();
-    expect(updated?.url).toBe("https://example.com/new.jpg");
+    expect(updated?.mediaId).toBe("med-new");
+    expect(updated?.url).toBe("https://example.com/photo.jpg");
     expect(updated?.kind).toBe("logo");
     expect(updated?.workEntryId).toBe("we-1");
     expect(updated?.productId).toBe("pdct-1");
@@ -109,7 +143,7 @@ describe("D1PhotoRepository", () => {
     const fake = new FakeD1Database(() => ({ first: null }));
     const repository = new D1PhotoRepository(fake.db);
 
-    expect(await repository.update("nonexistent", { url: "https://example.com/x.jpg" })).toBeNull();
+    expect(await repository.update("nonexistent", { mediaId: "med-x" })).toBeNull();
   });
 
   it("deletes an existing photo and returns true", async () => {

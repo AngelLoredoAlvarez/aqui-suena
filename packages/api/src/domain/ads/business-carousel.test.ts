@@ -10,6 +10,8 @@ import type { Flyer } from "@aqui-suena/api/domain/directory/flyer";
 import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { Hour } from "@aqui-suena/api/domain/directory/hour";
 import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
+import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { describe, expect, it } from "vitest";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {
@@ -31,11 +33,12 @@ function makeBusiness(overrides: Partial<Business> = {}): Business {
   };
 }
 
-function makeFlyer(businessId: string, url = "https://r2/flyer.png"): Flyer {
+function makeFlyer(businessId: string): Flyer {
   return {
     id: `f-${businessId}`,
     businessId,
-    url,
+    mediaId: `med-${businessId}`,
+    url: null,
     replacedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -78,6 +81,19 @@ function makeDeps(
     flyerRepository: new InMemoryFlyerRepository(flyers),
     hourRepository: new InMemoryHourRepository(hours),
     subscriptionRepository: new InMemorySubscriptionRepository(subs),
+    mediaRepository: new InMemoryMediaRepository(
+      flyers.map((flyer) => ({
+        id: `med-${flyer.businessId}`,
+        ownerId: "acc-1",
+        businessId: flyer.businessId,
+        kind: "flyer" as const,
+        r2Key: `media/${flyer.id}.jpg`,
+        mime: "image/jpeg",
+        size: 1,
+        createdAt: new Date(),
+      })),
+    ),
+    storage: new InMemoryObjectStorage(),
   };
 }
 

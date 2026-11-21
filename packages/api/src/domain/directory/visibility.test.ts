@@ -82,6 +82,7 @@ function makeRepositories() {
         workEntryId: null,
         productId: null,
         kind: "logo",
+        mediaId: null,
         url: "https://example.com/visible.jpg",
         createdAt: now,
       },
@@ -91,6 +92,7 @@ function makeRepositories() {
         workEntryId: null,
         productId: null,
         kind: "logo",
+        mediaId: null,
         url: "https://example.com/hidden.jpg",
         createdAt: now,
       },
@@ -100,6 +102,7 @@ function makeRepositories() {
         {
           id: "flyer-visible",
           businessId: "biz-visible",
+          mediaId: null,
           url: "https://example.com/visible.jpg",
           replacedAt: now,
           createdAt: now,
@@ -108,6 +111,7 @@ function makeRepositories() {
         {
           id: "flyer-hidden",
           businessId: "biz-hidden",
+          mediaId: null,
           url: "https://example.com/hidden.jpg",
           replacedAt: now,
           createdAt: now,

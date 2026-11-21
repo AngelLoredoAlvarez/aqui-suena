@@ -72,7 +72,7 @@ export type CreateProductInput = v.InferOutput<typeof createProductInputSchema>;
 
 export const addPhotoInputSchema = v.object({
   kind: v.picklist(["flyer", "logo", "product"]),
-  url: v.pipe(v.string(), v.url()),
+  mediaId: v.pipe(v.string(), v.minLength(1)),
 });
 
 export type AddPhotoInput = v.InferOutput<typeof addPhotoInputSchema>;
