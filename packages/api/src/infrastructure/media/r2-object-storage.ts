@@ -5,6 +5,7 @@ import type {
   PresignUploadInput,
   PresignUploadResult,
   StoredObject,
+  StoredObjectContent,
 } from "@aqui-suena/api/domain/media/storage";
 import { validateMediaUpload } from "@aqui-suena/api/domain/media/storage";
 import {
@@ -74,6 +75,27 @@ export class R2ObjectStorage implements ObjectStorage {
 
   async signedUrl(key: string): Promise<string> {
     return presignR2ObjectUrl(this.options, "GET", key);
+  }
+
+  async readObject(key: string): Promise<StoredObjectContent | null> {
+    const url = await presignR2ObjectUrl(this.options, "GET", key);
+    const fetchFn = this.fetchFn;
+    const response = await fetchFn(url, { method: "GET" });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`R2 read failed: ${response.status}`);
+    }
+
+    return {
+      key,
+      size: Number(response.headers.get("content-length") ?? "0"),
+      contentType: response.headers.get("content-type") ?? "application/octet-stream",
+      bytes: new Uint8Array(await response.arrayBuffer()),
+    };
   }
 
   async head(key: string): Promise<ObjectMetadata | null> {

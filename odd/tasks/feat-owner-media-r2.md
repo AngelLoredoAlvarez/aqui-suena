@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t6` (T1–T6 implemented; T7+ pending)
-Status: T6 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t7` (T1–T7 implemented; T8 pending)
+Status: T7 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -121,6 +121,10 @@ Order rationale:
   listings to media.
 - **CFDI stays outside `media/`.** Fiscal archives keep their own prefix and
   lifecycle.
+- **EXIF policy (T7).** GPS EXIF is rejected at `confirm` instead of stripped:
+  stripping needs an image re-encode or a paid pipeline, and rejecting protects
+  listing location privacy without rewriting the immutable object. The upload
+  picker can strip metadata client-side before upload.
 
 ## Data model changes
 
@@ -193,8 +197,8 @@ Order rationale:
 | T4  | `media.signedUrl` with per-kind read authorization                      | T1         | done   |
 | T5  | Deletion, retention and orphan sweep                                    | T1         | done   |
 | T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         | done   |
-| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     | next   |
-| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |        |
+| T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     | done   |
+| T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      | next   |
 
 ## Log
 
@@ -304,4 +308,19 @@ Order rationale:
   not atomic: concurrent creates still attached one media to two photos. Fixed
   with unique indexes on `photos.media_id`/`flyers.media_id` (migration
   `0016_tense_hellfire_club`) and a `CONFLICT` mapping in the D1 adapters.
-  GREEN: api 1304/1304, db 38/38. No commit yet.
+  GREEN: api 1304/1304, db 38/38. No commit yet. Merged as PR #92
+  (commit `85eaa9d`).
+- 2026-11-21: T7 implemented on `feat/owner-media-r2-t7`. The storage port gains
+  `read(key)` (full GET; in-memory adapter stores bodies). `confirm` now reads
+  new objects and validates magic bytes for JPEG/PNG/WebP/MP3, rejects JPEGs
+  with a GPS EXIF directory and enforces the 30-second MP3 limit by parsing
+  frame headers. The EXIF decision: reject GPS metadata rather than strip it,
+  because stripping needs an image re-encode or a paid pipeline; the upload
+  picker can strip client-side. R2 CORS is versioned in
+  `packages/api/r2-cors.json` and applied with `wrangler r2 bucket cors set`.
+  RED evidence: content tests failed before the module; the MP3 parser initially
+  used a signed bitwise sync check that rejected valid frames, caught by tests.
+  Independent verification: PASS, no blockers; advisories led to a single-read
+  `readObject` in confirm (instead of head + read), big-endian/ID3/boundary and
+  truncated-EXIF tests, and documenting that only JPEG IFD0 EXIF is inspected.
+  GREEN: api 1316/1316, db 38/38. No commit yet.

@@ -51,6 +51,20 @@ unconfigured (`/health` says so) and media mutations answer
 `SERVICE_UNAVAILABLE`; the router never substitutes `InMemoryObjectStorage`.
 Only the local Node entry (`server/main.ts`) injects that adapter, on purpose.
 
+### R2 CORS
+
+The bucket needs CORS for browser uploads (native clients do not use it). The
+versioned rules live in `packages/api/r2-cors.json` (localhost, Pages staging,
+Tauri origins; `PUT`, `GET`, `HEAD`; `content-type` header; one-hour preflight
+cache). Apply them per bucket after changing the file:
+
+```bash
+pnpm --filter @aqui-suena/api exec wrangler r2 bucket cors set aqui-suena-media-staging --file r2-cors.json
+pnpm --filter @aqui-suena/api exec wrangler r2 bucket cors list aqui-suena-media-staging
+```
+
+Repeat with the production bucket when it exists.
+
 ## Email (transactional)
 
 The email stack is implemented and wired through the composition root. What exists:

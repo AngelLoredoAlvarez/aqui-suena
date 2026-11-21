@@ -62,6 +62,7 @@ function failingStorage(): ObjectStorage {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
     signedUrl: async () => "https://example.test/signed",
     head: async () => null,
+    readObject: async () => null,
     list: async () => [],
     delete: async () => {
       throw new Error("R2 down");
@@ -74,6 +75,7 @@ function failingListStorage(): ObjectStorage {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
     signedUrl: async () => "https://example.test/signed",
     head: async () => null,
+    readObject: async () => null,
     list: async () => {
       throw new Error("R2 list down");
     },

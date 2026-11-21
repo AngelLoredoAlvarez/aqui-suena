@@ -522,6 +522,68 @@ describe("media router", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  it("rejects bytes that do not match the declared image type", async () => {
+    const { caller, storage, repository } = setup();
+
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    storage.confirm(key, 512, "image/png", new Date(), new TextEncoder().encode("<html>"));
+
+    await expect(
+      caller.confirm({ key, kind: "avatar", contentType: "image/png", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+    const rows = await repository.listByOwner({ ownerId: "acc-1", limit: 20, offset: 0 });
+
+    expect(rows.items).toHaveLength(0);
+  });
+
+  it("rejects a JPEG that carries GPS EXIF", async () => {
+    const { caller, storage } = setup();
+
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+    });
+
+    const tiff = new Uint8Array([
+      0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x25, 0x88, 0x04, 0x00, 0x01,
+      0x00, 0x00, 0x00, 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+      0x02, 0x00, 0x02, 0x00, 0x00, 0x00, 0x4e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ]);
+
+    const data = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00, ...tiff];
+
+    const length = data.length + 2;
+
+    storage.confirm(
+      key,
+      512,
+      "image/jpeg",
+      new Date(),
+      new Uint8Array([
+        0xff,
+        0xd8,
+        0xff,
+        0xe1,
+        (length >> 8) & 0xff,
+        length & 0xff,
+        ...data,
+        0xff,
+        0xd9,
+      ]),
+    );
+
+    await expect(
+      caller.confirm({ key, kind: "avatar", contentType: "image/jpeg", sizeBytes: 512 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("confirm throws NOT_FOUND when the object is missing in storage", async () => {
     const { caller } = setup();
 
