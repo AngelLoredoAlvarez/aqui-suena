@@ -5,12 +5,12 @@
 Scope defined on 2026-11-04. Partially implemented: `support.chat` ships the
 read-only plan-catalog path (bilingual es/en, prompt-injection guard, optional
 Vectorize RAG seeded by `POST /admin/seed-vectors`, optional AI Gateway), and the
-router is live for unauthenticated listeners. The multimodal media retrieval
-design is documented below but not implemented. Still pending before it can cover
-the authenticated scope: Supabase Auth identities, per-account and global daily
-caps, and the sanitization rules for account, payment and invoice data. This
-document remains the source for the agreed scope and its architectural
-constraints.
+router is live for unauthenticated listeners. The multimodal media retrieval and
+listener image-query designs are documented below but not implemented. Still
+pending before it can cover the authenticated scope: Supabase Auth identities,
+per-account and global daily caps, and the sanitization rules for account,
+payment and invoice data. This document remains the source for the agreed scope
+and its architectural constraints.
 
 ## Goal
 
@@ -40,7 +40,8 @@ services, products, plans, or any other entity stays a manual action in the UI.
 - Hours of operation.
 - Services and products with descriptions and prices.
 - Work entries, photos, flyers (public ones), including media search through the
-  multimodal `media-catalog` index when enabled.
+  multimodal `media-catalog` index when enabled, and temporary listener photo
+  queries described below.
 
 **Location/distance (explicitly out of chat scope):** the chat returns the
 business's textual address only. No latitude/longitude storage, no geocoding,
@@ -59,6 +60,10 @@ is a separate UI/directory feature if pursued later.
 - Any mutation: no creating/editing/deleting businesses, services, products,
   photos, hours, plans, subscriptions, or any entity.
 - Other users' or other owners' data (businesses, accounts, invoices, payments).
+- Storing listener-uploaded query images: they are processed transiently and
+  never written to R2, D1, logs or the vector index.
+- Identifying people, faces, license plates or private addresses from a listener
+  photo; only public business/product information is returned.
 - Internal/non-public data of businesses the user does not own.
 - Credentials, tokens, secrets, API keys.
 - Radio/stations playback troubleshooting and support (not covered by this
@@ -185,6 +190,70 @@ exceeded, the feature pauses rather than bills.
 - **Indexing private owner media in the shared index:** leaks across users;
   private reads stay in D1.
 
+### Listener image queries (planned, free tier)
+
+An anonymous listener may attach a photo saved on their device and ask for the
+business, product, service or contractor it shows. The photo is **temporary
+input**, not catalog media: it is resized client-side (max edge ~1024 px, EXIF/GPS
+stripped), sent to the chat request, processed in memory and never written to R2,
+D1, logs or the vector index.
+
+#### Flow
+
+1. Try the cheap path first: embed the query image with
+   `@cf/google/embeddinggemma-2` (512 dimensions) and query the public
+   `media-catalog` index. This costs a fraction of a Neuron.
+2. If there is a confident public match, load the media/business rows from D1,
+   re-check visibility, sign a short-lived URL and answer with the match and a
+   confidence cue. No vision model is called.
+3. If the visual match is weak, or the photo is mostly text (flyer, menu, sign,
+   business card, van), run OCR/caption with
+   `@cf/moondream/moondream3.1-9B-A2B`, then query the directory/media text index
+   and answer with candidate businesses.
+4. If candidates remain ambiguous, ask for the business name or city. Do **not**
+   infer location, distance or "nearest"; that stays out of scope.
+5. If the listener explicitly asks "what is in this photo?", allow one vision
+   call on that selected image, under the same daily cap.
+
+#### What works and what does not
+
+- **Good:** flyers with offers, menus, storefront signs, business cards, van
+  lettering, contractor names/services; products with an existing catalog photo.
+- **Medium:** generic products or dishes matched visually against catalog photos;
+  quality depends on coverage and angle/lighting.
+- **Refused:** identifying people, faces, plates or private homes; returning
+  another owner's private media; exact identification when there is no textual
+  or visual evidence; location/distance queries.
+
+#### Privacy and abuse
+
+- No image persistence and no image bytes in logs; only aggregate outcome codes
+  (match/ambiguous/no-match) may be counted.
+- Limit size/format, rate-limit per IP/account, and refuse repeated abusive
+  uploads. A photo containing a person is not used to identify that person.
+- Public business/product data only; owner-private media never enters the query
+  path.
+
+#### Free-tier budget
+
+- Visual embedding query: ~0.1 Neuron or less; it is the default first pass.
+- Vision OCR/caption: ~20–40 Neurons per query; with 10,000 Neurons/day shared
+  with chat, this is a low-volume feature (hundreds of queries/day at most, fewer
+  once chat usage is counted).
+- Guards: per-IP and global daily caps, a dedicated vision-query budget, a
+  circuit breaker that answers "no puedo analizar la foto ahora" when exhausted,
+  and a feature flag. If the free allowance is exceeded, the feature pauses; it
+  never upgrades to a paid plan.
+- Cache only the aggregate result per image hash for a short TTL (no image
+  bytes); a repeated identical photo should not spend Neurons twice.
+
+#### Dependencies
+
+This needs: an image input on `support.chat` (today text-only), the
+`media-catalog` index and flyer OCR backfill from the previous section, the
+directory text RAG, and the per-account/global caps. Until those exist, the
+assistant cannot accept listener photos.
+
 ## Refusal and no-hallucination policy
 
 - **Mutations or others' data:** refuse and point to the correct channel (UI for
@@ -218,6 +287,9 @@ exceeded, the feature pauses rather than bills.
 - Daily caps (per-account and global) and auto-cutoff thresholds (Level 1 guard).
 - Media index: 512 vs 256 dimensions, OCR only for flyers vs on-demand OCR, and
   the exact daily Neuron budget split between embeddings and chat.
+- Listener image queries: visual-match confidence threshold and how to present a
+  doubtful match; max image size/format; per-IP limits; whether a short-TTL
+  result cache by hash is acceptable; and the exact vision-query budget.
 - Media moderation before indexing: photos can contain people, plates or private
   interiors; decide the rejection/review rule for public indexing.
 - Whether image results render inline in chat or as links to the listing.
