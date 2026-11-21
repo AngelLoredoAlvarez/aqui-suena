@@ -34,6 +34,7 @@ export interface ObjectMetadata {
  */
 export interface ObjectStorage {
   presignUpload(input: PresignUploadInput): Promise<PresignUploadResult>;
+  signedUrl(key: string): Promise<string>;
   head(key: string): Promise<ObjectMetadata | null>;
   delete(key: string): Promise<void>;
 }
@@ -66,6 +67,10 @@ export class InMemoryObjectStorage implements ObjectStorage {
 
   async head(key: string): Promise<ObjectMetadata | null> {
     return this.stored.get(key) ?? null;
+  }
+
+  async signedUrl(key: string): Promise<string> {
+    return `https://fake.r2/${key}?signed=1`;
   }
 
   async delete(key: string): Promise<void> {

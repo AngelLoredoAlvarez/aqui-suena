@@ -1,4 +1,5 @@
 import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
+import { presignR2ObjectUrl } from "@aqui-suena/api/infrastructure/r2/sigv4";
 import { describe, expect, it } from "vitest";
 
 describe("R2ObjectStorage", () => {
@@ -109,6 +110,21 @@ describe("R2ObjectStorage", () => {
     const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: fakeFetch });
 
     expect(await storage.head("missing")).toBeNull();
+  });
+
+  it("signs a GET url for a stored key", async () => {
+    const fakeFetch: typeof fetch = async () => new Response(null, { status: 200 });
+
+    const storage = new R2ObjectStorage({ ...baseOptions, fetchFn: fakeFetch });
+    const key = "media/v1/acc-1/account/avatar/key.png";
+
+    const url = await storage.signedUrl(key);
+    const put = await presignR2ObjectUrl(baseOptions, "PUT", key);
+
+    expect(url).toContain(`/my-bucket/${key}`);
+    expect(url).toContain("X-Amz-Signature=");
+    expect(url).toContain("X-Amz-Expires=300");
+    expect(url).not.toBe(put);
   });
 
   it("delete calls DELETE", async () => {

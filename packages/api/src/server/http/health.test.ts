@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const failingStorage: ObjectStorage = {
   presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
+  signedUrl: async () => "https://example.test/signed",
   head: async () => {
     throw new Error("R2 head failed: 403");
   },
