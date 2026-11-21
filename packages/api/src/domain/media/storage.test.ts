@@ -127,6 +127,14 @@ describe("InMemoryObjectStorage", () => {
     expect(meta).toEqual({ key, size: 512, contentType: "image/png" });
   });
 
+  it("returns a signed read url for a stored key", async () => {
+    const storage = new InMemoryObjectStorage();
+
+    expect(await storage.signedUrl("media/v1/acc-1/account/avatar/key.png")).toBe(
+      "https://fake.r2/media/v1/acc-1/account/avatar/key.png?signed=1",
+    );
+  });
+
   it("delete removes the object", async () => {
     const storage = new InMemoryObjectStorage();
 

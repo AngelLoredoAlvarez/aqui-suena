@@ -48,7 +48,7 @@ describe("media router", () => {
 
     const caller = router.createCaller({ user: { id: "u1", accountId: "acc-1" } });
 
-    return { repository, storage, caller, subscription };
+    return { repository, storage, caller, subscription, router };
   }
 
   function withoutStorage() {
@@ -630,6 +630,109 @@ describe("media router", () => {
     await expect(caller.delete({ id: "nonexistent" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
+  it("returns a signed read url for the owner's media", async () => {
+    const { caller, storage } = setup();
+
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    storage.confirm(key, 512, "image/png");
+
+    const media = await caller.confirm({
+      key,
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    const signed = await caller.signedUrl({ id: media.id });
+
+    expect(signed.url).toBe(`https://fake.r2/${key}?signed=1`);
+  });
+
+  it("returns a signed read url for the owner's business media", async () => {
+    const { caller, storage } = setup();
+
+    const { key } = await caller.presignUpload({
+      kind: "flyer",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+      businessId: "biz-1",
+    });
+
+    storage.confirm(key, 512, "image/jpeg");
+
+    const media = await caller.confirm({
+      key,
+      kind: "flyer",
+      contentType: "image/jpeg",
+      sizeBytes: 512,
+    });
+
+    expect((await caller.signedUrl({ id: media.id })).url).toContain(key);
+  });
+
+  it("returns a signed read url for a legacy flat key", async () => {
+    const { caller, repository } = setup();
+
+    const media = await repository.create({
+      ownerId: "acc-1",
+      businessId: null,
+      kind: "product-photo",
+      r2Key: `product-photo/acc-1/${UUID}`,
+      mime: "image/jpeg",
+      size: 512,
+    });
+
+    expect((await caller.signedUrl({ id: media.id })).url).toContain(media.r2Key);
+  });
+
+  it("rejects signing media owned by another account with NOT_FOUND", async () => {
+    const { caller, router, storage } = setup();
+
+    const { key } = await caller.presignUpload({
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    storage.confirm(key, 512, "image/png");
+
+    const media = await caller.confirm({
+      key,
+      kind: "avatar",
+      contentType: "image/png",
+      sizeBytes: 512,
+    });
+
+    const foreign = router.createCaller({ user: { id: "u2", accountId: "acc-2" } });
+
+    await expect(foreign.signedUrl({ id: media.id })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Media not found",
+    });
+  });
+
+  it("rejects signing a missing media with NOT_FOUND", async () => {
+    const { caller } = setup();
+
+    await expect(caller.signedUrl({ id: "nonexistent" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Media not found",
+    });
+  });
+
+  it("rejects signing a malformed id with BAD_REQUEST", async () => {
+    const { caller } = setup();
+
+    await expect(caller.signedUrl({ id: 123 as never })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+
   it("answers SERVICE_UNAVAILABLE on presign when storage is not configured", async () => {
     const caller = withoutStorage();
 
@@ -658,6 +761,14 @@ describe("media router", () => {
     const caller = withoutStorage();
 
     await expect(caller.delete({ id: "media-1" })).rejects.toMatchObject({
+      code: "SERVICE_UNAVAILABLE",
+    });
+  });
+
+  it("answers SERVICE_UNAVAILABLE on signedUrl when storage is not configured", async () => {
+    const caller = withoutStorage();
+
+    await expect(caller.signedUrl({ id: "media-1" })).rejects.toMatchObject({
       code: "SERVICE_UNAVAILABLE",
     });
   });

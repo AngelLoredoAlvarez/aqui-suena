@@ -234,6 +234,7 @@ function setup() {
 
   const storage: ObjectStorage = {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
+    signedUrl: async () => "https://example.test/signed",
     head: async () => null,
     delete: async (key) => {
       deletedObjects.push(key);

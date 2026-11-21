@@ -38,6 +38,10 @@ export class R2ObjectStorage implements ObjectStorage {
     return { key, uploadUrl };
   }
 
+  async signedUrl(key: string): Promise<string> {
+    return presignR2ObjectUrl(this.options, "GET", key);
+  }
+
   async head(key: string): Promise<ObjectMetadata | null> {
     const url = await presignR2ObjectUrl(this.options, "GET", key);
     // Workers rejects a native fetch invoked as a method (`this.fetchFn()`).

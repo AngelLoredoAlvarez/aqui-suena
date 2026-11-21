@@ -60,6 +60,7 @@ function makeBusiness(id: string, accountId = "acc-1"): Business {
 function failingStorage(): ObjectStorage {
   return {
     presignUpload: async () => ({ key: "k", uploadUrl: "https://example.test/k" }),
+    signedUrl: async () => "https://example.test/signed",
     head: async () => null,
     delete: async () => {
       throw new Error("R2 down");

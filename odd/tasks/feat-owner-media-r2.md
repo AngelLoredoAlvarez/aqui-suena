@@ -5,8 +5,8 @@ uploads before the owner-portal media UI is built. The current implementation
 (one flat key per owner) works for the API round trip but does not model
 business ownership, readable URLs, retention or orphan cleanup.
 
-Branch: `feat/owner-media-r2-t3` (T1–T3 implemented; T4+ pending)
-Status: T3 implemented and verified locally; no commit yet
+Branch: `feat/owner-media-r2-t4` (T1–T4 implemented; T5+ pending)
+Status: T4 implemented and verified locally; no commit yet
 Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db test`
 
 ## Current state
@@ -21,7 +21,8 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
   match, validates the real object metadata and is idempotent per key. Presign
   and confirm both enforce business ownership and the plan entitlement.
 - `photos.url` and `flyers.url` accept arbitrary client URLs; nothing links a listing row to a `media` row.
-- The bucket is private. There is no signed read endpoint; `confirm` returns only the key.
+- The bucket is private. `media.signedUrl` returns a short-lived signed GET for
+  the owner of the row; public listing reads await the T6 links.
 - Presigned PUT lives 300 seconds and signs `host` only with an unsigned payload, so the PUT body type and size are not constrained by the signature.
 - `R2ObjectStorage.head` performs a signed `GET` and ignores the body.
 - CFDI documents use their own `cfdi/{accountId}/...` prefix.
@@ -55,7 +56,9 @@ Test runner: `pnpm --filter @aqui-suena/api test`; `pnpm --filter @aqui-suena/db
 - **S7 — Serving.** The bucket stays private. A signed read endpoint authorizes
   per kind: owner-only for avatars, readable for media attached to a published
   listing. Keys are immutable, so responses can cache aggressively. A public
-  custom domain or Worker proxy is a later decision.
+  custom domain or Worker proxy is a later decision. **T4 landing:** the endpoint
+  is owner-only for every kind; the listing-readable branch requires the T6
+  media-to-listing links, so public reads stay disabled until then.
 - **S8 — Migration.** Existing `{kind}/{accountId}/{uuid}` keys remain valid:
   `media.r2Key` stores the absolute key, so reads and deletes need no rewrite.
   New uploads use `media/v1/...`; `confirm` accepts only v1 keys. No bulk object
@@ -180,8 +183,8 @@ Order rationale:
 | T1  | `media.businessId` + unique `r2Key` + migration                         | —          | done   |
 | T2  | Key builder and `presignUpload`/`confirm` on `media/v1/...`             | T1         | done   |
 | T3  | Business ownership and plan entitlement checks at presign/confirm       | T1, T2     | done   |
-| T4  | `media.signedUrl` with per-kind read authorization                      | T1         | next   |
-| T5  | Deletion, retention and orphan sweep                                    | T1         |        |
+| T4  | `media.signedUrl` with per-kind read authorization                      | T1         | done   |
+| T5  | Deletion, retention and orphan sweep                                    | T1         | next   |
 | T6  | Link `photos`/`flyers` to media instead of arbitrary URLs               | T1         |        |
 | T7  | CORS, magic bytes, EXIF and audio duration hardening                    | T4, T6     |        |
 | T8  | Staging round trip: presign, PUT, confirm, read, replace, delete, purge | T2–T6      |        |
@@ -246,4 +249,16 @@ Order rationale:
   existing row after a downgrade while a new confirm is blocked. Independent
   verification: PASS, no blockers; advisories led to stronger tests for a
   foreign-owned business, a hidden business and malformed business ids. No
-  commit yet.
+  commit yet. Merged as PR #89 (commit `36419ec`).
+- 2026-11-20: T4 implemented on `feat/owner-media-r2-t4`. `media.signedUrl`
+  takes a media id, returns `NOT_FOUND` for a missing row or a foreign owner,
+  and otherwise returns a short-lived signed GET built by the storage adapter
+  (R2 SigV4 GET; the in-memory adapter returns a fake URL). The bucket stays
+  private and no object key is served as a public URL. Scope decision: reads are
+  owner-only for every kind because the listing-readable branch needs the T6
+  media-to-listing links; enabling it before that would expose unreferenced or
+  unpublished objects. RED evidence: the storage port, both adapters and the
+  router procedure were missing, and seven focused tests failed first. GREEN:
+  api 1267/1267, db 32/32. Independent verification: PASS, no blockers; the
+  foreign/missing tests were strengthened to assert the exact NOT_FOUND message
+  and the R2 test now proves the signature is a GET, not a PUT. No commit yet.

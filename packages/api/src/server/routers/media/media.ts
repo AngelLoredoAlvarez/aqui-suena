@@ -161,6 +161,19 @@ export function createMediaRouter(deps: MediaRouterDeps) {
       }
     }),
 
+    signedUrl: protectedProcedure
+      .input(idInput("Media id is required"))
+      .query(async ({ input, ctx }) => {
+        const activeStorage = requireStorage(storage);
+        const media = await repository.getById(input.id);
+
+        if (media === null || media.ownerId !== ctx.user.accountId) {
+          throw new NotFoundError("Media not found");
+        }
+
+        return { url: await activeStorage.signedUrl(media.r2Key) };
+      }),
+
     list: protectedProcedure
       .input(v.optional(offsetInputSchema, { limit: 20, offset: 0 }))
       .query(async ({ input, ctx }) => {
