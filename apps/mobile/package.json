@@ -29,6 +29,7 @@
     "react-native-reanimated": "catalog:",
     "react-native-safe-area-context": "catalog:",
     "react-native-screens": "catalog:",
+    "react-native-svg": "15.16.0",
     "tamagui": "catalog:"
   },
   "devDependencies": {
