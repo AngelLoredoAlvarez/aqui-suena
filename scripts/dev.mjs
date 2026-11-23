@@ -21,12 +21,22 @@ import { execFileSync, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import net from "node:net";
 import { networkInterfaces } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { maybeReexecUnderInfisical } from "./with-infisical.mjs";
 
 const here = fileURLToPath(import.meta.url);
 const root = resolve(dirname(here), "..");
+
+// Local dev keeps its D1 data in a SQLite file by default. An explicit
+// LOCAL_D1_PATH wins, so a caller can point at another checkout or a scratch DB.
+export function resolveLocalD1Path(env = process.env, repoRoot = root) {
+  const explicit = env.LOCAL_D1_PATH?.trim();
+
+  return explicit && explicit.length > 0
+    ? explicit
+    : join(repoRoot, ".dev", "d1", "aqui-suena.sqlite");
+}
 
 // The emulator is opt-in. --android and --emulator differ in exactly one thing:
 // whether the app is launched once Metro is up.
@@ -185,7 +195,14 @@ export function openAppOnEmulator({ deviceAttached, run, log = console, deviceSe
   }
 }
 
-export function buildTasks({ launchApp, mobileOnly, streamBase, apiBase, tauriConfig }) {
+export function buildTasks({
+  launchApp,
+  mobileOnly,
+  streamBase,
+  apiBase,
+  localD1Path = "",
+  tauriConfig,
+}) {
   return [
     {
       name: "api",
@@ -193,7 +210,7 @@ export function buildTasks({ launchApp, mobileOnly, streamBase, apiBase, tauriCo
       cmd: "tsx",
       args: ["watch", "src/server/main.ts"],
       cwd: "packages/api",
-      env: {},
+      env: localD1Path ? { LOCAL_D1_PATH: localD1Path } : {},
     },
     {
       name: "web",
@@ -329,6 +346,7 @@ async function main() {
   const lan = lanAddress();
   const streamBase = process.env.EXPO_PUBLIC_STREAM_BASE_URL || `http://${lan}:3000`;
   const apiBase = resolveMobileApiBase(process.env.EXPO_PUBLIC_API_BASE_URL, lan);
+  const localD1Path = resolveLocalD1Path(process.env, root);
 
   // Shared by the emulator bootstrap and by opening the app on an emulator that
   // was already running, which is the case whenever Metro gets reused.
@@ -423,6 +441,7 @@ async function main() {
     mobileOnly,
     streamBase,
     apiBase,
+    localD1Path,
     // The desktop window loads the web dev server that this script already owns.
     // Leaving beforeDevCommand in place would try to bind :3000 a second time.
     tauriConfig: JSON.stringify({ build: { beforeDevCommand: "" } }),
@@ -489,7 +508,9 @@ async function main() {
     console.log("[dev] api/web/desktop NOT started (start them manually if needed)");
     console.log("[dev] Ctrl-C stops Metro\n");
   } else {
-    console.log("[dev] api      http://localhost:3001");
+    const localD1Label = localD1Path.startsWith(root) ? relative(root, localD1Path) : localD1Path;
+
+    console.log(`[dev] api      http://localhost:3001 (local D1: ${localD1Label})`);
     console.log("[dev] web      http://localhost:3000");
     console.log(`[dev] mobile   Metro on :8081, fixtures at ${streamBase}`);
     console.log("[dev] desktop  Tauri dev window against :3000");
