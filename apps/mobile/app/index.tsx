@@ -1,3 +1,4 @@
+import { NativeBootSplash } from "@aqui-suena/mobile/components/native-boot-splash";
 import { PlayerLanding } from "@aqui-suena/ui";
 import type { PlayerCardPosition } from "@aqui-suena/ui/state";
 import {
@@ -10,7 +11,16 @@ import { useCallback, useEffect, useState } from "react";
 const deviceStore = AsyncStorage;
 
 export default function Index() {
+  const [booted, setBooted] = useState(false);
   const [initialPosition, setInitialPosition] = useState<PlayerCardPosition | undefined>(undefined);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setBooted(true);
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -33,6 +43,10 @@ export default function Index() {
   const handlePositionChange = useCallback((next: PlayerCardPosition) => {
     void savePersistedPlayerCardPositionAsync(deviceStore, next);
   }, []);
+
+  if (!booted) {
+    return <NativeBootSplash />;
+  }
 
   return (
     <PlayerLanding onPositionChange={handlePositionChange} initialPosition={initialPosition} />
