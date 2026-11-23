@@ -209,10 +209,26 @@ resources per environment:
 
 - D1: `aqui-suena-db-staging` for staging and `aqui-suena-db` for production
   (the production database exists with the schema applied but no Worker
-  deploys to it yet; dev uses a local D1 and there is no remote dev database)
-- R2: `aqui-suena-media-dev`, `aqui-suena-media-staging`
+  deploys to it yet). Dev uses a local SQLite database at
+  `.dev/d1/aqui-suena.sqlite`; there is no remote dev database.
+- R2: `aqui-suena-media-dev` for local dev and `aqui-suena-media-staging` for
+  staging.
 - Worker: `aqui-suena-api-staging` (staging only; dev runs locally)
 - Pages: `aqui-suena-web-staging`
+
+`pnpm dev` on a feature branch uses the `dev` Infisical environment: the Node
+API opens `.dev/d1/aqui-suena.sqlite`, applies pending migrations from
+`packages/db/migrations`, seeds the plan catalog and, when the dev R2
+credentials are present, stores media in `aqui-suena-media-dev`. Without those
+credentials media falls back to the in-memory adapter. Override the database
+path with `LOCAL_D1_PATH`; delete the file (and its `-wal`/`-shm` siblings) to
+reset local data. `main` and `staging` map to the staging environment, so local
+work belongs on a feature branch.
+
+Auth uses the dev Supabase project: `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+`SUPABASE_SECRET_KEY` and `SUPABASE_JWKS_URL` come from Infisical `dev`, and an
+authenticated request provisions its account into the local D1. The web and
+native sign-in flows are not wired yet.
 
 - `pnpm varlock:load` — resolve and validate the current environment.
 - `pnpm varlock:audit` — check that schema and code references agree.

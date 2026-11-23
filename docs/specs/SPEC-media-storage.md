@@ -71,6 +71,17 @@ reports `media: "configured" | "unconfigured"`; when the R2 credentials are
 missing or only partially set, any media mutation answers
 `503 SERVICE_UNAVAILABLE` with `media storage is not configured`.
 
+### Local development (2026-11-23)
+
+The local Node API uses `R2ObjectStorage` when `R2_ACCOUNT_ID`,
+`R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` are present, honoring
+`R2_BUCKET_NAME` and `R2_ENDPOINT`; the dev Infisical environment points those
+at `aqui-suena-media-dev`. Without the credentials it falls back to
+`InMemoryObjectStorage`. The dev bucket carries the same versioned CORS rules
+as staging (`packages/api/r2-cors.json`), so browser presigned PUT/GET works
+from `http://localhost:3000`. Presigned PUT, signed GET, HEAD and DELETE are
+verified against the dev bucket through the shared adapter.
+
 ## Key layout (2026-11-20)
 
 New owner uploads use `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}`, where
