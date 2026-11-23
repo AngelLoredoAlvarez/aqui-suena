@@ -379,12 +379,14 @@ explains.
       the window background is `#0F1720`, and browser/PWA visits stay ungated.
       Covered by `apps/web/e2e/splash.spec.ts`. Rust 1.98.1 is installed through
       Gentoo Portage, so `tauri dev` can compile the shell; `tauri info` only
-      warns about the missing rustup wrapper.
+      warns about the missing rustup wrapper. See `docs/specs/SPEC-splash-screens.md`.
 - [x] Native splash artwork — DONE 2026-11-23. `app.json` uses the
       `expo-splash-screen` plugin with the transparent `splash-logo-dark.png`
       on `#0F1720`; `apps/mobile/components/native-boot-splash.tsx` renders the
-      `MSplash`/`TSplash` boot screen (title, 600 ms fill and 17Labs mark) for
-      700 ms after Plus Jakarta Sans loads. The light variants wait for the
+      `MSplash`/`TSplash` boot screen (title, the design's arc/bar/fill/bit/
+      code/cursor animations and 17Labs mark) for 2 s after Plus Jakarta Sans
+      loads; readiness will shorten it when the fetch logic lands. See
+      `docs/specs/SPEC-splash-screens.md`. The light variants wait for the
       theme switch.
 - [ ] PWA manifest — PENDING. Add a web app manifest (name, 512 px icon,
       `background_color`, `theme_color`) so an installed web app gets the
