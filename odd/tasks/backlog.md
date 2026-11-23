@@ -452,13 +452,32 @@ explains.
   against its expected 4.7.1, recorded with the accepted deviations below.
   Mobile dev/release builds must be rebuilt to match the bumped native
   modules.
+- Patch/minor bumps applied 2026-11-23 (`chore/update-dependencies`), from a
+  fresh `pnpm outdated -r`: `@cloudflare/workers-types` 5.20261121.1,
+  `@hono/node-server` 2.1.11, `@infisical/cli` 0.45.14,
+  `@supabase/supabase-js` 2.119.2, `@tanstack/react-query` 5.108.2,
+  `@trpc/server`/`@trpc/client` 11.29.7, `dependency-cruiser` 18.9.0,
+  `hono` 4.13.20, `lint-staged` 17.6.2, `pnpm` 12.23.0,
+  `react-native-reanimated` 4.8.0 (`react-native-worklets` 0.14.0),
+  `react-native-svg` 15.16.1 and `wrangler` 4.166.0. `pnpm` moved
+  12.21.0 → 12.23.0 in `packageManager`, README and the lockfile
+  `packageManagerDependencies`. `biome check` (608 files), `typecheck` 7/7,
+  `pnpm test` 7/7, the API coverage thresholds, `check:singletons`,
+  `pnpm arch`, the web `next build`, the D1 migration drift check and
+  `pnpm install --frozen-lockfile` stay green. The Android debug build with
+  reanimated 4.8.0/worklets 0.14.0/svg 15.16.1 compiles and installs on the
+  Pixel 7 AVD. `expo install --check` still flags the deliberate pins plus
+  reanimated 4.8.0 against 4.7.1 and react-native-svg 15.16.1 against
+  15.16.0. Mobile dev/release builds must be rebuilt to match the bumped
+  native modules.
 - Pinned ahead of `expo install --check` (SDK 58), all deliberate: `typescript`
   7.0.2 (expected `~6.0.3`), `react`/`react-dom` 19.3.1 (expected 19.3.0),
   `@react-native-async-storage/async-storage` 3.1.1 (expected 2.2.0; the
   Expo Go block is obsolete now that mobile runs development/release builds),
   `react-native-gesture-handler` 3.5.0 (expected `~3.3.0`),
-  `react-native-reanimated` 4.7.2 (expected 4.7.1). `@types/node` is
-  26.6.6. Rust side: nothing pending.
+  `react-native-reanimated` 4.8.0 (expected 4.7.1; brings
+  `react-native-worklets` 0.14.0), `react-native-svg` 15.16.1 (expected
+  15.16.0). `@types/node` is 26.6.6. Rust side: nothing pending.
 
 ## Discarded (T4 parity — not Turbopack-compatible, checked 2026-11-18)
 
