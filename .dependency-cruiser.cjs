@@ -7,7 +7,7 @@ module.exports = {
       comment:
         "Clean Architecture: shared packages are inner layers, apps are outer. Never import upwards; invert with ports.",
       from: { path: "^packages/" },
-      to: { path: "^(apps/|@aqui-suena/web(/|$))" },
+      to: { path: "^(apps/|@aqui-suena/(web|mobile)(/|$))" },
     },
     {
       name: "config-must-stay-lowest-layer",

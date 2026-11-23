@@ -380,10 +380,12 @@ explains.
       Covered by `apps/web/e2e/splash.spec.ts`. Rust 1.98.1 is installed through
       Gentoo Portage, so `tauri dev` can compile the shell; `tauri info` only
       warns about the missing rustup wrapper.
-- [ ] Native splash artwork — PENDING. `apps/mobile/app.json` still points at
-      the previous `splash-light.png`/`splash-dark.png`; update it to the
-      `MSplash`/`MSplashL` art and verify on a release build (Expo Go and dev
-      builds do not reproduce the native splash faithfully).
+- [x] Native splash artwork — DONE 2026-11-23. `app.json` uses the
+      `expo-splash-screen` plugin with the transparent `splash-logo-dark.png`
+      on `#0F1720`; `apps/mobile/components/native-boot-splash.tsx` renders the
+      `MSplash`/`TSplash` boot screen (title, 600 ms fill and 17Labs mark) for
+      700 ms after Plus Jakarta Sans loads. The light variants wait for the
+      theme switch.
 - [ ] PWA manifest — PENDING. Add a web app manifest (name, 512 px icon,
       `background_color`, `theme_color`) so an installed web app gets the
       OS-generated splash; browser visits stay ungated.

@@ -17,8 +17,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
+void SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
@@ -37,6 +40,13 @@ export default function RootLayout() {
   });
 
   const [locale, setLocale] = useState<SupportedLocale>(initialNativeLocale);
+  useEffect(() => {
+    if (!fontsLoaded) {
+      return;
+    }
+
+    SplashScreen.hide();
+  }, [fontsLoaded]);
 
   useEffect(() => {
     let active = true;

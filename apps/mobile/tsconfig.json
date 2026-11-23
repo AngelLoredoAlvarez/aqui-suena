@@ -3,6 +3,12 @@
   "compilerOptions": {
     "jsx": "react-native"
   },
-  "include": ["app/**/*.ts", "app/**/*.tsx", "babel.config.js"],
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "babel.config.js"
+  ],
   "exclude": ["node_modules"]
 }
