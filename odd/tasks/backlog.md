@@ -374,6 +374,19 @@ explains.
       with `position="absolute"` on `YStack` (`packages/ui/src/player-landing/player-dock.tsx`,
       moved out of `player-landing.tsx` by the dock refactor), the non-idiomatic
       shape found during the overlay work.
+- [x] Desktop boot splash — DONE 2026-11-23. The Tauri shell marks the document
+      before first paint and paints `WSplash` from the static export for 600 ms;
+      the window background is `#0F1720`, and browser/PWA visits stay ungated.
+      Covered by `apps/web/e2e/splash.spec.ts`. Rust 1.98.1 is installed through
+      Gentoo Portage, so `tauri dev` can compile the shell; `tauri info` only
+      warns about the missing rustup wrapper.
+- [ ] Native splash artwork — PENDING. `apps/mobile/app.json` still points at
+      the previous `splash-light.png`/`splash-dark.png`; update it to the
+      `MSplash`/`MSplashL` art and verify on a release build (Expo Go and dev
+      builds do not reproduce the native splash faithfully).
+- [ ] PWA manifest — PENDING. Add a web app manifest (name, 512 px icon,
+      `background_color`, `theme_color`) so an installed web app gets the
+      OS-generated splash; browser visits stay ungated.
 - [x] Native system bars (Android): DONE 2026-11-14 (PR #30) and verified on a
       physical device 2026-11-16 with build `caf3c458`. The landing clears the
       status bar and the player clears the navigation bar. The same safe-area hook

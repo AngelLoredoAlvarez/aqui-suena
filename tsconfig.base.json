@@ -27,7 +27,8 @@
       "@aqui-suena/player": ["./packages/player/src"],
       "@aqui-suena/player/*": ["./packages/player/src/*"],
       "@aqui-suena/ui": ["./packages/ui/src"],
-      "@aqui-suena/ui/*": ["./packages/ui/src/*"]
+      "@aqui-suena/ui/*": ["./packages/ui/src/*"],
+      "@aqui-suena/web/*": ["./apps/web/*"]
     }
   }
 }

@@ -6,8 +6,8 @@ import {
   loadPersistedPlayerCardPosition,
   savePersistedPlayerCardPosition,
 } from "@aqui-suena/ui/state";
+import { trayBridge } from "@aqui-suena/web/app/tray-bridge";
 import { useCallback, useEffect, useState } from "react";
-import { trayBridge } from "./tray-bridge";
 
 export default function HomePage() {
   const [initialPosition, setInitialPosition] = useState<PlayerCardPosition | undefined>(undefined);

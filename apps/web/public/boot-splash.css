@@ -1,0 +1,172 @@
+.boot-splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background: #0f1720;
+  color: #f2f5f7;
+}
+
+html.tauri .boot-splash {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: boot-splash-out 200ms ease-out 600ms forwards;
+}
+
+.boot-splash__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 43px;
+}
+
+.boot-splash__logo svg {
+  display: block;
+  width: 216px;
+  height: 216px;
+}
+
+.boot-splash__title {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.boot-splash__track {
+  width: 194px;
+  height: 4px;
+  margin-top: 32px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1f2d3e;
+}
+
+.boot-splash__fill {
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: #ff8a65;
+  animation: boot-splash-fill 600ms ease-out forwards;
+}
+
+.boot-splash__by {
+  position: absolute;
+  right: 0;
+  bottom: 56px;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  color: #a3b3c2;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.boot-splash__by-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.boot-splash__by-mark svg {
+  display: block;
+  width: 42px;
+  height: 42px;
+}
+
+.boot-splash__wordmark {
+  display: flex;
+  align-items: flex-end;
+  color: #a3b3c2;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.boot-splash__wordmark strong {
+  color: #f2f5f7;
+  font-weight: 800;
+}
+
+.boot-splash__wordmark span {
+  color: #5eead4;
+}
+
+.boot-splash__wordmark i {
+  display: inline-block;
+  width: 8px;
+  height: 2px;
+  margin-bottom: 1px;
+  margin-left: 2px;
+  background: #5eead4;
+}
+
+@keyframes boot-splash-fill {
+  from {
+    width: 40%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes boot-splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 600px) {
+  .boot-splash__stack {
+    gap: 28px;
+  }
+
+  .boot-splash__logo svg {
+    width: 140px;
+    height: 140px;
+  }
+
+  .boot-splash__title {
+    font-size: 34px;
+  }
+
+  .boot-splash__track {
+    width: 126px;
+    margin-top: 21px;
+  }
+
+  .boot-splash__by {
+    bottom: 40px;
+    font-size: 15px;
+  }
+
+  .boot-splash__by-mark svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .boot-splash__wordmark {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.tauri .boot-splash {
+    animation: boot-splash-out 0ms linear 600ms forwards;
+  }
+
+  .boot-splash__fill {
+    width: 100%;
+    animation: none;
+  }
+}

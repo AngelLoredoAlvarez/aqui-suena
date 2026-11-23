@@ -115,6 +115,26 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/web/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["./**", "../**"],
+                    "message": "Relative imports are forbidden in apps/web: use @aqui-suena/web/* aliases."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
