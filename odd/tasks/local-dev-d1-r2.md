@@ -95,3 +95,5 @@ Test runner: `vitest` via `pnpm --filter @aqui-suena/api test`
   `SUPABASE_JWKS_URL`, uses the dev anon and secret keys, and provisions the
   authenticated account into the local D1. No code change was needed. The web
   and native sign-in flows are not wired yet.
+- L14. Shipped in `34bd677` (API), `ead5d1a` (dev tooling) and `43d7d42`
+  (docs). PR #100: https://github.com/AngelLoredoAlvarez/aqui-suena/pull/100
