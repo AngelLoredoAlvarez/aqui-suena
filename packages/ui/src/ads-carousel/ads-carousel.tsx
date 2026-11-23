@@ -75,15 +75,29 @@ export function AdsCarousel({
   if (!current) {
     return null;
   }
+
   const flyerW = flyerWidth ?? maxW;
+
   const groupLabel = dictionary.adGroupLabel(safeIndex + 1, items.length);
-  const meta = composeMeta(current, {
-    isWide,
-    deliveryLabel: dictionary.delivery,
-  });
+
+  const meta = composeMeta(
+    {
+      category: dictionary.category(current.category),
+      delivery: current.delivery,
+      opensLabel: current.opensAt ? dictionary.opensAt(current.opensAt) : undefined,
+    },
+    {
+      isWide,
+      deliveryLabel: dictionary.delivery,
+    },
+  );
+
   const statusLabel = current.isOpen ? dictionary.open : dictionary.closed;
+
   const statusColor = current.isOpen ? "ok" : "error";
+
   let nameFontSize = 22;
+
   if (media.xl) {
     nameFontSize = 26;
   } else if (isWide) {

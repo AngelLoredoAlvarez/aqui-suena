@@ -11,9 +11,9 @@ const ITEMS: readonly AdsCarouselItem[] = [
     imageUrl: "https://example.com/a.png",
     alt: "Ad A",
     name: "Desayunos Casa Rosa",
-    category: "Comida",
+    category: "food",
     delivery: true,
-    opensLabel: "Abre 8:00",
+    opensAt: "8:00",
     isOpen: true,
   },
   {
@@ -21,7 +21,7 @@ const ITEMS: readonly AdsCarouselItem[] = [
     imageUrl: "https://example.com/b.png",
     alt: "Ad B",
     name: "Dental Sonrisa",
-    category: "Salud",
+    category: "health",
     delivery: false,
     isOpen: false,
   },
@@ -48,9 +48,14 @@ describe("AdsCarousel", () => {
     expect(screen.getByText("Desayunos Casa Rosa")).toBeTruthy();
   });
 
-  it("composes the meta line (category · delivery · opensLabel)", () => {
+  it("composes the meta line (category · delivery · opensAt)", () => {
     renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
     expect(screen.getByText("Comida · Servicio a domicilio · Abre 8:00")).toBeTruthy();
+  });
+
+  it("localizes the category and opening time", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "en" });
+    expect(screen.getByText("Food · Home delivery · Opens 8:00")).toBeTruthy();
   });
 
   it("renders the open-status badge from isOpen", () => {
