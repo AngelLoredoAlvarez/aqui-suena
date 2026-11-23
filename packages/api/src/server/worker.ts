@@ -20,7 +20,11 @@ import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/c
 import { D1PaymentEventRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-event-repository";
 import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import { D1ReminderLogRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-reminder-log-repository";
-import { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
+import {
+  createR2StorageFromEnv,
+  hasPartialR2Config,
+} from "@aqui-suena/api/infrastructure/media/r2-from-env";
+import type { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";
@@ -172,29 +176,15 @@ function facturamaEnv(env: WorkerEnv): FacturamaEnv {
 }
 
 function mediaStorageFromEnv(env: WorkerEnv): R2ObjectStorage | undefined {
-  const credentials = {
-    accountId: env.R2_ACCOUNT_ID,
-    accessKeyId: env.R2_ACCESS_KEY_ID,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-  };
+  const storage = createR2StorageFromEnv(env);
 
-  if (credentials.accountId && credentials.accessKeyId && credentials.secretAccessKey) {
-    return new R2ObjectStorage({
-      accountId: credentials.accountId,
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      bucketName: env.R2_BUCKET_NAME ?? "aqui-suena-media",
-      endpoint: env.R2_ENDPOINT,
-    });
-  }
-
-  if (Object.values(credentials).some((value) => value !== undefined && value !== "")) {
+  if (storage === undefined && hasPartialR2Config(env)) {
     console.error(
       "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
     );
   }
 
-  return undefined;
+  return storage;
 }
 
 async function runMediaMaintenance(env: WorkerEnv): Promise<void> {

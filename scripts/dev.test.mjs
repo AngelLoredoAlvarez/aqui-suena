@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import net from "node:net";
+import { join } from "node:path";
 import { test } from "node:test";
 import {
   androidLaunchCommands,
@@ -20,12 +21,27 @@ import {
   parseFlags,
   resolveAvds,
   resolveBin,
+  resolveLocalD1Path,
   resolveMobileApiBase,
   selectReusable,
 } from "./dev.mjs";
 
 const STREAM_BASE = "http://192.168.0.21:3000";
 const API_BASE = "http://192.168.0.21:3001";
+
+test("resolveLocalD1Path prefers LOCAL_D1_PATH and defaults under .dev", () => {
+  const root = "/repo";
+
+  assert.equal(resolveLocalD1Path({}, root), join(root, ".dev", "d1", "aqui-suena.sqlite"));
+  assert.equal(
+    resolveLocalD1Path({ LOCAL_D1_PATH: " /tmp/aqui-suena.sqlite " }, root),
+    "/tmp/aqui-suena.sqlite",
+  );
+  assert.equal(
+    resolveLocalD1Path({ LOCAL_D1_PATH: "   " }, root),
+    join(root, ".dev", "d1", "aqui-suena.sqlite"),
+  );
+});
 
 function build(overrides = {}) {
   return buildTasks({

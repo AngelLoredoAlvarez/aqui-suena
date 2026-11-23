@@ -27,7 +27,14 @@ Test: pnpm -r test -- --run
 Lint: pnpm exec biome check --write .
 Typecheck: pnpm -r typecheck
 DB migrations: pnpm --filter @aqui-suena/db db:generate, then pnpm --filter @aqui-suena/api exec wrangler d1 migrations apply <db> --remote
+Local D1: pnpm dev (API uses .dev/d1/aqui-suena.sqlite; migrations apply automatically; LOCAL_D1_PATH overrides the path)
 ```
+
+The local Node API runs the same D1 repositories against a SQLite file through
+`node:sqlite`. `pnpm dev` sets `LOCAL_D1_PATH` to `.dev/d1/aqui-suena.sqlite`,
+applies pending migrations on startup, records applied files in
+`__local_migrations`, and seeds the plan catalog. There is no remote dev
+database; delete the local file to reset it.
 
 ## Project Structure
 

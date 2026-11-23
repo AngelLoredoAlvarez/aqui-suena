@@ -37,3 +37,6 @@ docs/designs/
 
 # Wrangler local state
 .wrangler/
+
+# Local dev data (SQLite D1, scratch files)
+.dev/
