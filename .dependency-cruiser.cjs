@@ -6,8 +6,8 @@ module.exports = {
       severity: "error",
       comment:
         "Clean Architecture: shared packages are inner layers, apps are outer. Never import upwards; invert with ports.",
-      from: { path: "packages/(config|navigation|ui)/src" },
-      to: { path: "apps/" },
+      from: { path: "^packages/" },
+      to: { path: "^(apps/|@aqui-suena/web(/|$))" },
     },
     {
       name: "config-must-stay-lowest-layer",
