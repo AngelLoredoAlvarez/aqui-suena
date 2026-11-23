@@ -10,9 +10,10 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
 ## Specs
 
 - S1 (Data model): `AdsCarouselItem` is structured `{ id, imageUrl, alt, name,
-  category, delivery, opensLabel, isOpen, href? }`, canonical in
-  `packages/api/src/ads.ts`, re-exported to the UI. `delivery` is a boolean
-  rendered via i18n; `isOpen` drives the badge.
+  category, delivery, opensAt, isOpen, href? }`, canonical in
+  `packages/api/src/domain/ads/contract.ts`, re-exported to the UI. `category`
+  and `delivery` render via i18n; `opensAt` is the next opening time for a
+  closed business; `isOpen` drives the badge.
 - S2 (Slide anatomy): full-bleed flyer image (`object-fit: cover`,
   `object-position: center top`) + open-status badge top-right (`Abierto`/
   `Cerrado`) + pagination dots overlaid bottom-center in a `role="group"`
@@ -24,14 +25,15 @@ mobile / tablet / web from the shared `@aqui-suena/ui` component. Spec:
   badge + dots overlaid, plus name (`fs:24` tablet / `fs:26` web) and meta in
   the info column. Contact rows + actions are out of scope (business-directory).
 - S5 (Meta composition): one shared pure function composes
-  `category · delivery · opensLabel`; `delivery` only when true; `opensLabel`
-  only on mobile (wide shows horario in its own row, deferred).
+  `category · delivery · opensAt`; `delivery` only when true; `opensAt` only
+  on mobile (wide shows horario in its own row, deferred).
 - S6 (Empty state): centered "no sponsored businesses yet" + "come back soon: you will see nearby businesses here" via i18n.
 - S7 (Breakpoints): card max width 390 (base) / 768 (md) / 1024 (lg) / 1440
   (xl); flyer panel width 330 (md/lg) / 480 (xl).
-- S8 (i18n): add `open`, `closed`, `delivery`, `viewBusiness`,
-  `noSponsoredBusinesses`, `noSponsoredBusinessesHint`, `adGroupLabel(index,
-  count)` to es + en with parity.
+- S8 (i18n): add `open`, `closed`, `delivery`, `category(value)`,
+  `opensAt(time)`, `viewBusiness`, `noSponsoredBusinesses`,
+  `noSponsoredBusinessesHint`, `adGroupLabel(index, count)` to es + en with
+  parity.
 
 ## Tasks
 

@@ -141,12 +141,16 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 ### Data model
 
 `AdsCarouselItem` grows from `{ id, imageUrl, alt, href? }` to carry the card
-fields: `{ id, imageUrl, alt, name, category, delivery, opensLabel, isOpen,
-href? }` — `name` renders the title; `category` + `delivery` + `opensLabel`
-compose the meta line in one shared function (see below); `isOpen` drives the
-badge; `href` links to the business sheet (navigation still TBD). `delivery` is
-a boolean rendered via the i18n `delivery` label ("Servicio a domicilio" /
-"Home delivery"), never hardcoded. These fields mirror what `businesses`
+fields: `{ id, imageUrl, alt, name, category, delivery, opensAt, isOpen,
+href? }` — `name` renders the title; `category` is the business category enum
+rendered through the i18n `category` labels ("Comida"/"Food",
+"Servicios"/"Services", …), `delivery` is a boolean rendered via the i18n
+`delivery` label ("Servicio a domicilio" / "Home delivery"), and `opensAt` is
+the next opening time in `H:MM` format for a closed business, rendered via the
+i18n `opensAt` formatter ("Abre 8:00" / "Opens 8:00"). The three compose the
+meta line in one shared function (see below); `isOpen` drives the
+badge; `href` links to the business sheet (navigation still TBD). None of these
+user-facing strings are hardcoded. These fields mirror what `businesses`
 exposes (category, delivery flag, hours), so the carousel card, the directory,
 and the sheet reuse the same contract without refactoring later. The carousel
 now serves real inventory from `ads.carousel` (getBusinessCarousel use-case);
@@ -156,7 +160,10 @@ the empty state ("No sponsored businesses yet").
 ### i18n additions (es / en)
 
 `open` ("Abierto"/"Open"), `closed` ("Cerrado"/"Closed"), `delivery`
-("Servicio a domicilio"/"Home delivery"), `viewBusiness` ("Ver negocio"/"View
+("Servicio a domicilio"/"Home delivery"), `category(value)` (Comida/Food,
+Salud/Health, Comercio/Retail, Servicios/Services, Cómputo/Computing,
+Otros/Other, unknown values fall back to the raw value), `opensAt(time)`
+("Abre 8:00"/"Opens 8:00"), `viewBusiness` ("Ver negocio"/"View
 business") by plan: Comunidad `viewContact` ("Ver contacto"/"View contact"),
 Oficios `viewServices` ("Ver servicios"/"View services"), Comercios `viewCatalog`
 ("Ver catálogo"/"View catalog"), `noSponsoredBusinesses` ("No sponsored businesses yet"/"No
@@ -177,8 +184,10 @@ The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
 
 ## Decisions (resolved)
 
-- Meta line is structured (`category` + `delivery` + `opensLabel`), composed in
-  one shared function — not a flat `meta` string (see Data model).
+- Meta line is structured (`category` + `delivery` + `opensAt`), composed in
+  one shared function — not a flat `meta` string (see Data model). Category
+  labels and the opening-time prefix are i18n; `opensAt` is omitted while the
+  business is open or when it has no weekly hours.
 - Delivery label is canonical `"Servicio a domicilio"` / `"Home delivery"` on
   all platforms; the mobile design's "Entrega a domicilio" is a design
   inconsistency.

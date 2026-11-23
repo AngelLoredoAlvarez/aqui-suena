@@ -7,6 +7,7 @@ import {
   deriveListingOpen,
   isOpenNow,
   listingInputSchema,
+  nextOpeningTime,
   parseBusinessCategory,
 } from "@aqui-suena/api/domain/directory/contracts/listing";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
@@ -286,5 +287,44 @@ describe("isOpenNow", () => {
     const sun0300 = new Date("2026-10-25T03:00:00-06:00");
     const overnight = [{ day: 6, openMinute: 22 * 60, closeMinute: 2 * 60 }];
     expect(isOpenNow(overnight, "America/Mexico_City", sun0300)).toBe(false);
+  });
+});
+
+describe("nextOpeningTime", () => {
+  const hours = [{ day: 1, openMinute: 8 * 60, closeMinute: 20 * 60 }];
+
+  it("returns today's opening time when it is still ahead", () => {
+    expect(
+      nextOpeningTime(hours, "America/Mexico_City", new Date("2026-10-26T07:00:00-06:00")),
+    ).toBe("8:00");
+  });
+
+  it("returns the next week's opening time after closing", () => {
+    expect(
+      nextOpeningTime(hours, "America/Mexico_City", new Date("2026-10-26T21:00:00-06:00")),
+    ).toBe("8:00");
+  });
+
+  it("returns the next opening across days", () => {
+    expect(
+      nextOpeningTime(hours, "America/Mexico_City", new Date("2026-10-30T23:00:00-06:00")),
+    ).toBe("8:00");
+  });
+
+  it("picks the next range on the same day", () => {
+    const split = [
+      { day: 1, openMinute: 8 * 60, closeMinute: 12 * 60 },
+      { day: 1, openMinute: 16 * 60, closeMinute: 20 * 60 },
+    ];
+
+    expect(
+      nextOpeningTime(split, "America/Mexico_City", new Date("2026-10-26T13:00:00-06:00")),
+    ).toBe("16:00");
+  });
+
+  it("returns null without weekly hours", () => {
+    expect(
+      nextOpeningTime([], "America/Mexico_City", new Date("2026-10-26T13:00:00-06:00")),
+    ).toBeNull();
   });
 });

@@ -87,11 +87,7 @@ const DAY_MAP: Readonly<Record<string, number>> = {
   Sat: 6,
 };
 
-export function isOpenNow(
-  hours: readonly { day: number; openMinute: number; closeMinute: number }[],
-  timezone: string,
-  now: Date,
-): boolean {
+function zonedDayAndMinute(timezone: string, now: Date): { day: number; minute: number } | null {
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     weekday: "short",
@@ -102,22 +98,79 @@ export function isOpenNow(
   const parts = formatter.formatToParts(now);
   const weekday = parts.find((p) => p.type === "weekday")?.value ?? "";
   const day = DAY_MAP[weekday];
-  if (day === undefined) return false;
+
+  if (day === undefined) return null;
 
   const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
   const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
-  const nowMinute = hour * 60 + minute;
+
+  return { day, minute: hour * 60 + minute };
+}
+
+export function isOpenNow(
+  hours: readonly { day: number; openMinute: number; closeMinute: number }[],
+  timezone: string,
+  now: Date,
+): boolean {
+  const current = zonedDayAndMinute(timezone, now);
+
+  if (current === null) return false;
 
   return hours.some((h) => {
     if (h.closeMinute > h.openMinute) {
       // Normal range within a single day.
-      return h.day === day && nowMinute >= h.openMinute && nowMinute < h.closeMinute;
+      return (
+        h.day === current.day && current.minute >= h.openMinute && current.minute < h.closeMinute
+      );
     }
     // Overnight range: [openMinute, 1440) on h.day ∪ [0, closeMinute) on the next day.
-    if (h.day === day && nowMinute >= h.openMinute) return true;
-    if ((h.day + 1) % 7 === day && nowMinute < h.closeMinute) return true;
+    if (h.day === current.day && current.minute >= h.openMinute) return true;
+
+    if ((h.day + 1) % 7 === current.day && current.minute < h.closeMinute) return true;
+
     return false;
   });
+}
+
+/** Formats a minute-of-day as the design shows it: 8:00, 9:30, 18:30. */
+export function formatMinute(minute: number): string {
+  const normalized = ((minute % 1440) + 1440) % 1440;
+  const hour = Math.floor(normalized / 60);
+  const mins = normalized % 60;
+
+  return `${hour}:${String(mins).padStart(2, "0")}`;
+}
+
+/**
+ * Next opening time for a closed business, in the business timezone, within
+ * the next seven days. Returns null when there are no weekly hours.
+ */
+export function nextOpeningTime(
+  hours: readonly { day: number; openMinute: number; closeMinute: number }[],
+  timezone: string,
+  now: Date,
+): string | null {
+  const current = zonedDayAndMinute(timezone, now);
+
+  if (current === null || hours.length === 0) return null;
+
+  let best: number | null = null;
+
+  for (const h of hours) {
+    let deltaDays = (h.day - current.day + 7) % 7;
+
+    if (deltaDays === 0 && h.openMinute <= current.minute) {
+      deltaDays = 7;
+    }
+
+    const candidate = deltaDays * 1440 + h.openMinute;
+
+    if (best === null || candidate < best) {
+      best = candidate;
+    }
+  }
+
+  return best === null ? null : formatMinute(best);
 }
 
 export function deriveListingOpen(listing: ListingInput, now: Date): boolean {

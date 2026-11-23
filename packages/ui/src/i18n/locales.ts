@@ -32,10 +32,30 @@ export type Dictionary = {
   readonly open: string;
   readonly closed: string;
   readonly delivery: string;
+  readonly category: (value: string) => string;
+  readonly opensAt: (time: string) => string;
   readonly viewBusiness: string;
   readonly noSponsoredBusinesses: string;
   readonly noSponsoredBusinessesHint: string;
   readonly adGroupLabel: (index: number, count: number) => string;
+};
+
+const categoryLabelsEs: Readonly<Record<string, string>> = {
+  food: "Comida",
+  health: "Salud",
+  retail: "Comercio",
+  services: "Servicios",
+  computing: "Cómputo",
+  other: "Otros",
+};
+
+const categoryLabelsEn: Readonly<Record<string, string>> = {
+  food: "Food",
+  health: "Health",
+  retail: "Retail",
+  services: "Services",
+  computing: "Computing",
+  other: "Other",
 };
 
 export const es: Dictionary = {
@@ -65,6 +85,8 @@ export const es: Dictionary = {
   open: "Abierto",
   closed: "Cerrado",
   delivery: "Servicio a domicilio",
+  category: (value: string) => categoryLabelsEs[value] ?? value,
+  opensAt: (time: string) => `Abre ${time}`,
   viewBusiness: "Ver negocio",
   noSponsoredBusinesses: "Aún no hay negocios patrocinados",
   noSponsoredBusinessesHint: "Vuelve pronto: aquí verás los negocios cerca de ti.",
@@ -98,6 +120,8 @@ export const en: Dictionary = {
   open: "Open",
   closed: "Closed",
   delivery: "Home delivery",
+  category: (value: string) => categoryLabelsEn[value] ?? value,
+  opensAt: (time: string) => `Opens ${time}`,
   viewBusiness: "View business",
   noSponsoredBusinesses: "No sponsored businesses yet",
   noSponsoredBusinessesHint: "Check back soon — you'll see businesses near you here.",

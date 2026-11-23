@@ -1,5 +1,5 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
-import { isOpenNow } from "@aqui-suena/api/domain/directory/contracts/listing";
+import { isOpenNow, nextOpeningTime } from "@aqui-suena/api/domain/directory/contracts/listing";
 
 export type CarouselItemSource = {
   readonly business: {
@@ -21,6 +21,12 @@ export function toCarouselItem(
   flyerUrl: string,
   now: Date,
 ): AdsCarouselItem {
+  const isOpen = isOpenNow(source.hours, source.business.timezone, now);
+
+  const opensAt = isOpen
+    ? undefined
+    : (nextOpeningTime(source.hours, source.business.timezone, now) ?? undefined);
+
   return {
     id: source.business.id,
     imageUrl: flyerUrl,
@@ -28,6 +34,7 @@ export function toCarouselItem(
     name: source.business.name,
     category: source.business.category,
     delivery: source.business.delivery,
-    isOpen: isOpenNow(source.hours, source.business.timezone, now),
+    isOpen,
+    opensAt,
   };
 }
