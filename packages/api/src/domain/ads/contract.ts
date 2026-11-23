@@ -7,7 +7,7 @@ export type AdsCarouselItem = {
   name: string;
   category: string;
   delivery: boolean;
-  opensLabel?: string;
+  opensAt?: string;
   isOpen: boolean;
   href?: string;
 };
@@ -19,7 +19,7 @@ const adsCarouselItemSchema = v.object({
   name: v.string(),
   category: v.string(),
   delivery: v.boolean(),
-  opensLabel: v.optional(v.string()),
+  opensAt: v.optional(v.string()),
   isOpen: v.boolean(),
   href: v.optional(v.string()),
 });

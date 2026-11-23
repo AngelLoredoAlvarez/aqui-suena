@@ -31,11 +31,20 @@ describe("toCarouselItem", () => {
     expect(item.isOpen).toBe(true);
   });
 
-  it("marks closed when now is outside business hours", () => {
+  it("marks closed when now is outside business hours and sets the next opening", () => {
     const night = new Date("2026-11-06T23:00:00-06:00");
     const item = toCarouselItem(source, "https://r2/flyer.png", night);
 
     expect(item.isOpen).toBe(false);
+    expect(item.opensAt).toBe("8:00");
+  });
+
+  it("sets the next opening when closed before opening", () => {
+    const before = new Date("2026-11-02T07:00:00-06:00");
+    const item = toCarouselItem(source, "https://r2/flyer.png", before);
+
+    expect(item.isOpen).toBe(false);
+    expect(item.opensAt).toBe("8:00");
   });
 
   it("sets alt text referencing the business name", () => {
@@ -50,9 +59,16 @@ describe("toCarouselItem", () => {
     expect(item.href).toBeUndefined();
   });
 
-  it("leaves opensLabel undefined (computed elsewhere)", () => {
+  it("leaves opensAt undefined while the business is open", () => {
     const item = toCarouselItem(source, "https://r2/flyer.png", now);
 
-    expect(item.opensLabel).toBeUndefined();
+    expect(item.opensAt).toBeUndefined();
+  });
+
+  it("leaves opensAt undefined when the business has no hours", () => {
+    const item = toCarouselItem({ ...source, hours: [] }, "https://r2/flyer.png", now);
+
+    expect(item.isOpen).toBe(false);
+    expect(item.opensAt).toBeUndefined();
   });
 });
