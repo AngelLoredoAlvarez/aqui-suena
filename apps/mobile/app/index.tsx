@@ -7,6 +7,7 @@ import {
 } from "@aqui-suena/ui/state";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 
 const deviceStore = AsyncStorage;
 
@@ -17,7 +18,7 @@ export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setBooted(true);
-    }, 700);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -44,11 +45,29 @@ export default function Index() {
     void savePersistedPlayerCardPositionAsync(deviceStore, next);
   }, []);
 
-  if (!booted) {
-    return <NativeBootSplash />;
-  }
-
   return (
-    <PlayerLanding onPositionChange={handlePositionChange} initialPosition={initialPosition} />
+    <View style={styles.root}>
+      <PlayerLanding onPositionChange={handlePositionChange} initialPosition={initialPosition} />
+      {!booted ? (
+        <View style={styles.splash}>
+          <NativeBootSplash />
+        </View>
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#0F1720",
+  },
+  splash: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+  },
+});
