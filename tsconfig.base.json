@@ -28,7 +28,8 @@
       "@aqui-suena/player/*": ["./packages/player/src/*"],
       "@aqui-suena/ui": ["./packages/ui/src"],
       "@aqui-suena/ui/*": ["./packages/ui/src/*"],
-      "@aqui-suena/web/*": ["./apps/web/*"]
+      "@aqui-suena/web/*": ["./apps/web/*"],
+      "@aqui-suena/mobile/*": ["./apps/mobile/*"]
     }
   }
 }
