@@ -34,17 +34,17 @@
     "deploy:worker": "wrangler deploy"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.9",
+    "@hono/node-server": "^2.1.11",
     "@hono/trpc-server": "^0.4.2",
-    "@supabase/supabase-js": "^2.119.1",
-    "@trpc/server": "11.29.4",
-    "hono": "^4.13.19",
+    "@supabase/supabase-js": "^2.119.2",
+    "@trpc/server": "11.29.7",
+    "hono": "^4.13.20",
     "tsx": "4.23.15",
     "valibot": "^1.5.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261118.1",
-    "@trpc/client": "11.29.4",
+    "@cloudflare/workers-types": "^5.20261121.1",
+    "@trpc/client": "11.29.7",
     "@types/node": "26.6.6",
     "@vitest/coverage-v8": "5.1.1",
     "typescript": "7.0.2",
