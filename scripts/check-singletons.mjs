@@ -15,10 +15,12 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 
 const SINGLETONS = [
+  "@tamagui/image",
   "@tanstack/react-query",
   "@types/react",
   "@types/react-dom",
   "expo-audio",
+  "expo-image",
   "jotai",
   "react",
   "react-dom",

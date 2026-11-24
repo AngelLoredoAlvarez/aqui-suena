@@ -191,5 +191,5 @@ Cloudflare Workers AI free-tier models: Llama 3.1 8B (general), Mistral 7B (mult
 
 - **Owner-scoped media reads:** the public photo/flyer reads hide unpublished businesses. The viewer needs a protected owner list/get (or must key the gallery off `media.list` + `media.signedUrl`) before it can show a hidden business.
 - **PDF viewer:** `react-pdf`/`pdfjs-dist` gives an in-app viewer but adds bundle weight; the system viewer via `expo-web-browser` is lighter but leaves the session. Decide per platform with the viewer bundle budget.
-- **Image variants:** client-generated thumbnails or a free Worker WASM pipeline (`@jsquash`). Paid Cloudflare Image Resizing/Images is excluded by the zero-cost rule. Until one lands, `OptimizedImage` serves the original signed object with lazy loading and a blur placeholder.
+- **Image variants:** client-generated thumbnails or a free Worker WASM pipeline (`@jsquash`). Paid Cloudflare Image Resizing/Images is excluded by the zero-cost rule. Until one lands, `OptimizedImage` serves the original signed object with lazy loading, a blur placeholder and the native expo-image disk cache.
 - **Spot preview:** `expo-audio` on native and `HTMLAudioElement` on web/Tauri are the baseline; a waveform (`wavesurfer.js`) is optional and must not delay the preview.

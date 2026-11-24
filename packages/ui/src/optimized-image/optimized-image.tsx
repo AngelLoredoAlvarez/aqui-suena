@@ -1,5 +1,7 @@
+import { Image } from "@aqui-suena/ui/optimized-image/image";
+import { imageCacheKey } from "@aqui-suena/ui/optimized-image/image-cache-key";
 import { useEffect, useRef, useState } from "react";
-import { Image, YStack } from "tamagui";
+import { YStack } from "tamagui";
 
 export type OptimizedImageProps = {
   readonly src: string;
@@ -30,6 +32,7 @@ export function OptimizedImage({
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
+  const cacheKey = imageCacheKey(src);
 
   useEffect(() => {
     if (priority) {
@@ -95,10 +98,12 @@ export function OptimizedImage({
         <Image
           src={src}
           alt={alt}
+          cacheKey={cacheKey}
           width={fill ? "100%" : width}
           height={fill ? "100%" : height}
           objectFit={objectFit}
-          onLoad={() => setStatus("loaded")}
+          objectPosition={objectPosition}
+          onLoad={() => setStatus((current) => (current === "error" ? current : "loaded"))}
           onError={() => setStatus("error")}
           opacity={status === "loaded" ? 1 : 0}
           transition="quick"
