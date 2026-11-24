@@ -5,6 +5,7 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { LandingHeader } from "@aqui-suena/ui/player-landing/landing-header";
 import { LandingSidebar } from "@aqui-suena/ui/player-landing/landing-sidebar";
 import { usePlayerInsets } from "@aqui-suena/ui/player-landing/player-insets";
+import { landingTopPadding } from "@aqui-suena/ui/player-landing/player-spacing";
 import { selectListenerStatus } from "@aqui-suena/ui/player-landing/select-listener-status";
 import { StationPlayer } from "@aqui-suena/ui/player-landing/station-player";
 import { channelById } from "@aqui-suena/ui/player-landing/test-channels";
@@ -91,8 +92,6 @@ export function PlayerLanding({
 
   const contentPaddingX = isWebLayout ? 24 : 12;
 
-  const contentPaddingTop = isWebLayout ? 20 : 12;
-
   if (!mounted) {
     return (
       <YStack
@@ -134,17 +133,11 @@ export function PlayerLanding({
           data-position={position}
           flex={1}
           minH={0}
-          gap={isMobile ? 12 : 0}
+          gap={12}
+          pt={landingTopPadding(position, isWebLayout)}
           flexDirection={position === "top" ? "column-reverse" : "column"}
         >
-          <YStack
-            testID="landing-content"
-            flex={1}
-            minH={0}
-            px={isMobile ? 0 : contentPaddingX}
-            pt={isMobile ? 12 : contentPaddingTop}
-            pb={isMobile ? 0 : 12}
-          >
+          <YStack testID="landing-content" flex={1} minH={0} px={isMobile ? 0 : contentPaddingX}>
             {isMobile ? (
               <YStack flex={1} minH={0} mx={12} gap={12}>
                 <YStack flex={1} minH={0}>

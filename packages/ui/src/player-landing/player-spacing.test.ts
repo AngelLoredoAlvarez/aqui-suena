@@ -1,5 +1,25 @@
-import { playerSpacing } from "@aqui-suena/ui/player-landing/player-spacing";
+import {
+  contentTopPadding,
+  landingTopPadding,
+  playerSpacing,
+} from "@aqui-suena/ui/player-landing/player-spacing";
 import { describe, expect, it } from "vitest";
+
+describe("contentTopPadding", () => {
+  it("uses 12 below web and 20 on web", () => {
+    expect(contentTopPadding(false)).toBe(12);
+    expect(contentTopPadding(true)).toBe(20);
+  });
+});
+
+describe("landingTopPadding", () => {
+  it("matches the dock margin on top and the content gap below", () => {
+    expect(landingTopPadding("top", false)).toBe(12);
+    expect(landingTopPadding("top", true)).toBe(12);
+    expect(landingTopPadding("bottom", false)).toBe(12);
+    expect(landingTopPadding("bottom", true)).toBe(20);
+  });
+});
 
 describe("playerSpacing", () => {
   it("keeps the original spacing without native insets", () => {

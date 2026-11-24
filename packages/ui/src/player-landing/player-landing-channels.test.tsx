@@ -208,12 +208,36 @@ describe("PlayerLanding composition", () => {
     const body = screen.getByTestId("landing-body");
     const playsBefore = playSpy.mock.calls.length;
 
+    function spacing() {
+      const currentBody = screen.getByTestId("landing-body");
+      const content = screen.getByTestId("landing-content");
+
+      return {
+        top: getComputedStyle(currentBody).paddingTop,
+        gap: getComputedStyle(currentBody).gap,
+        contentTop: getComputedStyle(content).paddingTop,
+        contentBottom: getComputedStyle(content).paddingBottom,
+      };
+    }
+
     expect(body.getAttribute("data-position")).toBe("bottom");
+    expect(spacing()).toEqual({
+      top: "12px",
+      gap: "12px",
+      contentTop: "0px",
+      contentBottom: "0px",
+    });
     expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Mover reproductor arriba o abajo" }));
 
     expect(body.getAttribute("data-position")).toBe("top");
+    expect(spacing()).toEqual({
+      top: "12px",
+      gap: "12px",
+      contentTop: "0px",
+      contentBottom: "0px",
+    });
     expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
     expect(playSpy.mock.calls.length).toBe(playsBefore);
   });
