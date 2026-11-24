@@ -181,8 +181,8 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 
 ### Scope boundary
 
-The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
-+ CTA) rendered responsively across all three breakpoints. The landing shell
+The "card anatomy" unit owns the flyer card (image, badge, dots, name, meta
+and CTA) rendered responsively across all three breakpoints. The landing shell
 renders the tablet/web **read-only contact panel** (phone/WhatsApp/address/
 schedule + inert Call/WhatsApp/Get directions actions) from the carousel item's
 contact fields; see `SPEC-landing.md`. The full directory **list route and
