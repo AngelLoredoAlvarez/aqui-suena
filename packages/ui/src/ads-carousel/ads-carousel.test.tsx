@@ -92,16 +92,69 @@ describe("AdsCarousel", () => {
     expect(screen.getByAltText("Ad B")).toBeTruthy();
   });
 
-  it("renders one dot per item, marking the active one, with a group label", () => {
+  it("renders one flyer group per visible item and labels the current one", () => {
     renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
 
-    const dots = screen.getAllByTestId("ads-carousel-dot");
-    expect(dots).toHaveLength(ITEMS.length);
-
-    expect(dots[0]?.getAttribute("data-active")).toBe("true");
-    expect(dots[1]?.getAttribute("data-active")).toBeNull();
-
     expect(screen.getByRole("group", { name: "Anuncio 1 de 2" })).toBeTruthy();
+  });
+
+  it("navigates with the previous and next buttons", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio siguiente" }));
+    expect(screen.getByAltText("Ad B")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio anterior" }));
+    expect(screen.getByAltText("Ad A")).toBeTruthy();
+  });
+
+  it("wraps around with the navigation buttons", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio anterior" }));
+    expect(screen.getByAltText("Ad B")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio siguiente" }));
+    expect(screen.getByAltText("Ad A")).toBeTruthy();
+  });
+
+  it("hides the navigation buttons for a single flyer", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS.slice(0, 1)} />, { locale: "es" });
+
+    expect(screen.queryByRole("button", { name: "Anuncio anterior" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Anuncio siguiente" })).toBeNull();
+  });
+
+  it("navigates with a horizontal drag", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    const carousel = screen.getByTestId("ads-carousel");
+
+    fireEvent.pointerDown(carousel, { clientX: 220, clientY: 120 });
+    fireEvent.pointerMove(carousel, { clientX: 120, clientY: 124 });
+
+    expect(screen.getByAltText("Ad B")).toBeTruthy();
+  });
+
+  it("restarts auto-advance after a manual drag", () => {
+    vi.useFakeTimers();
+    renderWithProviders(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { locale: "es" });
+
+    const carousel = screen.getByTestId("ads-carousel");
+
+    act(() => vi.advanceTimersByTime(50));
+
+    fireEvent.pointerDown(carousel, { clientX: 220, clientY: 120 });
+    fireEvent.pointerMove(carousel, { clientX: 120, clientY: 124 });
+    fireEvent.pointerUp(carousel, { clientX: 120, clientY: 124 });
+
+    expect(screen.getByAltText("Ad B")).toBeTruthy();
+
+    act(() => vi.advanceTimersByTime(60));
+    expect(screen.getByAltText("Ad B")).toBeTruthy();
+
+    act(() => vi.advanceTimersByTime(40));
+    expect(screen.getByAltText("Ad A")).toBeTruthy();
   });
 
   it("renders the image with cover fit", () => {

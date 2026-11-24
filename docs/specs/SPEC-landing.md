@@ -31,7 +31,7 @@ the directory/carousel is used, and no station screen is introduced.
 - Header: search pill, assistant icon button, language `ES`/`EN` pill, menu icon.
   The language pill opens a compact dropdown sized to its options (Español /
   English) with an active check.
-- Content: one ads card (flyer, open badge, dots, name, localized meta, CTA),
+- Content: one ads card (flyer, open badge, navigation arrows, name, localized meta, CTA),
   starting 12 px below the header.
 - Player dock: circular play/pause, status/listener line, station selector,
   move-player control. The dock is below the card by default; the move control
@@ -49,7 +49,7 @@ the directory/carousel is used, and no station screen is introduced.
 - Left column (300 px): search, category/open/delivery chips, "Negocios" list of
   unique sponsored businesses (initials avatar, name, localized category +
   delivery, open/closed badge), legal links.
-- Right panel: flyer panel (330 px) with badge + dots, business name, meta,
+- Right panel: flyer panel (330 px) with badge + navigation arrows, business name, meta,
   contact rows (phone, WhatsApp, address, schedule), "Ver negocio", and
   call/WhatsApp/directions actions.
 - Player dock at the bottom.
@@ -87,7 +87,7 @@ carousel labels ship in `es` and `en` with key parity.
 
 - Working: language menu (the ES/EN pill opens a dropdown listing Español and
   English, with the active check), web theme toggle + persistence, directory
-  filters, carousel auto-advance/dots, station selector, play/pause,
+  filters, carousel auto-advance, arrows and drag, station selector, play/pause,
   move-player control.
 - Inert until their routes land: search, assistant, my businesses, legal links,
   business cards, "Ver negocio", call/WhatsApp/directions.

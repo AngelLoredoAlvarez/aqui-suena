@@ -64,6 +64,7 @@ export function Image({
   cachePolicy = "memory-disk",
   objectPosition,
   onLoad,
+  draggable: _draggable,
   ...props
 }: ImageProps) {
   const expoSource: ImageSource = { uri: src, cacheKey };

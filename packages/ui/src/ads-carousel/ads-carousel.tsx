@@ -1,15 +1,15 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
 import { formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
-import { PaginationDots } from "@aqui-suena/ui/ads-carousel/pagination-dots";
 import {
   getResponsiveCarouselMaxW,
   getResponsiveFlyerWidth,
 } from "@aqui-suena/ui/ads-carousel/responsive";
+import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { Icon } from "@aqui-suena/ui/shared";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
@@ -20,6 +20,8 @@ export type AdsCarouselProps = {
 };
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
+
+type DragEvent = { nativeEvent: { clientX: number; clientY: number } };
 
 function ContactRow({ label, value }: { label: string; value: string }) {
   return (
@@ -105,6 +107,43 @@ function ContactActions() {
   );
 }
 
+function FlyerNavButton({
+  direction,
+  label,
+  onPress,
+}: {
+  direction: "previous" | "next";
+  label: string;
+  onPress: () => void;
+}) {
+  const isPrevious = direction === "previous";
+
+  return (
+    <Button
+      testID={`ads-carousel-${direction}`}
+      type="button"
+      aria-label={label}
+      onPress={onPress}
+      position="absolute"
+      t="50%"
+      mt={-22}
+      {...(isPrevious ? { l: 12 } : { r: 12 })}
+      width={44}
+      height={44}
+      p={0}
+      rounded={22}
+      bg="surface"
+      borderWidth={1}
+      borderColor="borderColor"
+      items="center"
+      justify="center"
+      z={2}
+    >
+      <Icon name={isPrevious ? "chevron-left" : "chevron-right"} size={22} tone="text" />
+    </Button>
+  );
+}
+
 export function AdsCarousel({
   items = [],
   autoAdvanceMs = DEFAULT_AUTO_ADVANCE_MS,
@@ -117,6 +156,8 @@ export function AdsCarousel({
 
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
 
   const hasItems = items.length > 0;
   const safeIndex = hasItems ? index % items.length : 0;
@@ -126,11 +167,60 @@ export function AdsCarousel({
     setIndex((i) => (i + 1) % items.length);
   }, [hasItems, items.length]);
 
+  const goTo = useCallback(
+    (next: number) => {
+      if (!hasItems) return;
+      setIndex(((next % items.length) + items.length) % items.length);
+    },
+    [hasItems, items.length],
+  );
+
+  const goPrevious = (): void => goTo(safeIndex - 1);
+  const goNext = (): void => goTo(safeIndex + 1);
+
+  const handlePointerDown = (event: DragEvent): void => {
+    dragStart.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY };
+    setDragging(true);
+  };
+
+  const handlePointerMove = (event: DragEvent): void => {
+    const start = dragStart.current;
+
+    if (start === null) return;
+
+    const direction = swipeDirection(
+      event.nativeEvent.clientX - start.x,
+      event.nativeEvent.clientY - start.y,
+    );
+
+    if (direction === null) return;
+
+    dragStart.current = null;
+
+    if (direction === "next") {
+      goNext();
+    } else {
+      goPrevious();
+    }
+  };
+
+  const stopDragging = (): void => {
+    dragStart.current = null;
+    setDragging(false);
+  };
+
+  const handlePointerUp = (event: DragEvent): void => {
+    handlePointerMove(event);
+    stopDragging();
+  };
+
+  const isPaused = paused || dragging;
+
   useEffect(() => {
-    if (!hasItems || paused) return;
+    if (!hasItems || isPaused) return;
     const id = setInterval(advance, autoAdvanceMs);
     return () => clearInterval(id);
-  }, [hasItems, paused, autoAdvanceMs, advance]);
+  }, [hasItems, isPaused, autoAdvanceMs, advance, safeIndex]);
 
   if (!hasItems) {
     return (
@@ -211,8 +301,18 @@ export function AdsCarousel({
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
+      onTouchEnd={() => setPaused(false)}
+      onTouchCancel={() => setPaused(false)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={stopDragging}
+      onPointerLeave={stopDragging}
     >
       <YStack
+        testID="ads-carousel-flyer"
+        role="group"
+        aria-label={groupLabel}
         position="relative"
         overflow="hidden"
         width={isWide ? flyerW : undefined}
@@ -227,6 +327,7 @@ export function AdsCarousel({
           objectPosition="center top"
           rounded={0}
           priority={safeIndex === 0}
+          draggable={false}
         />
         <YStack
           position="absolute"
@@ -243,7 +344,16 @@ export function AdsCarousel({
             {statusLabel}
           </Paragraph>
         </YStack>
-        <PaginationDots count={items.length} activeIndex={safeIndex} label={groupLabel} />
+        {items.length > 1 ? (
+          <>
+            <FlyerNavButton
+              direction="previous"
+              label={dictionary.previousAd}
+              onPress={goPrevious}
+            />
+            <FlyerNavButton direction="next" label={dictionary.nextAd} onPress={goNext} />
+          </>
+        ) : null}
       </YStack>
       <YStack flex={isWide ? 1 : undefined} p={isWide ? 24 : 16} gap={6}>
         <Paragraph fontWeight="700" fontSize={nameFontSize}>

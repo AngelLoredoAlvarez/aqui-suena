@@ -68,6 +68,7 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 ## Success Criteria
 
 - Carousel visible on home during playback on web and native from shared code.
+- Carousel navigation: previous/next buttons and horizontal drag move exactly one flyer in either direction, wrap around, and are hidden when only one flyer exists. Manual navigation restarts the auto-advance timer; the old pagination dots are gone.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
 - Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
@@ -89,11 +90,15 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   hover/focus/touch (already implemented).
 - **Slide anatomy is identical across platforms**: full-bleed flyer image
   (`object-fit: cover`, `object-position: center top`) + an open-status badge
-  top-right + pagination dots overlaid bottom-center on the image.
-- **Dots**: active dot is a **24×8** pill in `accent`; inactive dots are
-  **8×8** circles in `muted`; the group sits in a pill container
-  (`border-radius: 999`, `background: surface`, gap 6, padding 7/10). The group
-  carries `role="group"` and `aria-label="Ad N of M"` (per-slide index).
+  top-right + previous/next navigation buttons overlaid on the image.
+- **Navigation buttons**: circular 44×44 buttons in `surface` with a
+  `borderColor` border and a chevron icon, vertically centred on the image
+  (`left/right: 12`). They carry `aria-label="Anuncio anterior"` /
+  `"Anuncio siguiente"` (per locale) and are hidden when only one flyer is
+  available. Horizontal drag over the card navigates one flyer in either
+  direction (40 px threshold, horizontal component must exceed the vertical);
+  a manual navigation restarts the auto-advance timer. The flyer container
+  keeps `role="group"` and `aria-label="Anuncio N de M"` for the current slide.
 - **Card wrapper**: `border-radius: 28`, `border 1px --bd`, `overflow: hidden`,
   `background: surface`.
 - **Badge**: `.bd` pill top-right (`right:12; top:12`), exactly one of
@@ -106,7 +111,7 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 ### Mobile (390×844) — `Main` / `Owner`
 
 - Vertical card fills the space between header and player dock; image area is
-  `flex:1` with badge + dots overlaid, then an info block (`padding:16`,
+  `flex:1` with badge + navigation arrows overlaid, then an info block (`padding:16`,
   `gap:6`): business **name** (`fs:22`, weight 700), **meta** line (`fs:14`,
   muted — e.g. `"Comida · Entrega a domicilio · Abre 8:00"`), and CTA
   **"Ver negocio"** (primary pill, `margin-top:8`); the label follows the business's primary public content, not only its account plan: use "Ver catálogo"/"View catalog" when the business has catalog products, "Ver servicios"/"View services" when it has offered services, and "Ver contacto"/"View contact" when it has neither. Comunidad businesses always use "Ver contacto".
@@ -119,7 +124,7 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - **Two-column directory**, not a centered card: left column (300px) has search
   - category chips + the "Negocios" list; the right detail panel
     (`border-radius:28`, overflow hidden) holds the **flyer image panel
-  (330px wide)** with badge + dots overlaid, and an info column: name (`fs:24`),
+  (330px wide)** with badge + navigation arrows overlaid, and an info column: name (`fs:24`),
     meta (`fs:14`, e.g. `"Comida · Servicio a domicilio"`), contact rows
     (phone / WhatsApp / address / hours, each `min-height:52` with a
     bottom border) and actions **Call / WhatsApp / Get directions**
@@ -181,7 +186,7 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 
 ### Scope boundary
 
-The "card anatomy" unit owns the flyer card (image, badge, dots, name, meta
+The "card anatomy" unit owns the flyer card (image, badge, navigation arrows, name, meta
 and CTA) rendered responsively across all three breakpoints. The landing shell
 renders the tablet/web **read-only contact panel** (phone/WhatsApp/address/
 schedule + inert Call/WhatsApp/Get directions actions) from the carousel item's
