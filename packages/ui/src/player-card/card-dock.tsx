@@ -21,19 +21,20 @@ export function CardDock(props: PlayerCardProps) {
   const media = useMedia();
   const stationAriaLabel = dictionary.changeStation(stationName);
   const chevron = sheetOpen ? "▴" : "▾";
+  const horizontalMargin = media.xl ? 24 : 12;
 
   return (
     <XStack
       testID="player-dock"
-      width="100%"
+      self="stretch"
+      mx={horizontalMargin}
       items="center"
       gap={media.md ? 16 : 12}
-      px={16}
-      py={10}
+      p={12}
       bg="surface"
       borderColor="borderColor"
       borderWidth={1}
-      rounded={20}
+      rounded={24}
     >
       <PlaybackAction status={status} onResume={onResume} onPause={onPause} />
       <YStack flex={1} gap={6} items="flex-start">

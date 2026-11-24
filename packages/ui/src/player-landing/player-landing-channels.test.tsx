@@ -200,15 +200,22 @@ describe("PlayerLanding composition", () => {
     cleanup();
   });
 
-  it("renders the dock after the content in noche scheme", async () => {
+  it("keeps the player mounted and flips the visual order when the position changes", async () => {
     renderLanding("es", "noche");
 
     await screen.findByText(/escuchando/);
 
-    const dock = screen.getByTestId("player-dock");
-    const content = screen.getByTestId("landing-content");
+    const body = screen.getByTestId("landing-body");
+    const playsBefore = playSpy.mock.calls.length;
 
-    expect(content.compareDocumentPosition(dock)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(body.getAttribute("data-position")).toBe("bottom");
+    expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover reproductor arriba o abajo" }));
+
+    expect(body.getAttribute("data-position")).toBe("top");
+    expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
+    expect(playSpy.mock.calls.length).toBe(playsBefore);
   });
 });
 
