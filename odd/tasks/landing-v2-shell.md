@@ -93,4 +93,6 @@ Test runner: `vitest` via `pnpm --filter @aqui-suena/ui test` and
   minimum width and now sizes to the options (~96 px); the mobile card starts
   12 px below the header. A mobile Playwright measurement confirmed
   `topGap: 12` and option width ~96.5 px; full e2e 20/20.
-- L14. PR: recorded after the branch is pushed.
+- L14. Shipped in `5381532` (API), `8d1f061` (UI), `85101ae` (web/e2e)
+  and `10f5624` (docs). PR #102:
+  https://github.com/AngelLoredoAlvarez/aqui-suena/pull/102
