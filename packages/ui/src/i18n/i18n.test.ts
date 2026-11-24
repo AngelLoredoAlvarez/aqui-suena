@@ -66,6 +66,10 @@ describe("i18n contract", () => {
     expect(en.noSponsoredBusinesses).toBe("No sponsored businesses yet");
     expect(es.adGroupLabel(1, 4)).toBe("Anuncio 1 de 4");
     expect(en.adGroupLabel(1, 4)).toBe("Ad 1 of 4");
+    expect(es.previousAd).toBe("Anuncio anterior");
+    expect(en.previousAd).toBe("Previous ad");
+    expect(es.nextAd).toBe("Anuncio siguiente");
+    expect(en.nextAd).toBe("Next ad");
     expect(es.category("food")).toBe("Comida");
     expect(en.category("food")).toBe("Food");
     expect(es.category("services")).toBe("Servicios");

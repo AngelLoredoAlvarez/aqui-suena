@@ -14,6 +14,7 @@ export type OptimizedImageProps = {
   readonly objectPosition?: "center" | "center top" | "center bottom" | "top" | "bottom";
   readonly rounded?: number;
   readonly fill?: boolean;
+  readonly draggable?: boolean;
 };
 
 type ImageStatus = "idle" | "loading" | "loaded" | "error";
@@ -29,6 +30,7 @@ export function OptimizedImage({
   objectPosition = "center",
   rounded = 8,
   fill = false,
+  draggable,
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
@@ -99,6 +101,7 @@ export function OptimizedImage({
           src={src}
           alt={alt}
           cacheKey={cacheKey}
+          draggable={draggable}
           width={fill ? "100%" : width}
           height={fill ? "100%" : height}
           objectFit={objectFit}

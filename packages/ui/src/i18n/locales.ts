@@ -38,6 +38,8 @@ export type Dictionary = {
   readonly noSponsoredBusinesses: string;
   readonly noSponsoredBusinessesHint: string;
   readonly adGroupLabel: (index: number, count: number) => string;
+  readonly previousAd: string;
+  readonly nextAd: string;
   readonly searchBusinesses: string;
   readonly searchBusinessesAria: string;
   readonly assistant: string;
@@ -114,6 +116,8 @@ export const es: Dictionary = {
   noSponsoredBusinesses: "Aún no hay negocios patrocinados",
   noSponsoredBusinessesHint: "Vuelve pronto: aquí verás los negocios cerca de ti.",
   adGroupLabel: (index: number, count: number) => `Anuncio ${index} de ${count}`,
+  previousAd: "Anuncio anterior",
+  nextAd: "Anuncio siguiente",
   searchBusinesses: "Buscar",
   searchBusinessesAria: "Buscar negocios por nombre, categoría o producto",
   assistant: "Asistente",
@@ -172,6 +176,8 @@ export const en: Dictionary = {
   noSponsoredBusinesses: "No sponsored businesses yet",
   noSponsoredBusinessesHint: "Check back soon — you'll see businesses near you here.",
   adGroupLabel: (index: number, count: number) => `Ad ${index} of ${count}`,
+  previousAd: "Previous ad",
+  nextAd: "Next ad",
   searchBusinesses: "Search",
   searchBusinessesAria: "Search businesses by name, category, or product",
   assistant: "Assistant",
