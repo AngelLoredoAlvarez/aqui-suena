@@ -21,6 +21,7 @@ import {
   requestLogging,
   silentErrorHandler,
 } from "@aqui-suena/api/server/http/observability";
+import { createPublicImageHandler } from "@aqui-suena/api/server/http/public-images";
 import { rateLimitingMiddleware } from "@aqui-suena/api/server/http/rate-limit";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
@@ -136,6 +137,16 @@ export function createApp(options: AppOptions): Hono {
   // Costs one read, so it stays out of the cheap probe: presence is not access.
   app.get("/health/deep", async (c) =>
     c.json({ status: "ok", media: await probeMediaStorage(options.mediaStorage) }),
+  );
+
+  app.get(
+    "/images/*",
+    createPublicImageHandler({
+      media: directoryRepositories.media,
+      business: directoryRepositories.business,
+      flyer: directoryRepositories.flyer,
+      storage: options.mediaStorage,
+    }),
   );
 
   app.get("/stream", async (c) => {

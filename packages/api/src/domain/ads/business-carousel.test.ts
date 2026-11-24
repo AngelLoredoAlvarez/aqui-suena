@@ -102,7 +102,8 @@ const now = new Date("2026-11-06T12:00:00-06:00");
 describe("getBusinessCarousel", () => {
   it("returns an empty array when there are no businesses", async () => {
     const deps = makeDeps([]);
-    const result = await getBusinessCarousel(deps, now);
+
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
 
     expect(result).toEqual([]);
   });
@@ -111,7 +112,7 @@ describe("getBusinessCarousel", () => {
     const hidden = makeBusiness({ id: "b-1", hiddenAt: new Date("2026-11-01T00:00:00-06:00") });
     const deps = makeDeps([hidden], [makeFlyer("b-1")], [makeHour("b-1")], []);
 
-    const result = await getBusinessCarousel(deps, now);
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
 
     expect(result).toEqual([]);
   });
@@ -119,7 +120,8 @@ describe("getBusinessCarousel", () => {
   it("excludes businesses without a flyer", async () => {
     const b = makeBusiness({ id: "b-1" });
     const deps = makeDeps([b], [], [makeHour("b-1")], []);
-    const result = await getBusinessCarousel(deps, now);
+
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
 
     expect(result).toEqual([]);
   });
@@ -134,13 +136,15 @@ describe("getBusinessCarousel", () => {
       [makeSubscription("acc-m", "commerce")],
     );
 
-    const result = await getBusinessCarousel(deps, now);
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
+
     const names = result.map((i) => i.name);
 
     expect(names.filter((n) => n === "Comercio Biz")).toHaveLength(3);
     expect(names.filter((n) => n === "Comunidad Biz")).toHaveLength(1);
 
     let consecutivePairs = 0;
+
     for (let i = 1; i < names.length; i++) {
       if (names[i] === names[i - 1]) consecutivePairs++;
     }
@@ -154,12 +158,14 @@ describe("getBusinessCarousel", () => {
       name: "Older",
       updatedAt: new Date("2026-11-05T10:00:00-06:00"),
     });
+
     const newer = makeBusiness({
       id: "n-1",
       accountId: "acc-n",
       name: "Newer",
       updatedAt: new Date("2026-11-06T09:00:00-06:00"),
     });
+
     const deps = makeDeps(
       [older, newer],
       [makeFlyer("o-1"), makeFlyer("n-1")],
@@ -167,7 +173,7 @@ describe("getBusinessCarousel", () => {
       [],
     );
 
-    const result = await getBusinessCarousel(deps, now);
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
 
     expect(result.map((i) => i.name)).toEqual(["Newer", "Older"]);
   });
@@ -176,7 +182,7 @@ describe("getBusinessCarousel", () => {
     const b = makeBusiness({ id: "b-1" });
     const deps = makeDeps([b], [makeFlyer("b-1")], [makeHour("b-1", 5)], []);
 
-    const result = await getBusinessCarousel(deps, now);
+    const result = await getBusinessCarousel(deps, now, "https://api.test");
 
     expect(result[0]?.isOpen).toBe(true);
   });

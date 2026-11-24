@@ -5,8 +5,8 @@ import { publicProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 
 export function createCarouselRouter(deps: BusinessCarouselDeps) {
   return router({
-    carousel: publicProcedure.output(adsCarouselOutput).query(async () => {
-      return getBusinessCarousel(deps, new Date());
+    carousel: publicProcedure.output(adsCarouselOutput).query(async ({ ctx }) => {
+      return getBusinessCarousel(deps, new Date(), ctx.origin ?? "");
     }),
   });
 }

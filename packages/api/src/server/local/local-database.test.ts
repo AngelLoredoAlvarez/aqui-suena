@@ -100,6 +100,7 @@ describe("openLocalDatabase", () => {
         storage: new InMemoryObjectStorage(),
       },
       new Date("2026-11-23T18:00:00.000Z"),
+      "https://api.test",
     );
 
     expect(items).toHaveLength(1);

@@ -23,3 +23,26 @@ export async function resolveMediaUrl(
 
   return row === null ? null : storage.signedUrl(row.r2Key);
 }
+
+export function buildPublicImageUrl(baseUrl: string, r2Key: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/images/${r2Key}`;
+}
+
+export async function resolvePublicImageUrl(
+  media: MediaRepository,
+  storage: ObjectStorage | undefined,
+  baseUrl: string,
+  source: MediaUrlSource,
+): Promise<string | null> {
+  if (source.mediaId === null) {
+    return source.url;
+  }
+
+  if (storage === undefined) {
+    return null;
+  }
+
+  const row = await media.getById(source.mediaId);
+
+  return row === null ? null : buildPublicImageUrl(baseUrl, row.r2Key);
+}

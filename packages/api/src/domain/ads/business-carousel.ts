@@ -6,7 +6,7 @@ import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subs
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
-import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/media-url";
+import { resolvePublicImageUrl } from "@aqui-suena/api/domain/directory/media-url";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { getEntitlements } from "@aqui-suena/api/domain/plans/entitlements";
@@ -23,6 +23,7 @@ export type BusinessCarouselDeps = {
 export async function getBusinessCarousel(
   deps: BusinessCarouselDeps,
   now: Date,
+  publicBaseUrl: string,
 ): Promise<AdsCarouselItem[]> {
   const businesses = await deps.businessRepository.listAll();
 
@@ -39,7 +40,9 @@ export async function getBusinessCarousel(
     const flyer = flyers[0] ?? null;
 
     const imageUrl =
-      flyer === null ? null : await resolveMediaUrl(deps.mediaRepository, deps.storage, flyer);
+      flyer === null
+        ? null
+        : await resolvePublicImageUrl(deps.mediaRepository, deps.storage, publicBaseUrl, flyer);
 
     const plan = resolvePlan(subscription);
     const priority = getEntitlements(plan).priority;
