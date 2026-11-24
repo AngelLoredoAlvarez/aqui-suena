@@ -14,6 +14,7 @@ export type User = {
 
 export type Context = {
   user: User | null;
+  origin?: string;
 };
 
 const t = initTRPC.context<Context>().create();

@@ -1,6 +1,6 @@
 # Spec: media-storage — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-24).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode; paid pipelines are excluded by the zero-cost rule. The staging round trip is verified end to end (27/27 checks: presign, PUT, confirm, owner and public reads, replace, delete, account deletion), and the retention purge was verified with a synthetic expired business. Missing: the shared upload picker, responsive image variants (WebP/AVIF, `srcset`), and the web image cache. Native rendering now goes through expo-image with a stable cache key derived from the immutable object path, while the signed URL keeps its 300-second lifetime. Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
+> **Status: partial (2026-11-24).** Backend complete: `ObjectStorage` port, `R2ObjectStorage` presigned uploads, D1 media repository, `media` router and explicit `503` when unconfigured; the flow (presign → direct R2 upload → `confirm` → `delete`) is verified end to end on staging. The D1 foundation for owner media landed: `media.business_id` (nullable, FK to `businesses`, no cascade) and a unique index on `media.r2_key` (migration `0014_little_shadowcat`). New uploads use the `media/v1/{accountId}/{scope}/{kind}/{uuid}.{ext}` layout, generated server-side; `presignUpload` and `confirm` enforce business ownership and the plan media entitlement; `confirm` parses the grammar, validates account/kind/extension and returns the existing row when the same object is confirmed twice. `media.signedUrl` returns a short-lived signed GET for the owner; public listing reads are signed per request inside the directory and ads endpoints when the media is attached to a visible listing. Lifecycle is in place: a daily cron purges businesses past their 90-day retention (objects before rows) and sweeps unreferenced uploads older than 24 hours, while account deletion purges the account prefixes as a fail-safe. `photos` and `flyers` link to `media` through nullable `media_id` columns (legacy `url` values stay readable). Content hardening is in place: `confirm` reads the object, verifies magic bytes, rejects JPEGs that carry GPS EXIF and enforces the 30-second MP3 limit; the R2 CORS rules are versioned in `packages/api/r2-cors.json`. Full EXIF stripping is deferred because it needs an image re-encode; paid pipelines are excluded by the zero-cost rule. The staging round trip is verified end to end (27/27 checks: presign, PUT, confirm, owner and public reads, replace, delete, account deletion), and the retention purge was verified with a synthetic expired business. Missing: the shared upload picker, responsive image variants (WebP/AVIF, `srcset`), and the offline service-worker cache. Native rendering now goes through expo-image with a stable cache key derived from the immutable object path, while the signed URL keeps its 300-second lifetime. Landing flyers also have a stable `GET /images/{r2Key}` public URL with a one-day browser cache; the route only serves flyer media attached to a visible business. Legacy flat keys remain valid for reads and deletes, but `confirm` accepts only v1 keys. The same bucket also holds stamped CFDI documents under the `cfdi/` prefix; those are fiscal archives written by the billing context, not media, and the media key layout never overlaps them.
 
 ## Objective
 
@@ -229,11 +229,25 @@ receive one signed object per row.
   same path. Signed URLs expire in 300 seconds and are re-requested. Native
   renders through expo-image and keys its memory-disk cache by `origin + pathname`
   (`imageCacheKey`), so rotating `X-Amz-*` query parameters do not defeat the
-  cache; the explicit `cacheKey` source property carries that identity. Web
-  still caches by full URL, so a service worker or a stable media proxy is
-  required there. Never persist signed URLs. On native, CSS `objectFit` and
-  `objectPosition` are translated to expo-image `contentFit` and
-  `contentPosition`, including the `"center top"` → `"top center"` order.
+  cache; the explicit `cacheKey` source property carries that identity. Landing
+  flyers use the stable public URL described below, so the browser and desktop
+  webview cache them across carousel refetches and visits. Other media still use
+  signed URLs and therefore a short-lived per-URL browser cache. Never persist
+  signed URLs. On native, CSS `objectFit` and `objectPosition` are translated to
+  expo-image `contentFit` and `contentPosition`, including the `"center top"` →
+  `"top center"` order.
+- **Public landing images:** `ads.carousel` returns
+  `${requestOrigin}/images/<r2Key>` for flyer media. `GET /images/<r2Key>`
+  rechecks that the object is flyer media attached to a flyer of a visible
+  business, answers `404` for anything else and `503` when storage is
+  unconfigured, and serves the bytes with `Cache-Control: public,
+  max-age=86400`, `ETag` and `X-Content-Type-Options: nosniff`. The URL is
+  stable because the key is immutable, so the web and desktop caches work
+  without a service worker. A business hidden after a client fetched its flyer
+  answers `404` on the next uncached request, but that client may keep the
+  cached image for up to the one-day TTL. Legacy flyer rows without `mediaId`
+  keep their external `url`; owner previews, directory reads and fiscal
+  documents keep signed URLs for now.
 - **Never block audio:** images load asynchronously; the player and spot preview
   never wait for media.
 

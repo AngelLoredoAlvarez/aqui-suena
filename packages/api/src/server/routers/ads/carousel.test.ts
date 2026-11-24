@@ -85,6 +85,7 @@ function makeRouter(input: {
   flyers: Flyer[];
   hours: Hour[];
   subscriptions: Subscription[];
+  media?: Media[];
 }) {
   return createCarouselRouter({
     businessRepository: new InMemoryBusinessRepository(input.businesses),
@@ -92,7 +93,7 @@ function makeRouter(input: {
     hourRepository: new InMemoryHourRepository(input.hours),
     subscriptionRepository: new InMemorySubscriptionRepository(input.subscriptions),
     mediaRepository: new InMemoryMediaRepository(
-      input.flyers.map((flyer) => makeMedia(flyer.businessId)),
+      input.media ?? input.flyers.map((flyer) => makeMedia(flyer.businessId)),
     ),
     storage: new InMemoryObjectStorage(),
   });
@@ -106,33 +107,109 @@ describe("ads.carousel", () => {
     expect(await caller.carousel()).toEqual([]);
   });
 
-  it("returns businesses with flyers, ranked by plan and signs the flyer media", async () => {
+  it("returns businesses with flyers, ranked by plan and using the public flyer URL", async () => {
     const community = makeBusiness({ id: "c-1", accountId: "acc-c", name: "Comunidad Biz" });
+
     const commerce = makeBusiness({ id: "m-1", accountId: "acc-m", name: "Comercio Biz" });
+
     const router = makeRouter({
       businesses: [community, commerce],
       flyers: [makeFlyer("c-1"), makeFlyer("m-1")],
       hours: [makeHour("c-1"), makeHour("m-1")],
       subscriptions: [makeSubscription("acc-m")],
     });
-    const caller = router.createCaller({ user: null });
+
+    const caller = router.createCaller({ user: null, origin: "https://api.test" });
 
     const result = await caller.carousel();
+
     const names = result.map((item) => item.name);
 
     expect(names.filter((name) => name === "Comercio Biz")).toHaveLength(3);
     expect(names.filter((name) => name === "Comunidad Biz")).toHaveLength(1);
-    expect(result[0]?.imageUrl).toContain("https://fake.r2/media/");
+    expect(result[0]?.imageUrl).toContain("https://api.test/images/media/");
+  });
+
+  it("returns the exact stable public URL built from the request origin", async () => {
+    const business = makeBusiness({ id: "b-1" });
+
+    const router = makeRouter({
+      businesses: [business],
+      flyers: [makeFlyer("b-1")],
+      hours: [makeHour("b-1")],
+      subscriptions: [],
+    });
+
+    const caller = router.createCaller({ user: null, origin: "https://api.test" });
+
+    const first = await caller.carousel();
+
+    const second = await caller.carousel();
+
+    expect(first[0]?.imageUrl).toBe(
+      "https://api.test/images/media/v1/acc/businesses/b-1/flyer/f.jpg",
+    );
+    expect(second[0]?.imageUrl).toBe(first[0]?.imageUrl);
+  });
+
+  it("keeps a legacy external URL when the flyer has no media id", async () => {
+    const business = makeBusiness({ id: "b-1" });
+
+    const router = makeRouter({
+      businesses: [business],
+      flyers: [{ ...makeFlyer("b-1"), mediaId: null, url: "https://legacy.example/flyer.png" }],
+      hours: [makeHour("b-1")],
+      subscriptions: [],
+    });
+
+    const caller = router.createCaller({ user: null, origin: "https://api.test" });
+
+    expect((await caller.carousel())[0]?.imageUrl).toBe("https://legacy.example/flyer.png");
+  });
+
+  it("excludes the item when storage is unconfigured", async () => {
+    const business = makeBusiness({ id: "b-1" });
+
+    const router = createCarouselRouter({
+      businessRepository: new InMemoryBusinessRepository([business]),
+      flyerRepository: new InMemoryFlyerRepository([makeFlyer("b-1")]),
+      hourRepository: new InMemoryHourRepository([makeHour("b-1")]),
+      subscriptionRepository: new InMemorySubscriptionRepository([]),
+      mediaRepository: new InMemoryMediaRepository([makeMedia("b-1")]),
+      storage: undefined,
+    });
+
+    const caller = router.createCaller({ user: null, origin: "https://api.test" });
+
+    expect(await caller.carousel()).toEqual([]);
+  });
+
+  it("excludes the item when the media row is missing", async () => {
+    const business = makeBusiness({ id: "b-1" });
+
+    const router = makeRouter({
+      businesses: [business],
+      flyers: [makeFlyer("b-1")],
+      hours: [makeHour("b-1")],
+      subscriptions: [],
+      media: [],
+    });
+
+    const caller = router.createCaller({ user: null, origin: "https://api.test" });
+
+    expect(await caller.carousel()).toEqual([]);
   });
 
   it("excludes businesses without a flyer", async () => {
     const b = makeBusiness({ id: "b-1" });
+
     const router = makeRouter({
       businesses: [b],
       flyers: [],
       hours: [makeHour("b-1")],
       subscriptions: [],
     });
+
     const caller = router.createCaller({ user: null });
 
     expect(await caller.carousel()).toEqual([]);

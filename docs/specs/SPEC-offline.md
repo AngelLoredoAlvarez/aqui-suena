@@ -41,7 +41,7 @@ apps/web/app/layout.tsx                → register service worker
 - **Stream fails (no connection)**: player shows `error` status with message "No connection. Retrying…"; auto-retry every 10s; resume automatically on reconnect.
 - **tRPC queries**: TanStack Query with `networkMode: 'offlineFirst'` returns cached data; shows stale-while-revalidate indicator.
 - **Station list**: cached in TanStack Query persisted cache; available offline.
-- **Images**: cached by Service Worker (Cache API) on web; on native, expo-image uses a memory-disk cache keyed by the stable media path (`origin + pathname`) so rotating signed-URL parameters do not force a re-download.
+- **Images**: landing flyers use a stable public API image URL, cached by the browser and the desktop webview for one day. Other images still use signed URLs; on native, expo-image uses a memory-disk cache keyed by the stable media path (`origin + pathname`). The Service Worker (Cache API) remains pending for offline and for media outside the landing carousel.
 - **Audio**: the stream proxy (`/stream`) is not available offline; player retries when back online.
 
 ## Code Style

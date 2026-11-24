@@ -11,18 +11,20 @@ export async function createContext(
   supabase: SupabaseClient | null,
   accounts: AccountRepository,
 ): Promise<Context> {
+  const origin = new URL(req.url).origin;
+
   const authHeader = req.headers.get("authorization");
 
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
   if (!token || !supabase) {
-    return { user: null };
+    return { user: null, origin };
   }
 
   const { data, error } = await supabase.auth.getUser(token);
 
   if (error || !data.user) {
-    return { user: null };
+    return { user: null, origin };
   }
 
   const accountId = (data.user.app_metadata?.account_id as string | undefined) ?? data.user.id;
@@ -43,7 +45,7 @@ export async function createContext(
     throw error;
   }
 
-  return { user: { id: data.user.id, accountId } };
+  return { user: { id: data.user.id, accountId }, origin };
 }
 
 // Factory for production: builds the Supabase client from env vars.
