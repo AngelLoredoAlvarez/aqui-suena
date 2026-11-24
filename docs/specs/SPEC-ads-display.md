@@ -88,6 +88,10 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - The ads carousel is **≈70 % of the height** and rotates one sponsored flyer
   per slide (example shows 4: `Anuncio 1 de 4`). Auto-advance 5s, pause on
   hover/focus/touch (already implemented).
+- **Flyer prefetch**: while a flyer is visible, the previous and next flyer
+  images are prefetched (browser `Image` on web, expo-image `prefetch` with the
+  memory-disk policy on native). The carousel already receives every ranked
+  flyer in one `ads.carousel` response, so only the images need warming.
 - **Slide anatomy is identical across platforms**: full-bleed flyer image
   (`object-fit: cover`, `object-position: center top`) + an open-status badge
   top-right + previous/next navigation buttons overlaid on the image.

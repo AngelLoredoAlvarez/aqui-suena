@@ -9,6 +9,7 @@ import {
 import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
+import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -264,6 +265,17 @@ export function AdsCarousel({
     const id = setInterval(advance, autoAdvanceMs);
     return () => clearInterval(id);
   }, [hasItems, isPaused, autoAdvanceMs, advance, safeIndex]);
+
+  const nearbyImageUrls = hasItems
+    ? [
+        ...new Set([
+          items[(safeIndex + 1) % items.length]?.imageUrl,
+          items[(safeIndex - 1 + items.length) % items.length]?.imageUrl,
+        ]),
+      ].filter((url): url is string => url !== undefined)
+    : [];
+
+  useImagePrefetch(nearbyImageUrls);
 
   if (!hasItems) {
     return (

@@ -5,6 +5,12 @@ import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const prefetchImages = vi.hoisted(() => vi.fn());
+
+vi.mock("@aqui-suena/ui/optimized-image/use-image-prefetch", () => ({
+  useImagePrefetch: prefetchImages,
+}));
+
 const ITEMS: readonly AdsCarouselItem[] = [
   {
     id: "a",
@@ -134,6 +140,18 @@ describe("AdsCarousel", () => {
     fireEvent.pointerMove(carousel, { clientX: 120, clientY: 124 });
 
     expect(screen.getByAltText("Ad B")).toBeTruthy();
+  });
+
+  it("prefetches the adjacent flyer while the current one is visible", () => {
+    prefetchImages.mockClear();
+
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    expect(prefetchImages).toHaveBeenLastCalledWith([ITEMS[1]?.imageUrl]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio siguiente" }));
+
+    expect(prefetchImages).toHaveBeenLastCalledWith([ITEMS[0]?.imageUrl]);
   });
 
   it("remounts the flyer layer so the change runs its transition", () => {
