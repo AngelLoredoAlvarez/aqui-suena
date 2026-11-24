@@ -30,6 +30,7 @@
       },
       "style": {
         "noNestedTernary": "error",
+        "useImportsFirst": "error",
         "noRestrictedImports": {
           "level": "error",
           "options": {

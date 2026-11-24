@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { OptimizedImage } from "@aqui-suena/ui/optimized-image/optimized-image";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, render } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -15,8 +16,6 @@ vi.mock("@aqui-suena/ui/optimized-image/image", () => ({
     return null;
   },
 }));
-
-import { OptimizedImage } from "@aqui-suena/ui/optimized-image/optimized-image";
 
 function wrapper({ children }: { children: ReactNode }) {
   return <UiProvider>{children}</UiProvider>;

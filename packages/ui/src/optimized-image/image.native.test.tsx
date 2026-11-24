@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { Image } from "@aqui-suena/ui/optimized-image/image.native";
 import { UiProvider } from "@aqui-suena/ui/shared";
 import { cleanup, render } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -20,8 +21,6 @@ vi.mock("expo-image", async () => {
     }),
   };
 });
-
-import { Image } from "@aqui-suena/ui/optimized-image/image.native";
 
 function wrapper({ children }: { children: ReactNode }) {
   return <UiProvider>{children}</UiProvider>;
