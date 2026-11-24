@@ -14,7 +14,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -77,19 +77,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <UiProvider>
+      <UiProvider queryClient={queryClient}>
         <LocaleProvider locale={locale} onChange={handleChange}>
-          <QueryClientProvider client={queryClient}>
-            {/* Screen backdrop mirrors $nocheBg, same as web body style. The
+          {/* Screen backdrop mirrors $nocheBg, same as web body style. The
                 header stays hidden: the landing is the whole screen, and
                 expo-router 58 shows it by default. */}
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "#0F1720" },
-              }}
-            />
-          </QueryClientProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#0F1720" },
+            }}
+          />
         </LocaleProvider>
       </UiProvider>
     </SafeAreaProvider>
