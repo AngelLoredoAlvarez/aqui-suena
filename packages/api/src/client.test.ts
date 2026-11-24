@@ -1,3 +1,4 @@
+import { fetchAdsCarousel, resolveApiBaseUrl } from "@aqui-suena/api/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // The client entry must NEVER pull @trpc/server into its module graph:
@@ -7,8 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@trpc/server", () => {
   throw new Error("@trpc/server must never load in the client entry");
 });
-
-import { fetchAdsCarousel, resolveApiBaseUrl } from "@aqui-suena/api/client";
 
 const VALID_ITEM = {
   id: "ad-1",
