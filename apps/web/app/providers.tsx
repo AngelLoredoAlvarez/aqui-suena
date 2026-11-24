@@ -9,7 +9,7 @@ import {
   savePersistedLocale,
   UiProvider,
 } from "@aqui-suena/ui";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -40,9 +40,9 @@ export function Providers({ children }: ProvidersProps) {
   }, []);
 
   return (
-    <UiProvider>
+    <UiProvider queryClient={queryClient}>
       <LocaleProvider locale={locale} onChange={handleChange}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        {children}
       </LocaleProvider>
     </UiProvider>
   );
