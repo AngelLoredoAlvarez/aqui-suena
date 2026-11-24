@@ -6,23 +6,25 @@ export type StatusDictionary = {
   readonly paused: string;
   readonly loading: string;
   readonly signalUnavailable: string;
+  readonly tapToPlay: string;
+  readonly tapToEnableSound: string;
   readonly listening: (count: number) => string;
 };
 
 export function statusDotColor(
   status: PlayerCardStatus,
-): "brandSuccess" | "brandAccent" | "brand6" | "brandDanger" | null {
+): "ok" | "accent" | "borderColor" | "error" | null {
   switch (status) {
     case "idle":
       return null;
     case "playing":
-      return "brandSuccess";
+      return "ok";
     case "paused":
-      return "brandAccent";
+      return "accent";
     case "loading":
-      return "brand6";
+      return "borderColor";
     case "error":
-      return "brandDanger";
+      return "error";
     case "blocked":
       return null;
   }
@@ -39,8 +41,9 @@ export function statusLabel(status: PlayerCardStatus, dictionary: StatusDictiona
     case "error":
       return dictionary.signalUnavailable;
     case "idle":
+      return dictionary.tapToPlay;
     case "blocked":
-      return null;
+      return dictionary.tapToEnableSound;
   }
 }
 
@@ -64,7 +67,7 @@ export function StatusRow({
     <XStack items="center" gap={2} minW={0}>
       {dot ? <XStack testID="status-dot" width={10} height={10} rounded={100} bg={dot} /> : null}
       {statusText ? (
-        <Paragraph color="brandCreamMuted" fontSize={13} flex={1}>
+        <Paragraph color="muted" fontSize={13} flex={1}>
           {statusText}
         </Paragraph>
       ) : null}

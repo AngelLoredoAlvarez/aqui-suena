@@ -1,5 +1,6 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
+import { formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
 import { PaginationDots } from "@aqui-suena/ui/ads-carousel/pagination-dots";
 import {
   getResponsiveCarouselMaxW,
@@ -7,8 +8,9 @@ import {
 } from "@aqui-suena/ui/ads-carousel/responsive";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
+import { Icon } from "@aqui-suena/ui/shared";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Paragraph, useMedia, YStack } from "tamagui";
+import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -18,6 +20,90 @@ export type AdsCarouselProps = {
 };
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
+
+function ContactRow({ label, value }: { label: string; value: string }) {
+  return (
+    <Button
+      type="button"
+      width="100%"
+      minH={52}
+      p={0}
+      bg="transparent"
+      borderWidth={0}
+      borderBottomWidth={1}
+      borderColor="borderColor"
+      flexDirection="row"
+      items="center"
+      justify="flex-start"
+      gap={12}
+      onPress={() => {}}
+    >
+      <YStack flex={1} minW={0} items="flex-start" gap={2}>
+        <Text color="muted" fontSize={12}>
+          {label}
+        </Text>
+        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={2}>
+          {value}
+        </Text>
+      </YStack>
+      <Icon name="chevron-right" size={18} tone="text" />
+    </Button>
+  );
+}
+
+function ContactActions() {
+  const { dictionary } = useLocale();
+
+  return (
+    <XStack gap={8} mt="auto" pt={8}>
+      <Button
+        flex={1}
+        minH={48}
+        rounded={999}
+        bg="accent"
+        p={0}
+        px={6}
+        items="center"
+        justify="center"
+        onPress={() => {}}
+      >
+        <Text color="onAccent" fontWeight="700" fontSize={12} numberOfLines={1}>
+          {dictionary.call}
+        </Text>
+      </Button>
+      <Button
+        flex={1}
+        minH={48}
+        rounded={999}
+        bg="surface2"
+        p={0}
+        px={6}
+        items="center"
+        justify="center"
+        onPress={() => {}}
+      >
+        <Text color="text" fontWeight="700" fontSize={12} numberOfLines={1}>
+          {dictionary.whatsapp}
+        </Text>
+      </Button>
+      <Button
+        flex={1}
+        minH={48}
+        rounded={999}
+        bg="surface2"
+        p={0}
+        px={6}
+        items="center"
+        justify="center"
+        onPress={() => {}}
+      >
+        <Text color="text" fontWeight="700" fontSize={12} numberOfLines={1}>
+          {dictionary.directions}
+        </Text>
+      </Button>
+    </XStack>
+  );
+}
 
 export function AdsCarousel({
   items = [],
@@ -50,6 +136,7 @@ export function AdsCarousel({
     return (
       <YStack
         testID="ads-carousel-placeholder"
+        aria-label={dictionary.advertisements}
         width="100%"
         maxW={maxW}
         items="center"
@@ -96,6 +183,8 @@ export function AdsCarousel({
 
   const statusColor = current.isOpen ? "ok" : "error";
 
+  const schedule = current.hours ? formatSchedule(current.hours, dictionary.weekdays) : "";
+
   let nameFontSize = 22;
 
   if (media.xl) {
@@ -107,6 +196,7 @@ export function AdsCarousel({
   return (
     <YStack
       testID="ads-carousel"
+      aria-label={dictionary.advertisements}
       width="100%"
       maxW={maxW}
       flex={1}
@@ -155,14 +245,44 @@ export function AdsCarousel({
         </YStack>
         <PaginationDots count={items.length} activeIndex={safeIndex} label={groupLabel} />
       </YStack>
-      <YStack flex={isWide ? 1 : undefined} self={isWide ? "flex-start" : undefined} p={16} gap={6}>
+      <YStack flex={isWide ? 1 : undefined} p={isWide ? 24 : 16} gap={6}>
         <Paragraph fontWeight="700" fontSize={nameFontSize}>
           {current.name}
         </Paragraph>
         <Paragraph color="muted" fontSize={14}>
           {meta}
         </Paragraph>
-        {!isWide ? (
+        {isWide ? (
+          <>
+            <YStack width="100%" mt={8}>
+              {current.phone ? <ContactRow label={dictionary.phone} value={current.phone} /> : null}
+              {current.phone ? (
+                <ContactRow label={dictionary.whatsapp} value={current.phone} />
+              ) : null}
+              {current.address ? (
+                <ContactRow label={dictionary.address} value={current.address} />
+              ) : null}
+              {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
+            </YStack>
+            <Button
+              type="button"
+              mt={8}
+              rounded={999}
+              bg="surface2"
+              minH={48}
+              px={18}
+              gap={8}
+              items="center"
+              self="flex-start"
+            >
+              <Text color="text" fontWeight="700" fontSize={14}>
+                {dictionary.viewBusiness}
+              </Text>
+              <Icon name="arrow-right" size={18} tone="text" />
+            </Button>
+            <ContactActions />
+          </>
+        ) : (
           <Button
             type="button"
             mt={8}
@@ -173,11 +293,16 @@ export function AdsCarousel({
             fontSize={15}
             minH={52}
             px={22}
+            gap={8}
+            items="center"
             self="flex-start"
           >
-            {dictionary.viewBusiness}
+            <Text color="onAccent" fontWeight="700" fontSize={15}>
+              {dictionary.viewBusiness}
+            </Text>
+            <Icon name="arrow-right" size={18} tone="onAccent" />
           </Button>
-        ) : null}
+        )}
       </YStack>
     </YStack>
   );

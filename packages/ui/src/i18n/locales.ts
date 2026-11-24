@@ -38,6 +38,29 @@ export type Dictionary = {
   readonly noSponsoredBusinesses: string;
   readonly noSponsoredBusinessesHint: string;
   readonly adGroupLabel: (index: number, count: number) => string;
+  readonly searchBusinesses: string;
+  readonly searchBusinessesAria: string;
+  readonly assistant: string;
+  readonly assistantAria: string;
+  readonly changeLanguage: string;
+  readonly openMenu: string;
+  readonly changeTheme: string;
+  readonly advertisements: string;
+  readonly myBusinesses: string;
+  readonly businesses: string;
+  readonly privacyNotice: string;
+  readonly termsAndConditions: string;
+  readonly reportContent: string;
+  readonly allFilter: string;
+  readonly openNowFilter: string;
+  readonly deliveryFilter: string;
+  readonly phone: string;
+  readonly whatsapp: string;
+  readonly address: string;
+  readonly schedule: string;
+  readonly call: string;
+  readonly directions: string;
+  readonly weekdays: readonly string[];
 };
 
 const categoryLabelsEs: Readonly<Record<string, string>> = {
@@ -91,6 +114,29 @@ export const es: Dictionary = {
   noSponsoredBusinesses: "Aún no hay negocios patrocinados",
   noSponsoredBusinessesHint: "Vuelve pronto: aquí verás los negocios cerca de ti.",
   adGroupLabel: (index: number, count: number) => `Anuncio ${index} de ${count}`,
+  searchBusinesses: "Buscar",
+  searchBusinessesAria: "Buscar negocios por nombre, categoría o producto",
+  assistant: "Asistente",
+  assistantAria: "Asistente de negocios con IA",
+  changeLanguage: "Cambiar idioma",
+  openMenu: "Abrir menú",
+  changeTheme: "Cambiar tema",
+  advertisements: "Anuncios",
+  myBusinesses: "Mis negocios",
+  businesses: "Negocios",
+  privacyNotice: "Aviso de privacidad",
+  termsAndConditions: "Términos y condiciones",
+  reportContent: "Reportar contenido",
+  allFilter: "Todos",
+  openNowFilter: "Abierto ahora",
+  deliveryFilter: "A domicilio",
+  phone: "Teléfono",
+  whatsapp: "WhatsApp",
+  address: "Dirección",
+  schedule: "Horario",
+  call: "Llamar",
+  directions: "Cómo llegar",
+  weekdays: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
 };
 
 export const en: Dictionary = {
@@ -126,6 +172,29 @@ export const en: Dictionary = {
   noSponsoredBusinesses: "No sponsored businesses yet",
   noSponsoredBusinessesHint: "Check back soon — you'll see businesses near you here.",
   adGroupLabel: (index: number, count: number) => `Ad ${index} of ${count}`,
+  searchBusinesses: "Search",
+  searchBusinessesAria: "Search businesses by name, category, or product",
+  assistant: "Assistant",
+  assistantAria: "AI business assistant",
+  changeLanguage: "Change language",
+  openMenu: "Open menu",
+  changeTheme: "Change theme",
+  advertisements: "Advertisements",
+  myBusinesses: "My businesses",
+  businesses: "Businesses",
+  privacyNotice: "Privacy notice",
+  termsAndConditions: "Terms and conditions",
+  reportContent: "Report content",
+  allFilter: "All",
+  openNowFilter: "Open now",
+  deliveryFilter: "Delivery",
+  phone: "Phone",
+  whatsapp: "WhatsApp",
+  address: "Address",
+  schedule: "Hours",
+  call: "Call",
+  directions: "Get directions",
+  weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 };
 
 export const defaultLocale: SupportedLocale = "es";

@@ -27,10 +27,10 @@ export function StationButton({
       gap={6}
       opacity={1}
     >
-      <Paragraph fontSize={17} fontWeight="700" color="brandCream">
+      <Paragraph fontSize={17} fontWeight="700" color="text">
         {stationName}
       </Paragraph>
-      <Text fontSize={18} color="brandCream" aria-hidden={true} data-testid="station-chevron">
+      <Text fontSize={18} color="text" aria-hidden={true} data-testid="station-chevron">
         {chevron}
       </Text>
     </Button>

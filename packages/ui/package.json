@@ -30,6 +30,7 @@
     "expo-audio": "catalog:",
     "jotai": "catalog:",
     "react-native-safe-area-context": "catalog:",
+    "react-native-svg": "15.16.1",
     "tamagui": "catalog:",
     "ts-pattern": "^5.9.2"
   },
