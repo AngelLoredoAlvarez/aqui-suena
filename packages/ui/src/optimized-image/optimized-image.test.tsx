@@ -40,6 +40,25 @@ describe("OptimizedImage", () => {
     expect(screen.getByAltText("test").getAttribute("src")).toBe("https://example.com/img.png");
   });
 
+  it("keeps the object position on the rendered image", () => {
+    render(
+      <OptimizedImage
+        src="https://example.com/img.png"
+        alt="test"
+        width={100}
+        height={100}
+        priority
+        objectPosition="center top"
+      />,
+      { wrapper },
+    );
+
+    const img = screen.getByAltText("test") as HTMLImageElement;
+
+    expect(img.style.objectPosition).toBe("center top");
+    expect(img.getAttribute("cachekey")).toBeNull();
+  });
+
   it("renders error fallback on onError", () => {
     render(
       <OptimizedImage
