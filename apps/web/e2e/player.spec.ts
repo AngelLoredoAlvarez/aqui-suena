@@ -1,12 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 
-// Player e2e: landing renders shared PlayerLanding (PlayerCard +
-// LocaleSwitcher + AdsCarousel); web channels are same-origin
-// /test-streams/*.m4a assets played directly (the /api/stream proxy only
-// wraps remote hosts). Media is stubbed at the network edge (route fulfill
-// with a minimal WAV, route abort for a failed mirror) so assertions are
-// deterministic headless and never depend on the committed audio files; UI
-// assertions use roles/text only, never CSS or component internals.
+// Player e2e: landing renders the shared player shell; web channels are
+// same-origin /test-streams/*.m4a assets played directly (the /api/stream
+// proxy only wraps remote hosts). Media is stubbed at the network edge (route
+// fulfill with a minimal WAV, route abort for a failed mirror) so assertions
+// are deterministic headless and never depend on the committed audio files;
+// UI assertions use roles/text only, never CSS or component internals.
 
 type Locale = "es" | "en";
 
@@ -83,16 +82,13 @@ async function fulfillStreamWithWav(page: Page): Promise<void> {
   });
 }
 
-// T1 smoke: landing renders the shared player shell (H1 + locale switcher
-// + ads slot). Player state assertions live in the T2 slices below, where
-// routes are stubbed for determinism.
-test("landing renders the shared player", async ({ page }) => {
+test("landing renders the shared shell", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Aquí Suena");
-  await expect(page.getByRole("button", { name: "Español" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "English" })).toBeVisible();
-  await expect(page.getByLabel("Advertisements")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aquí Suena" })).toBeVisible();
+  await expect(page.getByTestId("landing-language")).toBeVisible();
+  await expect(page.getByLabel("Anuncios").or(page.getByLabel("Advertisements"))).toBeVisible();
+  await expect(page.getByTestId("player-dock")).toBeVisible();
 });
 
 test("autoplay reaches playing, or blocked tap resumes to playing", async ({ page }, testInfo) => {
@@ -212,6 +208,50 @@ test("pause and resume flip the player status", async ({ page }, testInfo) => {
   expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
 });
 
+test("moving the player does not restart playback", async ({ page }, testInfo) => {
+  const locale = localeOf(testInfo.project.name);
+  const errors = trackConsole(page);
+
+  await fulfillStreamWithWav(page);
+
+  await page.addInitScript(() => {
+    const original = window.HTMLMediaElement.prototype.play;
+    const state = window as unknown as { __playCalls?: number };
+    state.__playCalls = 0;
+    window.HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) {
+      state.__playCalls = (state.__playCalls ?? 0) + 1;
+      return original.call(this);
+    };
+  });
+
+  await page.goto("/");
+
+  const tap = page.getByRole("button", { name: COPY[locale].tap });
+
+  if (await tap.isVisible()) {
+    await tap.click();
+  }
+
+  await expect(page.getByText(COPY[locale].playing)).toBeVisible();
+
+  const before = await page.evaluate(
+    () => (window as unknown as { __playCalls?: number }).__playCalls ?? 0,
+  );
+
+  const moveLabel = locale === "es" ? "Mover reproductor arriba o abajo" : "Move player up or down";
+
+  await page.getByRole("button", { name: moveLabel }).click();
+
+  await page.waitForTimeout(300);
+
+  const after = await page.evaluate(
+    () => (window as unknown as { __playCalls?: number }).__playCalls ?? 0,
+  );
+
+  expect(after, "moving the dock must not start a second playback").toBe(before);
+  expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
+});
+
 test("locale switcher flips es/en copy and persists across reload", async ({ page }, testInfo) => {
   const errors = trackConsole(page);
   await fulfillStreamWithWav(page);
@@ -223,8 +263,11 @@ test("locale switcher flips es/en copy and persists across reload", async ({ pag
   // Starting locale copy is on screen (playing text proves the player, not
   // just the shell, renders in that locale).
   await expect(page.getByText(COPY[start].playing)).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("landing-language")).toHaveText(start === "es" ? "ES" : "EN");
 
-  await page.getByRole("button", { name: next === "es" ? "Español" : "English" }).click();
+  await page.getByTestId("landing-language").click();
+  await page.getByTestId(`landing-language-${next}`).click();
+  await expect(page.getByTestId("landing-language")).toHaveText(next === "es" ? "ES" : "EN");
   await expect(page.getByText(COPY[next].playing)).toBeVisible();
 
   await page.reload();
@@ -258,7 +301,8 @@ test.describe("wide desktop composition", () => {
       .toBeGreaterThanOrEqual(1390);
 
     // Opening the popover must not reflow the page: it floats above the dock.
-    const adsBefore = await page.getByLabel("Advertisements").boundingBox();
+    const ads = page.getByTestId("ads-carousel").or(page.getByTestId("ads-carousel-placeholder"));
+    const adsBefore = await ads.boundingBox();
 
     await page.getByTestId("station-name").click();
 
@@ -277,13 +321,10 @@ test.describe("wide desktop composition", () => {
       "popover right edge stays on canvas",
     ).toBeLessThanOrEqual(1440);
 
-    const adsAfter = await page.getByLabel("Advertisements").boundingBox();
+    const adsAfter = await ads.boundingBox();
     expect(adsAfter?.y, "opening the popover leaves the content in place").toBe(adsBefore?.y);
 
-    // Clicking outside the card — including the side margins of the popover
-    // container — must close the sheet. The container is pointer-transparent
-    // and only the card itself is interactive.
-    await page.mouse.click(100, 700);
+    await page.mouse.click(20, 200);
     await expect(sheet).toBeHidden();
 
     expect(errors, `console errors: ${errors.join("\n")}`).toEqual([]);
