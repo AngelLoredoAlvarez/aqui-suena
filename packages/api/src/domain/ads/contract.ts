@@ -1,5 +1,11 @@
 import * as v from "valibot";
 
+export type AdsCarouselHour = {
+  day: number;
+  openMinute: number;
+  closeMinute: number;
+};
+
 export type AdsCarouselItem = {
   id: string;
   imageUrl: string;
@@ -9,8 +15,17 @@ export type AdsCarouselItem = {
   delivery: boolean;
   opensAt?: string;
   isOpen: boolean;
+  phone?: string | null;
+  address?: string | null;
+  hours?: AdsCarouselHour[];
   href?: string;
 };
+
+const hourSchema = v.object({
+  day: v.number(),
+  openMinute: v.number(),
+  closeMinute: v.number(),
+});
 
 const adsCarouselItemSchema = v.object({
   id: v.string(),
@@ -21,6 +36,9 @@ const adsCarouselItemSchema = v.object({
   delivery: v.boolean(),
   opensAt: v.optional(v.string()),
   isOpen: v.boolean(),
+  phone: v.optional(v.nullable(v.string())),
+  address: v.optional(v.nullable(v.string())),
+  hours: v.optional(v.array(hourSchema)),
   href: v.optional(v.string()),
 });
 

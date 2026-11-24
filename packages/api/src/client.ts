@@ -73,4 +73,7 @@ export async function fetchAdsCarousel(baseUrl?: string): Promise<AdsCarouselIte
   return v.parse(adsCarouselOutput, items);
 }
 
-export type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
+export type {
+  AdsCarouselHour,
+  AdsCarouselItem,
+} from "@aqui-suena/api/domain/ads/contract";

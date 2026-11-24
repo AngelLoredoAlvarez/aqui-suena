@@ -8,6 +8,8 @@ const source: CarouselItemSource = {
     category: "food",
     delivery: true,
     timezone: "America/Mexico_City",
+    phone: "+52 487 100 0000",
+    address: "Calle Hidalgo 1, Rioverde",
   },
   hours: [{ day: 1, openMinute: 480, closeMinute: 1080 }],
 };
@@ -23,6 +25,9 @@ describe("toCarouselItem", () => {
     expect(item.category).toBe("food");
     expect(item.delivery).toBe(true);
     expect(item.imageUrl).toBe("https://r2/flyer.png");
+    expect(item.phone).toBe("+52 487 100 0000");
+    expect(item.address).toBe("Calle Hidalgo 1, Rioverde");
+    expect(item.hours).toEqual(source.hours);
   });
 
   it("derives isOpen from hours + timezone + now", () => {

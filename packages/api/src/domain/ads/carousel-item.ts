@@ -8,6 +8,8 @@ export type CarouselItemSource = {
     readonly category: string;
     readonly delivery: boolean;
     readonly timezone: string;
+    readonly phone: string | null;
+    readonly address: string | null;
   };
   readonly hours: readonly {
     readonly day: number;
@@ -36,5 +38,8 @@ export function toCarouselItem(
     delivery: source.business.delivery,
     isOpen,
     opensAt,
+    phone: source.business.phone,
+    address: source.business.address,
+    hours: [...source.hours],
   };
 }
