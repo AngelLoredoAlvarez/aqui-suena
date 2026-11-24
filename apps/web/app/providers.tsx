@@ -21,8 +21,6 @@ const queryClient = new QueryClient();
 
 // Client boundary for shared providers. The Tamagui provider itself lives
 // in shared code (@aqui-suena/ui) so web and native use the same setup.
-// The query client is created per app bundle (mock-first: no SSR caching
-// concerns yet; revisit when the HTTP transport lands).
 // Locale state starts at the default and resolves persisted-then-detected
 // in an effect: reading localStorage during render would break SSR
 // hydration, so the first paint uses `es` and the resolved locale applies

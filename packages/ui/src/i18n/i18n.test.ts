@@ -1,10 +1,6 @@
 import { defaultLocale, en, es, getDictionary, resolveLocale } from "@aqui-suena/ui/i18n/locales";
 import { describe, expect, it } from "vitest";
 
-// T1 contract: typed es/en dictionaries with an exact -> base -> default
-// fallback chain. The parity test fails whenever a key is missing in
-// either language, so adding a language means adding one file plus one
-// union entry.
 describe("i18n contract", () => {
   it("has key parity: every es key exists in en", () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(es).sort());

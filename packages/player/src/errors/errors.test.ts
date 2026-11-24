@@ -1,11 +1,8 @@
 import { describeMediaError } from "@aqui-suena/player/errors/errors";
 import { describe, expect, it } from "vitest";
 
-// Slice (b): media-error mapper. Contract under test: autoplay rejection
-// becomes `blocked`, source-not-supported (code 4) becomes an error, and
-// each maps to a dictionary key — never a hardcoded string. Copy lives in
-// @aqui-suena/ui dictionaries so both locales stay in sync; the player
-// package only decides status + key.
+// Copy lives in @aqui-suena/ui dictionaries so both locales stay in sync;
+// the player package only decides status + key.
 describe("describeMediaError", () => {
   it("maps autoplay rejection to blocked with a resume key", () => {
     expect(describeMediaError({ name: "NotAllowedError" })).toEqual({
