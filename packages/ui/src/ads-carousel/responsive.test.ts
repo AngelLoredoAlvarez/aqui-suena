@@ -1,5 +1,3 @@
-// packages/ui/src/ads-carousel/responsive.test.ts
-
 import {
   getResponsiveCarouselMaxW,
   getResponsiveFlyerWidth,

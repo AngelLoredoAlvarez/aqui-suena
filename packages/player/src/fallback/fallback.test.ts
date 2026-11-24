@@ -1,9 +1,6 @@
 import { pickFallbackUrl } from "@aqui-suena/player/fallback/fallback";
 import { describe, expect, it } from "vitest";
 
-// Slice (a): mirror fallback picker. Contract under test:
-// return the first candidate URL that was not tried yet,
-// or null when every candidate was tried (or there are none).
 describe("pickFallbackUrl", () => {
   it("returns the first candidate when nothing was tried", () => {
     const candidates = ["https://ice1.example/live", "https://ice2.example/live"];
