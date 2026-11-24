@@ -1,9 +1,11 @@
+import { animations } from "@aqui-suena/config/animations";
 import { defaultConfig } from "@tamagui/config/v5";
 import { createTamagui } from "tamagui";
 
 // Canonical Tamagui configuration for Aquí Suena.
-// Tokens, themes, fonts, and media come from the default preset so web
-// and native share a single source of truth. Extend here (never in apps).
+// Tokens, themes, fonts, media and animations come from the default preset so
+// web and native share a single source of truth. Extend here (never in apps).
+// The animation driver is platform-split: CSS on web, RN Animated on native.
 //
 // Brand palette (additive only: no preset token is edited). The default
 // preset ships no color token group, so `brand` adds one, following the
@@ -84,6 +86,7 @@ const brasaTheme = {
 
 const tamaguiConfig = createTamagui({
   ...defaultConfig,
+  animations,
   tokens: {
     ...defaultConfig.tokens,
     color: {
