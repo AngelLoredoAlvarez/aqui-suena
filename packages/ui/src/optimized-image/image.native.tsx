@@ -65,6 +65,7 @@ export function Image({
   objectPosition,
   onLoad,
   draggable: _draggable,
+  transition: _transition,
   ...props
 }: ImageProps) {
   const expoSource: ImageSource = { uri: src, cacheKey };

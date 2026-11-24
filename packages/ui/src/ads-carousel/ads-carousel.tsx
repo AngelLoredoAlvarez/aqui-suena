@@ -1,5 +1,6 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
+import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/flyer-animation";
 import { formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
 import {
   getResponsiveCarouselMaxW,
@@ -9,8 +10,9 @@ import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { Icon } from "@aqui-suena/ui/shared";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
+import { Button, isWeb, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -141,6 +143,47 @@ function FlyerNavButton({
     >
       <Icon name={isPrevious ? "chevron-left" : "chevron-right"} size={22} tone="text" />
     </Button>
+  );
+}
+
+function FlyerTransition({ children }: { children: ReactNode }) {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setShown(true));
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const layer = flyerLayerStyle(isWeb, shown);
+
+  if (!isWeb) {
+    return (
+      <YStack
+        testID="ads-carousel-flyer-layer"
+        animation="quickLessBouncy"
+        opacity={layer.opacity}
+        x={layer.x}
+        flex={1}
+        width="100%"
+        overflow="hidden"
+      >
+        {children}
+      </YStack>
+    );
+  }
+
+  return (
+    <YStack
+      testID="ads-carousel-flyer-layer"
+      animation="quickLessBouncy"
+      opacity={layer.opacity}
+      x={layer.x}
+      position="absolute"
+      inset={0}
+    >
+      {children}
+    </YStack>
   );
 }
 
@@ -319,16 +362,18 @@ export function AdsCarousel({
         shrink={isWide ? 0 : undefined}
         flex={isWide ? undefined : 1}
       >
-        <OptimizedImage
-          src={current.imageUrl}
-          alt={current.alt}
-          fill
-          objectFit="cover"
-          objectPosition="center top"
-          rounded={0}
-          priority={safeIndex === 0}
-          draggable={false}
-        />
+        <FlyerTransition key={current.id}>
+          <OptimizedImage
+            src={current.imageUrl}
+            alt={current.alt}
+            fill
+            objectFit="cover"
+            objectPosition="center top"
+            rounded={0}
+            priority
+            draggable={false}
+          />
+        </FlyerTransition>
         <YStack
           position="absolute"
           r={12}

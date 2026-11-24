@@ -91,6 +91,13 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - **Slide anatomy is identical across platforms**: full-bleed flyer image
   (`object-fit: cover`, `object-position: center top`) + an open-status badge
   top-right + previous/next navigation buttons overlaid on the image.
+- **Flyer transition**: on web/desktop the image layer remounts keyed by the
+  current item and fades/slides in with the `quickLessBouncy` preset (Tamagui
+  CSS driver). Native remounts the same keyed layer and slides it 12 px
+  horizontally with the RN Animated driver, animating only the transform and
+  keeping opacity at 1, so the image is visible throughout; the native image
+  adapter ignores the Tamagui transition preset. The badge and navigation
+  buttons stay mounted outside the animated layer.
 - **Navigation buttons**: circular 44×44 buttons in `surface` with a
   `borderColor` border and a chevron icon, vertically centred on the image
   (`left/right: 12`). They carry `aria-label="Anuncio anterior"` /

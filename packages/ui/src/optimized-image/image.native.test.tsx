@@ -63,6 +63,12 @@ describe("OptimizedImage native adapter", () => {
     expect(captured.props?.onLoadEnd).toBe(onLoad);
   });
 
+  it("does not forward the Tamagui transition preset to expo-image", () => {
+    render(<Image src={SIGNED} transition="quick" width={100} height={100} />, { wrapper });
+
+    expect(captured.props?.transition).toBeUndefined();
+  });
+
   it.each(["cover", "contain", "fill", "none", "scale-down"] as const)(
     "maps objectFit %s to the matching contentFit",
     (objectFit) => {

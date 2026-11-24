@@ -136,6 +136,16 @@ describe("AdsCarousel", () => {
     expect(screen.getByAltText("Ad B")).toBeTruthy();
   });
 
+  it("remounts the flyer layer so the change runs its transition", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+    const firstLayer = screen.getByTestId("ads-carousel-flyer-layer");
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio siguiente" }));
+
+    const secondLayer = screen.getByTestId("ads-carousel-flyer-layer");
+    expect(secondLayer).not.toBe(firstLayer);
+  });
+
   it("restarts auto-advance after a manual drag", () => {
     vi.useFakeTimers();
     renderWithProviders(<AdsCarousel items={ITEMS} autoAdvanceMs={100} />, { locale: "es" });

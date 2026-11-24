@@ -16,6 +16,15 @@ function colorVal(name: string): unknown {
 
 // Brand identity tokens: additive night-plum surface ramp, warm amber
 // accent, and cream text. Existing preset tokens must stay untouched.
+describe("animations", () => {
+  it("ships the presets used by the shared UI", () => {
+    const presets = (tamaguiConfig.animations as { animations?: Record<string, unknown> })
+      ?.animations;
+
+    expect(Object.keys(presets ?? {})).toEqual(expect.arrayContaining(["quick", "medium"]));
+  });
+});
+
 describe("brand tokens", () => {
   it("exposes the night-plum surface ramp", () => {
     expect(colorVal("brand1")).toBe("#150e22");
