@@ -141,18 +141,20 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 ### Data model
 
 `AdsCarouselItem` grows from `{ id, imageUrl, alt, href? }` to carry the card
-fields: `{ id, imageUrl, alt, name, category, delivery, opensAt, isOpen,
-href? }` — `name` renders the title; `category` is the business category enum
-rendered through the i18n `category` labels ("Comida"/"Food",
+fields: `{ id, imageUrl, alt, name, category, delivery, opensAt, isOpen, phone,
+address, hours, href? }` — `name` renders the title; `category` is the business
+category enum rendered through the i18n `category` labels ("Comida"/"Food",
 "Servicios"/"Services", …), `delivery` is a boolean rendered via the i18n
 `delivery` label ("Servicio a domicilio" / "Home delivery"), and `opensAt` is
 the next opening time in `H:MM` format for a closed business, rendered via the
 i18n `opensAt` formatter ("Abre 8:00" / "Opens 8:00"). The three compose the
-meta line in one shared function (see below); `isOpen` drives the
-badge; `href` links to the business sheet (navigation still TBD). None of these
-user-facing strings are hardcoded. These fields mirror what `businesses`
-exposes (category, delivery flag, hours), so the carousel card, the directory,
-and the sheet reuse the same contract without refactoring later. The carousel
+meta line in one shared function (see below); `isOpen` drives the badge;
+`phone`, `address` and `hours` feed the wide landing contact panel (phone,
+WhatsApp, address and a compact weekly schedule); `href` links to the business
+sheet (navigation still TBD). None of these user-facing strings are hardcoded.
+These fields mirror what `businesses` exposes (category, delivery flag, hours,
+contact data), so the carousel card, the landing directory panel, and the
+future sheet reuse the same contract without refactoring later. The carousel
 now serves real inventory from `ads.carousel` (getBusinessCarousel use-case);
 there is no static seed. When no sponsors are eligible, the carousel renders
 the empty state ("No sponsored businesses yet").
@@ -163,8 +165,12 @@ the empty state ("No sponsored businesses yet").
 ("Servicio a domicilio"/"Home delivery"), `category(value)` (Comida/Food,
 Salud/Health, Comercio/Retail, Servicios/Services, Cómputo/Computing,
 Otros/Other, unknown values fall back to the raw value), `opensAt(time)`
-("Abre 8:00"/"Opens 8:00"), `viewBusiness` ("Ver negocio"/"View
-business") by plan: Comunidad `viewContact` ("Ver contacto"/"View contact"),
+("Abre 8:00"/"Opens 8:00"), `phone` ("Teléfono"/"Phone"), `whatsapp`
+("WhatsApp"), `address` ("Dirección"/"Address"), `schedule`
+("Horario"/"Hours"), `call` ("Llamar"/"Call"), `directions`
+("Cómo llegar"/"Get directions"), `weekdays` (Dom–Sáb / Sun–Sat),
+`viewBusiness` ("Ver negocio"/"View business") by plan: Comunidad
+`viewContact` ("Ver contacto"/"View contact"),
 Oficios `viewServices` ("Ver servicios"/"View services"), Comercios `viewCatalog`
 ("Ver catálogo"/"View catalog"), `noSponsoredBusinesses` ("No sponsored businesses yet"/"No
 sponsored businesses yet"), `noSponsoredBusinessesHint` ("Check back soon: you will see businesses near you."/"Check back soon — you'll see businesses near
@@ -176,11 +182,12 @@ domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
 ### Scope boundary
 
 The "card anatomy" unit owns the flyer card (image + badge + dots + name + meta
-
-- CTA) rendered responsively across all three breakpoints. The directory
-  **list** and the tablet/web **contact detail panel** (phone/WhatsApp/
-  address/hours + Call/WhatsApp/Get directions) belong to
-  `SPEC-business-directory.md` and are implemented there, not here.
++ CTA) rendered responsively across all three breakpoints. The landing shell
+renders the tablet/web **read-only contact panel** (phone/WhatsApp/address/
+schedule + inert Call/WhatsApp/Get directions actions) from the carousel item's
+contact fields; see `SPEC-landing.md`. The full directory **list route and
+detail sheet** remain in `SPEC-business-directory.md` and are implemented
+there, not here.
 
 ## Decisions (resolved)
 

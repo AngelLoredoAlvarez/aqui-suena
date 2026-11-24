@@ -1,6 +1,6 @@
 # Spec: business-directory — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-16).** Backend complete: directory routers, D1 repositories, ownership guards, visibility and pagination ship in `packages/api`. No listing route or directory UI is built in `apps/web` or `apps/mobile`.
+> **Status: partial (2026-11-23).** Backend complete: directory routers, D1 repositories, ownership guards, visibility and pagination ship in `packages/api`. The landing shell renders a read-only sponsored business list and contact panel from `ads.carousel` (see `SPEC-landing.md`); the directory listing route, detail sheet and owner UI remain unbuilt in `apps/web` and `apps/mobile`.
 
 ## Objective
 

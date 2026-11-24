@@ -84,7 +84,11 @@ The web app builds as a static export with `NEXT_PUBLIC_API_BASE_URL` baked, so 
 
 ## Routes
 
-Landing `/` is the player + ads carousel on both platforms, rendered from shared code. There are no station screens by product decision: the player switches stations in place via its selector.
+Landing `/` is the player + sponsored directory shell + ads carousel on both
+platforms, rendered from shared code. There are no station screens by product
+decision: the player switches stations in place via its selector. Directory
+detail routes, search, assistant, and contact actions are not built yet; the
+landing links are inert until they land.
 
 ## Docs and planning
 
@@ -92,6 +96,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 | ---------------------------------------------------------- | --------------------------------------------------------------- |
 | `docs/specs/SPEC-ads-display.md`                           | Sponsor carousel during listening                               |
 | `docs/specs/SPEC-business-directory.md`                    | Listings: products, services, photos, hours, flyers             |
+| `docs/specs/SPEC-landing.md`                               | Responsive landing shell: directory, carousel, dock, theme      |
 | `docs/specs/SPEC-live-listener-count.md`                   | Superseded decision record for the heartbeat                    |
 | `docs/specs/SPEC-media-storage.md`                         | Media storage: R2 upload + image optimization (free tier)       |
 | `docs/specs/SPEC-memberships.md`                           | Three business plans, entitlements, and carousel priority       |
@@ -113,7 +118,7 @@ Landing `/` is the player + ads carousel on both platforms, rendered from shared
 ### Current state (2026-11-20)
 
 - **API** ships the public player surface, the business directory, memberships and billing, media storage, fiscal archives (XML, PDF and acuse) and transactional email. 1316 tests across 141 files; `typecheck`, `biome`, `pnpm arch` and `check:singletons` are green on every commit.
-- **Clients**: web and mobile render the landing player and the ads carousel from shared `packages/ui` code; desktop is a dev-only Tauri shell. There is no owner portal, billing view or directory UI yet — `apps/web` has exactly one page.
+- **Clients**: web and mobile render the responsive landing shell (sponsored directory, ads carousel and player dock) from shared `packages/ui` code; desktop is a dev-only Tauri shell. There is no owner portal, billing view or directory detail route yet — `apps/web` has exactly one page.
 - **Environments**: staging only (Worker + D1 + R2 + Pages). Production has no deployment, no company CSD and no payment provider, so production-only work is not tracked here.
 - **Proven on staging**: media round trip (presign → R2 → confirm → list → delete), account provisioning on a first request, account deletion with fiscal tombstone, CFDI issuing through the sandbox PAC, delivery by email with both attachments, invoice history with signed downloads, cancellation with motive `03`, the fifteen-minute cancellation sweep firing on its own, one-off Conekta charges (card, cash, SPEI) with the renewal scheduler, and cancellation with motive `01` (substitution).
 - **Not proven anywhere**: archiving a _real_ acuse (the sandbox returns a canned one, which the code now rejects), receiver acceptance or rejection, and the positive ficta.
@@ -133,6 +138,7 @@ Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 
 - Safe test-stations harness: 3 self-hosted dev channels + proof file — DONE (channels live in player-landing, SPEC + .gitignore in place).
 - Desktop wide (1440) composition — DONE: from the `md` breakpoint up the landing uses the 1440px canvas with a header row and the player as a full-width bottom dock bar; the station selector sits below the status text, and web adds a 44px move button at the far right. The station selector becomes a 480px popover at the dock's right edge, with a pointer-transparent container so outside clicks close it. The same horizontal dock is used on mobile, tablet and web, with the design's 64px circular play button in primary/onPrimary colors. See `docs/specs/SPEC-radio-playback.md` (Responsive composition).
+- Landing v2 shell — DONE (2026-11-23): mobile header/search/assistant/language/menu + carousel + dock; tablet/web header + 300/380 px sponsored directory + carousel detail panel with contact rows/actions + dock; web theme toggle persists Noche/Brasa. Navigation, search, assistant, business detail and contact actions are inert until their routes land. Unit tests, the web build, and Playwright at 390×844, 1024×768 and 1440×900 are green. See `docs/specs/SPEC-landing.md`.
 - Ads carousel now serves real ranked inventory by plan (Comercios > Oficios > Comunidad, recency tie-break) via `ads.carousel` (F1+F2 complete); no static seed, empty state shown when no sponsors. Carousel now expands 1/2/3 appearances per cycle with consecutive-repeat avoidance (Task 1 (b)).
 - Business plan Task 1 complete (2026-11-09): business count caps, downgrade/grace helpers, DB schema (hiddenAt/retainedUntil, grace status + graceEnd), 90-day cleanup, email warnings (grace period), and renewal/downgrade notifications (EmailSender port + notifiers) all implemented. The sender is wired through the composition root; `subscriptions.cancel` and `billing.requestInvoice` are the live call sites. Only plan selection/billing views (Task 2) and directory data/owner forms (Task 3) remain.
 - Directory security P0 complete (2026-11-10): every directory mutation requires business ownership (a foreign or missing resource answers `NOT_FOUND`), hidden businesses are excluded from public reads and child lists while their owner keeps access, and the eight child foreign keys cascade on business deletion so the 90-day retention cleanup works. The cascade migration was applied to the staging D1 on 2026-11-10, and the production D1 was created on 2026-11-16 with the full schema applied. See `odd/tasks/fix-p0-directory-security.md`.
