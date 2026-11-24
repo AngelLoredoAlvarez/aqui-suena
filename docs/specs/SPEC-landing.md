@@ -37,7 +37,9 @@ the directory/carousel is used, and no station screen is introduced.
   move-player control. The dock is below the card by default; the move control
   flips it above the card and persists the position. The dock uses the same
   width as the carousel card (12 px side margins), sits 12 px below the card and
-  keeps a 16 px bottom inset.
+  keeps a 16 px bottom inset. When flipped above the card it keeps the same
+  12 px gap below the header and the card starts 12 px below the dock, so the
+  carousel margins do not grow with the position.
 - Light theme (`Owner`) reuses the same layout with the dock above the card;
   the manual theme toggle is a web header control for now.
 
@@ -57,7 +59,10 @@ the directory/carousel is used, and no station screen is introduced.
 - Header: brand, assistant pill, language pill, theme toggle, "Mis negocios".
 - Left column (380 px) and right panel scaled up (480 px flyer), same content as
   tablet. The theme toggle switches Noche/Brasa and persists in localStorage.
-  The player dock keeps a 12 px bottom margin.
+  The player dock keeps a 12 px bottom margin. When moved above the
+  carousel it keeps the same 12 px gap below the header, so its outer margins
+  do not grow with the position; the content keeps its 20 px top gap when the
+  dock is below.
 
 ## Data
 
