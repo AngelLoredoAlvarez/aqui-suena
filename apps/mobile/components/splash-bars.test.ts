@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import {
   BAR_CORNER_RADIUS,
   BAR_WIDTH,
   barCenterY,
   EQUALIZER_BARS,
   SPEAKER_CENTER_Y,
-} from "./splash-bars";
+} from "@aqui-suena/mobile/components/splash-bars";
+import { describe, expect, it } from "vitest";
 
 describe("splash-bars", () => {
   it("anchors the equalizer to the speaker body center", () => {

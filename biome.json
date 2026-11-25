@@ -136,6 +136,26 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/mobile/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["./**", "../**"],
+                    "message": "Relative imports are forbidden in apps/mobile: use @aqui-suena/mobile/* aliases."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

@@ -1,5 +1,5 @@
+import { splashLayout } from "@aqui-suena/mobile/components/splash-layout";
 import { describe, expect, it } from "vitest";
-import { splashLayout } from "./splash-layout";
 
 describe("splashLayout", () => {
   it("uses the compact sizes below the 600px breakpoint", () => {

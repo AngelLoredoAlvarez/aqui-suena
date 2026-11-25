@@ -1,3 +1,11 @@
+import {
+  BAR_CORNER_RADIUS,
+  BAR_WIDTH,
+  EQUALIZER_BARS,
+  SPEAKER_CENTER_Y,
+} from "@aqui-suena/mobile/components/splash-bars";
+import { splashLayout } from "@aqui-suena/mobile/components/splash-layout";
+import { useBootSplashAnimation } from "@aqui-suena/mobile/components/use-boot-splash-animation";
 import { type ReactNode, useEffect, useRef } from "react";
 import {
   Animated,
@@ -9,9 +17,6 @@ import {
   View,
 } from "react-native";
 import Svg, { Ellipse, G, Path, Rect } from "react-native-svg";
-import { BAR_CORNER_RADIUS, BAR_WIDTH, EQUALIZER_BARS, SPEAKER_CENTER_Y } from "./splash-bars";
-import { splashLayout } from "./splash-layout";
-import { useBootSplashAnimation } from "./use-boot-splash-animation";
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 const AnimatedPath = Animated.createAnimatedComponent(Path);

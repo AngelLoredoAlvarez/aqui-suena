@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
+import { useBootSplashAnimation } from "@aqui-suena/mobile/components/use-boot-splash-animation";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useBootSplashAnimation } from "./use-boot-splash-animation";
 
 const native = vi.hoisted(() => ({
   reduceMotionEnabled: false,
