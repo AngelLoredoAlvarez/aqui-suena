@@ -1,6 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import {
-  AccessibilityInfo,
   Animated,
   Easing,
   Platform,
@@ -10,6 +9,9 @@ import {
   View,
 } from "react-native";
 import Svg, { Ellipse, G, Path, Rect } from "react-native-svg";
+import { BAR_CORNER_RADIUS, BAR_WIDTH, EQUALIZER_BARS, SPEAKER_CENTER_Y } from "./splash-bars";
+import { splashLayout } from "./splash-layout";
+import { useBootSplashAnimation } from "./use-boot-splash-animation";
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -69,131 +71,16 @@ function Bit({ delay, reduceMotion, children }: BitProps) {
 
 export function NativeBootSplash() {
   const { width } = useWindowDimensions();
-  const wide = width >= 600;
-  const logoSize = wide ? 196 : 140;
-  const titleSize = wide ? 48 : 34;
-  const trackWidth = wide ? 176 : 126;
-  const trackMargin = wide ? 29 : 21;
-  const footerBottom = wide ? 48 : 40;
-  const footerSize = wide ? 17 : 15;
-  const markSize = wide ? 38 : 32;
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [cursorVisible, setCursorVisible] = useState(true);
-  const arc = useRef(new Animated.Value(0)).current;
-  const arcAlt = useRef(new Animated.Value(0)).current;
-  const fill = useRef(new Animated.Value(0.05)).current;
-  const bar1 = useRef(new Animated.Value(0.55)).current;
-  const bar2 = useRef(new Animated.Value(0.55)).current;
-  const bar3 = useRef(new Animated.Value(0.55)).current;
-
-  useEffect(() => {
-    let active = true;
-
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => {
-        if (active) {
-          setReduceMotion(enabled);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (reduceMotion) {
-      arc.setValue(0.4);
-      arcAlt.setValue(0.4);
-      fill.setValue(0.4);
-      bar1.setValue(1);
-      bar2.setValue(1);
-      bar3.setValue(1);
-
-      return;
-    }
-
-    const arcLoop = Animated.loop(
-      Animated.timing(arc, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: false,
-      }),
-    );
-
-    const arcAltLoop = Animated.sequence([
-      Animated.delay(350),
-      Animated.loop(
-        Animated.timing(arcAlt, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ),
-    ]);
-
-    const fillLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(fill, {
-          toValue: 1,
-          duration: 1920,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.delay(480),
-      ]),
-    );
-
-    const bars = [bar1, bar2, bar3].map((value, index) =>
-      Animated.sequence([
-        Animated.delay(index * 200),
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(value, {
-              toValue: 1,
-              duration: 600,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: false,
-            }),
-            Animated.timing(value, {
-              toValue: 0.55,
-              duration: 600,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: false,
-            }),
-          ]),
-        ),
-      ]),
-    );
-
-    const animations = [arcLoop, arcAltLoop, fillLoop, ...bars];
-
-    animations.forEach((animation) => {
-      animation.start();
-    });
-
-    return () => {
-      animations.forEach((animation) => {
-        animation.stop();
-      });
-    };
-  }, [arc, arcAlt, bar1, bar2, bar3, fill, reduceMotion]);
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setCursorVisible(true);
-
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setCursorVisible((visible) => !visible);
-    }, 500);
-
-    return () => clearInterval(timer);
-  }, [reduceMotion]);
+  const { wide, logoSize, titleSize, trackWidth, trackMargin, footerBottom, footerSize, markSize } =
+    splashLayout(width);
+  const { reduceMotion, cursorVisible, arc, arcAlt, fill, bars } = useBootSplashAnimation();
+  const [bar1, bar2, bar3] = bars;
+  const [leftBar, midBar, rightBar] = EQUALIZER_BARS;
+  const equalizerBars = [
+    { bar: leftBar, value: bar1 },
+    { bar: midBar, value: bar2 },
+    { bar: rightBar, value: bar3 },
+  ];
 
   const arcOpacity = arc.interpolate({
     inputRange: [0, 0.4, 1],
@@ -213,7 +100,7 @@ export function NativeBootSplash() {
   const barHeight = (value: Animated.Value, height: number) => Animated.multiply(value, height);
 
   const barY = (value: Animated.Value, height: number) =>
-    Animated.subtract(597, Animated.divide(Animated.multiply(value, height), 2));
+    Animated.subtract(SPEAKER_CENTER_Y, Animated.divide(Animated.multiply(value, height), 2));
 
   return (
     <View
@@ -264,27 +151,16 @@ export function NativeBootSplash() {
               />
               <Rect x="380" y="475" width="264" height="245" rx="24" fill="#FF8A65" />
               <G fill="#0F1720">
-                <AnimatedRect
-                  x="442"
-                  width="36"
-                  rx="18"
-                  height={barHeight(bar1, 90)}
-                  y={barY(bar1, 90)}
-                />
-                <AnimatedRect
-                  x="494"
-                  width="36"
-                  rx="18"
-                  height={barHeight(bar2, 150)}
-                  y={barY(bar2, 150)}
-                />
-                <AnimatedRect
-                  x="546"
-                  width="36"
-                  rx="18"
-                  height={barHeight(bar3, 110)}
-                  y={barY(bar3, 110)}
-                />
+                {equalizerBars.map(({ bar, value }) => (
+                  <AnimatedRect
+                    key={bar.x}
+                    x={bar.x}
+                    width={BAR_WIDTH}
+                    rx={BAR_CORNER_RADIUS}
+                    height={barHeight(value, bar.height)}
+                    y={barY(value, bar.height)}
+                  />
+                ))}
               </G>
             </G>
           </Svg>
