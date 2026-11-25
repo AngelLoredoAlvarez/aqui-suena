@@ -40,6 +40,9 @@ export type Dictionary = {
   readonly adGroupLabel: (index: number, count: number) => string;
   readonly previousAd: string;
   readonly nextAd: string;
+  readonly openFlyer: string;
+  readonly closeFlyer: string;
+  readonly fullscreenFlyer: string;
   readonly searchBusinesses: string;
   readonly searchBusinessesAria: string;
   readonly assistant: string;
@@ -118,6 +121,9 @@ export const es: Dictionary = {
   adGroupLabel: (index: number, count: number) => `Anuncio ${index} de ${count}`,
   previousAd: "Anuncio anterior",
   nextAd: "Anuncio siguiente",
+  openFlyer: "Ver flyer completo",
+  closeFlyer: "Cerrar flyer",
+  fullscreenFlyer: "Flyer a pantalla completa",
   searchBusinesses: "Buscar",
   searchBusinessesAria: "Buscar negocios por nombre, categoría o producto",
   assistant: "Asistente",
@@ -178,6 +184,9 @@ export const en: Dictionary = {
   adGroupLabel: (index: number, count: number) => `Ad ${index} of ${count}`,
   previousAd: "Previous ad",
   nextAd: "Next ad",
+  openFlyer: "View full flyer",
+  closeFlyer: "Close flyer",
+  fullscreenFlyer: "Fullscreen flyer",
   searchBusinesses: "Search",
   searchBusinessesAria: "Search businesses by name, category, or product",
   assistant: "Assistant",

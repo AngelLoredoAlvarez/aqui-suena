@@ -2,7 +2,7 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/ads-carousel";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const prefetchImages = vi.hoisted(() => vi.fn());
@@ -190,5 +190,37 @@ describe("AdsCarousel", () => {
 
     const img = screen.getByAltText("Ad A") as HTMLImageElement;
     expect(window.getComputedStyle(img).objectFit).toBe("contain");
+  });
+
+  it("opens the fullscreen flyer from the image", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    fireEvent.click(screen.getByTestId("ads-carousel-open-flyer"));
+
+    const lightbox = screen.getByTestId("flyer-lightbox");
+
+    expect(within(lightbox).getByAltText("Ad A")).toBeTruthy();
+    expect(within(lightbox).getByLabelText("Cerrar flyer")).toBeTruthy();
+  });
+
+  it("closes the fullscreen flyer with Escape", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    fireEvent.click(screen.getByTestId("ads-carousel-open-flyer"));
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByTestId("flyer-lightbox")).toBeNull();
+  });
+
+  it("does not open the fullscreen flyer after a swipe", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+    const carousel = screen.getByTestId("ads-carousel");
+
+    fireEvent.pointerDown(carousel, { clientX: 220, clientY: 120 });
+    fireEvent.pointerMove(carousel, { clientX: 120, clientY: 124 });
+    fireEvent.pointerUp(carousel, { clientX: 120, clientY: 124 });
+    fireEvent.click(screen.getByTestId("ads-carousel-open-flyer"));
+
+    expect(screen.queryByTestId("flyer-lightbox")).toBeNull();
   });
 });
