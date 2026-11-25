@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no tests yet (scaffold)'",
+    "test": "vitest run",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "@types/node": "26.6.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vitest": "5.1.1"
   }
 }
