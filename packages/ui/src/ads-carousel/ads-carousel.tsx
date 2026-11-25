@@ -7,6 +7,7 @@ import {
   getResponsiveFlyerWidth,
 } from "@aqui-suena/ui/ads-carousel/responsive";
 import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
+import { FlyerLightbox } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
@@ -199,9 +200,11 @@ export function AdsCarousel({
   const isWide = flyerWidth !== undefined;
 
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [openFlyer, setOpenFlyer] = useState<AdsCarouselItem | null>(null);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const swiped = useRef(false);
 
   const hasItems = items.length > 0;
   const safeIndex = hasItems ? index % items.length : 0;
@@ -223,6 +226,7 @@ export function AdsCarousel({
   const goNext = (): void => goTo(safeIndex + 1);
 
   const handlePointerDown = (event: DragEvent): void => {
+    swiped.current = false;
     dragStart.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY };
     setDragging(true);
   };
@@ -240,6 +244,7 @@ export function AdsCarousel({
     if (direction === null) return;
 
     dragStart.current = null;
+    swiped.current = true;
 
     if (direction === "next") {
       goNext();
@@ -258,7 +263,7 @@ export function AdsCarousel({
     stopDragging();
   };
 
-  const isPaused = paused || dragging;
+  const isPaused = hovered || dragging || openFlyer !== null;
 
   useEffect(() => {
     if (!hasItems || isPaused) return;
@@ -351,13 +356,13 @@ export function AdsCarousel({
       borderColor="borderColor"
       rounded={28}
       overflow="hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      onTouchStart={() => setPaused(true)}
-      onTouchEnd={() => setPaused(false)}
-      onTouchCancel={() => setPaused(false)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      onTouchStart={() => setHovered(true)}
+      onTouchEnd={() => setHovered(false)}
+      onTouchCancel={() => setHovered(false)}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -385,10 +390,33 @@ export function AdsCarousel({
             draggable={false}
           />
         </FlyerTransition>
+        <Button
+          testID="ads-carousel-open-flyer"
+          type="button"
+          aria-label={dictionary.openFlyer}
+          onPress={() => {
+            if (swiped.current) {
+              return;
+            }
+
+            setOpenFlyer(current);
+          }}
+          position="absolute"
+          t={0}
+          l={0}
+          r={0}
+          b={0}
+          p={0}
+          bg="transparent"
+          borderWidth={0}
+          rounded={0}
+          z={1}
+        />
         <YStack
           position="absolute"
           r={12}
           t={12}
+          z={2}
           rounded={999}
           py={4}
           px={10}
@@ -470,6 +498,7 @@ export function AdsCarousel({
           </Button>
         )}
       </YStack>
+      <FlyerLightbox item={openFlyer} onClose={() => setOpenFlyer(null)} />
     </YStack>
   );
 }

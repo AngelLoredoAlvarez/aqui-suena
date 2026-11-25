@@ -70,6 +70,14 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 - The whole flyer is visible inside the carousel panel at every breakpoint: no
   uploaded flyer content is cropped (verified headed with the seeded flyers at
   390×844, 1024×768 and 1440×900).
+- Tapping the flyer opens a fullscreen viewer with the whole flyer. Web and
+  desktop: `role="dialog"` + `aria-modal`, closes with Escape, a tap on the
+  viewer or the 44×44 close button. Native: transparent `Modal` with
+  `onRequestClose`. Auto-advance pauses while the viewer is open and a
+  navigation drag never opens it.
+- Zoom range is 1×–3×: web/desktop uses ctrl/meta + wheel, double click,
+  `+`/`-`/`0` and drag to pan; native pinches and drags. The zoom resets when
+  the viewer closes or the flyer changes, and panning is clamped to the viewport.
 - Carousel visible on home during playback on web and native from shared code.
 - Carousel navigation: previous/next buttons and horizontal drag move exactly one flyer in either direction, wrap around, and are hidden when only one flyer exists. Manual navigation restarts the auto-advance timer; the old pagination dots are gone.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
@@ -105,6 +113,15 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   cropped 15–43 % of the ad, including prices, phone numbers and the business
   name. `contain` guarantees no flyer content is hidden. This deviates from the
   design export's `fit=cover` and is an approved deviation.
+- **Flyer viewer**: pressing the flyer opens `FlyerLightbox` with the current
+  item snapshot. Web/desktop mounts a fixed overlay above the app
+  (`role="dialog"`, `aria-modal`, i18n label) and native a transparent `Modal`
+  with `onRequestClose`; both keep a 44×44 close button top-right, and the web
+  overlay also closes on Escape and a tap over the viewer. `ZoomableImage`
+  handles the 1×–3× zoom: ctrl/meta + wheel, double click, `+`/`-`/`0` and drag
+  to pan on web; pinch and drag on native (PanResponder + Animated). Zoom resets
+  when the viewer closes or the flyer changes. The viewer is rendered as a
+  sibling of the flyer panel, so the card's `overflow: hidden` cannot clip it.
 - **Flyer transition**: on web/desktop the image layer remounts keyed by the
   current item and fades/slides in with the `quickLessBouncy` preset (Tamagui
   CSS driver). Native remounts the same keyed layer and slides it 12 px

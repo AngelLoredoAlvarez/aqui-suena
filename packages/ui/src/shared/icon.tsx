@@ -1,20 +1,6 @@
+import type { IconName, IconTone } from "@aqui-suena/ui/shared/icon-names";
 import type { ReactNode } from "react";
 import { useTheme } from "tamagui";
-
-export type IconName =
-  | "search"
-  | "sparkles"
-  | "globe"
-  | "sun"
-  | "menu"
-  | "chevron-down"
-  | "chevron-left"
-  | "chevron-right"
-  | "arrow-right"
-  | "store"
-  | "check";
-
-export type IconTone = "text" | "muted" | "accent" | "onAccent" | "ok" | "error";
 
 const shapes: Record<IconName, ReactNode> = {
   search: (
@@ -45,6 +31,7 @@ const shapes: Record<IconName, ReactNode> = {
     <path d="M4 9l1-5h14l1 5M4 9v11h16V9M4 9a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 6 0 2.5 2.5 0 0 0 5 0M10 20v-6h4v6" />
   ),
   check: <path d="M5 12l5 5 9-10" />,
+  x: <path d="M6 6l12 12M18 6L6 18" />,
 };
 
 export function Icon({
