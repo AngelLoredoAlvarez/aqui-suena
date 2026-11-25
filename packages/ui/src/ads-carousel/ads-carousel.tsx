@@ -379,8 +379,7 @@ export function AdsCarousel({
             src={current.imageUrl}
             alt={current.alt}
             fill
-            objectFit="cover"
-            objectPosition="center top"
+            objectFit="contain"
             rounded={0}
             priority
             draggable={false}
