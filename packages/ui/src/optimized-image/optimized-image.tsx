@@ -1,5 +1,6 @@
 import { Image } from "@aqui-suena/ui/optimized-image/image";
 import { imageCacheKey } from "@aqui-suena/ui/optimized-image/image-cache-key";
+import { imageLoadState } from "@aqui-suena/ui/optimized-image/image-load-state";
 import { useEffect, useRef, useState } from "react";
 import { YStack } from "tamagui";
 
@@ -34,11 +35,13 @@ export function OptimizedImage({
 }: OptimizedImageProps) {
   const [status, setStatus] = useState<ImageStatus>(priority ? "loading" : "idle");
   const containerRef = useRef<Element | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const cacheKey = imageCacheKey(src);
 
   useEffect(() => {
     if (priority) {
-      setStatus("loading");
+      setStatus((current) => (current === "idle" ? "loading" : current));
+
       return;
     }
     const el = containerRef.current;
@@ -58,6 +61,16 @@ export function OptimizedImage({
     observer.observe(el);
     return () => observer.disconnect();
   }, [priority]);
+
+  useEffect(() => {
+    const settled = imageLoadState(imageRef.current);
+
+    if (settled === "pending") {
+      return;
+    }
+
+    setStatus((current) => (current === "error" ? current : settled));
+  }, [src]);
 
   if (status === "error") {
     return (
@@ -98,6 +111,7 @@ export function OptimizedImage({
       )}
       {status !== "idle" && (
         <Image
+          ref={imageRef}
           src={src}
           alt={alt}
           cacheKey={cacheKey}

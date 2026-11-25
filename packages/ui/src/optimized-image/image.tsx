@@ -1,8 +1,9 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, Ref } from "react";
 import { Image as TamaguiImage } from "tamagui";
 
 export type ImageProps = ComponentProps<typeof TamaguiImage> & {
   readonly cacheKey?: string;
+  readonly ref?: Ref<HTMLImageElement>;
 };
 
 /**
