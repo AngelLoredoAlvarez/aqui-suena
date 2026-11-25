@@ -75,6 +75,45 @@ describe("OptimizedImage", () => {
     expect(screen.queryByAltText("test")).toBeNull();
   });
 
+  it("reveals an image that settled before hydration attached the listener", () => {
+    vi.spyOn(HTMLImageElement.prototype, "complete", "get").mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, "naturalWidth", "get").mockReturnValue(1200);
+
+    render(
+      <OptimizedImage
+        src="https://example.com/cached.png"
+        alt="test"
+        width={100}
+        height={100}
+        priority
+      />,
+      { wrapper },
+    );
+
+    const img = screen.getByAltText("test") as HTMLImageElement;
+
+    expect(getComputedStyle(img).opacity).toBe("1");
+  });
+
+  it("renders the error fallback when the image settled broken before hydration", () => {
+    vi.spyOn(HTMLImageElement.prototype, "complete", "get").mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, "naturalWidth", "get").mockReturnValue(0);
+
+    render(
+      <OptimizedImage
+        src="https://example.com/cached-broken.png"
+        alt="test"
+        width={100}
+        height={100}
+        priority
+      />,
+      { wrapper },
+    );
+
+    expect(screen.getByTestId("optimized-image-error")).toBeTruthy();
+    expect(screen.queryByAltText("test")).toBeNull();
+  });
+
   it("lazy-loads: renders img only after intersection", () => {
     let cb: IntersectionObserverCallback | null = null;
     class FakeIO {

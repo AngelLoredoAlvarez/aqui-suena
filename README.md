@@ -132,7 +132,7 @@ The radio-playback MVP is done and published to main (scaffold, UI foundation, s
 - Offline/no-connection handling (docs/specs/SPEC-offline.md): player retry, TanStack Query offline cache, service worker — pending.
 - Cloudflare media storage (docs/specs/SPEC-media-storage.md): R2 upload, D1 media repository, `media` tRPC router — DONE.
 - Chatbot with Cloudflare Workers AI: support domain, Vectorize index and AI Gateway wiring — DONE.
-- Image pipeline: `OptimizedImage` (lazy loading + blur placeholder) ships and is used by the ads carousel; native renders through expo-image with a stable cache key, landing flyers use a stable public API image URL so the web and desktop caches survive carousel refetches, and adjacent flyer images are prefetched while the current one is visible. Responsive size variants, WebP/AVIF generation and the offline service-worker cache are still pending.
+- Image pipeline: `OptimizedImage` (lazy loading + blur placeholder) ships and is used by the ads carousel; native renders through expo-image with a stable cache key, landing flyers use a stable public API image URL so the web and desktop caches survive carousel refetches, and adjacent flyer images are prefetched while the current one is visible. A `priority` image also reads the element on mount (`complete` + `naturalWidth`), so one that finishes loading before hydration attaches `onLoad` still becomes visible instead of staying transparent. Responsive size variants, WebP/AVIF generation and the offline service-worker cache are still pending.
 
 Next, tracked in `odd/tasks/backlog.md` and the `free-test-stations` feature:
 

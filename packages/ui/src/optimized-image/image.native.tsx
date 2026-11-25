@@ -1,6 +1,6 @@
 import { createImage } from "@tamagui/image";
 import { Image as ExpoImage, type ImageSource } from "expo-image";
-import type { ComponentProps, ComponentType } from "react";
+import type { ComponentProps, ComponentType, Ref } from "react";
 
 /**
  * Native image element backed by expo-image.
@@ -56,6 +56,8 @@ export type ImageProps = Omit<StyledImageProps, "onLoad" | "onLoadEnd" | "source
   readonly src: string;
   readonly cacheKey?: string;
   readonly onLoad?: () => void;
+  /** expo-image instance, not a DOM element. */
+  readonly ref?: Ref<unknown>;
 };
 
 export function Image({
