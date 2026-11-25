@@ -24,6 +24,7 @@ import {
   resolveLocalD1Path,
   resolveMobileApiBase,
   selectReusable,
+  waitForPort,
 } from "./dev.mjs";
 
 const STREAM_BASE = "http://192.168.0.21:3000";
@@ -111,6 +112,38 @@ test("mobile carries the injected stream base and web pins its own port", () => 
   assert.equal(tasks.find((task) => task.name === "mobile").env.EXPO_PUBLIC_API_BASE_URL, API_BASE);
   assert.equal(tasks.find((task) => task.name === "web").env.PORT, "3000");
   assert.equal(tasks.find((task) => task.name === "desktop").port, null);
+  assert.equal(tasks.find((task) => task.name === "desktop").readyPort, 3000);
+});
+
+test("waitForPort retries until the port answers", async () => {
+  let calls = 0;
+
+  const ready = await waitForPort(
+    3000,
+    async () => {
+      calls += 1;
+      return calls >= 3;
+    },
+    { attempts: 5, delayMs: 0 },
+  );
+
+  assert.equal(ready, true);
+  assert.equal(calls, 3);
+});
+
+test("waitForPort gives up once the attempts run out", async () => {
+  let calls = 0;
+  const ready = await waitForPort(
+    3000,
+    async () => {
+      calls += 1;
+      return false;
+    },
+    { attempts: 3, delayMs: 0 },
+  );
+
+  assert.equal(ready, false);
+  assert.equal(calls, 3);
 });
 
 test("resolveMobileApiBase replaces localhost with the LAN address", () => {
@@ -197,28 +230,31 @@ test("an external launch only happens when --android meets a reused Metro", () =
   assert.equal(needsExternalLaunch({ launchApp: true, reused: [] }), false);
 });
 
-test("reuse probes each port and reuses the desktop window off :3000", async () => {
+test("reuse probes each port and always starts the desktop window", async () => {
   const tasks = [
     { name: "api", port: 3001 },
     { name: "web", port: 3000 },
     { name: "mobile", port: 8081 },
     { name: "desktop", port: null },
   ];
+
   const probed = [];
+
   const { reused, toStart } = await selectReusable(tasks, async (port) => {
     probed.push(port);
+
     return port === 3000;
   });
 
   assert.deepEqual(
     reused.map((task) => task.name),
-    ["web", "desktop"],
+    ["web"],
   );
   assert.deepEqual(
     toStart.map((task) => task.name),
-    ["api", "mobile"],
+    ["api", "mobile", "desktop"],
   );
-  assert.deepEqual(probed, [3001, 3000, 8081, 3000]);
+  assert.deepEqual(probed, [3001, 3000, 8081]);
 });
 
 test("selectReusable starts everything when nothing is listening", async () => {
