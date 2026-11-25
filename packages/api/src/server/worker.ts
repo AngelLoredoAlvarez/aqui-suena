@@ -2,10 +2,13 @@ import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkou
 import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
 import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
+import { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
+import { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
 import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscriptions/process-renewal-reminders";
+import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/renew";
 import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
+import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import { PurgeExpiredBusinesses } from "@aqui-suena/api/domain/directory/purge-expired-businesses";
 import { SweepMediaOrphans } from "@aqui-suena/api/domain/media/sweep-orphans";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
@@ -324,19 +327,31 @@ async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
     appUrl: env.EMAIL_APP_URL,
     supportEmail: env.EMAIL_SUPPORT_ADDRESS,
   };
+
   const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
+
   const paymentNotifier = createPaymentNotifier(emailSettings);
 
-  const subscriptionService = new SubscriptionService({
-    subscriptionRepo: repositories.subscription,
-    planRepo: plans,
-    businessRepo: repositories.business,
+  const subscribe = new SubscribeToPlan({ subscriptions: repositories.subscription });
+
+  const renewSubscription = new RenewSubscription({ subscriptions: repositories.subscription });
+
+  const failRenewal = new FailRenewal({
+    subscriptions: repositories.subscription,
+    notifier: subscriptionNotifier,
+  });
+
+  const downgradeExpiredGrace = new DowngradeExpiredGrace({
+    subscriptions: repositories.subscription,
+    plans,
+    businesses: repositories.business,
     notifier: subscriptionNotifier,
   });
 
   const subscriptionWriter = new SubscriptionPaymentWriter({
     subscriptions: repositories.subscription,
-    service: subscriptionService,
+    subscribe,
+    renew: renewSubscription,
   });
 
   const payments = new D1PaymentRepository(env.aqui_suena_db);
@@ -370,7 +385,8 @@ async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
     accounts: repositories.account,
     plans,
     businesses: repositories.business,
-    service: subscriptionService,
+    failRenewal,
+    downgradeExpiredGrace,
     limit: 5,
     onError: (message, subscriptionId) =>
       console.error(`worker: renewal of subscription ${subscriptionId} failed: ${message}`),
@@ -540,11 +556,8 @@ async function handleFetch(request: Request, env: WorkerEnv): Promise<Response> 
     : undefined;
   const subscriptionWriter = new SubscriptionPaymentWriter({
     subscriptions: directoryRepositories.subscription,
-    service: new SubscriptionService({
-      subscriptionRepo: directoryRepositories.subscription,
-      planRepo: planRepository,
-      notifier: subscriptionNotifier,
-    }),
+    subscribe: new SubscribeToPlan({ subscriptions: directoryRepositories.subscription }),
+    renew: new RenewSubscription({ subscriptions: directoryRepositories.subscription }),
   });
   const paymentService = conekta
     ? new PaymentService({

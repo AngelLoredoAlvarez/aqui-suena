@@ -1,7 +1,7 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/cancel";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
@@ -14,9 +14,9 @@ export type SubscriptionsRouterDeps = {
 };
 
 export function createSubscriptionsRouter(deps: SubscriptionsRouterDeps) {
-  const service = new SubscriptionService({
-    subscriptionRepo: deps.subscription,
-    planRepo: deps.plan,
+  const cancelSubscription = new CancelSubscription({
+    subscriptions: deps.subscription,
+    plans: deps.plan,
     notifier: deps.notifier,
   });
 
@@ -34,7 +34,7 @@ export function createSubscriptionsRouter(deps: SubscriptionsRouterDeps) {
         throw new NotFoundError("Account not found");
       }
 
-      await service.cancel(active.id, {
+      await cancelSubscription.execute(active.id, {
         recipientEmail: account.email,
         locale: account.locale,
       });

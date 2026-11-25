@@ -1,15 +1,15 @@
+import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/cancel";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService.cancel", () => {
+describe("CancelSubscription", () => {
   it("marks subscription as cancelled without creating new one", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -17,7 +17,7 @@ describe("SubscriptionService.cancel", () => {
       new Date("2026-01-01"),
       new Date("2026-02-01"),
     );
-    await service.cancel(sub.id);
+    await service.execute(sub.id);
 
     const cancelled = await subRepo.getById(sub.id);
     expect(cancelled?.status).toBe("cancelled");
@@ -30,7 +30,7 @@ describe("SubscriptionService.cancel", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo, notifier });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -39,9 +39,9 @@ describe("SubscriptionService.cancel", () => {
       new Date("2026-02-01T00:00:00Z"),
     );
 
-    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+    await service.execute(sub.id, { recipientEmail: "owner@example.com" });
 
-    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+    await service.execute(sub.id, { recipientEmail: "owner@example.com" });
 
     const cancelled = await subRepo.getById(sub.id);
 
@@ -56,7 +56,7 @@ describe("SubscriptionService.cancel", () => {
   it("cancels a grace subscription", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -67,7 +67,7 @@ describe("SubscriptionService.cancel", () => {
 
     await subRepo.enterGrace(sub.id, new Date("2026-02-08T00:00:00Z"));
 
-    await service.cancel(sub.id);
+    await service.execute(sub.id);
 
     const cancelled = await subRepo.getById(sub.id);
 
@@ -77,7 +77,7 @@ describe("SubscriptionService.cancel", () => {
   it("treats an expired subscription as already cancelled", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -88,7 +88,7 @@ describe("SubscriptionService.cancel", () => {
 
     await subRepo.updateStatus(sub.id, "expired");
 
-    await service.cancel(sub.id);
+    await service.execute(sub.id);
 
     const still = await subRepo.getById(sub.id);
 
@@ -98,18 +98,18 @@ describe("SubscriptionService.cancel", () => {
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo });
 
-    await expect(service.cancel("non-existent")).rejects.toThrow("Subscription not found");
+    await expect(service.execute("non-existent")).rejects.toThrow("Subscription not found");
   });
 });
 
-describe("SubscriptionService.cancel notification", () => {
+describe("CancelSubscription notification", () => {
   it("notifies the owner with the plan name and active-until date", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo, notifier });
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -117,7 +117,7 @@ describe("SubscriptionService.cancel notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+    await service.execute(sub.id, { recipientEmail: "owner@example.com" });
 
     expect(notifier.calls).toHaveLength(1);
     expect(notifier.calls[0]).toMatchObject({
@@ -131,7 +131,7 @@ describe("SubscriptionService.cancel notification", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo, notifier });
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -139,7 +139,7 @@ describe("SubscriptionService.cancel notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.cancel(sub.id);
+    await service.execute(sub.id);
 
     expect(notifier.calls).toHaveLength(0);
   });
@@ -148,7 +148,7 @@ describe("SubscriptionService.cancel notification", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new CancelSubscription({ subscriptions: subRepo, plans: planRepo, notifier });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -158,7 +158,7 @@ describe("SubscriptionService.cancel notification", () => {
     );
     await subRepo.enterGrace(sub.id, new Date("2026-02-08T00:00:00Z"));
 
-    await service.cancel(sub.id, { recipientEmail: "owner@example.com" });
+    await service.execute(sub.id, { recipientEmail: "owner@example.com" });
 
     expect(notifier.calls).toHaveLength(1);
     expect(notifier.calls[0]).toMatchObject({

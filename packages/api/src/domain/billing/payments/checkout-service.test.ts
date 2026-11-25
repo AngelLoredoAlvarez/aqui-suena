@@ -6,10 +6,10 @@ import {
 } from "@aqui-suena/api/domain/billing/payments/checkout-service";
 import type { Payment } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";

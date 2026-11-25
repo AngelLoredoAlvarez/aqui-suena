@@ -8,7 +8,7 @@ import {
   type CreatePaymentInput,
   PaymentService,
 } from "@aqui-suena/api/domain/billing/payments/payment-service";
-import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
+import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
