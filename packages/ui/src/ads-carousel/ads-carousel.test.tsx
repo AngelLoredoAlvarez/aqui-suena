@@ -185,10 +185,10 @@ describe("AdsCarousel", () => {
     expect(screen.getByAltText("Ad A")).toBeTruthy();
   });
 
-  it("renders the image with cover fit", () => {
+  it("renders the whole flyer with contain fit", () => {
     renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
 
     const img = screen.getByAltText("Ad A") as HTMLImageElement;
-    expect(window.getComputedStyle(img).objectFit).toBe("cover");
+    expect(window.getComputedStyle(img).objectFit).toBe("contain");
   });
 });

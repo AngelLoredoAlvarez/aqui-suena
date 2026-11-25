@@ -67,6 +67,9 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 
 ## Success Criteria
 
+- The whole flyer is visible inside the carousel panel at every breakpoint: no
+  uploaded flyer content is cropped (verified headed with the seeded flyers at
+  390×844, 1024×768 and 1440×900).
 - Carousel visible on home during playback on web and native from shared code.
 - Carousel navigation: previous/next buttons and horizontal drag move exactly one flyer in either direction, wrap around, and are hidden when only one flyer exists. Manual navigation restarts the auto-advance timer; the old pagination dots are gone.
 - Tap card → sheet with name, products + prices, phone, address, open/closed, delivery flag; audio continues.
@@ -92,9 +95,16 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   images are prefetched (browser `Image` on web, expo-image `prefetch` with the
   memory-disk policy on native). The carousel already receives every ranked
   flyer in one `ads.carousel` response, so only the images need warming.
-- **Slide anatomy is identical across platforms**: full-bleed flyer image
-  (`object-fit: cover`, `object-position: center top`) + an open-status badge
-  top-right + previous/next navigation buttons overlaid on the image.
+- **Slide anatomy is identical across platforms**: the whole flyer image
+  (`object-fit: contain`, centered) + an open-status badge top-right +
+  previous/next navigation buttons overlaid on the image. The gap left by the
+  flyer's aspect ratio shows the `surface2` letterbox.
+- **Flyer fit**: `cover` is rejected because uploaded flyers have arbitrary
+  aspect ratios (seeded set ranges from 0.48 to 1.0) while the panel ratio
+  varies by breakpoint (tablet 0.569, web 0.698, mobile 0.749), so covering
+  cropped 15–43 % of the ad, including prices, phone numbers and the business
+  name. `contain` guarantees no flyer content is hidden. This deviates from the
+  design export's `fit=cover` and is an approved deviation.
 - **Flyer transition**: on web/desktop the image layer remounts keyed by the
   current item and fades/slides in with the `quickLessBouncy` preset (Tamagui
   CSS driver). Native remounts the same keyed layer and slides it 12 px
