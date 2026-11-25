@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { UiProvider } from "@aqui-suena/ui/shared";
+import type { ZoomableImageHandle } from "@aqui-suena/ui/zoomable-image/types";
 import { ZoomableImage } from "@aqui-suena/ui/zoomable-image/zoomable-image.native";
 import { cleanup, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { createRef, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const native = vi.hoisted(() => ({
@@ -111,6 +112,34 @@ describe("ZoomableImage (native)", () => {
     expect(screen.getByText("flyer")).toBeTruthy();
     expect(native.config).not.toBeNull();
     expect(native.viewProps?.style).toMatchObject({ flex: 1, width: "100%" });
+  });
+
+  it("exposes zoom actions through its handle", () => {
+    const ref = createRef<ZoomableImageHandle>();
+    const onScaleChange = vi.fn();
+
+    render(
+      <ZoomableImage ref={ref} onScaleChange={onScaleChange}>
+        <div>flyer</div>
+      </ZoomableImage>,
+      { wrapper },
+    );
+
+    const scaleValue = native.values[0];
+
+    ref.current?.zoomIn();
+    expect(scaleValue?.read()).toBe(1.5);
+
+    ref.current?.zoomOut();
+    ref.current?.zoomOut();
+
+    expect(scaleValue?.read()).toBe(1);
+
+    ref.current?.zoomIn();
+    ref.current?.reset();
+
+    expect(scaleValue?.read()).toBe(1);
+    expect(onScaleChange).toHaveBeenLastCalledWith(1);
   });
 
   it("scales from the distance between two touches", () => {

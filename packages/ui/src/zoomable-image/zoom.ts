@@ -1,6 +1,7 @@
 export const MIN_SCALE = 1;
 export const MAX_SCALE = 3;
 export const DOUBLE_TAP_SCALE = 2;
+export const ZOOM_STEP = 0.5;
 
 export type ZoomOffset = {
   readonly x: number;

@@ -1,14 +1,20 @@
 // @vitest-environment jsdom
 
+import { downloadFlyer } from "@aqui-suena/ui/flyer-lightbox/download-flyer";
 import { FlyerLightbox } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@aqui-suena/ui/flyer-lightbox/download-flyer", () => ({
+  downloadFlyer: vi.fn(async () => undefined),
+}));
 
 const ITEM = {
   id: "a",
   imageUrl: "https://example.com/a.png",
   alt: "Ad A",
+  name: "El Sazón de Ale",
 };
 
 describe("FlyerLightbox", () => {
@@ -67,6 +73,40 @@ describe("FlyerLightbox", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("renders the zoom and download actions", () => {
+    renderWithProviders(<FlyerLightbox item={ITEM} onClose={() => {}} />, { locale: "es" });
+
+    expect(screen.getByTestId("flyer-lightbox-menu")).toBeTruthy();
+    expect(screen.getByLabelText("Acercar")).toBeTruthy();
+    expect(screen.getByLabelText("Alejar")).toBeTruthy();
+    expect(screen.getByLabelText("Restablecer zoom")).toBeTruthy();
+    expect(screen.getByLabelText("Descargar flyer")).toBeTruthy();
+  });
+
+  it("zooms and resets from the floating menu", () => {
+    renderWithProviders(<FlyerLightbox item={ITEM} onClose={() => {}} />, { locale: "es" });
+    const scale = () => screen.getByTestId("zoomable-image-content").getAttribute("data-scale");
+
+    fireEvent.click(screen.getByTestId("flyer-zoom-out"));
+    expect(scale()).toBe("1");
+
+    fireEvent.click(screen.getByTestId("flyer-zoom-in"));
+    expect(scale()).toBe("1.5");
+
+    fireEvent.click(screen.getByTestId("flyer-zoom-reset"));
+    expect(scale()).toBe("1");
+  });
+
+  it("downloads the flyer with the business name", async () => {
+    renderWithProviders(<FlyerLightbox item={ITEM} onClose={() => {}} />, { locale: "es" });
+
+    fireEvent.click(screen.getByTestId("flyer-download"));
+
+    await waitFor(() => {
+      expect(downloadFlyer).toHaveBeenCalledWith("https://example.com/a.png", "El Sazón de Ale");
+    });
+  });
+
   it("resets the zoom when the flyer changes", () => {
     const { rerender } = renderWithProviders(<FlyerLightbox item={ITEM} onClose={() => {}} />, {
       locale: "es",
@@ -77,7 +117,12 @@ describe("FlyerLightbox", () => {
 
     rerender(
       <FlyerLightbox
-        item={{ id: "b", imageUrl: "https://example.com/b.png", alt: "Ad B" }}
+        item={{
+          id: "b",
+          imageUrl: "https://example.com/b.png",
+          alt: "Ad B",
+          name: "Dental Sonrisa",
+        }}
         onClose={() => {}}
       />,
     );

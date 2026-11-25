@@ -33,6 +33,21 @@ const shapes: Record<IconName, ReactNode> = {
   ),
   check: <Path d="M5 12l5 5 9-10" />,
   x: <Path d="M6 6l12 12M18 6L6 18" />,
+  plus: <Path d="M12 5v14M5 12h14" />,
+  minus: <Path d="M5 12h14" />,
+  reset: (
+    <>
+      <Path d="M3 12a9 9 0 1 0 3-6.7" />
+      <Path d="M3 4v5h5" />
+    </>
+  ),
+  download: (
+    <>
+      <Path d="M12 3v12" />
+      <Path d="M7 10l5 5 5-5" />
+      <Path d="M5 21h14" />
+    </>
+  ),
 };
 
 export function Icon({

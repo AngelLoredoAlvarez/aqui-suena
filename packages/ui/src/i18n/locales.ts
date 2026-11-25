@@ -43,6 +43,10 @@ export type Dictionary = {
   readonly openFlyer: string;
   readonly closeFlyer: string;
   readonly fullscreenFlyer: string;
+  readonly zoomIn: string;
+  readonly zoomOut: string;
+  readonly resetZoom: string;
+  readonly downloadFlyer: string;
   readonly searchBusinesses: string;
   readonly searchBusinessesAria: string;
   readonly assistant: string;
@@ -124,6 +128,10 @@ export const es: Dictionary = {
   openFlyer: "Ver flyer completo",
   closeFlyer: "Cerrar flyer",
   fullscreenFlyer: "Flyer a pantalla completa",
+  zoomIn: "Acercar",
+  zoomOut: "Alejar",
+  resetZoom: "Restablecer zoom",
+  downloadFlyer: "Descargar flyer",
   searchBusinesses: "Buscar",
   searchBusinessesAria: "Buscar negocios por nombre, categoría o producto",
   assistant: "Asistente",
@@ -187,6 +195,10 @@ export const en: Dictionary = {
   openFlyer: "View full flyer",
   closeFlyer: "Close flyer",
   fullscreenFlyer: "Fullscreen flyer",
+  zoomIn: "Zoom in",
+  zoomOut: "Zoom out",
+  resetZoom: "Reset zoom",
+  downloadFlyer: "Download flyer",
   searchBusinesses: "Search",
   searchBusinessesAria: "Search businesses by name, category, or product",
   assistant: "Assistant",
