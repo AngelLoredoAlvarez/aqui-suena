@@ -2,12 +2,14 @@ import type {
   ActivateSubscriptionInput,
   PaymentSubscriptionWriter,
 } from "@aqui-suena/api/domain/billing/payments/payment-subscription-writer";
+import type { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/renew";
+import type { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 
 export type SubscriptionPaymentWriterDependencies = {
   readonly subscriptions: SubscriptionRepository;
-  readonly service: SubscriptionService;
+  readonly subscribe: Pick<SubscribeToPlan, "execute">;
+  readonly renew: Pick<RenewSubscription, "execute">;
   readonly now?: () => Date;
 };
 
@@ -23,7 +25,7 @@ export class SubscriptionPaymentWriter implements PaymentSubscriptionWriter {
     const current = await this.deps.subscriptions.getActive(input.accountId, now);
 
     if (current !== null && current.planId === input.planId) {
-      const renewed = await this.deps.service.renew(
+      const renewed = await this.deps.renew.execute(
         current.id,
         input.periodEnd,
         input.billingInterval,
@@ -32,7 +34,7 @@ export class SubscriptionPaymentWriter implements PaymentSubscriptionWriter {
       return renewed.id;
     }
 
-    const created = await this.deps.service.subscribe(
+    const created = await this.deps.subscribe.execute(
       input.accountId,
       input.planId,
       input.periodStart,

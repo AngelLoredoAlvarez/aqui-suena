@@ -4,14 +4,14 @@ import type { Payment } from "@aqui-suena/api/domain/billing/payments/payment";
 import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/payment-service";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
 import type {
   SubscriptionNotificationOptions,
   SubscriptionPlanChangeOptions,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
+} from "@aqui-suena/api/domain/billing/subscriptions/subscription-options";
 import type { Business } from "@aqui-suena/api/domain/directory/business";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -94,32 +94,31 @@ class FakePaymentService {
   }
 }
 
-class FakeSubscriptionService {
-  readonly failCalls: Array<{
+class FakeFailRenewal {
+  readonly calls: Array<{
     id: string;
     at: Date;
     options?: SubscriptionNotificationOptions;
   }> = [];
-  readonly downgradeCalls: Array<{
+
+  async execute(id: string, at: Date, options?: SubscriptionNotificationOptions): Promise<void> {
+    this.calls.push({ id, at, options });
+  }
+}
+
+class FakeDowngradeExpiredGrace {
+  readonly calls: Array<{
     id: string;
     planId: PlanId;
     options?: SubscriptionPlanChangeOptions;
   }> = [];
 
-  async failRenewal(
-    id: string,
-    at: Date,
-    options?: SubscriptionNotificationOptions,
-  ): Promise<void> {
-    this.failCalls.push({ id, at, options });
-  }
-
-  async downgradeExpiredGrace(
+  async execute(
     id: string,
     planId: PlanId,
     options?: SubscriptionPlanChangeOptions,
   ): Promise<Subscription | null> {
-    this.downgradeCalls.push({ id, planId, options });
+    this.calls.push({ id, planId, options });
 
     return null;
   }
@@ -153,7 +152,8 @@ function setup(
   ]);
   const planRepo = new InMemoryPlanRepository(plans);
   const paymentService = new FakePaymentService();
-  const service = new FakeSubscriptionService();
+  const failRenewal = new FakeFailRenewal();
+  const downgradeExpiredGrace = new FakeDowngradeExpiredGrace();
   const businesses = {
     async listAllByAccount(): Promise<Business[]> {
       return [{ id: "b1" }, { id: "b2" }] as unknown as Business[];
@@ -166,12 +166,13 @@ function setup(
     accounts,
     plans: planRepo,
     businesses,
-    service,
+    failRenewal,
+    downgradeExpiredGrace,
     limit: 5,
     now: () => NOW,
   });
 
-  return { subRepo, paymentRepo, paymentService, service, renew };
+  return { subRepo, paymentRepo, paymentService, failRenewal, downgradeExpiredGrace, renew };
 }
 
 describe("RenewSubscriptions", () => {
@@ -261,7 +262,7 @@ describe("RenewSubscriptions", () => {
   });
 
   it("enters grace when the paid period is over without a completed payment", async () => {
-    const { paymentService, service, renew } = setup({
+    const { paymentService, failRenewal, renew } = setup({
       current: [
         subscription({
           endsAt: new Date(NOW.getTime() - 60_000),
@@ -271,7 +272,7 @@ describe("RenewSubscriptions", () => {
 
     expect(await renew.execute()).toBe(0);
     expect(paymentService.inputs).toHaveLength(0);
-    expect(service.failCalls).toEqual([
+    expect(failRenewal.calls).toEqual([
       {
         id: "sub-1",
         at: NOW,
@@ -281,7 +282,7 @@ describe("RenewSubscriptions", () => {
   });
 
   it("downgrades an expired grace and keeps one business", async () => {
-    const { service, renew } = setup({
+    const { downgradeExpiredGrace, renew } = setup({
       current: [
         subscription({
           status: "grace",
@@ -292,7 +293,7 @@ describe("RenewSubscriptions", () => {
     });
 
     expect(await renew.execute()).toBe(0);
-    expect(service.downgradeCalls).toEqual([
+    expect(downgradeExpiredGrace.calls).toEqual([
       {
         id: "sub-1",
         planId: "community",
@@ -307,7 +308,7 @@ describe("RenewSubscriptions", () => {
   });
 
   it("skips a deleted account", async () => {
-    const { paymentService, service, renew } = setup({
+    const { paymentService, failRenewal, renew } = setup({
       current: [subscription()],
       savedCard: true,
       deleted: true,
@@ -315,6 +316,6 @@ describe("RenewSubscriptions", () => {
 
     expect(await renew.execute()).toBe(0);
     expect(paymentService.inputs).toHaveLength(0);
-    expect(service.failCalls).toHaveLength(0);
+    expect(failRenewal.calls).toHaveLength(0);
   });
 });

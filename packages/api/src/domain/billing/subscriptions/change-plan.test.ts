@@ -1,6 +1,6 @@
+import { ChangePlan } from "@aqui-suena/api/domain/billing/subscriptions/change-plan";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
 import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
@@ -8,11 +8,11 @@ import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService.changePlan", () => {
+describe("ChangePlan", () => {
   it("upgrades immediately: closes current and creates new active subscription", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -20,7 +20,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-01-01"),
       new Date("2026-02-01"),
     );
-    const newSub = await service.changePlan(current.id, "trades");
+    const newSub = await service.execute(current.id, "trades");
 
     expect(newSub.planId).toBe("trades");
     expect(newSub.status).toBe("active");
@@ -32,7 +32,7 @@ describe("SubscriptionService.changePlan", () => {
   it("chains an upgrade period from the previous end, clamping at month-end", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -41,7 +41,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-01-31T12:00:00Z"),
     );
 
-    const newSub = await service.changePlan(current.id, "trades", {
+    const newSub = await service.execute(current.id, "trades", {
       now: new Date("2026-01-15T00:00:00Z"),
     });
 
@@ -51,7 +51,7 @@ describe("SubscriptionService.changePlan", () => {
   it("upgrades a cancelled subscription that still has paid time", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -61,7 +61,7 @@ describe("SubscriptionService.changePlan", () => {
     );
     await subRepo.updateStatus(current.id, "cancelled");
 
-    const newSub = await service.changePlan(current.id, "trades", {
+    const newSub = await service.execute(current.id, "trades", {
       now: new Date("2026-01-15T00:00:00Z"),
     });
 
@@ -74,7 +74,7 @@ describe("SubscriptionService.changePlan", () => {
   it("rejects changing plan when the cancellation already passed its paid period", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -85,14 +85,14 @@ describe("SubscriptionService.changePlan", () => {
     await subRepo.updateStatus(current.id, "cancelled");
 
     await expect(
-      service.changePlan(current.id, "trades", { now: new Date("2026-02-02T00:00:00Z") }),
+      service.execute(current.id, "trades", { now: new Date("2026-02-02T00:00:00Z") }),
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("rejects changing plan at exactly the end of the paid period", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -103,14 +103,14 @@ describe("SubscriptionService.changePlan", () => {
     await subRepo.updateStatus(current.id, "cancelled");
 
     await expect(
-      service.changePlan(current.id, "trades", { now: new Date("2026-02-01T00:00:00Z") }),
+      service.execute(current.id, "trades", { now: new Date("2026-02-01T00:00:00Z") }),
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
   it("downgrades: marks current as cancelled (stays active until endsAt)", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -118,7 +118,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-01-01"),
       new Date("2026-02-01"),
     );
-    const result = await service.changePlan(current.id, "trades");
+    const result = await service.execute(current.id, "trades");
 
     expect(result.status).toBe("cancelled");
     expect(result.planId).toBe("commerce");
@@ -130,7 +130,7 @@ describe("SubscriptionService.changePlan", () => {
   it("downgrades at month-end with the next period clamped to the target month", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -139,7 +139,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-01-31T12:00:00Z"),
     );
 
-    await service.changePlan(current.id, "trades", {
+    await service.execute(current.id, "trades", {
       now: new Date("2026-01-10T00:00:00Z"),
     });
 
@@ -152,7 +152,7 @@ describe("SubscriptionService.changePlan", () => {
   it("chains an annual upgrade by one year", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -162,7 +162,7 @@ describe("SubscriptionService.changePlan", () => {
       "annual",
     );
 
-    const newSub = await service.changePlan(current.id, "trades", {
+    const newSub = await service.execute(current.id, "trades", {
       now: new Date("2026-06-01T00:00:00Z"),
     });
 
@@ -173,7 +173,7 @@ describe("SubscriptionService.changePlan", () => {
   it("schedules an annual downgrade one year out", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -183,7 +183,7 @@ describe("SubscriptionService.changePlan", () => {
       "annual",
     );
 
-    await service.changePlan(current.id, "trades", {
+    await service.execute(current.id, "trades", {
       now: new Date("2026-06-01T00:00:00Z"),
     });
 
@@ -197,9 +197,9 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when subscription not found", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
-    await expect(service.changePlan("non-existent", "trades")).rejects.toThrow(
+    await expect(service.execute("non-existent", "trades")).rejects.toThrow(
       "Subscription not found",
     );
   });
@@ -207,7 +207,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when subscription is not active", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -217,13 +217,13 @@ describe("SubscriptionService.changePlan", () => {
     );
     await subRepo.updateStatus(sub.id, "cancelled");
 
-    await expect(service.changePlan(sub.id, "trades")).rejects.toThrow("not active");
+    await expect(service.execute(sub.id, "trades")).rejects.toThrow("not active");
   });
 
   it("throws when new plan does not exist", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -232,7 +232,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-02-01"),
     );
 
-    await expect(service.changePlan(sub.id, "non-existent" as PlanId)).rejects.toThrow(
+    await expect(service.execute(sub.id, "non-existent" as PlanId)).rejects.toThrow(
       "Plan not found",
     );
   });
@@ -240,7 +240,7 @@ describe("SubscriptionService.changePlan", () => {
   it("throws when changing to the same plan", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -249,13 +249,13 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-02-01"),
     );
 
-    await expect(service.changePlan(sub.id, "community")).rejects.toThrow("Already on this plan");
+    await expect(service.execute(sub.id, "community")).rejects.toThrow("Already on this plan");
   });
 
   it("downgrade schedules the new plan for the end of the period", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -264,7 +264,7 @@ describe("SubscriptionService.changePlan", () => {
       new Date("2026-02-01"),
     );
 
-    await service.changePlan(current.id, "trades");
+    await service.execute(current.id, "trades");
 
     // During the paid period, the old plan remains in effect.
     const during = await subRepo.getActive("acc-1", new Date("2026-01-15"));
@@ -280,7 +280,11 @@ describe("SubscriptionService.changePlan", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const businessRepo = new InMemoryBusinessRepository([]);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, businessRepo });
+    const service = new ChangePlan({
+      subscriptions: subRepo,
+      plans: planRepo,
+      businesses: businessRepo,
+    });
 
     const current = await subRepo.create(
       "acc-1",
@@ -324,7 +328,7 @@ describe("SubscriptionService.changePlan", () => {
 
     const now = new Date("2026-01-15T00:00:00Z");
 
-    await service.changePlan(current.id, "trades", { visibleBusinessIds: [keep.id], now });
+    await service.execute(current.id, "trades", { visibleBusinessIds: [keep.id], now });
 
     const kept = await businessRepo.getByIdForOwner(keep.id);
     const h1 = await businessRepo.getByIdForOwner(hide1.id);
@@ -346,7 +350,11 @@ describe("SubscriptionService.changePlan", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const businessRepo = new InMemoryBusinessRepository([]);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, businessRepo });
+    const service = new ChangePlan({
+      subscriptions: subRepo,
+      plans: planRepo,
+      businesses: businessRepo,
+    });
 
     const current = await subRepo.create(
       "acc-1",
@@ -381,7 +389,7 @@ describe("SubscriptionService.changePlan", () => {
     const now = new Date("2026-01-15T00:00:00Z");
 
     await expect(
-      service.changePlan(current.id, "community", { visibleBusinessIds: [b1.id, b2.id], now }),
+      service.execute(current.id, "community", { visibleBusinessIds: [b1.id, b2.id], now }),
     ).rejects.toThrow(/UPGRADE_REQUIRED/);
 
     // Nothing should have been hidden because validation fails before mutation.
@@ -390,7 +398,7 @@ describe("SubscriptionService.changePlan", () => {
   });
 });
 
-describe("SubscriptionService.changePlan notification", () => {
+describe("ChangePlan notification", () => {
   async function createCommerceSubscription(repo: InMemorySubscriptionRepository) {
     return repo.create("acc-1", "commerce", new Date("2026-01-01"), new Date("2026-02-01"));
   }
@@ -399,10 +407,10 @@ describe("SubscriptionService.changePlan notification", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo, notifier });
     const current = await createCommerceSubscription(subRepo);
 
-    await service.changePlan(current.id, "trades", {
+    await service.execute(current.id, "trades", {
       now: new Date("2026-01-15"),
       recipientEmail: "owner@example.com",
     });
@@ -419,7 +427,7 @@ describe("SubscriptionService.changePlan notification", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo, notifier });
     const current = await subRepo.create(
       "acc-1",
       "community",
@@ -427,7 +435,7 @@ describe("SubscriptionService.changePlan notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.changePlan(current.id, "trades", {
+    await service.execute(current.id, "trades", {
       now: new Date("2026-01-15"),
       recipientEmail: "owner@example.com",
     });
@@ -438,11 +446,11 @@ describe("SubscriptionService.changePlan notification", () => {
   it("does not notify when no notifier is injected", async () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo });
     const current = await createCommerceSubscription(subRepo);
 
     await expect(
-      service.changePlan(current.id, "trades", {
+      service.execute(current.id, "trades", {
         now: new Date("2026-01-15"),
         recipientEmail: "owner@example.com",
       }),
@@ -453,10 +461,10 @@ describe("SubscriptionService.changePlan notification", () => {
     const subRepo = new InMemorySubscriptionRepository();
     const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const service = new ChangePlan({ subscriptions: subRepo, plans: planRepo, notifier });
     const current = await createCommerceSubscription(subRepo);
 
-    await service.changePlan(current.id, "trades", { now: new Date("2026-01-15") });
+    await service.execute(current.id, "trades", { now: new Date("2026-01-15") });
 
     expect(notifier.calls).toHaveLength(0);
   });

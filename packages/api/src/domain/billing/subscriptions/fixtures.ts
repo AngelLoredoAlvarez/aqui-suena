@@ -40,5 +40,4 @@ const commercePlan: Plan = {
   entitlements: ENTITLEMENTS.commerce,
 };
 
-/** Plan catalog shared by the subscription-service suites. */
 export const plans = [communityPlan, tradesPlan, commercePlan];

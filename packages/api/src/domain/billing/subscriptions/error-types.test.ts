@@ -1,26 +1,29 @@
+import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/cancel";
+import { ChangePlan } from "@aqui-suena/api/domain/billing/subscriptions/change-plan";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService error types", () => {
+describe("subscription error types", () => {
   it("throws NotFoundError when the subscription is missing", async () => {
-    const service = new SubscriptionService({
-      subscriptionRepo: new InMemorySubscriptionRepository(),
-      planRepo: new InMemoryPlanRepository(plans),
+    const cancel = new CancelSubscription({
+      subscriptions: new InMemorySubscriptionRepository(),
+      plans: new InMemoryPlanRepository(plans),
     });
 
-    await expect(service.cancel("non-existent")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(cancel.execute("non-existent")).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("throws ConflictError when the subscription is not active", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const service = new SubscriptionService({
-      subscriptionRepo: subRepo,
-      planRepo: new InMemoryPlanRepository(plans),
+
+    const changePlan = new ChangePlan({
+      subscriptions: subRepo,
+      plans: new InMemoryPlanRepository(plans),
     });
+
     const sub = await subRepo.create(
       "acc-1",
       "community",
@@ -29,6 +32,6 @@ describe("SubscriptionService error types", () => {
     );
     await subRepo.updateStatus(sub.id, "cancelled");
 
-    await expect(service.changePlan(sub.id, "trades")).rejects.toBeInstanceOf(ConflictError);
+    await expect(changePlan.execute(sub.id, "trades")).rejects.toBeInstanceOf(ConflictError);
   });
 });

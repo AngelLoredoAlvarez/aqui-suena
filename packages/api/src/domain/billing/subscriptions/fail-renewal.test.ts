@@ -1,18 +1,15 @@
+import { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
 import {
   InMemorySubscriptionRepository,
   type SubscriptionStatus,
 } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService.failRenewal", () => {
+describe("FailRenewal", () => {
   it("marks the subscription as grace with a 7-day deadline", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const failRenewal = new FailRenewal({ subscriptions: subRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -23,7 +20,7 @@ describe("SubscriptionService.failRenewal", () => {
 
     const failedAt = new Date("2026-02-01T00:00:00Z");
 
-    await service.failRenewal(sub.id, failedAt);
+    await failRenewal.execute(sub.id, failedAt);
 
     const updated = await subRepo.getById(sub.id);
     expect(updated?.status).toBe("grace");
@@ -31,17 +28,15 @@ describe("SubscriptionService.failRenewal", () => {
   });
 
   it("throws when the subscription does not exist", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const failRenewal = new FailRenewal({ subscriptions: new InMemorySubscriptionRepository() });
 
-    await expect(service.failRenewal("non-existent", new Date())).rejects.toThrow(
+    await expect(failRenewal.execute("non-existent", new Date())).rejects.toThrow(
       "Subscription not found",
     );
   });
 });
 
-describe("SubscriptionService.failRenewal atomicity", () => {
+describe("FailRenewal atomicity", () => {
   class SpySubscriptionRepository extends InMemorySubscriptionRepository {
     readonly mutations: string[] = [];
 
@@ -58,8 +53,7 @@ describe("SubscriptionService.failRenewal atomicity", () => {
 
   it("enters grace with a single atomic write", async () => {
     const subRepo = new SpySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const failRenewal = new FailRenewal({ subscriptions: subRepo });
 
     const sub = await subRepo.create(
       "acc-1",
@@ -68,20 +62,19 @@ describe("SubscriptionService.failRenewal atomicity", () => {
       new Date("2026-02-01T00:00:00Z"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"));
 
     expect(subRepo.mutations).toEqual(["enterGrace"]);
   });
 });
 
-describe("SubscriptionService.failRenewal notification", () => {
+describe("FailRenewal notification", () => {
   function setup() {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const failRenewal = new FailRenewal({ subscriptions: subRepo, notifier });
 
-    return { subRepo, notifier, service };
+    return { subRepo, notifier, failRenewal };
   }
 
   async function createActiveSubscription(repo: InMemorySubscriptionRepository) {
@@ -89,10 +82,10 @@ describe("SubscriptionService.failRenewal notification", () => {
   }
 
   it("notifies the owner when a recipient email is provided", async () => {
-    const { subRepo, notifier, service } = setup();
+    const { subRepo, notifier, failRenewal } = setup();
     const sub = await createActiveSubscription(subRepo);
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"), {
       recipientEmail: "owner@example.com",
     });
 
@@ -105,22 +98,21 @@ describe("SubscriptionService.failRenewal notification", () => {
   });
 
   it("does not notify without a recipient email", async () => {
-    const { subRepo, notifier, service } = setup();
+    const { subRepo, notifier, failRenewal } = setup();
     const sub = await createActiveSubscription(subRepo);
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"));
 
     expect(notifier.calls).toHaveLength(0);
   });
 
   it("does not notify when no notifier is injected", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const failRenewal = new FailRenewal({ subscriptions: subRepo });
     const sub = await createActiveSubscription(subRepo);
 
     await expect(
-      service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+      failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"), {
         recipientEmail: "owner@example.com",
       }),
     ).resolves.toBeUndefined();

@@ -1,15 +1,27 @@
+import { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
+import { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
+import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService.downgradeExpiredGrace", () => {
+function setup(notifier?: FakeSubscriptionNotifier) {
+  const subRepo = new InMemorySubscriptionRepository();
+  const planRepo = new InMemoryPlanRepository(plans);
+  const failRenewal = new FailRenewal({ subscriptions: subRepo, notifier });
+  const downgrade = new DowngradeExpiredGrace({
+    subscriptions: subRepo,
+    plans: planRepo,
+    notifier,
+  });
+
+  return { subRepo, failRenewal, downgrade };
+}
+
+describe("DowngradeExpiredGrace", () => {
   it("does not downgrade while still in the grace window", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const { subRepo, failRenewal, downgrade } = setup();
 
     const sub = await subRepo.create(
       "acc-1",
@@ -18,9 +30,9 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"));
 
-    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+    const result = await downgrade.execute(sub.id, "community", {
       now: new Date("2026-02-05T00:00:00Z"),
     });
 
@@ -29,9 +41,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   });
 
   it("downgrades once the grace window has expired", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const { subRepo, failRenewal, downgrade } = setup();
 
     const sub = await subRepo.create(
       "acc-1",
@@ -40,9 +50,9 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"));
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"));
 
-    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+    const result = await downgrade.execute(sub.id, "community", {
       now: new Date("2026-02-10T00:00:00Z"),
     });
 
@@ -53,9 +63,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   });
 
   it("clamps the new period at month-end after the grace window expires", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const { subRepo, failRenewal, downgrade } = setup();
 
     const sub = await subRepo.create(
       "acc-1",
@@ -64,9 +72,9 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
       new Date("2026-01-20T00:00:00Z"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-01-20T00:00:00Z"));
+    await failRenewal.execute(sub.id, new Date("2026-01-20T00:00:00Z"));
 
-    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+    const result = await downgrade.execute(sub.id, "community", {
       now: new Date("2026-01-31T12:00:00Z"),
     });
 
@@ -74,9 +82,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   });
 
   it("returns null for a non-grace subscription", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const { subRepo, downgrade } = setup();
 
     const sub = await subRepo.create(
       "acc-1",
@@ -85,7 +91,7 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
       new Date("2026-02-01"),
     );
 
-    const result = await service.downgradeExpiredGrace(sub.id, "community", {
+    const result = await downgrade.execute(sub.id, "community", {
       now: new Date("2026-02-10T00:00:00Z"),
     });
 
@@ -93,12 +99,10 @@ describe("SubscriptionService.downgradeExpiredGrace", () => {
   });
 });
 
-describe("SubscriptionService.downgradeExpiredGrace notification", () => {
+describe("DowngradeExpiredGrace notification", () => {
   it("notifies the owner when the grace window expires", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const { subRepo, failRenewal, downgrade } = setup(notifier);
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -106,11 +110,11 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"), {
       recipientEmail: "owner@example.com",
     });
 
-    await service.downgradeExpiredGrace(sub.id, "community", {
+    await downgrade.execute(sub.id, "community", {
       now: new Date("2026-02-10T00:00:00Z"),
       recipientEmail: "owner@example.com",
     });
@@ -123,10 +127,8 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
   });
 
   it("does not notify without a recipient email", async () => {
-    const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
     const notifier = new FakeSubscriptionNotifier();
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo, notifier });
+    const { subRepo, failRenewal, downgrade } = setup(notifier);
     const sub = await subRepo.create(
       "acc-1",
       "trades",
@@ -134,11 +136,11 @@ describe("SubscriptionService.downgradeExpiredGrace notification", () => {
       new Date("2026-02-01"),
     );
 
-    await service.failRenewal(sub.id, new Date("2026-02-01T00:00:00Z"), {
+    await failRenewal.execute(sub.id, new Date("2026-02-01T00:00:00Z"), {
       recipientEmail: "owner@example.com",
     });
 
-    await service.downgradeExpiredGrace(sub.id, "community", {
+    await downgrade.execute(sub.id, "community", {
       now: new Date("2026-02-10T00:00:00Z"),
     });
 

@@ -1,14 +1,11 @@
+import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service.fixtures";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { describe, expect, it } from "vitest";
 
-describe("SubscriptionService.subscribe", () => {
+describe("SubscribeToPlan", () => {
   it("cancels any existing active subscription before creating the new one", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const subscribe = new SubscribeToPlan({ subscriptions: subRepo });
 
     const first = await subRepo.create(
       "acc-1",
@@ -17,7 +14,7 @@ describe("SubscriptionService.subscribe", () => {
       new Date("2026-02-01"),
     );
 
-    const second = await service.subscribe(
+    const second = await subscribe.execute(
       "acc-1",
       "trades",
       new Date("2026-01-15"),
@@ -36,8 +33,7 @@ describe("SubscriptionService.subscribe", () => {
 
   it("reactivates a cancelled same-plan subscription instead of creating a second one", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const subscribe = new SubscribeToPlan({ subscriptions: subRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -48,7 +44,7 @@ describe("SubscriptionService.subscribe", () => {
 
     await subRepo.updateStatus(current.id, "cancelled");
 
-    const resumed = await service.subscribe(
+    const resumed = await subscribe.execute(
       "acc-1",
       "commerce",
       new Date("2026-01-15T00:00:00Z"),
@@ -68,10 +64,9 @@ describe("SubscriptionService.subscribe", () => {
 
   it("creates a subscription when none exists", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const subscribe = new SubscribeToPlan({ subscriptions: subRepo });
 
-    const sub = await service.subscribe(
+    const sub = await subscribe.execute(
       "acc-1",
       "community",
       new Date("2026-01-01"),
@@ -84,10 +79,9 @@ describe("SubscriptionService.subscribe", () => {
 
   it("creates an annual subscription with its interval", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const subscribe = new SubscribeToPlan({ subscriptions: subRepo });
 
-    const sub = await service.subscribe(
+    const sub = await subscribe.execute(
       "acc-1",
       "trades",
       new Date("2026-01-31T00:00:00Z"),
@@ -101,8 +95,7 @@ describe("SubscriptionService.subscribe", () => {
 
   it("resumes a cancelled annual subscription by one year, not one month", async () => {
     const subRepo = new InMemorySubscriptionRepository();
-    const planRepo = new InMemoryPlanRepository(plans);
-    const service = new SubscriptionService({ subscriptionRepo: subRepo, planRepo });
+    const subscribe = new SubscribeToPlan({ subscriptions: subRepo });
 
     const current = await subRepo.create(
       "acc-1",
@@ -114,7 +107,7 @@ describe("SubscriptionService.subscribe", () => {
 
     await subRepo.updateStatus(current.id, "cancelled");
 
-    const resumed = await service.subscribe(
+    const resumed = await subscribe.execute(
       "acc-1",
       "commerce",
       new Date("2026-06-01T00:00:00Z"),

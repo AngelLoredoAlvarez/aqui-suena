@@ -5,12 +5,13 @@ import type {
   PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import type { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
+import type { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type {
   Subscription,
   SubscriptionRepository,
 } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { SubscriptionService } from "@aqui-suena/api/domain/billing/subscriptions/subscription-service";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 
@@ -31,7 +32,8 @@ export type RenewSubscriptionsDependencies = {
   readonly accounts: Pick<AccountRepository, "getById" | "getSavedCard">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly businesses?: Pick<BusinessRepository, "listAllByAccount">;
-  readonly service: Pick<SubscriptionService, "failRenewal" | "downgradeExpiredGrace">;
+  readonly failRenewal: Pick<FailRenewal, "execute">;
+  readonly downgradeExpiredGrace: Pick<DowngradeExpiredGrace, "execute">;
   readonly limit?: number;
   readonly now?: () => Date;
   readonly onError?: (message: string, subscriptionId: string) => void;
@@ -91,7 +93,7 @@ export class RenewSubscriptions {
     if (periodStart <= now) {
       if (history.some((payment) => isCompletedFor(payment, periodStart))) return false;
 
-      await this.deps.service.failRenewal(subscription.id, now, {
+      await this.deps.failRenewal.execute(subscription.id, now, {
         recipientEmail: account.email,
         locale: account.locale,
       });
@@ -155,7 +157,7 @@ export class RenewSubscriptions {
         .slice(0, plan.entitlements.maxBusinesses)
         .map((business) => business.id);
 
-      await this.deps.service.downgradeExpiredGrace(subscription.id, "community", {
+      await this.deps.downgradeExpiredGrace.execute(subscription.id, "community", {
         ...options,
         visibleBusinessIds,
       });
@@ -163,7 +165,7 @@ export class RenewSubscriptions {
       return;
     }
 
-    await this.deps.service.downgradeExpiredGrace(subscription.id, "community", options);
+    await this.deps.downgradeExpiredGrace.execute(subscription.id, "community", options);
   }
 }
 
