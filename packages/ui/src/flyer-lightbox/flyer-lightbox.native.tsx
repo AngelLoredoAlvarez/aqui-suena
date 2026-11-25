@@ -1,8 +1,12 @@
+import { downloadFlyer } from "@aqui-suena/ui/flyer-lightbox/download-flyer.native";
 import type { FlyerLightboxProps } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox";
+import { FlyerLightboxMenu } from "@aqui-suena/ui/flyer-lightbox/lightbox-menu";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { Icon } from "@aqui-suena/ui/shared";
+import type { ZoomableImageHandle } from "@aqui-suena/ui/zoomable-image/types";
 import { ZoomableImage } from "@aqui-suena/ui/zoomable-image/zoomable-image.native";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, YStack } from "tamagui";
@@ -15,6 +19,30 @@ export type {
 export function FlyerLightbox({ item, onClose }: FlyerLightboxProps) {
   const { dictionary } = useLocale();
   const insets = useSafeAreaInsets();
+  const zoomRef = useRef<ZoomableImageHandle | null>(null);
+  const [scale, setScale] = useState(1);
+  const [downloading, setDownloading] = useState(false);
+  const itemId = item?.id ?? null;
+
+  useEffect(() => {
+    setScale(1);
+  }, [itemId]);
+
+  const handleDownload = async (): Promise<void> => {
+    if (item === null) {
+      return;
+    }
+
+    setDownloading(true);
+
+    try {
+      await downloadFlyer(item.imageUrl, item.name);
+    } catch (error) {
+      console.error("flyer download failed", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <Modal
@@ -36,7 +64,7 @@ export function FlyerLightbox({ item, onClose }: FlyerLightboxProps) {
           items="center"
           justify="center"
         >
-          <ZoomableImage key={item.id}>
+          <ZoomableImage key={item.id} ref={zoomRef} onScaleChange={setScale}>
             <OptimizedImage
               src={item.imageUrl}
               alt={item.alt}
@@ -47,6 +75,15 @@ export function FlyerLightbox({ item, onClose }: FlyerLightboxProps) {
               draggable={false}
             />
           </ZoomableImage>
+          <FlyerLightboxMenu
+            scale={scale}
+            bottom={insets.bottom + 16}
+            downloading={downloading}
+            onZoomIn={() => zoomRef.current?.zoomIn()}
+            onZoomOut={() => zoomRef.current?.zoomOut()}
+            onReset={() => zoomRef.current?.reset()}
+            onDownload={() => void handleDownload()}
+          />
           <Button
             testID="flyer-lightbox-close"
             type="button"

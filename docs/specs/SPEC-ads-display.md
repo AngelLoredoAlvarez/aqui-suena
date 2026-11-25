@@ -122,6 +122,13 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   to pan on web; pinch and drag on native (PanResponder + Animated). Zoom resets
   when the viewer closes or the flyer changes. The viewer is rendered as a
   sibling of the flyer panel, so the card's `overflow: hidden` cannot clip it.
+- **Viewer actions**: a floating pill at the bottom center holds 44×44 zoom out,
+  zoom in and reset buttons plus a download action, all labelled through i18n.
+  The zoom buttons move 0.5× and are disabled at their limit (out/reset at 1×,
+  in at 3×). Web/desktop downloads the flyer with `fetch` → blob → object URL
+  as `flyer-<business-slug>.<ext>`; native downloads it into the cache with
+  `expo-file-system` and opens the system share sheet with `expo-sharing`,
+  falling back to `Linking` when sharing is unavailable (no permissions).
 - **Flyer transition**: on web/desktop the image layer remounts keyed by the
   current item and fades/slides in with the `quickLessBouncy` preset (Tamagui
   CSS driver). Native remounts the same keyed layer and slides it 12 px

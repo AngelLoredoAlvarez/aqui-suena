@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { UiProvider } from "@aqui-suena/ui/shared";
+import type { ZoomableImageHandle } from "@aqui-suena/ui/zoomable-image/types";
 import { ZoomableImage } from "@aqui-suena/ui/zoomable-image/zoomable-image";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { createRef, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -157,6 +158,32 @@ describe("ZoomableImage (web)", () => {
 
     expect(scale()).toBe("2");
     expect(onTap).not.toHaveBeenCalled();
+  });
+
+  it("exposes zoom actions through its handle and reports scale changes", () => {
+    const ref = createRef<ZoomableImageHandle>();
+    const onScaleChange = vi.fn();
+
+    render(
+      <ZoomableImage ref={ref} onScaleChange={onScaleChange}>
+        <div>flyer</div>
+      </ZoomableImage>,
+      { wrapper },
+    );
+
+    act(() => ref.current?.zoomIn());
+
+    expect(scale()).toBe("1.5");
+
+    act(() => ref.current?.zoomOut());
+
+    expect(scale()).toBe("1");
+
+    act(() => ref.current?.zoomIn());
+    act(() => ref.current?.reset());
+
+    expect(scale()).toBe("1");
+    expect(onScaleChange).toHaveBeenLastCalledWith(1);
   });
 
   it("does not report a tap after dragging", () => {

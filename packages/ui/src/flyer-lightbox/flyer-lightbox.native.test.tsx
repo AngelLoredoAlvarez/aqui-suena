@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { downloadFlyer } from "@aqui-suena/ui/flyer-lightbox/download-flyer.native";
 import { FlyerLightbox } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox.native";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
@@ -54,6 +55,10 @@ vi.mock("react-native", async () => {
   };
 });
 
+vi.mock("@aqui-suena/ui/flyer-lightbox/download-flyer.native", () => ({
+  downloadFlyer: vi.fn(async () => undefined),
+}));
+
 vi.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -62,6 +67,7 @@ const ITEM = {
   id: "a",
   imageUrl: "https://example.com/a.png",
   alt: "Ad A",
+  name: "El Sazón de Ale",
 };
 
 describe("FlyerLightbox (native)", () => {
@@ -91,6 +97,17 @@ describe("FlyerLightbox (native)", () => {
     });
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the actions and downloads the flyer", async () => {
+    renderWithProviders(<FlyerLightbox item={ITEM} onClose={() => {}} />, { locale: "es" });
+
+    expect(screen.getByLabelText("Acercar")).toBeTruthy();
+    expect(screen.getByLabelText("Descargar flyer")).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId("flyer-download"));
+
+    expect(downloadFlyer).toHaveBeenCalledWith("https://example.com/a.png", "El Sazón de Ale");
   });
 
   it("closes with the close button", () => {

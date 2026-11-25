@@ -1,17 +1,20 @@
+import type { ZoomableImageHandle } from "@aqui-suena/ui/zoomable-image/types";
 import {
   clampOffset,
   clampScale,
   distance,
   pinchScale,
+  ZOOM_STEP,
   type ZoomOffset,
   type ZoomViewport,
 } from "@aqui-suena/ui/zoomable-image/zoom";
 import type { ReactNode } from "react";
-import { useRef, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import { Animated, type GestureResponderEvent, PanResponder, View } from "react-native";
 
 export type ZoomableImageProps = {
   readonly children: ReactNode;
+  readonly onScaleChange?: (scale: number) => void;
 };
 
 type Gesture =
@@ -34,123 +37,141 @@ function touchDistance(event: GestureResponderEvent): number {
   return distance(first.pageX, first.pageY, second.pageX, second.pageY);
 }
 
-export function ZoomableImage({ children }: ZoomableImageProps) {
-  const [scale] = useState(() => new Animated.Value(1));
-  const [translate] = useState(() => new Animated.ValueXY({ x: 0, y: 0 }));
-  const current = useRef({ scale: 1, offset: { x: 0, y: 0 } as ZoomOffset });
-  const viewport = useRef<ZoomViewport>({ width: 0, height: 0 });
-  const gesture = useRef<Gesture>({ mode: "none" });
+export const ZoomableImage = forwardRef<ZoomableImageHandle, ZoomableImageProps>(
+  function ZoomableImage({ children, onScaleChange }, ref) {
+    const [scale] = useState(() => new Animated.Value(1));
+    const [translate] = useState(() => new Animated.ValueXY({ x: 0, y: 0 }));
+    const current = useRef({ scale: 1, offset: { x: 0, y: 0 } as ZoomOffset });
+    const viewport = useRef<ZoomViewport>({ width: 0, height: 0 });
+    const gesture = useRef<Gesture>({ mode: "none" });
+    const scaleChangeRef = useRef(onScaleChange);
+    scaleChangeRef.current = onScaleChange;
 
-  const apply = (nextScale: number, nextOffset: ZoomOffset): void => {
-    const clampedScale = clampScale(nextScale);
-    const clampedOffset = clampOffset(nextOffset, clampedScale, viewport.current);
+    const apply = useCallback(
+      (nextScale: number, nextOffset: ZoomOffset): void => {
+        const clampedScale = clampScale(nextScale);
+        const clampedOffset = clampOffset(nextOffset, clampedScale, viewport.current);
 
-    current.current = { scale: clampedScale, offset: clampedOffset };
-    scale.setValue(clampedScale);
-    translate.setValue(clampedOffset);
-  };
+        current.current = { scale: clampedScale, offset: clampedOffset };
+        scale.setValue(clampedScale);
+        translate.setValue(clampedOffset);
+        scaleChangeRef.current?.(clampedScale);
+      },
+      [scale, translate],
+    );
 
-  const settle = (): void => {
-    const { scale: settledScale, offset } = current.current;
-    const target =
-      settledScale <= 1 ? { x: 0, y: 0 } : clampOffset(offset, settledScale, viewport.current);
+    useImperativeHandle(
+      ref,
+      () => ({
+        zoomIn: () => apply(current.current.scale + ZOOM_STEP, current.current.offset),
+        zoomOut: () => apply(current.current.scale - ZOOM_STEP, current.current.offset),
+        reset: () => apply(1, { x: 0, y: 0 }),
+      }),
+      [apply],
+    );
 
-    current.current = { scale: settledScale, offset: target };
-    gesture.current = { mode: "none" };
+    const settle = (): void => {
+      const { scale: settledScale, offset } = current.current;
+      const target =
+        settledScale <= 1 ? { x: 0, y: 0 } : clampOffset(offset, settledScale, viewport.current);
 
-    Animated.spring(translate, {
-      toValue: target,
-      useNativeDriver: true,
-      bounciness: 0,
-    }).start();
-  };
+      current.current = { scale: settledScale, offset: target };
+      gesture.current = { mode: "none" };
 
-  const responder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (event) => {
-        const touches = event.nativeEvent.touches;
+      Animated.spring(translate, {
+        toValue: target,
+        useNativeDriver: true,
+        bounciness: 0,
+      }).start();
+    };
 
-        gesture.current =
-          touches.length >= 2
-            ? {
+    const responder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: (event) => {
+          const touches = event.nativeEvent.touches;
+
+          gesture.current =
+            touches.length >= 2
+              ? {
+                  mode: "pinch",
+                  startScale: current.current.scale,
+                  startDistance: touchDistance(event),
+                }
+              : { mode: "pan", origin: current.current.offset, baseX: 0, baseY: 0 };
+        },
+        onPanResponderMove: (event, state) => {
+          if (event.nativeEvent.touches.length >= 2) {
+            if (gesture.current.mode !== "pinch") {
+              gesture.current = {
                 mode: "pinch",
                 startScale: current.current.scale,
                 startDistance: touchDistance(event),
-              }
-            : { mode: "pan", origin: current.current.offset, baseX: 0, baseY: 0 };
-      },
-      onPanResponderMove: (event, state) => {
-        if (event.nativeEvent.touches.length >= 2) {
-          if (gesture.current.mode !== "pinch") {
+              };
+            }
+
+            const active = gesture.current;
+
+            if (active.mode === "pinch") {
+              apply(
+                pinchScale(active.startScale, active.startDistance, touchDistance(event)),
+                current.current.offset,
+              );
+            }
+
+            return;
+          }
+
+          if (current.current.scale <= 1) {
+            return;
+          }
+
+          if (gesture.current.mode !== "pan") {
             gesture.current = {
-              mode: "pinch",
-              startScale: current.current.scale,
-              startDistance: touchDistance(event),
+              mode: "pan",
+              origin: current.current.offset,
+              baseX: state.dx,
+              baseY: state.dy,
             };
           }
 
           const active = gesture.current;
 
-          if (active.mode === "pinch") {
-            apply(
-              pinchScale(active.startScale, active.startDistance, touchDistance(event)),
-              current.current.offset,
-            );
+          if (active.mode === "pan") {
+            apply(current.current.scale, {
+              x: active.origin.x + state.dx - active.baseX,
+              y: active.origin.y + state.dy - active.baseY,
+            });
           }
+        },
+        onPanResponderRelease: settle,
+        onPanResponderTerminate: settle,
+      }),
+    ).current;
 
-          return;
-        }
-
-        if (current.current.scale <= 1) {
-          return;
-        }
-
-        if (gesture.current.mode !== "pan") {
-          gesture.current = {
-            mode: "pan",
-            origin: current.current.offset,
-            baseX: state.dx,
-            baseY: state.dy,
+    return (
+      <View
+        style={{ flex: 1, width: "100%" }}
+        onLayout={(event) => {
+          viewport.current = {
+            width: event.nativeEvent.layout.width,
+            height: event.nativeEvent.layout.height,
           };
-        }
-
-        const active = gesture.current;
-
-        if (active.mode === "pan") {
-          apply(current.current.scale, {
-            x: active.origin.x + state.dx - active.baseX,
-            y: active.origin.y + state.dy - active.baseY,
-          });
-        }
-      },
-      onPanResponderRelease: settle,
-      onPanResponderTerminate: settle,
-    }),
-  ).current;
-
-  return (
-    <View
-      style={{ flex: 1, width: "100%" }}
-      onLayout={(event) => {
-        viewport.current = {
-          width: event.nativeEvent.layout.width,
-          height: event.nativeEvent.layout.height,
-        };
-      }}
-      {...responder.panHandlers}
-    >
-      <Animated.View
-        testID="zoomable-image-content"
-        style={{
-          flex: 1,
-          alignSelf: "stretch",
-          transform: [{ translateX: translate.x }, { translateY: translate.y }, { scale }],
         }}
+        {...responder.panHandlers}
       >
-        {children}
-      </Animated.View>
-    </View>
-  );
-}
+        <Animated.View
+          testID="zoomable-image-content"
+          style={{
+            flex: 1,
+            alignSelf: "stretch",
+            transform: [{ translateX: translate.x }, { translateY: translate.y }, { scale }],
+          }}
+        >
+          {children}
+        </Animated.View>
+      </View>
+    );
+  },
+);
