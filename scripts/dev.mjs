@@ -4,7 +4,7 @@
 //   api      http://localhost:3001  shared backend: tRPC router + /stream proxy
 //   web      http://localhost:3000  Next.js, also serves /test-streams fixtures
 //   mobile   Metro on :8081         fixtures loaded from the web dev server
-//   desktop  Tauri window           reuses :3000 instead of starting a second one
+//   desktop  Tauri window           loads :3000, waiting for it when needed
 //
 // Pass --android to open the app on a running emulator (starts Pixel_7 if
 // needed), including when Metro is already up and gets reused.
@@ -233,6 +233,7 @@ export function buildTasks({
     {
       name: "desktop",
       port: null,
+      readyPort: 3000,
       cmd: "tauri",
       args: ["dev", "--config", tauriConfig],
       cwd: "apps/desktop",
@@ -251,15 +252,25 @@ export async function selectReusable(tasks, isOpen) {
   const reused = [];
   const toStart = [];
   for (const task of tasks) {
-    if (task.name === "desktop" && (await isOpen(3000))) {
-      reused.push(task);
-    } else if (task.port && (await isOpen(task.port))) {
+    if (task.port && (await isOpen(task.port))) {
       reused.push(task);
     } else {
       toStart.push(task);
     }
   }
   return { reused, toStart };
+}
+
+export async function waitForPort(port, isOpen, { attempts = 100, delayMs = 200 } = {}) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await isOpen(port)) {
+      return true;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  return false;
 }
 
 export function resolveBin(name, cwd, repoRoot = root) {
@@ -520,11 +531,7 @@ async function main() {
   const { reused, toStart } = await selectReusable(tasks, isPortOpen);
 
   for (const task of reused) {
-    console.log(
-      task.name === "desktop"
-        ? "[dev] desktop: web already running; reusing (no second Tauri window)"
-        : `[dev] ${task.name} already running on :${task.port}; reusing (not restarted)`,
-    );
+    console.log(`[dev] ${task.name} already running on :${task.port}; reusing (not restarted)`);
   }
 
   const binPathEnv = [
@@ -533,6 +540,14 @@ async function main() {
   ].join(process.platform === "win32" ? ";" : ":");
 
   for (const task of toStart) {
+    if (shuttingDown) {
+      return;
+    }
+
+    if (task.readyPort && !(await waitForPort(task.readyPort, isPortOpen))) {
+      console.error(`[dev] ${task.name}: :${task.readyPort} is not answering yet; starting anyway`);
+    }
+
     const child = spawn(resolveBin(task.cmd, task.cwd), task.args, {
       cwd: join(root, task.cwd),
       // Pipe stdout/stderr so we can drop any noisy failure banners, while
