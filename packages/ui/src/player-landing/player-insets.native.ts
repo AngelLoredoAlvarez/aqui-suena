@@ -1,4 +1,4 @@
-import type { PlayerInsets } from "@aqui-suena/ui/player-landing/player-spacing";
+import type { PlayerInsets } from "@aqui-suena/ui/player-landing/utils/player-spacing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // The context reports native safe-area insets; it never applies them on its own.

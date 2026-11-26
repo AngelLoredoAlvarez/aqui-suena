@@ -3,7 +3,7 @@ import type {
   Hour,
   HourRepository,
   UpdateHourInput,
-} from "@aqui-suena/api/domain/directory/hour";
+} from "@aqui-suena/api/domain/directory/model/hour";
 
 type HourRow = {
   id: string;

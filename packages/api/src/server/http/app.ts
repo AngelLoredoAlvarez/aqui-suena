@@ -1,5 +1,5 @@
 import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
@@ -14,15 +14,19 @@ import {
   createInMemoryRepositories,
   type DirectoryRepositories,
 } from "@aqui-suena/api/server/composition/repositories";
-import { corsHeaders, preflightHeaders, resolveCors } from "@aqui-suena/api/server/http/cors";
 import { probeMediaStorage } from "@aqui-suena/api/server/http/health";
+import {
+  corsHeaders,
+  preflightHeaders,
+  resolveCors,
+} from "@aqui-suena/api/server/http/middleware/cors";
 import {
   type RequestLogger,
   requestLogging,
   silentErrorHandler,
-} from "@aqui-suena/api/server/http/observability";
+} from "@aqui-suena/api/server/http/middleware/observability";
+import { rateLimitingMiddleware } from "@aqui-suena/api/server/http/middleware/rate-limit";
 import { createPublicImageHandler } from "@aqui-suena/api/server/http/public-images";
-import { rateLimitingMiddleware } from "@aqui-suena/api/server/http/rate-limit";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import { createContext, createSupabaseFromEnv } from "@aqui-suena/api/server/trpc/context";
 import type { BillingSurfaces } from "@aqui-suena/api/server/trpc/router";

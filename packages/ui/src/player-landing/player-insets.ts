@@ -1,4 +1,4 @@
-import type { PlayerInsets } from "@aqui-suena/ui/player-landing/player-spacing";
+import type { PlayerInsets } from "@aqui-suena/ui/player-landing/utils/player-spacing";
 
 // Web and desktop keep the approved spacing: no native system bars.
 export function usePlayerInsets(): PlayerInsets {

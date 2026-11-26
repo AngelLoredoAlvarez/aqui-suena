@@ -1,6 +1,6 @@
-import type { Business } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { type Flyer, InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
+import type { Business } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import { type Flyer, InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
 import { InMemoryMediaRepository, type Media } from "@aqui-suena/api/domain/media/media";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createFlyersRouter } from "@aqui-suena/api/server/routers/directory/flyers";

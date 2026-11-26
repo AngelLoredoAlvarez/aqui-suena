@@ -1,5 +1,5 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { HourRepository } from "@aqui-suena/api/domain/directory/hour";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { HourRepository } from "@aqui-suena/api/domain/directory/model/hour";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
 import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";

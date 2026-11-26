@@ -1,9 +1,9 @@
-import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
-import { TemplateCfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/template-cfdi-notifier";
-import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
-import { TemplatePaymentNotifier } from "@aqui-suena/api/domain/billing/payments/template-payment-notifier";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
-import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/template-subscription-notifier";
+import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/ports/cfdi-notifier";
+import { TemplateCfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/ports/template-cfdi-notifier";
+import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/ports/payment-notifier";
+import { TemplatePaymentNotifier } from "@aqui-suena/api/domain/billing/payments/ports/template-payment-notifier";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-notifier";
+import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/template-subscription-notifier";
 import type { EmailTemplateRenderer } from "@aqui-suena/api/domain/email/email-template";
 import { createEmailTemplateRenderer } from "@aqui-suena/api/infrastructure/email/email-template-renderer";
 import { ResendEmailSender } from "@aqui-suena/api/infrastructure/email/resend-email-sender";

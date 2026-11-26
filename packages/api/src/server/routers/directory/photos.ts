@@ -1,10 +1,10 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import {
   assertAttachableMedia,
   deleteMediaAttachment,
-} from "@aqui-suena/api/domain/directory/media-attachment";
-import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/media-url";
-import type { Photo, PhotoRepository } from "@aqui-suena/api/domain/directory/photo";
+} from "@aqui-suena/api/domain/directory/model/media-attachment";
+import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/model/media-url";
+import type { Photo, PhotoRepository } from "@aqui-suena/api/domain/directory/model/photo";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";

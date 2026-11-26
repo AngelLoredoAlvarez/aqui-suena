@@ -1,5 +1,5 @@
-import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/grace";
-import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/model/grace";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 
 export function resolvePlan(subscription: Subscription | null, now: Date = new Date()): PlanId {

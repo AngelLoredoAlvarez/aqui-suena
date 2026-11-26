@@ -9,7 +9,7 @@ import type {
   PaymentNotifier,
   PaymentPendingNotification,
   PaymentReceiptNotification,
-} from "@aqui-suena/api/domain/billing/payments/payment-notifier";
+} from "@aqui-suena/api/domain/billing/payments/ports/payment-notifier";
 import type {
   CancellationNotification,
   GraceExpiredNotification,
@@ -18,7 +18,7 @@ import type {
   RenewalUpcomingNotification,
   SubscriptionNotificationRecipient,
   SubscriptionNotifier,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+} from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-notifier";
 
 export type SubscriptionNotificationCall =
   | {

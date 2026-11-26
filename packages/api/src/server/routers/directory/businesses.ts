@@ -1,7 +1,7 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { businessCategorySchema } from "@aqui-suena/api/domain/directory/contracts/listing";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import { assertCanCreateBusiness } from "@aqui-suena/api/domain/plans/entitlements";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";

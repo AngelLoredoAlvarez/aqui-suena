@@ -1,6 +1,6 @@
-import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/invoice";
-import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
-import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/recover-missing-archives";
+import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
+import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/use-cases/recover-missing-archives";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
 import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {

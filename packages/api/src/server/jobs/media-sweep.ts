@@ -1,4 +1,4 @@
-import { PurgeExpiredBusinesses } from "@aqui-suena/api/domain/directory/purge-expired-businesses";
+import { PurgeExpiredBusinesses } from "@aqui-suena/api/domain/directory/use-cases/purge-expired-businesses";
 import { SweepMediaOrphans } from "@aqui-suena/api/domain/media/sweep-orphans";
 import { mediaStorageFromEnv } from "@aqui-suena/api/server/composition/env-mappers";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";

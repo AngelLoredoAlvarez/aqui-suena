@@ -1,0 +1,267 @@
+// @vitest-environment jsdom
+
+import type { SupportedLocale } from "@aqui-suena/ui/i18n";
+import { LocaleProvider } from "@aqui-suena/ui/i18n";
+import { PlayerLanding } from "@aqui-suena/ui/player-landing/components/player-landing";
+import { UiProvider } from "@aqui-suena/ui/shared";
+import { QueryClient } from "@tanstack/react-query";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { createStore, Provider as JotaiProvider } from "jotai";
+import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+class FakeAudio {
+  src = "";
+  setAttribute(_name: string, _value: string): void {}
+  play(): Promise<void> {
+    return Promise.resolve();
+  }
+  pause(): void {}
+}
+
+const playSpy = vi.fn(() => Promise.resolve());
+const pauseSpy = vi.fn();
+
+vi.mock("@aqui-suena/ui/drivers", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@aqui-suena/ui/drivers")>();
+  return {
+    ...actual,
+    useExpoAudioDriver: () => ({ play: playSpy, pause: pauseSpy }),
+  };
+});
+
+beforeEach(() => {
+  vi.stubGlobal("Audio", FakeAudio);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (!url.includes("listener.getStatus")) {
+        return new Response("not found", { status: 404 });
+      }
+
+      return new Response(
+        JSON.stringify({
+          result: {
+            data: {
+              station: { id: "aqui-suena-pop", name: "Aquí Suena Pop" },
+              activeUrl: "http://localhost:3000/test-streams/aqui-suena-pop.m4a",
+              listeners: 0,
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }),
+  );
+  playSpy.mockClear();
+  pauseSpy.mockClear();
+});
+
+function renderLanding(locale: SupportedLocale = "en", scheme: "noche" | "brasa" = "noche") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  // Fresh Jotai store per render so the global station atom does not leak
+  // between test cases.
+  const jotaiStore = createStore();
+
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <JotaiProvider store={jotaiStore}>
+      <UiProvider queryClient={queryClient}>
+        <LocaleProvider locale={locale} onChange={() => {}}>
+          {children}
+        </LocaleProvider>
+      </UiProvider>
+    </JotaiProvider>
+  );
+
+  return render(<PlayerLanding scheme={scheme} />, { wrapper });
+}
+
+describe("PlayerLanding with channels", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("lists the three channels in the sheet in Spanish once loaded", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    const sheet = screen.getByTestId("station-sheet");
+    expect(within(sheet).getByText("Aquí Suena Pop")).toBeTruthy();
+    expect(within(sheet).getByText("Aquí Suena Focus")).toBeTruthy();
+    expect(within(sheet).getByText("Aquí Suena Night")).toBeTruthy();
+  });
+
+  it("switches the stream when a channel is chosen in the sheet", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(playSpy).toHaveBeenCalledWith("/test-streams/aqui-suena-night.m4a");
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+  });
+
+  it("shows the selected channel name as title", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Aquí Suena Night").length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("keeps the sheet opener while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(screen.getByTestId("station-name")).toBeTruthy();
+    expect(screen.getByText("Aquí Suena Pop")).toBeTruthy();
+  });
+
+  it("marks the connecting channel with the active check in the sheet", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    const sheet = screen.getByTestId("station-sheet");
+    const check = within(sheet).getByTestId("station-sheet-check");
+    expect(check.closest("button")?.getAttribute("aria-label")).toBe("Aquí Suena Night");
+  });
+
+  it("keeps showing the previous channel name while the new one connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(screen.getByText("Aquí Suena Pop")).toBeTruthy();
+  });
+
+  it("does not pause the previous station when switching channels", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(pauseSpy).not.toHaveBeenCalled();
+  });
+
+  it("keeps showing the previous card while the new channel connects", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    playSpy.mockReturnValueOnce(new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByTestId("station-name"));
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(screen.getByText("Aquí Suena Pop")).toBeTruthy();
+    expect(screen.getByText(/escuchando/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pausar" })).toBeTruthy();
+  });
+});
+
+describe("PlayerLanding composition", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("keeps the player mounted and flips the visual order when the position changes", async () => {
+    renderLanding("es", "noche");
+
+    await screen.findByText(/escuchando/);
+
+    const body = screen.getByTestId("landing-body");
+    const playsBefore = playSpy.mock.calls.length;
+
+    function spacing() {
+      const currentBody = screen.getByTestId("landing-body");
+      const content = screen.getByTestId("landing-content");
+
+      return {
+        top: getComputedStyle(currentBody).paddingTop,
+        gap: getComputedStyle(currentBody).gap,
+        contentTop: getComputedStyle(content).paddingTop,
+        contentBottom: getComputedStyle(content).paddingBottom,
+      };
+    }
+
+    expect(body.getAttribute("data-position")).toBe("bottom");
+    expect(spacing()).toEqual({
+      top: "12px",
+      gap: "12px",
+      contentTop: "0px",
+      contentBottom: "0px",
+    });
+    expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover reproductor arriba o abajo" }));
+
+    expect(body.getAttribute("data-position")).toBe("top");
+    expect(spacing()).toEqual({
+      top: "12px",
+      gap: "12px",
+      contentTop: "0px",
+      contentBottom: "0px",
+    });
+    expect(screen.getAllByTestId("player-dock")).toHaveLength(1);
+    expect(playSpy.mock.calls.length).toBe(playsBefore);
+  });
+});
+
+describe("PlayerLanding station sheet", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("opens the sheet from the station name and plays the chosen station", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    expect(screen.getByTestId("station-sheet")).toBeTruthy();
+
+    fireEvent.click(within(screen.getByTestId("station-sheet")).getByText("Aquí Suena Night"));
+
+    expect(playSpy).toHaveBeenCalledWith("/test-streams/aqui-suena-night.m4a");
+    expect(screen.queryByTestId("station-sheet")).toBeNull();
+  });
+});

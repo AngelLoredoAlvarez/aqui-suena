@@ -4,7 +4,7 @@ import type {
   FlyerRepository,
   ListFlyersInput,
   UpdateFlyerInput,
-} from "@aqui-suena/api/domain/directory/flyer";
+} from "@aqui-suena/api/domain/directory/model/flyer";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";

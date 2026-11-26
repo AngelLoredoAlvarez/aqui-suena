@@ -4,7 +4,7 @@ import type {
   Product,
   ProductRepository,
   UpdateProductInput,
-} from "@aqui-suena/api/domain/directory/product";
+} from "@aqui-suena/api/domain/directory/model/product";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";

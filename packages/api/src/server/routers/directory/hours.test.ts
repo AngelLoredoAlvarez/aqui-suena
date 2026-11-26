@@ -1,6 +1,6 @@
-import type { Business } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { type Hour, InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import type { Business } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import { type Hour, InMemoryHourRepository } from "@aqui-suena/api/domain/directory/model/hour";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
 import { describe, expect, it } from "vitest";
 

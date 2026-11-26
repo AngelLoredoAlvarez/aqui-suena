@@ -1,5 +1,5 @@
 import { parseAllowedOrigins, readConfig } from "@aqui-suena/api/server/env";
-import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
+import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/middleware/cors";
 import { describe, expect, it } from "vitest";
 
 describe("parseAllowedOrigins", () => {

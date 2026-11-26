@@ -1,7 +1,7 @@
 import type {
   InvoicePaymentForm,
   IssueInvoiceRequest,
-} from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+} from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 
 export type FacturamaIssuer = {
   readonly rfc: string;

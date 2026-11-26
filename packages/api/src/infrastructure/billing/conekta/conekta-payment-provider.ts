@@ -7,8 +7,8 @@ import type {
   CreateChargeInput,
   PaymentCustomer,
   PaymentProvider,
-} from "@aqui-suena/api/domain/billing/payments/payment-provider";
-import { PaymentProviderRejection } from "@aqui-suena/api/domain/billing/payments/payment-provider";
+} from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
+import { PaymentProviderRejection } from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
 
 const DEFAULT_BASE_URL = "https://api.conekta.io";
 const API_VERSION = "application/vnd.conekta-v2.3.0+json";

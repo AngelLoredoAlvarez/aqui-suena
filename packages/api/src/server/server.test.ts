@@ -2,7 +2,7 @@ import { request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
 import { getListenerStatus } from "@aqui-suena/api/client";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
-import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
+import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/middleware/cors";
 import { createApiServer } from "@aqui-suena/api/server/server";
 import type { AppRouter } from "@aqui-suena/api/server/trpc/router";
 import { createTRPCClient, httpLink } from "@trpc/client";

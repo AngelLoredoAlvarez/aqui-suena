@@ -1,7 +1,7 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/cancel";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-notifier";
+import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/cancel";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";

@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import type { ReminderType } from "@aqui-suena/api/domain/billing/subscriptions/reminders";
+import type { ReminderType } from "@aqui-suena/api/domain/billing/subscriptions/model/reminders";
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { describe, expect, it } from "vitest";

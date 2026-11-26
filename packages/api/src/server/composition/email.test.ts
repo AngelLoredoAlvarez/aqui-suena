@@ -1,5 +1,5 @@
-import { TemplateCfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/template-cfdi-notifier";
-import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/template-subscription-notifier";
+import { TemplateCfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/ports/template-cfdi-notifier";
+import { TemplateSubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/template-subscription-notifier";
 import {
   createCfdiNotifier,
   createSubscriptionNotifier,

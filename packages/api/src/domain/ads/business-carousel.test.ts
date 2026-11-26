@@ -2,14 +2,14 @@ import {
   type BusinessCarouselDeps,
   getBusinessCarousel,
 } from "@aqui-suena/api/domain/ads/business-carousel";
-import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { Business } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { Flyer } from "@aqui-suena/api/domain/directory/flyer";
-import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
-import type { Hour } from "@aqui-suena/api/domain/directory/hour";
-import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/hour";
+import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { Business } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { Flyer } from "@aqui-suena/api/domain/directory/model/flyer";
+import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
+import type { Hour } from "@aqui-suena/api/domain/directory/model/hour";
+import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/model/hour";
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { describe, expect, it } from "vitest";

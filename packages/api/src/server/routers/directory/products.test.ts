@@ -1,10 +1,13 @@
 import {
   InMemorySubscriptionRepository,
   type Subscription,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { Business } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryProductRepository, type Product } from "@aqui-suena/api/domain/directory/product";
+} from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { Business } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import {
+  InMemoryProductRepository,
+  type Product,
+} from "@aqui-suena/api/domain/directory/model/product";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { describe, expect, it } from "vitest";
 

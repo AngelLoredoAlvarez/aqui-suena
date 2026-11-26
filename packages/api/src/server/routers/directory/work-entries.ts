@@ -1,5 +1,5 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/work-entry";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/model/work-entry";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { findOwned } from "@aqui-suena/api/server/routers/directory/child-resource";
 import { idInput, requireFound } from "@aqui-suena/api/server/trpc/errors";

@@ -1,7 +1,7 @@
 import type {
   ReminderLogRepository,
   ReminderType,
-} from "@aqui-suena/api/domain/billing/subscriptions/reminders";
+} from "@aqui-suena/api/domain/billing/subscriptions/model/reminders";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 

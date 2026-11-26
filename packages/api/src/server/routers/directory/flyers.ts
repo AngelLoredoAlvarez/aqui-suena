@@ -1,10 +1,10 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { Flyer, FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { Flyer, FlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
 import {
   assertAttachableMedia,
   deleteMediaAttachment,
-} from "@aqui-suena/api/domain/directory/media-attachment";
-import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/media-url";
+} from "@aqui-suena/api/domain/directory/model/media-attachment";
+import { resolveMediaUrl } from "@aqui-suena/api/domain/directory/model/media-url";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";

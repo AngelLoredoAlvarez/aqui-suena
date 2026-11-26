@@ -1,7 +1,7 @@
 import type {
   CardSource,
   PaymentCardWriter,
-} from "@aqui-suena/api/domain/billing/payments/payment-provider";
+} from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
 
 export class FakePaymentCardWriter implements PaymentCardWriter {
   readonly calls: Array<{ accountId: string; card: CardSource }> = [];

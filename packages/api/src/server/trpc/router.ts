@@ -1,14 +1,14 @@
 import type { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
-import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import type {
   CfdiDocumentLinker,
   CfdiInvoiceRepository,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
-import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
-import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
-import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
-import type { PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
-import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/subscription-notifier";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
+import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/use-cases/reconcile-cancellations";
+import type { PaymentRepository } from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
+import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-notifier";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { StationRepository } from "@aqui-suena/api/domain/radio/station";

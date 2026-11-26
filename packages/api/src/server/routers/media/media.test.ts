@@ -1,8 +1,8 @@
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import {
   type Business,
   InMemoryBusinessRepository,
-} from "@aqui-suena/api/domain/directory/business";
+} from "@aqui-suena/api/domain/directory/model/business";
 import { buildMediaKey } from "@aqui-suena/api/domain/media/key";
 import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
