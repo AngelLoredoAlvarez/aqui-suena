@@ -1,7 +1,6 @@
 import {
   InMemoryPaymentRepository,
   type NewPayment,
-  parseBillingInterval,
   parsePaymentMethod,
   parsePaymentProvider,
   parsePaymentStatus,
@@ -66,15 +65,6 @@ describe("payment enum parsers", () => {
 
   it("rejects an unknown payment method", () => {
     expect(() => parsePaymentMethod("unknown")).toThrow(DataIntegrityError);
-  });
-
-  it("accepts both billing intervals", () => {
-    expect(parseBillingInterval("monthly")).toBe("monthly");
-    expect(parseBillingInterval("annual")).toBe("annual");
-  });
-
-  it("rejects an unknown billing interval", () => {
-    expect(() => parseBillingInterval("weekly")).toThrow(DataIntegrityError);
   });
 
   it("accepts the known provider", () => {

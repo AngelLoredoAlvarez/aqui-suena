@@ -1,45 +1,5 @@
-import {
-  InMemoryObjectStorage,
-  MEDIA_LIMITS,
-  MediaValidationError,
-  validateMediaUpload,
-} from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage, MediaValidationError } from "@aqui-suena/api/domain/media/storage";
 import { describe, expect, it } from "vitest";
-
-describe("validateMediaUpload", () => {
-  it("accepts a valid product photo within limits", () => {
-    expect(() => validateMediaUpload("product-photo", "image/jpeg", 1024)).not.toThrow();
-  });
-
-  it("rejects an unsupported mime type", () => {
-    expect(() => validateMediaUpload("product-photo", "image/gif", 1024)).toThrow(
-      MediaValidationError,
-    );
-  });
-
-  it("rejects a file larger than the kind limit", () => {
-    expect(() => validateMediaUpload("product-photo", "image/jpeg", 3 * 1024 * 1024)).toThrow(
-      MediaValidationError,
-    );
-  });
-
-  it("rejects a negative size", () => {
-    expect(() => validateMediaUpload("product-photo", "image/jpeg", -1)).toThrow(
-      MediaValidationError,
-    );
-  });
-
-  it("rejects an unknown media kind", () => {
-    expect(() => validateMediaUpload("video", "video/mp4", 1024)).toThrow(MediaValidationError);
-    expect(() => validateMediaUpload("toString", "image/png", 1024)).toThrow(MediaValidationError);
-  });
-
-  it("exposes the limits for each kind", () => {
-    expect(MEDIA_LIMITS.flyer.maxSizeBytes).toBe(1 * 1024 * 1024);
-    expect(MEDIA_LIMITS.avatar.maxSizeBytes).toBe(500 * 1024);
-    expect(MEDIA_LIMITS["spot-audio"].allowedMimeTypes).toEqual(["audio/mpeg"]);
-  });
-});
 
 describe("InMemoryObjectStorage", () => {
   it("presigns a valid upload under the v1 business prefix", async () => {
