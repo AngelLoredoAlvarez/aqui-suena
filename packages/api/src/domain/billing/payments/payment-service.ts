@@ -5,6 +5,7 @@ import type {
   PaymentMethod,
   PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
+import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
 import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
 import type {
   ChargeResult,
@@ -60,9 +61,11 @@ export type CreatePaymentInput = {
 
 export class PaymentService {
   private readonly deps: PaymentServiceDependencies;
+  private readonly notifications: PaymentNotifications;
 
   constructor(deps: PaymentServiceDependencies) {
     this.deps = deps;
+    this.notifications = new PaymentNotifications(deps);
   }
 
   async create(input: CreatePaymentInput): Promise<Payment> {
@@ -126,21 +129,7 @@ export class PaymentService {
       await this.deps.payments.markExpired(open.id, now);
     }
 
-    let savedCard = input.savedCard;
-    let cardToken = input.cardToken;
-
-    if (input.method === "card" && input.cardToken !== undefined && this.deps.cards !== undefined) {
-      const source = await this.deps.provider.createCardSource({
-        customer: input.customer,
-        token: input.cardToken,
-        idempotencyKey: `${input.idempotencyKey}:card`,
-      });
-
-      await this.deps.cards.save(input.accountId, source);
-
-      savedCard = { customerId: source.customerId, sourceId: source.sourceId };
-      cardToken = undefined;
-    }
+    const { savedCard, cardToken } = await this.resolveCard(input);
 
     const payment = await this.deps.payments.create({
       accountId: input.accountId,
@@ -187,7 +176,7 @@ export class PaymentService {
     });
 
     if (charge.status === "pending") {
-      await this.notifyPending(payment.id);
+      await this.notifications.pending(payment.id);
     }
 
     if (charge.status === "paid") {
@@ -280,7 +269,7 @@ export class PaymentService {
     }
 
     const completed = await this.requirePayment(payment.id);
-    await this.notifyReceipt(completed);
+    await this.notifications.receipt(completed);
 
     return completed;
   }
@@ -299,68 +288,25 @@ export class PaymentService {
     return this.requirePayment(paymentId);
   }
 
-  private async notifyReceipt(payment: Payment): Promise<void> {
-    const { accounts, notifier } = this.deps;
-
-    if (accounts === undefined || notifier === undefined) return;
-
-    try {
-      const account = await accounts.getById(payment.accountId);
-
-      if (account === null || account.deletedAt) return;
-
-      const plan = payment.planId === null ? null : await this.deps.plans.getById(payment.planId);
-
-      await notifier.paymentReceipt(
-        { email: account.email, locale: account.locale },
-        {
-          paymentId: payment.id,
-          planName: plan?.name ?? payment.planId ?? "Plan",
-          billingPeriod: payment.billingInterval,
-          amountMinorUnits: payment.amount,
-          currency: payment.currency,
-          method: payment.method,
-          paidAt: payment.paidAt ?? this.currentDate(),
-        },
-      );
-    } catch (error) {
-      this.deps.onDeliveryError?.(error, "receipt", payment.id);
+  private async resolveCard(
+    input: CreatePaymentInput,
+  ): Promise<{ savedCard: CreatePaymentInput["savedCard"]; cardToken: string | undefined }> {
+    if (input.method !== "card" || input.cardToken === undefined || this.deps.cards === undefined) {
+      return { savedCard: input.savedCard, cardToken: input.cardToken };
     }
-  }
 
-  private async notifyPending(paymentId: string): Promise<void> {
-    const payment = await this.deps.payments.getById(paymentId);
+    const source = await this.deps.provider.createCardSource({
+      customer: input.customer,
+      token: input.cardToken,
+      idempotencyKey: `${input.idempotencyKey}:card`,
+    });
 
-    if (payment === null) return;
-    if (payment.reference === null && payment.nextActionUrl === null) return;
+    await this.deps.cards.save(input.accountId, source);
 
-    const { accounts, notifier } = this.deps;
-
-    if (accounts === undefined || notifier === undefined) return;
-
-    try {
-      const account = await accounts.getById(payment.accountId);
-
-      if (account === null || account.deletedAt) return;
-
-      const plan = payment.planId === null ? null : await this.deps.plans.getById(payment.planId);
-
-      await notifier.paymentPending(
-        { email: account.email, locale: account.locale },
-        {
-          paymentId: payment.id,
-          planName: plan?.name ?? payment.planId ?? "Plan",
-          method: payment.method,
-          amountMinorUnits: payment.amount,
-          currency: payment.currency,
-          reference: payment.reference,
-          expiresAt: payment.expiresAt,
-          nextActionUrl: payment.nextActionUrl,
-        },
-      );
-    } catch (error) {
-      this.deps.onDeliveryError?.(error, "pending", payment.id);
-    }
+    return {
+      savedCard: { customerId: source.customerId, sourceId: source.sourceId },
+      cardToken: undefined,
+    };
   }
 
   private currentDate(): Date {
