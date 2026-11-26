@@ -4,7 +4,7 @@ import { vi } from "vitest";
 type Props = Record<string, unknown>;
 
 /**
- * Maps React Native host components to DOM elements so the boot-splash can be
+ * Maps React Native host components to DOM elements so components can be
  * rendered with @testing-library/react + jsdom. accessibility* props become
  * their ARIA equivalents so the queries stay semantic.
  */
@@ -120,3 +120,36 @@ vi.mock("react-native-svg", () => {
     Line: host("line"),
   };
 });
+
+vi.mock("@react-native-async-storage/async-storage", () => ({
+  default: {
+    getItem: () => Promise.resolve(null),
+    setItem: () => Promise.resolve(),
+    removeItem: () => Promise.resolve(),
+  },
+}));
+
+vi.mock("expo-router", () => ({
+  Stack: () => React.createElement("div", { "data-testid": "stack" }),
+}));
+
+vi.mock("expo-splash-screen", () => ({
+  preventAutoHideAsync: () => Promise.resolve(),
+  hideAsync: () => Promise.resolve(),
+  hide: () => {},
+}));
+
+vi.mock("expo-localization", () => ({
+  getLocales: () => [{ languageTag: "es-MX" }],
+}));
+
+vi.mock("react-native-safe-area-context", () => ({
+  SafeAreaProvider: ({ children }: Props) => children,
+}));
+
+vi.mock("@expo-google-fonts/plus-jakarta-sans", () => ({
+  PlusJakartaSans_400Regular: "font-400",
+  PlusJakartaSans_600SemiBold: "font-600",
+  PlusJakartaSans_700Bold: "font-700",
+  useFonts: () => [true],
+}));

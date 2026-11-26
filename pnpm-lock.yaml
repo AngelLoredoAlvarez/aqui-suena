@@ -336,9 +336,6 @@ importers:
       '@testing-library/react':
         specifier: 16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@testing-library/react-native':
-        specifier: ^14.1.0
-        version: 14.1.0(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1)(test-renderer@1.3.1(@types/react@19.3.0)(react@19.3.1))
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -351,9 +348,6 @@ importers:
       jsdom:
         specifier: 31.0.1
         version: 31.0.1
-      test-renderer:
-        specifier: ^1.3.1
-        version: 1.3.1(@types/react@19.3.0)(react@19.3.1)
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -7691,9 +7685,11 @@ snapshots:
 
   '@isaacs/ttlcache@1.4.1': {}
 
-  '@jest/diff-sequences@30.5.0': {}
+  '@jest/diff-sequences@30.5.0':
+    optional: true
 
-  '@jest/get-type@30.5.0': {}
+  '@jest/get-type@30.5.0':
+    optional: true
 
   '@jest/schemas@29.6.3':
     dependencies:
@@ -7702,6 +7698,7 @@ snapshots:
   '@jest/schemas@30.5.0':
     dependencies:
       '@sinclair/typebox': 0.34.52
+    optional: true
 
   '@jest/types@29.6.3':
     dependencies:
@@ -8163,7 +8160,8 @@ snapshots:
 
   '@sinclair/typebox@0.27.12': {}
 
-  '@sinclair/typebox@0.34.52': {}
+  '@sinclair/typebox@0.34.52':
+    optional: true
 
   '@sindresorhus/is@7.2.0': {}
 
@@ -10279,6 +10277,7 @@ snapshots:
       react-native: 0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1)
       redent: 3.0.0
       test-renderer: 1.3.1(@types/react@19.3.0)(react@19.3.1)
+    optional: true
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
@@ -10365,6 +10364,7 @@ snapshots:
   '@types/react-reconciler@0.34.1(@types/react@19.3.0)':
     dependencies:
       '@types/react': 19.3.0
+    optional: true
 
   '@types/react-test-renderer@19.3.1':
     dependencies:
@@ -11609,7 +11609,8 @@ snapshots:
 
   ignore@7.0.16: {}
 
-  indent-string@4.0.0: {}
+  indent-string@4.0.0:
+    optional: true
 
   inherits@2.0.4: {}
 
@@ -11665,6 +11666,7 @@ snapshots:
       '@jest/get-type': 30.5.0
       chalk: 4.1.2
       pretty-format: 30.5.1
+    optional: true
 
   jest-get-type@29.6.3: {}
 
@@ -11674,6 +11676,7 @@ snapshots:
       chalk: 4.1.2
       jest-diff: 30.5.2
       pretty-format: 30.5.1
+    optional: true
 
   jest-util@29.7.0:
     dependencies:
@@ -12210,7 +12213,8 @@ snapshots:
 
   mimic-fn@1.2.0: {}
 
-  min-indent@1.0.1: {}
+  min-indent@1.0.1:
+    optional: true
 
   miniflare@5.20261119.0-beta(@types/node@26.6.6):
     dependencies:
@@ -12478,6 +12482,7 @@ snapshots:
       '@jest/react-is-19': react-is@19.3.1
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
+    optional: true
 
   proc-log@4.2.0: {}
 
@@ -12658,6 +12663,7 @@ snapshots:
     dependencies:
       react: 19.3.1
       scheduler: 0.28.0
+    optional: true
 
   react-refresh@0.14.2: {}
 
@@ -12671,6 +12677,7 @@ snapshots:
     dependencies:
       indent-string: 4.0.0
       strip-indent: 3.0.0
+    optional: true
 
   regenerate-unicode-properties@10.3.0:
     dependencies:
@@ -12899,6 +12906,7 @@ snapshots:
   strip-indent@3.0.0:
     dependencies:
       min-indent: 1.0.1
+    optional: true
 
   structured-headers@0.4.1: {}
 
@@ -13059,6 +13067,7 @@ snapshots:
       react-reconciler: 0.34.0(react@19.3.1)
     transitivePeerDependencies:
       - '@types/react'
+    optional: true
 
   throat@5.0.0: {}
 
