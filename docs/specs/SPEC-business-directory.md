@@ -41,7 +41,8 @@ database; delete the local file to reset it.
 ```
 apps/web/app/business/[businessId]/page.tsx → listing route (web)
 apps/mobile/app/business/[businessId].tsx    → listing route (mobile)
-packages/db/src/schema.ts                   → businesses, services, products, photos, work_entries, flyers, hours
+packages/db/src/schema/directory.ts          → businesses, services, products, work_entries, hours
+packages/db/src/schema/media.ts              → photos, flyers
 packages/api/src/server/routers/directory/   → directory CRUD routers (public child lists scoped per business, offset paginated)
 packages/api/src/domain/directory/*.ts       → Business, Service, Product, Photo, WorkEntry, Flyer, Hour entities + InMemory repos + authorization/visibility guards
 packages/api/src/infrastructure/directory/d1-*-repository.ts → D1 adapters for all 7 entities (full CRUD, deterministic created_at/id ordering)

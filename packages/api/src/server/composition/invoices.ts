@@ -126,6 +126,29 @@ function facturamaSettings(facturama: FacturamaEnv): FacturamaSettings | undefin
 }
 
 /**
+ * Maps an `R2Env` to the storage options the document store takes, or
+ * `undefined` when R2 is not configured. Every CFDI factory shares this guard:
+ * without it there is no fiscal archive.
+ */
+function r2StorageOptions(r2: R2Env): R2StorageOptions | undefined {
+  if (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+    return undefined;
+  }
+
+  return {
+    accountId: r2.accountId,
+    accessKeyId: r2.accessKeyId,
+    secretAccessKey: r2.secretAccessKey,
+    bucketName: r2.bucketName ?? DEFAULT_BUCKET,
+    endpoint: r2.endpoint,
+  };
+}
+
+function describeError(error: unknown): string {
+  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+}
+
+/**
  * Builds the invoice issuing chain, or `undefined` when the deployment is not
  * configured. Both halves are required: without a PAC nothing can be stamped,
  * and without R2 there is no fiscal archive.
@@ -135,8 +158,9 @@ export function createIssueInvoice(
 ): IssueInvoice | undefined {
   const { facturama, r2 } = options;
   const settings = facturamaSettings(facturama);
+  const r2Options = r2StorageOptions(r2);
 
-  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+  if (settings === undefined || r2Options === undefined) {
     return undefined;
   }
 
@@ -147,14 +171,6 @@ export function createIssueInvoice(
     fiscal: settings.fiscal,
     fetch: fetchFn,
   });
-
-  const r2Options: R2StorageOptions = {
-    accountId: r2.accountId,
-    accessKeyId: r2.accessKeyId,
-    secretAccessKey: r2.secretAccessKey,
-    bucketName: r2.bucketName ?? DEFAULT_BUCKET,
-    endpoint: r2.endpoint,
-  };
 
   return new IssueInvoice({
     fiscalProfiles: options.account,
@@ -170,13 +186,13 @@ export function createIssueInvoice(
     onArchiveError: (error, accountId) => {
       console.error("billing: CFDI document archive failed", {
         accountId,
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        error: describeError(error),
       });
     },
     onDeliveryError: (error, stage, subjectId) => {
       console.error(`billing: CFDI ${stage} delivery failed`, {
         subjectId,
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        error: describeError(error),
       });
     },
   });
@@ -198,21 +214,15 @@ export function createInvoiceHistory(options: {
   readonly r2: R2Env;
   readonly fetch?: typeof fetch;
 }): InvoiceHistoryComposition {
-  const { r2 } = options;
   const invoices = new D1CfdiInvoiceRepository(options.db);
+  const r2Options = r2StorageOptions(options.r2);
 
-  if (!r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+  if (r2Options === undefined) {
     return { invoices };
   }
 
   const store = new R2CfdiDocumentStore({
-    r2: {
-      accountId: r2.accountId,
-      accessKeyId: r2.accessKeyId,
-      secretAccessKey: r2.secretAccessKey,
-      bucketName: r2.bucketName ?? DEFAULT_BUCKET,
-      endpoint: r2.endpoint,
-    },
+    r2: r2Options,
     fetch: options.fetch ?? fetch,
   });
 
@@ -269,10 +279,9 @@ export function createRecoverMissingArchives(
   options: RecoverMissingArchivesCompositionOptions,
 ): RecoverMissingArchives | undefined {
   const settings = facturamaSettings(options.facturama);
+  const r2Options = r2StorageOptions(options.r2);
 
-  const { r2 } = options;
-
-  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+  if (settings === undefined || r2Options === undefined) {
     return undefined;
   }
 
@@ -285,21 +294,12 @@ export function createRecoverMissingArchives(
       fiscal: settings.fiscal,
       fetch: fetchFn,
     }),
-    documents: new R2CfdiDocumentStore({
-      r2: {
-        accountId: r2.accountId,
-        accessKeyId: r2.accessKeyId,
-        secretAccessKey: r2.secretAccessKey,
-        bucketName: r2.bucketName ?? DEFAULT_BUCKET,
-        endpoint: r2.endpoint,
-      },
-      fetch: fetchFn,
-    }),
+    documents: new R2CfdiDocumentStore({ r2: r2Options, fetch: fetchFn }),
     now: options.now,
     onError: (error, invoiceId, stage) => {
       console.error(`billing: CFDI ${stage} archive recovery failed`, {
         invoiceId,
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        error: describeError(error),
       });
     },
   });
@@ -319,9 +319,9 @@ export function createCancelInvoice(
   options: CancelInvoiceCompositionOptions,
 ): CancellationChain | undefined {
   const settings = facturamaSettings(options.facturama);
-  const { r2 } = options;
+  const r2Options = r2StorageOptions(options.r2);
 
-  if (settings === undefined || !r2.accountId || !r2.accessKeyId || !r2.secretAccessKey) {
+  if (settings === undefined || r2Options === undefined) {
     return undefined;
   }
 
@@ -333,17 +333,7 @@ export function createCancelInvoice(
     fetch: fetchFn,
   });
 
-  const documents = new R2CfdiDocumentStore({
-    r2: {
-      accountId: r2.accountId,
-      accessKeyId: r2.accessKeyId,
-      secretAccessKey: r2.secretAccessKey,
-      bucketName: r2.bucketName ?? DEFAULT_BUCKET,
-      endpoint: r2.endpoint,
-    },
-    fetch: fetchFn,
-  });
-
+  const documents = new R2CfdiDocumentStore({ r2: r2Options, fetch: fetchFn });
   const invoices = new D1CfdiInvoiceRepository(options.db);
   const { issueInvoice } = options;
 
@@ -357,13 +347,13 @@ export function createCancelInvoice(
       onArchiveError: (error, accountId) => {
         console.error("billing: CFDI acuse archive failed", {
           accountId,
-          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+          error: describeError(error),
         });
       },
       onStateError: (error, invoiceId) => {
         console.error("billing: CFDI claim release failed", {
           invoiceId,
-          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+          error: describeError(error),
         });
       },
     }),
@@ -375,7 +365,7 @@ export function createCancelInvoice(
       onError: (error, invoiceId) => {
         console.error("billing: CFDI cancellation reconcile failed", {
           invoiceId,
-          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+          error: describeError(error),
         });
       },
     }),

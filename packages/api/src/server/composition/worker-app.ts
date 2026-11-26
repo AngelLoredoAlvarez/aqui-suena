@@ -1,20 +1,10 @@
 import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
-import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/complete-payment";
-import { CreatePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/create-payment";
-import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/expire-payment";
-import { FailPayment } from "@aqui-suena/api/domain/billing/payments/use-cases/fail-payment";
-import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/use-cases/payment-notifications";
-import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-payment-writer";
-import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/renew";
-import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/subscribe";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   FullCatalogRetriever,
   VectorPlanCatalogRetriever,
 } from "@aqui-suena/api/domain/support/plan-catalog";
-import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-payment-provider";
 import { D1PaymentEventRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-event-repository";
-import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
 import type { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { D1StationRepository } from "@aqui-suena/api/infrastructure/radio/d1-station-repository";
@@ -36,6 +26,7 @@ import {
   createInvoiceHistory,
   createIssueInvoice,
 } from "@aqui-suena/api/server/composition/invoices";
+import { createPaymentGraph } from "@aqui-suena/api/server/composition/payments";
 import {
   createD1Repositories,
   type DirectoryRepositories,
@@ -142,60 +133,43 @@ export function createWorkerApp(env: WorkerEnv, core: WorkerCore) {
     r2: r2Env(env),
   });
 
-  const paymentRepository = new D1PaymentRepository(env.aqui_suena_db);
   const paymentEvents = new D1PaymentEventRepository(env.aqui_suena_db);
-  const conekta = env.CONEKTA_PRIVATE_KEY
-    ? new ConektaPaymentProvider({
-        apiKey: env.CONEKTA_PRIVATE_KEY,
-        baseUrl: env.CONEKTA_BASE_URL,
-      })
-    : undefined;
-  const subscriptionWriter = new SubscriptionPaymentWriter({
-    subscriptions: directoryRepositories.subscription,
-    subscribe: new SubscribeToPlan({ subscriptions: directoryRepositories.subscription }),
-    renew: new RenewSubscription({ subscriptions: directoryRepositories.subscription }),
-  });
-  const notifications = new PaymentNotifications({
-    payments: paymentRepository,
+
+  const graph = createPaymentGraph({
+    db: env.aqui_suena_db,
     plans: planRepository,
+    subscriptions: directoryRepositories.subscription,
     accounts: directoryRepositories.account,
     notifier: paymentNotifier,
+    conekta: env.CONEKTA_PRIVATE_KEY
+      ? { apiKey: env.CONEKTA_PRIVATE_KEY, baseUrl: env.CONEKTA_BASE_URL }
+      : undefined,
+    cards: {
+      async save(accountId, card) {
+        await directoryRepositories.account.saveCard(accountId, {
+          customerId: card.customerId,
+          sourceId: card.sourceId,
+          brand: card.card?.brand ?? null,
+          last4: card.card?.last4 ?? null,
+          expMonth: card.card?.expMonth ?? null,
+          expYear: card.card?.expYear ?? null,
+        });
+      },
+    },
     onDeliveryError: (error, stage, paymentId) =>
       console.error(
         `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
       ),
   });
 
-  const completePayment = new CompletePayment({
+  const {
     payments: paymentRepository,
-    subscriptions: subscriptionWriter,
-    notifications,
-  });
-
-  const failPayment = new FailPayment({ payments: paymentRepository });
-  const expirePayment = new ExpirePayment({ payments: paymentRepository });
-
-  const createPayment = conekta
-    ? new CreatePayment({
-        payments: paymentRepository,
-        plans: planRepository,
-        provider: conekta,
-        cards: {
-          async save(accountId, card) {
-            await directoryRepositories.account.saveCard(accountId, {
-              customerId: card.customerId,
-              sourceId: card.sourceId,
-              brand: card.card?.brand ?? null,
-              last4: card.card?.last4 ?? null,
-              expMonth: card.card?.expMonth ?? null,
-              expYear: card.card?.expYear ?? null,
-            });
-          },
-        },
-        complete: completePayment,
-        notifications,
-      })
-    : undefined;
+    conekta,
+    createPayment,
+    completePayment,
+    failPayment,
+    expirePayment,
+  } = graph;
   const checkout = createPayment
     ? new CheckoutService({
         create: createPayment,

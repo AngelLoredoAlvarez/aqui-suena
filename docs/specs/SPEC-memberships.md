@@ -97,7 +97,8 @@ DB migrations: pnpm --filter @aqui-suena/db db:generate, then pnpm --filter @aqu
 ## Project Structure
 
 ```
-packages/db/src/schema.ts                 → plans, subscriptions, payments tables
+packages/db/src/schema/plans.ts            → plans table
+packages/db/src/schema/billing.ts          → subscriptions, payments tables
 packages/api/src/server/routers/plans/plans.ts  → plans.list (tRPC)
 packages/api/src/domain/plans/            → plan catalog and entitlements (shared kernel)
 packages/api/src/domain/billing/          → subscriptions, grace window, payments domain logic

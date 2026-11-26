@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "db:generate": "drizzle-kit generate --dialect sqlite --schema ./src/schema.ts --out ./migrations"
+    "db:generate": "drizzle-kit generate --dialect sqlite --schema ./src/schema/index.ts --out ./migrations"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4"

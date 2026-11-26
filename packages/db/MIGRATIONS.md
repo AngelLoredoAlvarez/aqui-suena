@@ -1,9 +1,10 @@
 # D1 migrations
 
-The schema lives in `src/schema.ts`; the SQL that reaches D1 lives in
-`migrations/`. `wrangler d1 migrations` applies only the pending files and records
-each one in the `d1_migrations` table, so the command is idempotent and safe to
-re-run.
+The schema lives in `src/schema/` (split by domain: `accounts.ts`, `plans.ts`,
+`billing.ts`, `directory.ts`, `media.ts`, `radio.ts`); the SQL that reaches D1
+lives in `migrations/`. `wrangler d1 migrations` applies only the pending files
+and records each one in the `d1_migrations` table, so the command is idempotent
+and safe to re-run.
 
 `drizzle-kit push` is retired. It generated SQL on its own, kept no history and
 rewrote tables in place; the `flyers` rebuild during the cascade migration is the
@@ -41,7 +42,7 @@ Use `--env staging` for `aqui-suena-db-staging`; the default environment targets
 
 ## Adding a schema change
 
-1. Edit `src/schema.ts`.
+1. Edit `src/schema/<domain>.ts`.
 2. Generate the migration and commit it with the code:
 
    ```bash
@@ -59,7 +60,7 @@ Use `--env staging` for `aqui-suena-db-staging`; the default environment targets
    ```
 4. Record the applied bookmark in the feature document.
 
-CI fails when `src/schema.ts` changes without a committed migration (job
+CI fails when `src/schema/` changes without a committed migration (job
 "Migration drift" in `ci.yml`).
 
 ## Deploy order
