@@ -82,6 +82,29 @@ async function fulfillStreamWithWav(page: Page): Promise<void> {
   });
 }
 
+// The landing shell fetches ads and listener status through tRPC on mount.
+// There is no API server in e2e, so those requests proxy to a dead origin and
+// log a 500 — the UI degrades gracefully, but trackConsole fails on any console
+// error. Stub both with valid shapes so every test is deterministic and
+// self-contained, exactly like the stream stub.
+async function fulfillTrpc(page: Page): Promise<void> {
+  await page.route(/\/trpc\//, async (route) => {
+    const isListenerStatus = route.request().url().includes("listener.getStatus");
+    const data = isListenerStatus
+      ? {
+          station: { id: "test-station", name: "Test Station" },
+          activeUrl: "https://example.com/stream.mp3",
+          listeners: 0,
+        }
+      : [];
+    await route.fulfill({ json: { result: { data } } });
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await fulfillTrpc(page);
+});
+
 test("landing renders the shared shell", async ({ page }) => {
   await page.goto("/");
 
