@@ -4,9 +4,9 @@ import type { PaymentProvider } from "@aqui-suena/api/domain/billing/payments/pa
 const DEFAULT_LIMIT = 5;
 
 export interface PaymentSweepService {
-  complete(paymentId: string, paidAt?: Date): Promise<unknown>;
-  fail(paymentId: string, reason: string, at?: Date): Promise<unknown>;
-  expire(paymentId: string, at?: Date): Promise<unknown>;
+  readonly complete: { execute(paymentId: string, paidAt?: Date): Promise<unknown> };
+  readonly fail: { execute(paymentId: string, reason: string, at?: Date): Promise<unknown> };
+  readonly expire: { execute(paymentId: string, at?: Date): Promise<unknown> };
 }
 
 export type RefreshPendingPaymentsDependencies = {
@@ -39,13 +39,13 @@ export class RefreshPendingPayments {
         const charge = await this.deps.provider.getOrder(payment.providerOrderId);
 
         if (charge.status === "paid") {
-          await this.deps.service.complete(payment.id, now);
+          await this.deps.service.complete.execute(payment.id, now);
           processed += 1;
         } else if (charge.status === "declined") {
-          await this.deps.service.fail(payment.id, charge.failureReason ?? "declined", now);
+          await this.deps.service.fail.execute(payment.id, charge.failureReason ?? "declined", now);
           processed += 1;
         } else if (charge.status === "expired") {
-          await this.deps.service.expire(payment.id, now);
+          await this.deps.service.expire.execute(payment.id, now);
           processed += 1;
         }
       } catch (error) {

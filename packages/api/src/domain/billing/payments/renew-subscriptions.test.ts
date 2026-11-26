@@ -1,8 +1,8 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/create-payment";
 import type { Payment } from "@aqui-suena/api/domain/billing/payments/payment";
 import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
-import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/payment-service";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
 import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
@@ -75,11 +75,11 @@ function payment(overrides: Partial<Payment> = {}): Payment {
   };
 }
 
-class FakePaymentService {
+class FakeCreatePayment {
   readonly inputs: CreatePaymentInput[] = [];
   error: Error | null = null;
 
-  async create(input: CreatePaymentInput): Promise<Payment> {
+  async execute(input: CreatePaymentInput): Promise<Payment> {
     this.inputs.push(input);
 
     if (this.error !== null) throw this.error;
@@ -151,7 +151,7 @@ function setup(
     }),
   ]);
   const planRepo = new InMemoryPlanRepository(plans);
-  const paymentService = new FakePaymentService();
+  const paymentService = new FakeCreatePayment();
   const failRenewal = new FakeFailRenewal();
   const downgradeExpiredGrace = new FakeDowngradeExpiredGrace();
   const businesses = {

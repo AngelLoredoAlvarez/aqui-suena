@@ -1,14 +1,16 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type {
+  CreatePayment,
+  CreatePaymentInput,
+} from "@aqui-suena/api/domain/billing/payments/create-payment";
+import { hasPendingForOtherPlan } from "@aqui-suena/api/domain/billing/payments/has-pending-for-other-plan";
+import type {
   BillingInterval,
   Payment,
   PaymentMethod,
+  PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
 import type { PaymentCustomer } from "@aqui-suena/api/domain/billing/payments/payment-provider";
-import type {
-  CreatePaymentInput,
-  PaymentService,
-} from "@aqui-suena/api/domain/billing/payments/payment-service";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
 import type {
   Subscription,
@@ -22,7 +24,8 @@ const REFERENCE_TTL_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type CheckoutServiceDependencies = {
-  readonly payments: Pick<PaymentService, "create" | "hasPendingForOtherPlan">;
+  readonly create: Pick<CreatePayment, "execute">;
+  readonly payments: Pick<PaymentRepository, "listPendingByAccount">;
   readonly subscriptions: Pick<SubscriptionRepository, "getActive">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly accounts: Pick<AccountRepository, "getSavedCard">;
@@ -51,7 +54,7 @@ export class CheckoutService {
     const now = this.currentDate();
     const plan = await this.requireBillablePlan(input.planId);
 
-    if (await this.deps.payments.hasPendingForOtherPlan(input.accountId, input.planId, now)) {
+    if (await hasPendingForOtherPlan(this.deps.payments, input.accountId, input.planId, now)) {
       throw new ConflictError(
         "A payment for another plan is pending; finish it or wait for it to expire before changing plans",
       );
@@ -75,7 +78,7 @@ export class CheckoutService {
     const expiresAt =
       input.method === "card" ? undefined : new Date(now.getTime() + REFERENCE_TTL_DAYS * DAY_MS);
 
-    return this.deps.payments.create({
+    return this.deps.create.execute({
       accountId: input.accountId,
       planId: input.planId,
       billingInterval: input.billingInterval,

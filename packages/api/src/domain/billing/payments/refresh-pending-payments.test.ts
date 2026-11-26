@@ -28,20 +28,26 @@ class FakeService {
     reason?: string;
   }> = [];
 
-  async complete(paymentId: string, paidAt?: Date): Promise<unknown> {
-    this.calls.push({ method: "complete", paymentId, at: paidAt });
-    return null;
-  }
+  readonly complete = {
+    execute: async (paymentId: string, paidAt?: Date): Promise<null> => {
+      this.calls.push({ method: "complete", paymentId, at: paidAt });
+      return null;
+    },
+  };
 
-  async fail(paymentId: string, reason: string, at?: Date): Promise<unknown> {
-    this.calls.push({ method: "fail", paymentId, at, reason });
-    return null;
-  }
+  readonly fail = {
+    execute: async (paymentId: string, reason: string, at?: Date): Promise<null> => {
+      this.calls.push({ method: "fail", paymentId, at, reason });
+      return null;
+    },
+  };
 
-  async expire(paymentId: string, at?: Date): Promise<unknown> {
-    this.calls.push({ method: "expire", paymentId, at });
-    return null;
-  }
+  readonly expire = {
+    execute: async (paymentId: string, at?: Date): Promise<null> => {
+      this.calls.push({ method: "expire", paymentId, at });
+      return null;
+    },
+  };
 }
 
 async function setup() {
