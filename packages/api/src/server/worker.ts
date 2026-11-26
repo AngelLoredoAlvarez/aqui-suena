@@ -1,16 +1,9 @@
 import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
 import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
-import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
-import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
-import { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
-import { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
-import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscriptions/process-renewal-reminders";
 import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/renew";
-import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
 import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
 import { PurgeExpiredBusinesses } from "@aqui-suena/api/domain/directory/purge-expired-businesses";
-import { SweepMediaOrphans } from "@aqui-suena/api/domain/media/sweep-orphans";
 import { DEFAULT_PLAN_CATALOG, seedPlans } from "@aqui-suena/api/domain/plans/catalog";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { harnessStations } from "@aqui-suena/api/domain/radio/harness";
@@ -22,12 +15,6 @@ import {
 import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-payment-provider";
 import { D1PaymentEventRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-event-repository";
 import { D1PaymentRepository } from "@aqui-suena/api/infrastructure/billing/payments/d1-payment-repository";
-import { D1ReminderLogRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-reminder-log-repository";
-import {
-  createR2StorageFromEnv,
-  hasPartialR2Config,
-} from "@aqui-suena/api/infrastructure/media/r2-from-env";
-import type { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
 import { D1PlanCatalogWriter } from "@aqui-suena/api/infrastructure/plans/d1-plan-catalog-writer";
 import { D1PlanRepository } from "@aqui-suena/api/infrastructure/plans/d1-plan-repository";
 import { D1StationCatalogWriter } from "@aqui-suena/api/infrastructure/radio/d1-station-catalog-writer";
@@ -41,12 +28,14 @@ import {
   emailBillingUrl,
 } from "@aqui-suena/api/server/composition/email";
 import {
+  facturamaEnv,
+  mediaStorageFromEnv,
+  r2Env,
+} from "@aqui-suena/api/server/composition/env-mappers";
+import {
   createCancelInvoice,
   createInvoiceHistory,
   createIssueInvoice,
-  createRecoverMissingArchives,
-  type FacturamaEnv,
-  type R2Env,
 } from "@aqui-suena/api/server/composition/invoices";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
@@ -55,7 +44,15 @@ import { createApp } from "@aqui-suena/api/server/http/app";
 import { createConektaWebhookHandler } from "@aqui-suena/api/server/http/conekta-webhook";
 import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
 import { isRateLimited } from "@aqui-suena/api/server/http/rate-limit";
+import { runArchiveRecovery } from "@aqui-suena/api/server/jobs/archive-recovery";
+import { runCancellationSweep } from "@aqui-suena/api/server/jobs/cancellation-sweep";
+import { MEDIA_SWEEP_CRON, runMediaMaintenance } from "@aqui-suena/api/server/jobs/media-sweep";
+import { runPaymentSweeps } from "@aqui-suena/api/server/jobs/payment-sweeps";
+import { runRenewalReminders } from "@aqui-suena/api/server/jobs/renewal-reminders";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
+import type { WorkerEnv } from "@aqui-suena/api/server/worker-env";
+
+export type { WorkerEnv } from "@aqui-suena/api/server/worker-env";
 
 /** Embedding model for plan vectors; 1024 dimensions, multilingual (es/en). */
 const EMBEDDING_MODEL = "@cf/baai/bge-m3";
@@ -63,71 +60,10 @@ const EMBEDDING_MODEL = "@cf/baai/bge-m3";
 /** How many plans to inject into the support prompt via vector search. */
 const RETRIEVAL_TOP_K = 2;
 
-export interface WorkerEnv {
-  ALLOWED_ORIGINS?: string;
-  SUPABASE_URL?: string;
-  SUPABASE_ANON_KEY?: string;
-  SUPABASE_PUBLISHABLE_KEY?: string;
-  SUPABASE_SECRET_KEY?: string;
-  SUPABASE_JWKS_URL?: string;
-  aqui_suena_db: D1Database;
-  AI: Ai;
-  /** Set when the [[vectorize]] binding is enabled in wrangler.toml. */
-  PLAN_VECTORS?: VectorizeIndex;
-  /** Optional AI Gateway id; when set, Workers AI calls route through it. */
-  AI_GATEWAY_ID?: string;
-  /** Required to call POST /admin/seed-vectors. */
-  ADMIN_TOKEN?: string;
-  /** Cloudflare [[ratelimits]] binding; caps requests per client IP. */
-  RATE_LIMITER?: RateLimit;
-  /**
-   * Base URL that serves the owned harness files (`/test-streams/*.m4a`).
-   * Required by POST /admin/seed-stations so a dev localhost URL is never
-   * written to a deployed database.
-   */
-  STREAM_BASE_URL?: string;
-  /**
-   * R2 (S3-compatible) credentials for media storage. When all three are
-   * absent media is reported as unconfigured; a partial set is a configuration
-   * error (logged, still unconfigured). The Worker never uses a fake.
-   */
-  R2_ACCOUNT_ID?: string;
-  R2_ACCESS_KEY_ID?: string;
-  R2_SECRET_ACCESS_KEY?: string;
-  R2_BUCKET_NAME?: string;
-  R2_ENDPOINT?: string;
-  RESEND_API_KEY?: string;
-  RESEND_FROM?: string;
-  /** Origin every transactional-email link points at. */
-  EMAIL_APP_URL?: string;
-  /** Support address in the email footer; defaults to the sender. */
-  EMAIL_SUPPORT_ADDRESS?: string;
-  /** Facturama sandbox/production credentials and emitter fiscal settings. */
-  FACTURAMA_USER?: string;
-  FACTURAMA_PASSWORD?: string;
-  FACTURAMA_BASE_URL?: string;
-  FACTURAMA_MODE?: string;
-  FACTURAMA_EXPEDITION_PLACE?: string;
-  FACTURAMA_IVA_RATE?: string;
-  FACTURAMA_PRODUCT_CODE?: string;
-  FACTURAMA_UNIT_CODE?: string;
-  FACTURAMA_SERIES?: string;
-  FACTURAMA_ISSUER_RFC?: string;
-  FACTURAMA_ISSUER_NAME?: string;
-  FACTURAMA_ISSUER_FISCAL_REGIME?: string;
-  CONEKTA_PRIVATE_KEY?: string;
-  CONEKTA_PUBLIC_KEY?: string;
-  CONEKTA_WEBHOOK_PUBLIC_KEY?: string;
-  CONEKTA_BASE_URL?: string;
-  CONEKTA_LIVEMODE?: string;
-}
-
 export default {
   fetch: withRequestLogging(handleFetch),
   scheduled: handleScheduled,
 };
-
-const MEDIA_SWEEP_CRON = "0 3 * * *";
 
 async function handleScheduled(controller: ScheduledController, env: WorkerEnv): Promise<void> {
   if (controller.cron === MEDIA_SWEEP_CRON) {
@@ -153,258 +89,6 @@ async function handleScheduled(controller: ScheduledController, env: WorkerEnv):
   } catch (error) {
     console.error(
       `worker: renewal reminder sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
-  }
-}
-
-/**
- * The Worker env and the composition contract name the same settings
- * differently; both mappings live here so a new call site cannot drift.
- */
-function facturamaEnv(env: WorkerEnv): FacturamaEnv {
-  return {
-    user: env.FACTURAMA_USER,
-    password: env.FACTURAMA_PASSWORD,
-    baseUrl: env.FACTURAMA_BASE_URL,
-    mode: env.FACTURAMA_MODE === "multiemisor" ? "multiemisor" : "web",
-    expeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
-    ivaRate: env.FACTURAMA_IVA_RATE ? Number(env.FACTURAMA_IVA_RATE) : undefined,
-    productCode: env.FACTURAMA_PRODUCT_CODE,
-    unitCode: env.FACTURAMA_UNIT_CODE,
-    series: env.FACTURAMA_SERIES,
-    issuerRfc: env.FACTURAMA_ISSUER_RFC,
-    issuerName: env.FACTURAMA_ISSUER_NAME,
-    issuerFiscalRegime: env.FACTURAMA_ISSUER_FISCAL_REGIME,
-  };
-}
-
-function mediaStorageFromEnv(env: WorkerEnv): R2ObjectStorage | undefined {
-  const storage = createR2StorageFromEnv(env);
-
-  if (storage === undefined && hasPartialR2Config(env)) {
-    console.error(
-      "worker: incomplete R2 configuration; media storage is unconfigured (set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)",
-    );
-  }
-
-  return storage;
-}
-
-async function runMediaMaintenance(env: WorkerEnv): Promise<void> {
-  const storage = mediaStorageFromEnv(env);
-
-  if (storage === undefined) {
-    console.error("worker: media maintenance skipped, media storage is unconfigured");
-
-    return;
-  }
-
-  const repositories = createD1Repositories(env.aqui_suena_db);
-
-  try {
-    await new PurgeExpiredBusinesses({
-      businesses: repositories.business,
-      media: repositories.media,
-      storage,
-    }).execute();
-  } catch (error) {
-    console.error(
-      `worker: expired business purge failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
-  }
-
-  try {
-    await new SweepMediaOrphans({ media: repositories.media, storage }).execute();
-  } catch (error) {
-    console.error(
-      `worker: media orphan sweep failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
-  }
-}
-
-function r2Env(env: WorkerEnv): R2Env {
-  return {
-    accountId: env.R2_ACCOUNT_ID,
-    accessKeyId: env.R2_ACCESS_KEY_ID,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-    bucketName: env.R2_BUCKET_NAME,
-    endpoint: env.R2_ENDPOINT,
-  };
-}
-
-async function runCancellationSweep(env: WorkerEnv): Promise<void> {
-  const cancellation = createCancelInvoice({
-    db: env.aqui_suena_db,
-    facturama: facturamaEnv(env),
-    r2: r2Env(env),
-  });
-
-  if (cancellation === undefined) {
-    console.error("worker: cancellation sweep skipped, invoicing is unconfigured");
-
-    return;
-  }
-
-  // Success stays quiet: the sweep reports failures through the reconcile hook,
-  // and the lint config only allows console.error.
-  await cancellation.reconcile.executeAll();
-}
-
-async function runArchiveRecovery(env: WorkerEnv): Promise<void> {
-  const recovery = createRecoverMissingArchives({
-    db: env.aqui_suena_db,
-    facturama: facturamaEnv(env),
-    r2: r2Env(env),
-  });
-
-  if (recovery === undefined) {
-    console.error("worker: archive recovery skipped, invoicing is unconfigured");
-
-    return;
-  }
-
-  try {
-    await recovery.execute();
-  } catch (error) {
-    console.error(
-      `worker: fiscal archive recovery failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
-  }
-}
-
-async function runRenewalReminders(env: WorkerEnv): Promise<void> {
-  const repositories = createD1Repositories(env.aqui_suena_db);
-  const notifier = createSubscriptionNotifier({
-    apiKey: env.RESEND_API_KEY,
-    from: env.RESEND_FROM,
-    appUrl: env.EMAIL_APP_URL,
-    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
-  });
-
-  if (notifier === undefined) {
-    console.error("worker: renewal reminders skipped, email is unconfigured");
-
-    return;
-  }
-
-  const reminders = new RenewalReminderService({
-    subscriptionRepo: repositories.subscription,
-    reminderLog: new D1ReminderLogRepository(env.aqui_suena_db),
-    notifier,
-  });
-
-  const sweep = new ProcessRenewalReminders({
-    subscriptions: repositories.subscription,
-    accounts: repositories.account,
-    reminders,
-    limit: 5,
-    onError: (message, subscriptionId) =>
-      console.error(`worker: renewal reminder for ${subscriptionId} failed: ${message}`),
-  });
-
-  await sweep.execute();
-}
-
-async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
-  if (env.CONEKTA_PRIVATE_KEY === undefined) {
-    console.error("worker: payment sweeps skipped, Conekta is unconfigured");
-
-    return;
-  }
-
-  const repositories = createD1Repositories(env.aqui_suena_db);
-
-  const plans = new D1PlanRepository(env.aqui_suena_db);
-
-  const provider = new ConektaPaymentProvider({
-    apiKey: env.CONEKTA_PRIVATE_KEY,
-    baseUrl: env.CONEKTA_BASE_URL,
-  });
-
-  const emailSettings = {
-    apiKey: env.RESEND_API_KEY,
-    from: env.RESEND_FROM,
-    appUrl: env.EMAIL_APP_URL,
-    supportEmail: env.EMAIL_SUPPORT_ADDRESS,
-  };
-
-  const subscriptionNotifier = createSubscriptionNotifier(emailSettings);
-
-  const paymentNotifier = createPaymentNotifier(emailSettings);
-
-  const subscribe = new SubscribeToPlan({ subscriptions: repositories.subscription });
-
-  const renewSubscription = new RenewSubscription({ subscriptions: repositories.subscription });
-
-  const failRenewal = new FailRenewal({
-    subscriptions: repositories.subscription,
-    notifier: subscriptionNotifier,
-  });
-
-  const downgradeExpiredGrace = new DowngradeExpiredGrace({
-    subscriptions: repositories.subscription,
-    plans,
-    businesses: repositories.business,
-    notifier: subscriptionNotifier,
-  });
-
-  const subscriptionWriter = new SubscriptionPaymentWriter({
-    subscriptions: repositories.subscription,
-    subscribe,
-    renew: renewSubscription,
-  });
-
-  const payments = new D1PaymentRepository(env.aqui_suena_db);
-
-  const paymentService = new PaymentService({
-    payments,
-    plans,
-    provider,
-    subscriptions: subscriptionWriter,
-    accounts: repositories.account,
-    notifier: paymentNotifier,
-    onDeliveryError: (error, stage, paymentId) =>
-      console.error(
-        `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
-      ),
-  });
-
-  const refresh = new RefreshPendingPayments({
-    payments,
-    provider,
-    service: paymentService,
-    limit: 5,
-    onError: (message, paymentId) =>
-      console.error(`worker: refresh of payment ${paymentId} failed: ${message}`),
-  });
-
-  const renew = new RenewSubscriptions({
-    subscriptions: repositories.subscription,
-    payments,
-    paymentService,
-    accounts: repositories.account,
-    plans,
-    businesses: repositories.business,
-    failRenewal,
-    downgradeExpiredGrace,
-    limit: 5,
-    onError: (message, subscriptionId) =>
-      console.error(`worker: renewal of subscription ${subscriptionId} failed: ${message}`),
-  });
-
-  try {
-    await refresh.execute();
-  } catch (error) {
-    console.error(
-      `worker: pending payment refresh failed: ${error instanceof Error ? error.message : "unknown error"}`,
-    );
-  }
-
-  try {
-    await renew.execute();
-  } catch (error) {
-    console.error(
-      `worker: subscription renewal failed: ${error instanceof Error ? error.message : "unknown error"}`,
     );
   }
 }
