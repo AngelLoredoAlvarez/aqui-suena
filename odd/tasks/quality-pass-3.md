@@ -80,3 +80,4 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   reduced-motion static frame and the motion-detection rejection. Mobile
   coverage reaches 100/100/100/100 (29 tests); thresholds raised to 98. RNTL
   and `test-renderer` are uninstalled. (2026-11-26)
+- L9 — Delivery: pushed `chore/quality-pass-3` and opened PR #134. (2026-11-26)
