@@ -192,9 +192,10 @@ Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 force pushes are rejected, and the branch must be up to date before merging.
 Required checks are `verify` (`.github/workflows/ci.yml`) and `scan`
 (`.github/workflows/secret-scan.yml`). The `CI` workflow runs `biome check`,
-`pnpm arch`, `pnpm -r typecheck`, `pnpm test`, the api coverage thresholds and
-`pnpm check:singletons`, plus the desktop Rust tests and the web e2e suite, on
-every push to `main` and on every pull request.
+`pnpm arch`, `pnpm -r typecheck`, `pnpm test`, per-package coverage thresholds
+(`pnpm -r test:coverage`, enforced in api, ui, player, db, config, web and
+mobile) and `pnpm check:singletons`, plus the desktop Rust tests and the web e2e
+suite, on every push to `main` and on every pull request.
 
 Flow:
 
