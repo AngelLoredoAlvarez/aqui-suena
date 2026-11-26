@@ -1,5 +1,5 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
 import { describe, expect, it } from "vitest";
 
 describe("InMemoryPlanRepository", () => {

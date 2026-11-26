@@ -1,5 +1,5 @@
-import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createR2StorageFromEnv } from "@aqui-suena/api/infrastructure/media/r2-from-env";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
 import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
 import { readConfig } from "@aqui-suena/api/server/env";
 import { openLocalDatabase } from "@aqui-suena/api/server/local/local-database";

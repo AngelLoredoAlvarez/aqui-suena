@@ -1,9 +1,9 @@
 import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { ChangePlan } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/change-plan";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";

@@ -1,9 +1,9 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import {
   assertOwnsBusiness,
   BusinessAccessDeniedError,
 } from "@aqui-suena/api/domain/directory/rules/authorization";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
 import { describe, expect, it } from "vitest";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {

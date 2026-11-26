@@ -1,6 +1,6 @@
 import { generateKeyPairSync, sign } from "node:crypto";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/model/payment";
-import { InMemoryPaymentEventRepository } from "@aqui-suena/api/domain/billing/payments/model/payment-event";
+import { InMemoryPaymentEventRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-event-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
 import {
   type ConektaWebhookDependencies,
   handleConektaWebhook,

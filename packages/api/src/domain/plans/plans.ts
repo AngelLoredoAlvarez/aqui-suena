@@ -17,15 +17,3 @@ export interface PlanRepository {
   list(): Promise<Plan[]>;
   getById(id: PlanId): Promise<Plan | null>;
 }
-
-export class InMemoryPlanRepository implements PlanRepository {
-  constructor(private readonly plans: Plan[]) {}
-
-  async list(): Promise<Plan[]> {
-    return this.plans;
-  }
-
-  async getById(id: PlanId): Promise<Plan | null> {
-    return this.plans.find((plan) => plan.id === id) ?? null;
-  }
-}

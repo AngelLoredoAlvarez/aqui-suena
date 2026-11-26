@@ -2,7 +2,7 @@ import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/model/
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
 import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/use-cases/recover-missing-archives";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
 import {
   createInvoiceSubstituter,
   createIssueInvoice,

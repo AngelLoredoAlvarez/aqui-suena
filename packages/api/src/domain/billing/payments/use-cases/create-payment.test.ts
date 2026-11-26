@@ -1,8 +1,4 @@
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import {
-  InMemoryPaymentRepository,
-  type Payment,
-} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { Payment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import type { ChargeResult } from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
 import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/complete-payment";
 import {
@@ -12,7 +8,9 @@ import {
 import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/use-cases/payment-notifications";
 import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { FakePaymentNotifier } from "@aqui-suena/api/testing/notifiers";
 import { FakePaymentCardWriter } from "@aqui-suena/api/testing/payment-card-writer";

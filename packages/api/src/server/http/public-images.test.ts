@@ -1,5 +1,5 @@
 import type { MediaKind } from "@aqui-suena/api/domain/media/media-kind";
-import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
 import { createInMemoryRepositories } from "@aqui-suena/api/server/composition/repositories";
 import { createApp } from "@aqui-suena/api/server/http/app";
 import { describe, expect, it } from "vitest";

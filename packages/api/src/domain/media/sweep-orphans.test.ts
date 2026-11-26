@@ -1,6 +1,6 @@
-import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
-import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { SweepMediaOrphans } from "@aqui-suena/api/domain/media/sweep-orphans";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-02-01T00:00:00Z");

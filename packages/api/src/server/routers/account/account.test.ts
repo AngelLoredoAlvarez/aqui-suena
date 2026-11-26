@@ -1,4 +1,4 @@
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
 import { createAccountRouter } from "@aqui-suena/api/server/routers/account/account";
 import { describe, expect, it, vi } from "vitest";
 

@@ -1,23 +1,13 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import type { FlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
-import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
 import type { HourRepository } from "@aqui-suena/api/domain/directory/model/hour";
-import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/model/hour";
 import type { PhotoRepository } from "@aqui-suena/api/domain/directory/model/photo";
-import { InMemoryPhotoRepository } from "@aqui-suena/api/domain/directory/model/photo";
 import type { ProductRepository } from "@aqui-suena/api/domain/directory/model/product";
-import { InMemoryProductRepository } from "@aqui-suena/api/domain/directory/model/product";
 import type { ServiceRepository } from "@aqui-suena/api/domain/directory/model/service";
-import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/model/service";
 import type { WorkEntryRepository } from "@aqui-suena/api/domain/directory/model/work-entry";
-import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/model/work-entry";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
-import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
 import { D1AccountRepository } from "@aqui-suena/api/infrastructure/accounts/d1-account-repository";
 import { D1SubscriptionRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-subscription-repository";
 import { D1BusinessRepository } from "@aqui-suena/api/infrastructure/directory/d1-business-repository";
@@ -28,6 +18,16 @@ import { D1ProductRepository } from "@aqui-suena/api/infrastructure/directory/d1
 import { D1ServiceRepository } from "@aqui-suena/api/infrastructure/directory/d1-service-repository";
 import { D1WorkEntryRepository } from "@aqui-suena/api/infrastructure/directory/d1-work-entry-repository";
 import { D1MediaRepository } from "@aqui-suena/api/infrastructure/media/d1-media-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryFlyerRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-flyer-repository";
+import { InMemoryHourRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-hour-repository";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
+import { InMemoryPhotoRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-photo-repository";
+import { InMemoryProductRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-product-repository";
+import { InMemoryServiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-service-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
+import { InMemoryWorkEntryRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-work-entry-repository";
 
 export interface DirectoryRepositories {
   business: BusinessRepository;

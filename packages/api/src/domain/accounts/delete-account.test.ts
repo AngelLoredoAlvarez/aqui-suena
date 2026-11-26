@@ -1,13 +1,14 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import { DeleteAccount } from "@aqui-suena/api/domain/accounts/delete-account";
 import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { UserDirectory } from "@aqui-suena/api/domain/accounts/user-directory";
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import type { Media } from "@aqui-suena/api/domain/media/media";
-import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
-import { InMemoryObjectStorage, type ObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

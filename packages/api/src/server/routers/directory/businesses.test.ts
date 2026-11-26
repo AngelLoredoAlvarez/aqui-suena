@@ -1,5 +1,5 @@
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { createBusinessesRouter } from "@aqui-suena/api/server/routers/directory/businesses";
 import { describe, expect, it } from "vitest";
 

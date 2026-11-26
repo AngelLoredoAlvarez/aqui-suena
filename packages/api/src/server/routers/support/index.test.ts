@@ -1,6 +1,6 @@
 import { ENTITLEMENTS } from "@aqui-suena/api/domain/plans/entitlements";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
 import { createSupportRouter } from "@aqui-suena/api/server/routers/support";
 import { describe, expect, it, vi } from "vitest";
 

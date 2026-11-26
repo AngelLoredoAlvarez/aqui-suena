@@ -1,14 +1,14 @@
 import type {
   CfdiDocumentStore,
   CfdiInvoice,
-  InMemoryCfdiInvoiceRepository,
 } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
-import { InMemoryCfdiInvoiceRepository as Repository } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import type {
   InvoiceCancellationResult,
   InvoiceCanceller,
 } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-canceller";
 import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/use-cases/reconcile-cancellations";
+import type { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
+import { InMemoryCfdiInvoiceRepository as Repository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-25T20:00:00Z");

@@ -29,6 +29,108 @@ export type AdsCarouselProps = {
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
 
+function AdsCarouselPlaceholder({ maxW }: { maxW: number | undefined }) {
+  const { dictionary } = useLocale();
+
+  return (
+    <YStack
+      testID="ads-carousel-placeholder"
+      aria-label={dictionary.advertisements}
+      width="100%"
+      maxW={maxW}
+      items="center"
+      justify="center"
+      gap={12}
+      p={24}
+      bg="surface"
+      borderWidth={1}
+      borderColor="borderColor"
+      rounded={28}
+    >
+      <Paragraph text="center" fontWeight="700" fontSize={22}>
+        {dictionary.noSponsoredBusinesses}
+      </Paragraph>
+      <Paragraph text="center" color="muted" fontSize={14}>
+        {dictionary.noSponsoredBusinessesHint}
+      </Paragraph>
+    </YStack>
+  );
+}
+
+function AdsCarouselDetails({
+  item,
+  isWide,
+  nameFontSize,
+  meta,
+  schedule,
+}: {
+  item: AdsCarouselItem;
+  isWide: boolean;
+  nameFontSize: number;
+  meta: string;
+  schedule: string;
+}) {
+  const { dictionary } = useLocale();
+
+  return (
+    <YStack flex={isWide ? 1 : undefined} p={isWide ? 24 : 16} gap={6}>
+      <Paragraph fontWeight="700" fontSize={nameFontSize}>
+        {item.name}
+      </Paragraph>
+      <Paragraph color="muted" fontSize={14}>
+        {meta}
+      </Paragraph>
+      {isWide ? (
+        <>
+          <YStack width="100%" mt={8}>
+            {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
+            {item.phone ? <ContactRow label={dictionary.whatsapp} value={item.phone} /> : null}
+            {item.address ? <ContactRow label={dictionary.address} value={item.address} /> : null}
+            {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
+          </YStack>
+          <Button
+            type="button"
+            mt={8}
+            rounded={999}
+            bg="surface2"
+            minH={48}
+            px={18}
+            gap={8}
+            items="center"
+            self="flex-start"
+          >
+            <Text color="text" fontWeight="700" fontSize={14}>
+              {dictionary.viewBusiness}
+            </Text>
+            <Icon name="arrow-right" size={18} tone="text" />
+          </Button>
+          <ContactActions />
+        </>
+      ) : (
+        <Button
+          type="button"
+          mt={8}
+          rounded={999}
+          bg="accent"
+          color="onAccent"
+          fontWeight="700"
+          fontSize={15}
+          minH={52}
+          px={22}
+          gap={8}
+          items="center"
+          self="flex-start"
+        >
+          <Text color="onAccent" fontWeight="700" fontSize={15}>
+            {dictionary.viewBusiness}
+          </Text>
+          <Icon name="arrow-right" size={18} tone="onAccent" />
+        </Button>
+      )}
+    </YStack>
+  );
+}
+
 export function AdsCarousel({
   items = [],
   autoAdvanceMs = DEFAULT_AUTO_ADVANCE_MS,
@@ -92,29 +194,7 @@ export function AdsCarousel({
   useImagePrefetch(nearbyImageUrls);
 
   if (!hasItems) {
-    return (
-      <YStack
-        testID="ads-carousel-placeholder"
-        aria-label={dictionary.advertisements}
-        width="100%"
-        maxW={maxW}
-        items="center"
-        justify="center"
-        gap={12}
-        p={24}
-        bg="surface"
-        borderWidth={1}
-        borderColor="borderColor"
-        rounded={28}
-      >
-        <Paragraph text="center" fontWeight="700" fontSize={22}>
-          {dictionary.noSponsoredBusinesses}
-        </Paragraph>
-        <Paragraph text="center" color="muted" fontSize={14}>
-          {dictionary.noSponsoredBusinessesHint}
-        </Paragraph>
-      </YStack>
-    );
+    return <AdsCarouselPlaceholder maxW={maxW} />;
   }
 
   const current = items[safeIndex];
@@ -248,65 +328,13 @@ export function AdsCarousel({
           </>
         ) : null}
       </YStack>
-      <YStack flex={isWide ? 1 : undefined} p={isWide ? 24 : 16} gap={6}>
-        <Paragraph fontWeight="700" fontSize={nameFontSize}>
-          {current.name}
-        </Paragraph>
-        <Paragraph color="muted" fontSize={14}>
-          {meta}
-        </Paragraph>
-        {isWide ? (
-          <>
-            <YStack width="100%" mt={8}>
-              {current.phone ? <ContactRow label={dictionary.phone} value={current.phone} /> : null}
-              {current.phone ? (
-                <ContactRow label={dictionary.whatsapp} value={current.phone} />
-              ) : null}
-              {current.address ? (
-                <ContactRow label={dictionary.address} value={current.address} />
-              ) : null}
-              {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
-            </YStack>
-            <Button
-              type="button"
-              mt={8}
-              rounded={999}
-              bg="surface2"
-              minH={48}
-              px={18}
-              gap={8}
-              items="center"
-              self="flex-start"
-            >
-              <Text color="text" fontWeight="700" fontSize={14}>
-                {dictionary.viewBusiness}
-              </Text>
-              <Icon name="arrow-right" size={18} tone="text" />
-            </Button>
-            <ContactActions />
-          </>
-        ) : (
-          <Button
-            type="button"
-            mt={8}
-            rounded={999}
-            bg="accent"
-            color="onAccent"
-            fontWeight="700"
-            fontSize={15}
-            minH={52}
-            px={22}
-            gap={8}
-            items="center"
-            self="flex-start"
-          >
-            <Text color="onAccent" fontWeight="700" fontSize={15}>
-              {dictionary.viewBusiness}
-            </Text>
-            <Icon name="arrow-right" size={18} tone="onAccent" />
-          </Button>
-        )}
-      </YStack>
+      <AdsCarouselDetails
+        item={current}
+        isWide={isWide}
+        nameFontSize={nameFontSize}
+        meta={meta}
+        schedule={schedule}
+      />
       <FlyerLightbox item={openFlyer} onClose={() => setOpenFlyer(null)} />
     </YStack>
   );
