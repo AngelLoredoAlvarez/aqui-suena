@@ -1,8 +1,6 @@
-import {
-  InMemorySubscriptionRepository,
-  type SubscriptionStatus,
-} from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { SubscriptionStatus } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/fail-renewal";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 

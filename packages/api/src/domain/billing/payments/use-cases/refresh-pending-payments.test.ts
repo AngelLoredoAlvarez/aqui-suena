@@ -1,6 +1,6 @@
 import type { NewPayment } from "@aqui-suena/api/domain/billing/payments/model/payment";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/use-cases/refresh-pending-payments";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
 import { FakePaymentProvider } from "@aqui-suena/api/testing/payment-provider";
 import { describe, expect, it } from "vitest";
 

@@ -1,5 +1,4 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { Payment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import {
   type CheckoutInput,
@@ -9,8 +8,9 @@ import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments
 import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/model/period";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

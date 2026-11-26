@@ -1,8 +1,8 @@
 import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { CancelSubscription } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/cancel";
 import { ChangePlan } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/change-plan";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { ConflictError, NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

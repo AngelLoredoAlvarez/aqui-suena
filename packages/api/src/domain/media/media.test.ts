@@ -1,4 +1,4 @@
-import { InMemoryMediaRepository } from "@aqui-suena/api/domain/media/media";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
 import { describe, expect, it } from "vitest";
 
 describe("InMemoryMediaRepository", () => {

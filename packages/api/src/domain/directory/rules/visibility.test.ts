@@ -1,11 +1,11 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryFlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
-import { InMemoryHourRepository } from "@aqui-suena/api/domain/directory/model/hour";
-import { InMemoryPhotoRepository } from "@aqui-suena/api/domain/directory/model/photo";
-import { InMemoryProductRepository } from "@aqui-suena/api/domain/directory/model/product";
-import { InMemoryServiceRepository } from "@aqui-suena/api/domain/directory/model/service";
-import { InMemoryWorkEntryRepository } from "@aqui-suena/api/domain/directory/model/work-entry";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryFlyerRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-flyer-repository";
+import { InMemoryHourRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-hour-repository";
+import { InMemoryPhotoRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-photo-repository";
+import { InMemoryProductRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-product-repository";
+import { InMemoryServiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-service-repository";
+import { InMemoryWorkEntryRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-work-entry-repository";
 import { describe, expect, it } from "vitest";
 
 const now = new Date("2024-01-01T00:00:00Z");

@@ -3,11 +3,9 @@ import type { SubscriptionNotifier } from "@aqui-suena/api/domain/billing/subscr
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
-import {
-  InMemoryStationRepository,
-  type StationRepository,
-} from "@aqui-suena/api/domain/radio/station";
+import type { StationRepository } from "@aqui-suena/api/domain/radio/station";
 import type { PlanCatalogRetriever } from "@aqui-suena/api/domain/support/plan-catalog";
+import { InMemoryStationRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-station-repository";
 import { createDeleteAccount } from "@aqui-suena/api/server/composition/accounts";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import {

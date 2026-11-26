@@ -1,8 +1,7 @@
-import {
-  type CfdiDocumentStore,
-  type CfdiInvoice,
-  type CfdiInvoiceStatus,
-  InMemoryCfdiInvoiceRepository,
+import type {
+  CfdiDocumentStore,
+  CfdiInvoice,
+  CfdiInvoiceStatus,
 } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import type {
   CancelInvoiceRequest,
@@ -12,6 +11,7 @@ import type {
 import { InvoiceProviderRejection } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import type { InvoiceSubstituter } from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
 import { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
+import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

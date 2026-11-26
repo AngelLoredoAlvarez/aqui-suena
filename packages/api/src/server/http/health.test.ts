@@ -1,5 +1,5 @@
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
-import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
 import { probeMediaStorage } from "@aqui-suena/api/server/http/health";
 import { describe, expect, it, vi } from "vitest";
 

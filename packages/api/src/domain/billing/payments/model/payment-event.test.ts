@@ -1,4 +1,4 @@
-import { InMemoryPaymentEventRepository } from "@aqui-suena/api/domain/billing/payments/model/payment-event";
+import { InMemoryPaymentEventRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-event-repository";
 import { describe, expect, it } from "vitest";
 
 const input = {

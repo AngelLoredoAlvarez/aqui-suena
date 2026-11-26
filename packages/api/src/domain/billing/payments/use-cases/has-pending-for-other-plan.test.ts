@@ -1,8 +1,6 @@
-import {
-  InMemoryPaymentRepository,
-  type NewPayment,
-} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { NewPayment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { hasPendingForOtherPlan } from "@aqui-suena/api/domain/billing/payments/use-cases/has-pending-for-other-plan";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");

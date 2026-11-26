@@ -1,9 +1,5 @@
-import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
-import {
-  type CfdiDocumentStore,
-  InMemoryCfdiInvoiceRepository,
-} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import type { CfdiDocumentStore } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import type {
   CfdiInvoiceNotification,
   CfdiNotifier,
@@ -16,12 +12,12 @@ import {
   type IssueInvoiceRequest,
 } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
-import {
-  InMemoryPaymentRepository,
-  type Payment,
-} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { Payment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
-import { InMemoryPlanRepository } from "@aqui-suena/api/domain/plans/plans";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
 import { NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

@@ -1,6 +1,6 @@
-import { InMemoryReminderLogRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/reminders";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/renewal-reminder-service";
+import { InMemoryReminderLogRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-reminder-log-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
 import { FakeSubscriptionNotifier } from "@aqui-suena/api/testing/notifiers";
 import { describe, expect, it } from "vitest";
 
