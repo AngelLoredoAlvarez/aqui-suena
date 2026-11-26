@@ -1,7 +1,7 @@
 import { hideBusinessesOutsideSelection } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/business-visibility";
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import { RETENTION_DAYS } from "@aqui-suena/api/domain/directory/rules/retention";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");

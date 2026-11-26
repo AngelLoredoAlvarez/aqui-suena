@@ -1,5 +1,5 @@
 import { AccountEmailConflictError } from "@aqui-suena/api/domain/accounts/account-repository";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
 import { createContext } from "@aqui-suena/api/server/trpc/context";
 import { describe, expect, it, vi } from "vitest";
 

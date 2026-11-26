@@ -1,4 +1,4 @@
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 

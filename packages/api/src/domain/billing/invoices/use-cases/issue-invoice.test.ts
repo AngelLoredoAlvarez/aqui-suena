@@ -14,10 +14,10 @@ import {
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
 import type { Payment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
-import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
-import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
+import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-cfdi-invoice-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
 import { NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

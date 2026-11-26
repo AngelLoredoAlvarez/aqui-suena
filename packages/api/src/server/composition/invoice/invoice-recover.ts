@@ -8,7 +8,7 @@ import {
   facturamaSettings,
   type R2Env,
   r2StorageOptions,
-} from "@aqui-suena/api/server/composition/invoice-config";
+} from "@aqui-suena/api/server/composition/invoice/invoice-config";
 
 export type RecoverMissingArchivesCompositionOptions = {
   readonly db: D1Database;

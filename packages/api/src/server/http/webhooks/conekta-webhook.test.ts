@@ -1,13 +1,13 @@
 import { generateKeyPairSync, sign } from "node:crypto";
-import { InMemoryPaymentEventRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-event-repository";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryPaymentEventRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-event-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
 import {
   type ConektaWebhookDependencies,
   handleConektaWebhook,
   isWebhookBodyTooLarge,
   MAX_WEBHOOK_BODY_BYTES,
   type PaymentWebhookService,
-} from "@aqui-suena/api/server/http/conekta-webhook";
+} from "@aqui-suena/api/server/http/webhooks/conekta-webhook";
 import { describe, expect, it } from "vitest";
 
 const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });

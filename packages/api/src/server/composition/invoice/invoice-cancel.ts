@@ -13,7 +13,7 @@ import {
   facturamaSettings,
   type R2Env,
   r2StorageOptions,
-} from "@aqui-suena/api/server/composition/invoice-config";
+} from "@aqui-suena/api/server/composition/invoice/invoice-config";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 
 export type CancelInvoiceCompositionOptions = {

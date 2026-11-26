@@ -1,7 +1,7 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { Hour } from "@aqui-suena/api/domain/directory/model/hour";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryHourRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-hour-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryHourRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-hour-repository";
 import { createHoursRouter } from "@aqui-suena/api/server/routers/directory/hours";
 import { describe, expect, it } from "vitest";
 

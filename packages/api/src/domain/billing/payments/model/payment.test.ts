@@ -4,7 +4,7 @@ import {
   parsePaymentProvider,
   parsePaymentStatus,
 } from "@aqui-suena/api/domain/billing/payments/model/payment";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

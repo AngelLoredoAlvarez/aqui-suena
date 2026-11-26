@@ -1,5 +1,5 @@
 import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
-import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
+import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-cfdi-invoice-repository";
 import { describe, expect, it } from "vitest";
 
 function timestamp(minute: number): Date {

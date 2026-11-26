@@ -1,10 +1,10 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { Photo } from "@aqui-suena/api/domain/directory/model/photo";
 import type { Media } from "@aqui-suena/api/domain/media/media";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
-import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
-import { InMemoryPhotoRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-photo-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryPhotoRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-photo-repository";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/media/in-memory-media-repository";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/media/in-memory-object-storage";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";
 import { describe, expect, it } from "vitest";
 

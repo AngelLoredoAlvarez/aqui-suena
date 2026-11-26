@@ -1,9 +1,9 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import { buildMediaKey } from "@aqui-suena/api/domain/media/key";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
-import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/media/in-memory-media-repository";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/media/in-memory-object-storage";
 import { createMediaRouter } from "@aqui-suena/api/server/routers/media/media";
 import { describe, expect, it } from "vitest";
 

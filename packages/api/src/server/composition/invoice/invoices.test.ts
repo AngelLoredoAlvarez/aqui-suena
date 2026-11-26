@@ -2,13 +2,13 @@ import type { CfdiInvoice } from "@aqui-suena/api/domain/billing/invoices/model/
 import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
 import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/use-cases/recover-missing-archives";
 import { DEFAULT_PLAN_CATALOG } from "@aqui-suena/api/domain/plans/catalog";
-import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
 import {
   createInvoiceSubstituter,
   createIssueInvoice,
   createRecoverMissingArchives,
   type FacturamaEnv,
-} from "@aqui-suena/api/server/composition/invoices";
+} from "@aqui-suena/api/server/composition/invoice/invoices";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { FakeD1Database } from "@aqui-suena/api/testing/d1";
 import { describe, expect, it } from "vitest";

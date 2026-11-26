@@ -7,9 +7,9 @@ import {
 } from "@aqui-suena/api/domain/billing/payments/use-cases/create-payment";
 import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/use-cases/payment-notifications";
 import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
-import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
 import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import { FakePaymentNotifier } from "@aqui-suena/api/testing/notifiers";
 import { FakePaymentProvider } from "@aqui-suena/api/testing/payment-provider";

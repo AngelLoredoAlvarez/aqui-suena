@@ -4,7 +4,10 @@ import type {
 } from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import { D1CfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/billing/invoices/d1-cfdi-invoice-repository";
 import { R2CfdiDocumentStore } from "@aqui-suena/api/infrastructure/billing/invoices/r2-cfdi-document-store";
-import { type R2Env, r2StorageOptions } from "@aqui-suena/api/server/composition/invoice-config";
+import {
+  type R2Env,
+  r2StorageOptions,
+} from "@aqui-suena/api/server/composition/invoice/invoice-config";
 
 export type InvoiceHistoryComposition = {
   readonly invoices: CfdiInvoiceRepository;

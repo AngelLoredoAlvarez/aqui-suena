@@ -1,5 +1,5 @@
 import { facturamaEnv, r2Env } from "@aqui-suena/api/server/composition/env-mappers";
-import { createRecoverMissingArchives } from "@aqui-suena/api/server/composition/invoices";
+import { createRecoverMissingArchives } from "@aqui-suena/api/server/composition/invoice/invoices";
 import type { WorkerEnv } from "@aqui-suena/api/server/worker-env";
 
 export async function runArchiveRecovery(env: WorkerEnv): Promise<void> {

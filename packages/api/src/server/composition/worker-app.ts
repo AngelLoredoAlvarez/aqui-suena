@@ -25,7 +25,7 @@ import {
   createCancelInvoice,
   createInvoiceHistory,
   createIssueInvoice,
-} from "@aqui-suena/api/server/composition/invoices";
+} from "@aqui-suena/api/server/composition/invoice/invoices";
 import { createPaymentGraph } from "@aqui-suena/api/server/composition/payments";
 import {
   createD1Repositories,
@@ -33,7 +33,7 @@ import {
 } from "@aqui-suena/api/server/composition/repositories";
 import { parseAllowedOrigins } from "@aqui-suena/api/server/env";
 import { createApp } from "@aqui-suena/api/server/http/app";
-import { createConektaWebhookHandler } from "@aqui-suena/api/server/http/conekta-webhook";
+import { createConektaWebhookHandler } from "@aqui-suena/api/server/http/webhooks/conekta-webhook";
 import type { AiBinding } from "@aqui-suena/api/server/routers/support";
 import type { WorkerEnv } from "@aqui-suena/api/server/worker-env";
 

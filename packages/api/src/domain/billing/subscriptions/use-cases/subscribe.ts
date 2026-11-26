@@ -1,4 +1,4 @@
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/model/period";
 import type {
   Subscription,

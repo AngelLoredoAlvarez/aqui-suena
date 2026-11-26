@@ -1,7 +1,7 @@
 import {
   BILLING_INTERVALS,
   parseBillingInterval,
-} from "@aqui-suena/api/domain/billing/billing-interval";
+} from "@aqui-suena/api/domain/billing/model/billing-interval";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

@@ -1,4 +1,4 @@
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 import { isInGracePeriod } from "@aqui-suena/api/domain/billing/subscriptions/model/grace";
 import type {
   Subscription,

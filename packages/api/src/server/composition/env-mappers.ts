@@ -3,7 +3,7 @@ import {
   hasPartialR2Config,
 } from "@aqui-suena/api/infrastructure/media/r2-from-env";
 import type { R2ObjectStorage } from "@aqui-suena/api/infrastructure/media/r2-object-storage";
-import type { FacturamaEnv, R2Env } from "@aqui-suena/api/server/composition/invoices";
+import type { FacturamaEnv, R2Env } from "@aqui-suena/api/server/composition/invoice/invoices";
 import type { WorkerEnv } from "@aqui-suena/api/server/worker-env";
 
 /**
