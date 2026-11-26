@@ -1,4 +1,4 @@
-import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/cors";
+import { DEFAULT_ALLOWED_ORIGINS } from "@aqui-suena/api/server/http/middleware/cors";
 
 const DEFAULT_PORT = 3001;
 // Listen on every interface: deploy platforms (Fly, Render, Dokku) reach the

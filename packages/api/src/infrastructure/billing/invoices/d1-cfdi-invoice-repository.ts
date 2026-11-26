@@ -7,7 +7,7 @@ import type {
   CfdiInvoiceStatus,
   ListInvoicesInput,
   NewCfdiInvoice,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { type OffsetPage, paginateOffset } from "@aqui-suena/api/shared/pagination/page";
 

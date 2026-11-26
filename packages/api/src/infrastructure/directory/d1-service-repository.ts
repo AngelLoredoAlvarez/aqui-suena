@@ -4,7 +4,7 @@ import type {
   Service,
   ServiceRepository,
   UpdateServiceInput,
-} from "@aqui-suena/api/domain/directory/service";
+} from "@aqui-suena/api/domain/directory/model/service";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";

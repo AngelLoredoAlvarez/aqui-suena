@@ -1,4 +1,4 @@
-import type { IssueInvoiceRequest } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+import type { IssueInvoiceRequest } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import {
   type FacturamaFiscalSettings,
   toFacturamaCfdiPayload,

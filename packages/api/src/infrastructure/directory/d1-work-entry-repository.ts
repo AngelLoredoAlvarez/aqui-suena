@@ -4,7 +4,7 @@ import type {
   UpdateWorkEntryInput,
   WorkEntry,
   WorkEntryRepository,
-} from "@aqui-suena/api/domain/directory/work-entry";
+} from "@aqui-suena/api/domain/directory/model/work-entry";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";
 import { paginateOffset } from "@aqui-suena/api/shared/pagination/page";

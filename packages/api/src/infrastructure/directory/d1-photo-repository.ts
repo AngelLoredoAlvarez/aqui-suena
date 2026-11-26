@@ -4,7 +4,7 @@ import type {
   Photo,
   PhotoRepository,
   UpdatePhotoInput,
-} from "@aqui-suena/api/domain/directory/photo";
+} from "@aqui-suena/api/domain/directory/model/photo";
 import { toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { ConflictError } from "@aqui-suena/api/shared/domain-error";
 import type { OffsetPage } from "@aqui-suena/api/shared/pagination/page";

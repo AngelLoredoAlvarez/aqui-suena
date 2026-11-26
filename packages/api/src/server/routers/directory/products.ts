@@ -1,7 +1,7 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { ProductRepository } from "@aqui-suena/api/domain/directory/product";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { ProductRepository } from "@aqui-suena/api/domain/directory/model/product";
 import {
   assertCanCreateProduct,
   isWithinProductQuota,

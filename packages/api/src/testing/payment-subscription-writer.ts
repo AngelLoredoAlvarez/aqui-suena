@@ -1,7 +1,7 @@
 import type {
   ActivateSubscriptionInput,
   PaymentSubscriptionWriter,
-} from "@aqui-suena/api/domain/billing/payments/payment-subscription-writer";
+} from "@aqui-suena/api/domain/billing/payments/ports/payment-subscription-writer";
 
 export class FakePaymentSubscriptionWriter implements PaymentSubscriptionWriter {
   readonly calls: ActivateSubscriptionInput[] = [];

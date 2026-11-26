@@ -1,3 +1,4 @@
+import { parseBusinessCategory } from "@aqui-suena/api/domain/directory/contracts/listing";
 import type {
   Business,
   BusinessRepository,
@@ -5,8 +6,7 @@ import type {
   ListBusinessesByAccountInput,
   ListBusinessesInput,
   UpdateBusinessInput,
-} from "@aqui-suena/api/domain/directory/business";
-import { parseBusinessCategory } from "@aqui-suena/api/domain/directory/contracts/listing";
+} from "@aqui-suena/api/domain/directory/model/business";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { decodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
 import type { CursorPage, OffsetPage } from "@aqui-suena/api/shared/pagination/page";

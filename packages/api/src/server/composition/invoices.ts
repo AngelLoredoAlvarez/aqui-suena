@@ -1,16 +1,16 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import {
-  CancelInvoice,
-  type InvoiceSubstituter,
-} from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
-import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/cfdi-notifier";
 import type {
   CfdiDocumentLinker,
   CfdiInvoiceRepository,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
-import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
-import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
-import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/recover-missing-archives";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import type { CfdiNotifier } from "@aqui-suena/api/domain/billing/invoices/ports/cfdi-notifier";
+import {
+  CancelInvoice,
+  type InvoiceSubstituter,
+} from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
+import { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
+import { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/use-cases/reconcile-cancellations";
+import { RecoverMissingArchives } from "@aqui-suena/api/domain/billing/invoices/use-cases/recover-missing-archives";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
 import { FacturamaInvoiceIssuer } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-issuer";

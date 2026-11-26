@@ -3,8 +3,8 @@ import type {
   InvoiceCancellationOutcome,
   InvoiceCancellationResult,
   InvoiceCanceller,
-} from "@aqui-suena/api/domain/billing/invoices/invoice-canceller";
-import { InvoiceProviderRejection } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+} from "@aqui-suena/api/domain/billing/invoices/ports/invoice-canceller";
+import { InvoiceProviderRejection } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import type { FacturamaFiscalSettings } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-cfdi-payload";
 import {
   decodeBase64Text,

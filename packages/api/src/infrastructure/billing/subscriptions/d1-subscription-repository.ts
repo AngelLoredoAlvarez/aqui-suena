@@ -4,8 +4,8 @@ import type {
   Subscription,
   SubscriptionRepository,
   SubscriptionStatus,
-} from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import { parseSubscriptionStatus } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
+} from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import { parseSubscriptionStatus } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";

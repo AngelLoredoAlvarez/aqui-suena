@@ -1,6 +1,6 @@
 import { resolvePlan } from "@aqui-suena/api/domain/ads/ad-plan";
-import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/subscription";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { SubscriptionRepository } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import { assertMediaContent } from "@aqui-suena/api/domain/media/content-validation";
 import { assertCanUploadMedia } from "@aqui-suena/api/domain/media/entitlement";
 import {

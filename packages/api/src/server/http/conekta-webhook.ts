@@ -1,5 +1,8 @@
-import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
-import type { PaymentEventRepository } from "@aqui-suena/api/domain/billing/payments/payment-event";
+import type {
+  Payment,
+  PaymentRepository,
+} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { PaymentEventRepository } from "@aqui-suena/api/domain/billing/payments/model/payment-event";
 import { verifyConektaWebhook } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-webhook-verifier";
 import type { Handler } from "hono";
 

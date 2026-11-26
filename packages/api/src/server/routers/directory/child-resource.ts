@@ -1,4 +1,4 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import { assertBusinessOwned } from "@aqui-suena/api/server/routers/directory/access";
 import { requireFound } from "@aqui-suena/api/server/trpc/errors";
 

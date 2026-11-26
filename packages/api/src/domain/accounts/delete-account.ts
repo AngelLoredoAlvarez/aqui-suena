@@ -2,7 +2,7 @@ import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { PaymentCustomerDeleter } from "@aqui-suena/api/domain/accounts/payment-customer-deleter";
 import type { UserDirectory } from "@aqui-suena/api/domain/accounts/user-directory";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";

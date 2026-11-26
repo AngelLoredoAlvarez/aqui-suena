@@ -1,16 +1,19 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
 import { fiscalProfileSchema } from "@aqui-suena/api/domain/accounts/fiscal-profile";
-import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import {
   CFDI_CANCELLATION_MOTIVES,
   type CfdiDocumentLinker,
   type CfdiInvoice,
   type CfdiInvoiceRepository,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
-import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
-import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/reconcile-cancellations";
-import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
-import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
+import type { ReconcileCancellations } from "@aqui-suena/api/domain/billing/invoices/use-cases/reconcile-cancellations";
+import type {
+  Payment,
+  PaymentRepository,
+} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import type { CheckoutService } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
 import { protectedProcedure, router } from "@aqui-suena/api/server/trpc/trpc";
 import { offsetPageEntries } from "@aqui-suena/api/shared/pagination/input";
 import { TRPCError } from "@trpc/server";

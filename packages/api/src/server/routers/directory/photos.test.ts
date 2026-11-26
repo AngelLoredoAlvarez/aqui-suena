@@ -1,6 +1,6 @@
-import type { Business } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import { InMemoryPhotoRepository, type Photo } from "@aqui-suena/api/domain/directory/photo";
+import type { Business } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import { InMemoryPhotoRepository, type Photo } from "@aqui-suena/api/domain/directory/model/photo";
 import { InMemoryMediaRepository, type Media } from "@aqui-suena/api/domain/media/media";
 import { InMemoryObjectStorage } from "@aqui-suena/api/domain/media/storage";
 import { createPhotosRouter } from "@aqui-suena/api/server/routers/directory/photos";

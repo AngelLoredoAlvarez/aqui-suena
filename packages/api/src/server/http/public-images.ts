@@ -1,5 +1,5 @@
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
-import type { FlyerRepository } from "@aqui-suena/api/domain/directory/flyer";
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
+import type { FlyerRepository } from "@aqui-suena/api/domain/directory/model/flyer";
 import { parseMediaKey } from "@aqui-suena/api/domain/media/key";
 import type { MediaRepository } from "@aqui-suena/api/domain/media/media";
 import type { ObjectStorage } from "@aqui-suena/api/domain/media/storage";

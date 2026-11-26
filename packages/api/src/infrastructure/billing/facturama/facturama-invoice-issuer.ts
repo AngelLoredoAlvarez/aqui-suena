@@ -3,7 +3,7 @@ import {
   InvoiceProviderRejection,
   type IssuedCfdi,
   type IssueInvoiceRequest,
-} from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+} from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import {
   type FacturamaFiscalSettings,
   toFacturamaCfdiPayload,

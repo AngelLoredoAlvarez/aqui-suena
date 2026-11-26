@@ -8,7 +8,7 @@ import {
   parsePaymentMethod,
   parsePaymentProvider,
   parsePaymentStatus,
-} from "@aqui-suena/api/domain/billing/payments/payment";
+} from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { parsePlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 

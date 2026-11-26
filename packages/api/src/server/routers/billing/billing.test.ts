@@ -1,18 +1,21 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { InMemoryAccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
-import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/cancel-invoice";
 import {
   type CfdiDocumentLinker,
   type CfdiInvoice,
   InMemoryCfdiInvoiceRepository,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
-import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/issue-invoice";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
+import type { CancelInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/cancel-invoice";
+import type { IssueInvoice } from "@aqui-suena/api/domain/billing/invoices/use-cases/issue-invoice";
+import type {
+  Payment,
+  PaymentRepository,
+} from "@aqui-suena/api/domain/billing/payments/model/payment";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import type {
   CheckoutInput,
   CheckoutService,
-} from "@aqui-suena/api/domain/billing/payments/checkout-service";
-import type { Payment, PaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/domain/billing/payments/payment";
+} from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
 import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
 import { UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";

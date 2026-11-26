@@ -1,6 +1,6 @@
 import { createWorkerApp, createWorkerCore } from "@aqui-suena/api/server/composition/worker-app";
 import { handleAdminRequest } from "@aqui-suena/api/server/http/admin-routes";
-import { withRequestLogging } from "@aqui-suena/api/server/http/observability";
+import { withRequestLogging } from "@aqui-suena/api/server/http/middleware/observability";
 import { runArchiveRecovery } from "@aqui-suena/api/server/jobs/archive-recovery";
 import { runCancellationSweep } from "@aqui-suena/api/server/jobs/cancellation-sweep";
 import { MEDIA_SWEEP_CRON, runMediaMaintenance } from "@aqui-suena/api/server/jobs/media-sweep";

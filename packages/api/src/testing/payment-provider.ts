@@ -4,7 +4,7 @@ import type {
   CreateCardSourceInput,
   CreateChargeInput,
   PaymentProvider,
-} from "@aqui-suena/api/domain/billing/payments/payment-provider";
+} from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
 
 export class FakePaymentProvider implements PaymentProvider {
   readonly calls: CreateChargeInput[] = [];

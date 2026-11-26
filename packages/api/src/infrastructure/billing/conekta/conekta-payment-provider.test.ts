@@ -1,5 +1,5 @@
-import type { CreateChargeInput } from "@aqui-suena/api/domain/billing/payments/payment-provider";
-import { PaymentProviderRejection } from "@aqui-suena/api/domain/billing/payments/payment-provider";
+import type { CreateChargeInput } from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
+import { PaymentProviderRejection } from "@aqui-suena/api/domain/billing/payments/ports/payment-provider";
 import { ConektaPaymentProvider } from "@aqui-suena/api/infrastructure/billing/conekta/conekta-payment-provider";
 import { describe, expect, it } from "vitest";
 

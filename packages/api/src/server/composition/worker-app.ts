@@ -1,12 +1,12 @@
-import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
-import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/complete-payment";
-import { CreatePayment } from "@aqui-suena/api/domain/billing/payments/create-payment";
-import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/expire-payment";
-import { FailPayment } from "@aqui-suena/api/domain/billing/payments/fail-payment";
-import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
-import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/renew";
-import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
-import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
+import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
+import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/complete-payment";
+import { CreatePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/create-payment";
+import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/expire-payment";
+import { FailPayment } from "@aqui-suena/api/domain/billing/payments/use-cases/fail-payment";
+import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/use-cases/payment-notifications";
+import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-payment-writer";
+import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/renew";
+import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/subscribe";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
 import {
   FullCatalogRetriever,

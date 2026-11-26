@@ -1,8 +1,8 @@
+import type { BusinessRepository } from "@aqui-suena/api/domain/directory/model/business";
 import {
   assertOwnsBusiness,
   BusinessAccessDeniedError,
-} from "@aqui-suena/api/domain/directory/authorization";
-import type { BusinessRepository } from "@aqui-suena/api/domain/directory/business";
+} from "@aqui-suena/api/domain/directory/rules/authorization";
 import { TRPCError } from "@trpc/server";
 
 /**

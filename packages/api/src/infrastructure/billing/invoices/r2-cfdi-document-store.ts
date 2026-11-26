@@ -1,7 +1,7 @@
 import type {
   CfdiDocumentLinker,
   CfdiDocumentStore,
-} from "@aqui-suena/api/domain/billing/invoices/invoice";
+} from "@aqui-suena/api/domain/billing/invoices/model/invoice";
 import { presignR2ObjectUrl, type R2StorageOptions } from "@aqui-suena/api/infrastructure/r2/sigv4";
 
 /** Five minutes: enough to start a download, short enough to be useless if leaked. */

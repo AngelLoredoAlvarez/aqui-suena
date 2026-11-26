@@ -1,4 +1,4 @@
-import { InvoiceProviderRejection } from "@aqui-suena/api/domain/billing/invoices/invoice-issuer";
+import { InvoiceProviderRejection } from "@aqui-suena/api/domain/billing/invoices/ports/invoice-issuer";
 import type { FacturamaFiscalSettings } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-cfdi-payload";
 import { FacturamaInvoiceCanceller } from "@aqui-suena/api/infrastructure/billing/facturama/facturama-invoice-canceller";
 import { describe, expect, it } from "vitest";

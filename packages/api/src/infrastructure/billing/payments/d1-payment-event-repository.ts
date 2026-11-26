@@ -2,7 +2,7 @@ import type {
   NewPaymentEvent,
   PaymentEvent,
   PaymentEventRepository,
-} from "@aqui-suena/api/domain/billing/payments/payment-event";
+} from "@aqui-suena/api/domain/billing/payments/model/payment-event";
 import { fromEpoch, toEpoch } from "@aqui-suena/api/infrastructure/d1/d1-epoch";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 

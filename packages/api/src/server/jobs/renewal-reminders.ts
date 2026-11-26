@@ -1,5 +1,5 @@
-import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscriptions/process-renewal-reminders";
-import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/renewal-reminder-service";
+import { ProcessRenewalReminders } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/process-renewal-reminders";
+import { RenewalReminderService } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/renewal-reminder-service";
 import { D1ReminderLogRepository } from "@aqui-suena/api/infrastructure/billing/subscriptions/d1-reminder-log-repository";
 import { createSubscriptionNotifier } from "@aqui-suena/api/server/composition/email";
 import { createD1Repositories } from "@aqui-suena/api/server/composition/repositories";
