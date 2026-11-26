@@ -7,6 +7,7 @@
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "@types/node": "26.6.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "5.1.1",
     "typescript": "7.0.2",
     "vitest": "5.1.1"
   }
