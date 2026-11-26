@@ -1,4 +1,3 @@
-import { plans as planFixtures } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
 import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
@@ -7,6 +6,7 @@ import {
   type PaymentGraphDeps,
 } from "@aqui-suena/api/server/composition/payments";
 import { FakePaymentNotifier } from "@aqui-suena/api/testing/notifiers";
+import { plans as planFixtures } from "@aqui-suena/api/testing/plan-fixtures";
 import { describe, expect, it } from "vitest";
 
 const db = {} as D1Database;

@@ -5,13 +5,13 @@ import {
   CheckoutService,
 } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
 import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/use-cases/create-payment";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/model/period";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
 import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
 import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
 import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
+import { plans } from "@aqui-suena/api/testing/plan-fixtures";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");
