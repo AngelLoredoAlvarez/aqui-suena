@@ -19,6 +19,12 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   (config, issue, history, cancel, recover) behind a re-exporting barrel that
   preserves the public surface. Existing importers and `invoices.test.ts` stay
   green without changes.
+- S4 — The boot-splash components gain a render test over a
+  `react-native`/`react-native-svg` mock, raising the `apps/mobile` coverage
+  baseline. `@testing-library/react-native` is added as a dev dependency; the
+  render test uses `@testing-library/react` + jsdom because RNTL's own
+  `render()` requires `react-native` to load under Node, which the vitest setup
+  does not support (Flow syntax + native module mocks).
 
 ## Tasks
 
@@ -27,6 +33,8 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
 - T3 — S3: split `invoices.ts` into lifecycle modules + barrel. Route: inline. ✅ done — `547b318`
 - T4 — Close: typecheck, package tests, biome, `pnpm arch`; adjust the mobile
   coverage thresholds to the honest post-extraction baseline. ✅ done
+- T5 — S4: add the boot-splash render test + react-native mock and the RNTL dev
+  dependency; raise the mobile coverage thresholds. Route: inline. ✅ done
 
 ## Log
 
@@ -52,3 +60,12 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   (`executable_change` in `bit.tsx`), `review_due: false`
   (`under_budget`). No native review triggered; the boundary stays at main.
   (2026-11-26)
+- L6 — T5: added `@testing-library/react-native@14` + `test-renderer@1.3`
+  (React 19.3 line) as dev deps and a `native-boot-splash.test.tsx` render test
+  plus a `react-native`/`react-native-svg` mock in `test/setup.ts`. The render
+  test runs with `@testing-library/react` + jsdom because RNTL's `render()`
+  requires `react-native` to load in Node (Flow + native modules), which the
+  vitest setup cannot provide without a jest-expo-equivalent Babel transform.
+  Mobile coverage rose from 42.55/47.61/41.46/42.64 to 64.53/57.14/60.97/63.97;
+  `components/` is now ~98% covered (only the two Expo Router entrypoints stay
+  at 0%). Thresholds raised to 62/55/58/62. (2026-11-26)

@@ -1,0 +1,122 @@
+import React from "react";
+import { vi } from "vitest";
+
+type Props = Record<string, unknown>;
+
+/**
+ * Maps React Native host components to DOM elements so the boot-splash can be
+ * rendered with @testing-library/react + jsdom. accessibility* props become
+ * their ARIA equivalents so the queries stay semantic.
+ */
+vi.mock("react-native", () => {
+  const flattenStyle = (style: unknown): unknown => {
+    if (!Array.isArray(style)) {
+      return style;
+    }
+
+    return style.reduce<Record<string, unknown>>((acc, item) => {
+      if (item && typeof item === "object") {
+        Object.assign(acc, item);
+      }
+
+      return acc;
+    }, {});
+  };
+
+  const host =
+    (type: string) =>
+    ({
+      accessibilityLabel,
+      accessibilityRole,
+      accessible: _accessible,
+      style,
+      children,
+      ...props
+    }: Props) =>
+      React.createElement(
+        type,
+        {
+          ...props,
+          style: flattenStyle(style),
+          ...(accessibilityLabel !== undefined ? { "aria-label": accessibilityLabel } : {}),
+          ...(accessibilityRole !== undefined ? { role: accessibilityRole } : {}),
+        },
+        children,
+      );
+
+  const View = host("div");
+  const Text = host("span");
+
+  class AnimatedValue {
+    value: number;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+
+    setValue(value: number): void {
+      this.value = value;
+    }
+
+    interpolate(): number {
+      return 0.5;
+    }
+  }
+
+  const composite = () => ({ start: () => {}, stop: () => {} });
+  const animatedMath = () => 0;
+
+  return {
+    View,
+    Text,
+    Animated: {
+      Value: AnimatedValue,
+      View: host("div"),
+      createAnimatedComponent: (Component: unknown) => Component,
+      multiply: animatedMath,
+      subtract: animatedMath,
+      divide: animatedMath,
+      sequence: composite,
+      delay: composite,
+      loop: composite,
+      timing: composite,
+    },
+    StyleSheet: {
+      create: (styles: Record<string, unknown>) => styles,
+      flatten: flattenStyle,
+    },
+    Platform: {
+      OS: "ios",
+      select: (options: Record<string, unknown>) => options.ios ?? options.default,
+    },
+    Easing: {
+      ease: "ease",
+      in: (easing: unknown) => easing,
+      inOut: (easing: unknown) => easing,
+    },
+    AccessibilityInfo: {
+      isReduceMotionEnabled: () => Promise.resolve(false),
+    },
+    useWindowDimensions: () => ({ width: 375, height: 812, scale: 1, fontScale: 1 }),
+  };
+});
+
+vi.mock("react-native-svg", () => {
+  const host =
+    (type: string) =>
+    ({ children, translateY: _translateY, ...props }: Props) =>
+      React.createElement(type, props, children);
+
+  const Svg = host("svg");
+
+  return {
+    default: Svg,
+    Svg,
+    G: host("g"),
+    Path: host("path"),
+    Rect: host("rect"),
+    Ellipse: host("ellipse"),
+    Circle: host("circle"),
+    Line: host("line"),
+  };
+});
