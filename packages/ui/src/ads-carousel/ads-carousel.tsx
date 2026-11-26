@@ -1,20 +1,24 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
+import {
+  ContactActions,
+  ContactRow,
+  FlyerNavButton,
+  FlyerTransition,
+} from "@aqui-suena/ui/ads-carousel/carousel-parts";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
-import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/flyer-animation";
 import { formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
 import {
   getResponsiveCarouselMaxW,
   getResponsiveFlyerWidth,
 } from "@aqui-suena/ui/ads-carousel/responsive";
-import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
+import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/use-carousel-drag";
 import { FlyerLightbox } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
-import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, isWeb, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Paragraph, Text, useMedia, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -24,170 +28,6 @@ export type AdsCarouselProps = {
 };
 
 const DEFAULT_AUTO_ADVANCE_MS = 5000;
-
-type DragEvent = { nativeEvent: { clientX: number; clientY: number } };
-
-function ContactRow({ label, value }: { label: string; value: string }) {
-  return (
-    <Button
-      type="button"
-      width="100%"
-      minH={52}
-      p={0}
-      bg="transparent"
-      borderWidth={0}
-      borderBottomWidth={1}
-      borderColor="borderColor"
-      flexDirection="row"
-      items="center"
-      justify="flex-start"
-      gap={12}
-      onPress={() => {}}
-    >
-      <YStack flex={1} minW={0} items="flex-start" gap={2}>
-        <Text color="muted" fontSize={12}>
-          {label}
-        </Text>
-        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={2}>
-          {value}
-        </Text>
-      </YStack>
-      <Icon name="chevron-right" size={18} tone="text" />
-    </Button>
-  );
-}
-
-function ContactActions() {
-  const { dictionary } = useLocale();
-
-  return (
-    <XStack gap={8} mt="auto" pt={8}>
-      <Button
-        flex={1}
-        minH={48}
-        rounded={999}
-        bg="accent"
-        p={0}
-        px={6}
-        items="center"
-        justify="center"
-        onPress={() => {}}
-      >
-        <Text color="onAccent" fontWeight="700" fontSize={12} numberOfLines={1}>
-          {dictionary.call}
-        </Text>
-      </Button>
-      <Button
-        flex={1}
-        minH={48}
-        rounded={999}
-        bg="surface2"
-        p={0}
-        px={6}
-        items="center"
-        justify="center"
-        onPress={() => {}}
-      >
-        <Text color="text" fontWeight="700" fontSize={12} numberOfLines={1}>
-          {dictionary.whatsapp}
-        </Text>
-      </Button>
-      <Button
-        flex={1}
-        minH={48}
-        rounded={999}
-        bg="surface2"
-        p={0}
-        px={6}
-        items="center"
-        justify="center"
-        onPress={() => {}}
-      >
-        <Text color="text" fontWeight="700" fontSize={12} numberOfLines={1}>
-          {dictionary.directions}
-        </Text>
-      </Button>
-    </XStack>
-  );
-}
-
-function FlyerNavButton({
-  direction,
-  label,
-  onPress,
-}: {
-  direction: "previous" | "next";
-  label: string;
-  onPress: () => void;
-}) {
-  const isPrevious = direction === "previous";
-
-  return (
-    <Button
-      testID={`ads-carousel-${direction}`}
-      type="button"
-      aria-label={label}
-      onPress={onPress}
-      position="absolute"
-      t="50%"
-      mt={-22}
-      {...(isPrevious ? { l: 12 } : { r: 12 })}
-      width={44}
-      height={44}
-      p={0}
-      rounded={22}
-      bg="surface"
-      borderWidth={1}
-      borderColor="borderColor"
-      items="center"
-      justify="center"
-      z={2}
-    >
-      <Icon name={isPrevious ? "chevron-left" : "chevron-right"} size={22} tone="text" />
-    </Button>
-  );
-}
-
-function FlyerTransition({ children }: { children: ReactNode }) {
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setShown(true));
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  const layer = flyerLayerStyle(isWeb, shown);
-
-  if (!isWeb) {
-    return (
-      <YStack
-        testID="ads-carousel-flyer-layer"
-        animation="quickLessBouncy"
-        opacity={layer.opacity}
-        x={layer.x}
-        flex={1}
-        width="100%"
-        overflow="hidden"
-      >
-        {children}
-      </YStack>
-    );
-  }
-
-  return (
-    <YStack
-      testID="ads-carousel-flyer-layer"
-      animation="quickLessBouncy"
-      opacity={layer.opacity}
-      x={layer.x}
-      position="absolute"
-      inset={0}
-    >
-      {children}
-    </YStack>
-  );
-}
 
 export function AdsCarousel({
   items = [],
@@ -201,10 +41,7 @@ export function AdsCarousel({
 
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
-  const [dragging, setDragging] = useState(false);
   const [openFlyer, setOpenFlyer] = useState<AdsCarouselItem | null>(null);
-  const dragStart = useRef<{ x: number; y: number } | null>(null);
-  const swiped = useRef(false);
 
   const hasItems = items.length > 0;
   const safeIndex = hasItems ? index % items.length : 0;
@@ -225,43 +62,15 @@ export function AdsCarousel({
   const goPrevious = (): void => goTo(safeIndex - 1);
   const goNext = (): void => goTo(safeIndex + 1);
 
-  const handlePointerDown = (event: DragEvent): void => {
-    swiped.current = false;
-    dragStart.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY };
-    setDragging(true);
-  };
-
-  const handlePointerMove = (event: DragEvent): void => {
-    const start = dragStart.current;
-
-    if (start === null) return;
-
-    const direction = swipeDirection(
-      event.nativeEvent.clientX - start.x,
-      event.nativeEvent.clientY - start.y,
-    );
-
-    if (direction === null) return;
-
-    dragStart.current = null;
-    swiped.current = true;
-
-    if (direction === "next") {
-      goNext();
-    } else {
-      goPrevious();
-    }
-  };
-
-  const stopDragging = (): void => {
-    dragStart.current = null;
-    setDragging(false);
-  };
-
-  const handlePointerUp = (event: DragEvent): void => {
-    handlePointerMove(event);
-    stopDragging();
-  };
+  const {
+    dragging,
+    swiped,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handlePointerLeave,
+  } = useCarouselDrag({ previous: goPrevious, next: goNext });
 
   const isPaused = hovered || dragging || openFlyer !== null;
 
@@ -366,8 +175,8 @@ export function AdsCarousel({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={stopDragging}
-      onPointerLeave={stopDragging}
+      onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerLeave}
     >
       <YStack
         testID="ads-carousel-flyer"
