@@ -10,7 +10,7 @@ Single source of truth for Aquí Suena small-business listings (restaurants, clo
 
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed)
-- Navigation: TBD — routes `/business/[businessId]`. `packages/navigation` reserved; no Solito installed.
+- Navigation: TBD — routes `/business/[businessId]`. No shared navigation package (no Solito); routes live in the apps.
 - UI: Tamagui (universal cards, sheets, image lists)
 - Data: tRPC + TanStack Query (list/get with cache), valibot validation
 - DB: Drizzle + SQLite/D1 (`businesses`, `services`, `products`, `photos`, `work_entries`, `flyers`, `hours`)
@@ -57,7 +57,7 @@ Functional components, Tamagui primitives + tokens, `kebab-case` files, `PascalC
 import { Card, Image, Text, YStack } from "tamagui";
 
 // No router imports in shared code: the app wires onPress to its own router
-// (next/link on web, expo-router on native). packages/navigation is reserved.
+// (next/link on web, expo-router on native); there is no shared navigation package.
 export function BusinessCard({
   name,
   category,

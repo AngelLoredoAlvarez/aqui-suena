@@ -10,7 +10,7 @@
 
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed)
-- Navigation: TBD — carousel card → `/business/[businessId]` sheet. `packages/navigation` reserved; no Solito installed.
+- Navigation: TBD — carousel card → `/business/[businessId]` sheet. No shared navigation package (no Solito); routes live in the apps.
 - UI: Tamagui (carousel, cards, bottom/top sheet that coexists with persistent player)
 - Data: tRPC + TanStack Query (`ads.carousel` ranked by plan priority + recency)
 - DB: Drizzle + SQLite/D1 (reads `businesses` + `subscriptions`)

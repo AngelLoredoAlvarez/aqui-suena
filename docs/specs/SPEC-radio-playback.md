@@ -10,7 +10,7 @@ Aquí Suena (developed by 17Labs) plays a safe test-stations harness on web and 
 
 - Web: React + Next.js (App Router) + React Native Web (shared components)
 - Native: React Native + Expo (managed)
-- Navigation: none today — no station screens by product decision; the player switches stations in place on the landing `/`. Navigation (and any reserved `packages/navigation`) is deferred until a future module needs route screens.
+- Navigation: none today — no station screens by product decision; the player switches stations in place on the landing `/`. Navigation is deferred until a future module needs route screens; routes live in the apps (Expo Router on mobile, Next App Router on web), with no shared navigation package.
 - UI: Tamagui (universal components, styling, tokens + themes for Next.js + Expo + React Native Web)
 - Data: tRPC + TanStack Query (server state, cache, retry)
 - DB: Drizzle + SQLite/D1 (metadata / listen sessions only in this module, no audio)
