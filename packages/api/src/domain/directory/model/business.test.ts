@@ -1,5 +1,5 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
 import { encodeCursor } from "@aqui-suena/api/shared/pagination/cursor";
 import { describe, expect, it } from "vitest";
 

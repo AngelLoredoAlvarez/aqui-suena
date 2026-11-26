@@ -1,7 +1,7 @@
 import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import { AccountEmailConflictError } from "@aqui-suena/api/domain/accounts/account-repository";
 import type { FiscalProfile } from "@aqui-suena/api/domain/accounts/fiscal-profile";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
 import { NotFoundError } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";
 

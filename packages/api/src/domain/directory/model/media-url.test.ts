@@ -2,8 +2,8 @@ import {
   buildPublicImageUrl,
   resolvePublicImageUrl,
 } from "@aqui-suena/api/domain/directory/model/media-url";
-import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-media-repository";
-import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
+import { InMemoryMediaRepository } from "@aqui-suena/api/infrastructure/memory/media/in-memory-media-repository";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/media/in-memory-object-storage";
 import { describe, expect, it } from "vitest";
 
 const KEY = "media/v1/acc-1/businesses/b-1/flyer/11111111-1111-1111-1111-111111111111.jpg";
