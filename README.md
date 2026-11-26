@@ -190,17 +190,18 @@ Ordered by what unblocks what; the live list is `odd/tasks/backlog.md`.
 
 `main` is protected: changes land through a pull request, direct pushes and
 force pushes are rejected, and the branch must be up to date before merging.
-Required checks are `quality` (`.github/workflows/quality.yml`) and `scan`
-(gitleaks). The `quality` workflow runs `biome check`, `pnpm arch`,
-`pnpm -r typecheck`, `pnpm test`, the api coverage thresholds and
-`pnpm check:singletons` on every push to `main` and on every pull request.
+Required checks are `verify` (`.github/workflows/ci.yml`) and `scan`
+(`.github/workflows/secret-scan.yml`). The `CI` workflow runs `biome check`,
+`pnpm arch`, `pnpm -r typecheck`, `pnpm test`, the api coverage thresholds and
+`pnpm check:singletons`, plus the desktop Rust tests and the web e2e suite, on
+every push to `main` and on every pull request.
 
 Flow:
 
 1. Branch from `main` (`feature/<name>`, `fix/<name>`, `docs/<name>`, `chore/<name>`).
 2. Commit with a Conventional Commit message.
 3. Push the branch and open a pull request.
-4. Wait for `quality` and `scan` to pass.
+4. Wait for `verify` and `scan` to pass.
 5. Merge from GitHub. A local `git merge` plus `git push origin main` is rejected.
 
 ### Environment variables (Varlock + Infisical)
@@ -247,7 +248,7 @@ native sign-in flows are not wired yet.
 
 `gitleaks` scans commits and the working tree for leaked credentials. The
 pre-commit hook runs it on staged changes when the binary is installed; CI
-(`.github/workflows/gitleaks.yml`) enforces it on every push and pull request.
+(`.github/workflows/secret-scan.yml`) enforces it on every push and pull request.
 
 Install the binary (not an npm package):
 

@@ -12,7 +12,7 @@ Playwright (web e2e).
   `packages/db` and `packages/config`, not only `packages/api`. Each package has
   a `test:coverage` script and thresholds sized a couple of points below its
   measured baseline (same policy as `packages/api`).
-- S2 — CI (`quality.yml`) runs the desktop Rust tests and the web Playwright e2e
+- S2 — CI (`ci.yml`) runs the desktop Rust tests and the web Playwright e2e
   suite, so existing tests actually gate merges.
 - S3 — Logic-bearing modules without a co-located test gain one: the ads-carousel
   drag hook, the station-sheet escape hook, locale persistence, the station

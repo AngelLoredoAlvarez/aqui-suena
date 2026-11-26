@@ -60,7 +60,7 @@ Use `--env staging` for `aqui-suena-db-staging`; the default environment targets
 4. Record the applied bookmark in the feature document.
 
 CI fails when `src/schema.ts` changes without a committed migration (job
-"Migration drift" in `quality.yml`).
+"Migration drift" in `ci.yml`).
 
 ## Deploy order
 
