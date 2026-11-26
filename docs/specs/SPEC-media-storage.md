@@ -32,7 +32,7 @@ packages/api/src/server/routers/media/media.ts → media.presignUpload / media.c
 packages/api/src/domain/media/key.ts → media/v1 key builder and parser (account vs business scope)
 packages/api/src/domain/media/content-validation.ts → magic bytes, GPS EXIF and MP3 duration checks
 packages/api/src/infrastructure/media/r2-object-storage.ts → R2 S3-compatible client (presigned URLs, head, delete)
-packages/db/src/schema.ts          → media table (id, ownerId, businessId?, kind, r2Key unique, mime, size, createdAt)
+packages/db/src/schema/media.ts    → media table (id, ownerId, businessId?, kind, r2Key unique, mime, size, createdAt)
 packages/ui/src/optimized-image/optimized-image.tsx → shared image with lazy loading + blur placeholder
 packages/ui/src/media-picker.tsx   → shared upload + preview component (Tamagui) — not built yet
 apps/web/public/test-streams/      → dev audio fixtures (gitignored .m4a)

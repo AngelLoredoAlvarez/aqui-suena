@@ -37,7 +37,7 @@ Typecheck: pnpm -r typecheck
 ```
 packages/api/src/routers/notifications.ts  → notifications.registerToken / notifications.send (internal)
 packages/api/src/push-dispatcher.ts       → platform-aware push sender (Expo Push, Web Push, Tauri)
-packages/db/src/schema.ts                 → notification_tokens (userId, platform, token, createdAt)
+packages/db/src/schema/notifications.ts    → notification_tokens (userId, platform, token, createdAt)
 packages/ui/src/notification-permission.tsx → shared permission request + token registration
 apps/web/public/sw.js                     → service worker for Web Push
 apps/mobile/app.json                      → Expo Notifications config (already present)

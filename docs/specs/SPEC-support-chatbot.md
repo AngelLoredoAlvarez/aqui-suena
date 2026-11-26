@@ -312,6 +312,6 @@ assistant cannot accept listener photos.
   `buildCatalog`, system prompts.
 - `packages/api/src/server/worker.ts` — wiring, `PLAN_VECTORS`, `AI_GATEWAY_ID`.
 - `packages/api/README.md` — retrieval and Vectorize/AI Gateway setup.
-- `packages/db/src/schema.ts` — domain tables (plans, businesses, services,
-  products, hours, photos, flyers, work_entries, accounts, subscriptions,
-  payments, invoices).
+- `packages/db/src/schema/` — domain tables split by domain: `accounts.ts`,
+  `plans.ts`, `billing.ts` (subscriptions, payments, invoices), `directory.ts`
+  (businesses, services, products, hours), `media.ts` (photos, flyers), `radio.ts`.
