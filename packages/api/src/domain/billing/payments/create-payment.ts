@@ -1,45 +1,20 @@
-import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CompletePayment } from "@aqui-suena/api/domain/billing/payments/complete-payment";
 import type {
   BillingInterval,
   Payment,
   PaymentMethod,
   PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
-import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
-import type { PaymentNotifier } from "@aqui-suena/api/domain/billing/payments/payment-notifier";
+import type { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
 import type {
   ChargeResult,
   PaymentCardWriter,
   PaymentCustomer,
   PaymentProvider,
 } from "@aqui-suena/api/domain/billing/payments/payment-provider";
-import type { PaymentSubscriptionWriter } from "@aqui-suena/api/domain/billing/payments/payment-subscription-writer";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import type { PlanRepository } from "@aqui-suena/api/domain/plans/plans";
-import {
-  ConflictError,
-  DataIntegrityError,
-  NotFoundError,
-  ValidationError,
-} from "@aqui-suena/api/shared/domain-error";
-
-const COMPLETION_RECOVERY_DELAY_MS = 5 * 60 * 1000;
-
-export type PaymentServiceDependencies = {
-  readonly payments: PaymentRepository;
-  readonly plans: PlanRepository;
-  readonly provider: PaymentProvider;
-  readonly subscriptions: PaymentSubscriptionWriter;
-  readonly cards?: PaymentCardWriter;
-  readonly accounts?: Pick<AccountRepository, "getById">;
-  readonly notifier?: PaymentNotifier;
-  readonly onDeliveryError?: (
-    error: unknown,
-    stage: "receipt" | "pending",
-    paymentId: string,
-  ) => void;
-  readonly now?: () => Date;
-};
+import { ConflictError, NotFoundError, ValidationError } from "@aqui-suena/api/shared/domain-error";
 
 export type CreatePaymentInput = {
   readonly accountId: string;
@@ -59,16 +34,34 @@ export type CreatePaymentInput = {
   readonly returnUrl?: string;
 };
 
-export class PaymentService {
-  private readonly deps: PaymentServiceDependencies;
-  private readonly notifications: PaymentNotifications;
+export type CreatePaymentDependencies = {
+  readonly payments: Pick<
+    PaymentRepository,
+    | "getById"
+    | "getByIdempotencyKey"
+    | "findOpenIntent"
+    | "markExpired"
+    | "create"
+    | "markFailed"
+    | "applyProviderResult"
+  >;
+  readonly plans: Pick<PlanRepository, "getById">;
+  readonly provider: Pick<PaymentProvider, "createCardSource" | "createCharge">;
+  readonly cards?: PaymentCardWriter;
+  readonly complete: CompletePayment;
+  readonly notifications: PaymentNotifications;
+  readonly now?: () => Date;
+};
 
-  constructor(deps: PaymentServiceDependencies) {
-    this.deps = deps;
-    this.notifications = new PaymentNotifications(deps);
-  }
+/**
+ * Validates a checkout, tokenizes a card when one is supplied, charges the
+ * provider and lands the payment in its terminal state. Idempotency and the
+ * open-intent rules live here so the same request never creates two payments.
+ */
+export class CreatePayment {
+  constructor(private readonly deps: CreatePaymentDependencies) {}
 
-  async create(input: CreatePaymentInput): Promise<Payment> {
+  async execute(input: CreatePaymentInput): Promise<Payment> {
     const now = this.currentDate();
 
     if (input.idempotencyKey.trim().length === 0) {
@@ -176,11 +169,11 @@ export class PaymentService {
     });
 
     if (charge.status === "pending") {
-      await this.notifications.pending(payment.id);
+      await this.deps.notifications.pending(payment.id);
     }
 
     if (charge.status === "paid") {
-      return this.complete(payment.id, now);
+      return this.deps.complete.execute(payment.id, now);
     }
 
     if (charge.status === "declined") {
@@ -190,102 +183,6 @@ export class PaymentService {
     }
 
     return this.requirePayment(payment.id);
-  }
-
-  async hasPendingForOtherPlan(
-    accountId: string,
-    planId: PlanId,
-    now: Date = this.currentDate(),
-  ): Promise<boolean> {
-    const pending = await this.deps.payments.listPendingByAccount(accountId);
-
-    return pending.some(
-      (payment) =>
-        payment.planId !== null &&
-        payment.planId !== planId &&
-        (payment.expiresAt === null || payment.expiresAt > now),
-    );
-  }
-
-  async complete(paymentId: string, paidAt: Date = this.currentDate()): Promise<Payment> {
-    const payment = await this.requirePayment(paymentId);
-    const now = this.currentDate();
-
-    if (payment.status === "completed") {
-      if (payment.subscriptionId !== null) {
-        return payment;
-      }
-
-      // A claimed payment without a subscription is either being activated by
-      // another event or was interrupted. Give the first attempt time to finish,
-      // then let a retry repair it.
-      if (now.getTime() - payment.updatedAt.getTime() < COMPLETION_RECOVERY_DELAY_MS) {
-        return payment;
-      }
-    } else if (payment.status !== "pending") {
-      throw new ConflictError(
-        `Only a pending payment can be completed (current status: ${payment.status})`,
-      );
-    }
-
-    if (payment.planId === null) {
-      throw new DataIntegrityError("planId", payment.planId);
-    }
-
-    if (payment.periodStart === null || payment.periodEnd === null) {
-      throw new DataIntegrityError("period", payment.periodStart);
-    }
-
-    // The compare-and-set runs before activation so concurrent provider events
-    // cannot both create a subscription. If activation fails, the claim is
-    // released so a provider retry can try again.
-    let claimed = false;
-
-    if (payment.status === "pending") {
-      claimed = await this.deps.payments.claimCompletion(payment.id, paidAt);
-
-      if (!claimed) {
-        return this.requirePayment(payment.id);
-      }
-    }
-
-    try {
-      const subscriptionId = await this.deps.subscriptions.activate({
-        paymentId: payment.id,
-        accountId: payment.accountId,
-        planId: payment.planId,
-        billingInterval: payment.billingInterval,
-        periodStart: payment.periodStart,
-        periodEnd: payment.periodEnd,
-      });
-
-      await this.deps.payments.attachSubscription(payment.id, subscriptionId);
-    } catch (error) {
-      if (claimed) {
-        await this.deps.payments.releaseCompletion(payment.id);
-      }
-
-      throw error;
-    }
-
-    const completed = await this.requirePayment(payment.id);
-    await this.notifications.receipt(completed);
-
-    return completed;
-  }
-
-  async fail(paymentId: string, reason: string, at: Date = this.currentDate()): Promise<Payment> {
-    await this.requirePayment(paymentId);
-    await this.deps.payments.markFailed(paymentId, reason, at);
-
-    return this.requirePayment(paymentId);
-  }
-
-  async expire(paymentId: string, at: Date = this.currentDate()): Promise<Payment> {
-    await this.requirePayment(paymentId);
-    await this.deps.payments.markExpired(paymentId, at);
-
-    return this.requirePayment(paymentId);
   }
 
   private async resolveCard(
@@ -309,10 +206,6 @@ export class PaymentService {
     };
   }
 
-  private currentDate(): Date {
-    return this.deps.now?.() ?? new Date();
-  }
-
   private async requirePayment(paymentId: string): Promise<Payment> {
     const payment = await this.deps.payments.getById(paymentId);
 
@@ -321,5 +214,9 @@ export class PaymentService {
     }
 
     return payment;
+  }
+
+  private currentDate(): Date {
+    return this.deps.now?.() ?? new Date();
   }
 }

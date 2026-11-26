@@ -1,10 +1,10 @@
 import type { AccountRepository } from "@aqui-suena/api/domain/accounts/account-repository";
+import type { CreatePayment } from "@aqui-suena/api/domain/billing/payments/create-payment";
 import type {
   Payment,
   PaymentMethod,
   PaymentRepository,
 } from "@aqui-suena/api/domain/billing/payments/payment";
-import type { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
 import type { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
 import type { FailRenewal } from "@aqui-suena/api/domain/billing/subscriptions/fail-renewal";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/period";
@@ -28,7 +28,7 @@ export type RenewSubscriptionsDependencies = {
     "listActiveEndingBefore" | "listGraceExpired"
   >;
   readonly payments: Pick<PaymentRepository, "listBySubscription">;
-  readonly paymentService: Pick<PaymentService, "create">;
+  readonly paymentService: Pick<CreatePayment, "execute">;
   readonly accounts: Pick<AccountRepository, "getById" | "getSavedCard">;
   readonly plans: Pick<PlanRepository, "getById">;
   readonly businesses?: Pick<BusinessRepository, "listAllByAccount">;
@@ -114,7 +114,7 @@ export class RenewSubscriptions {
 
     if (method === "card" && failedAttempts >= MAX_CARD_ATTEMPTS) return false;
 
-    await this.deps.paymentService.create({
+    await this.deps.paymentService.execute({
       accountId: subscription.accountId,
       planId: subscription.planId,
       billingInterval: subscription.billingInterval,

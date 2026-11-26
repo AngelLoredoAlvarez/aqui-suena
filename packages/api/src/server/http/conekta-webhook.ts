@@ -4,9 +4,9 @@ import { verifyConektaWebhook } from "@aqui-suena/api/infrastructure/billing/con
 import type { Handler } from "hono";
 
 export interface PaymentWebhookService {
-  complete(paymentId: string, paidAt?: Date): Promise<unknown>;
-  fail(paymentId: string, reason: string, at?: Date): Promise<unknown>;
-  expire(paymentId: string, at?: Date): Promise<unknown>;
+  readonly complete: { execute(paymentId: string, paidAt?: Date): Promise<unknown> };
+  readonly fail: { execute(paymentId: string, reason: string, at?: Date): Promise<unknown> };
+  readonly expire: { execute(paymentId: string, at?: Date): Promise<unknown> };
 }
 
 export type ConektaWebhookDependencies = {
@@ -89,13 +89,13 @@ export async function handleConektaWebhook(
     switch (event.type) {
       case "order.paid":
       case "charge.paid":
-        await deps.service.complete(payment.id, event.createdAt ?? now);
+        await deps.service.complete.execute(payment.id, event.createdAt ?? now);
         break;
       case "order.expired":
-        await deps.service.expire(payment.id, now);
+        await deps.service.expire.execute(payment.id, now);
         break;
       case "charge.declined":
-        await deps.service.fail(payment.id, failureReason(event.object), now);
+        await deps.service.fail.execute(payment.id, failureReason(event.object), now);
         break;
       default:
         break;

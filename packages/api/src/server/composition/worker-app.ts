@@ -1,5 +1,9 @@
 import { CheckoutService } from "@aqui-suena/api/domain/billing/payments/checkout-service";
-import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/complete-payment";
+import { CreatePayment } from "@aqui-suena/api/domain/billing/payments/create-payment";
+import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/expire-payment";
+import { FailPayment } from "@aqui-suena/api/domain/billing/payments/fail-payment";
+import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
 import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/renew";
 import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/subscribe";
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/subscription-payment-writer";
@@ -151,18 +155,31 @@ export function createWorkerApp(env: WorkerEnv, core: WorkerCore) {
     subscribe: new SubscribeToPlan({ subscriptions: directoryRepositories.subscription }),
     renew: new RenewSubscription({ subscriptions: directoryRepositories.subscription }),
   });
-  const paymentService = conekta
-    ? new PaymentService({
+  const notifications = new PaymentNotifications({
+    payments: paymentRepository,
+    plans: planRepository,
+    accounts: directoryRepositories.account,
+    notifier: paymentNotifier,
+    onDeliveryError: (error, stage, paymentId) =>
+      console.error(
+        `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      ),
+  });
+
+  const completePayment = new CompletePayment({
+    payments: paymentRepository,
+    subscriptions: subscriptionWriter,
+    notifications,
+  });
+
+  const failPayment = new FailPayment({ payments: paymentRepository });
+  const expirePayment = new ExpirePayment({ payments: paymentRepository });
+
+  const createPayment = conekta
+    ? new CreatePayment({
         payments: paymentRepository,
         plans: planRepository,
         provider: conekta,
-        subscriptions: subscriptionWriter,
-        accounts: directoryRepositories.account,
-        notifier: paymentNotifier,
-        onDeliveryError: (error, stage, paymentId) =>
-          console.error(
-            `worker: ${stage} email for payment ${paymentId} failed: ${error instanceof Error ? error.message : "unknown error"}`,
-          ),
         cards: {
           async save(accountId, card) {
             await directoryRepositories.account.saveCard(accountId, {
@@ -175,11 +192,14 @@ export function createWorkerApp(env: WorkerEnv, core: WorkerCore) {
             });
           },
         },
+        complete: completePayment,
+        notifications,
       })
     : undefined;
-  const checkout = paymentService
+  const checkout = createPayment
     ? new CheckoutService({
-        payments: paymentService,
+        create: createPayment,
+        payments: paymentRepository,
         subscriptions: directoryRepositories.subscription,
         plans: planRepository,
         accounts: directoryRepositories.account,
@@ -187,11 +207,11 @@ export function createWorkerApp(env: WorkerEnv, core: WorkerCore) {
       })
     : undefined;
   const conektaWebhook =
-    paymentService !== undefined && env.CONEKTA_WEBHOOK_PUBLIC_KEY
+    createPayment !== undefined && env.CONEKTA_WEBHOOK_PUBLIC_KEY
       ? createConektaWebhookHandler({
           payments: paymentRepository,
           events: paymentEvents,
-          service: paymentService,
+          service: { complete: completePayment, fail: failPayment, expire: expirePayment },
           publicKey: env.CONEKTA_WEBHOOK_PUBLIC_KEY,
           livemode: env.CONEKTA_LIVEMODE === "true",
           onError: (message) => console.error(message),

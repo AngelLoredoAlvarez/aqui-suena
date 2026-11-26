@@ -29,29 +29,35 @@ class FakeWebhookService implements PaymentWebhookService {
   }> = [];
   error: Error | null = null;
 
-  async complete(paymentId: string, paidAt?: Date): Promise<unknown> {
-    this.calls.push({ method: "complete", paymentId, at: paidAt });
+  readonly complete = {
+    execute: async (paymentId: string, paidAt?: Date): Promise<null> => {
+      this.calls.push({ method: "complete", paymentId, at: paidAt });
 
-    if (this.error !== null) throw this.error;
+      if (this.error !== null) throw this.error;
 
-    return null;
-  }
+      return null;
+    },
+  };
 
-  async fail(paymentId: string, reason: string, at?: Date): Promise<unknown> {
-    this.calls.push({ method: "fail", paymentId, at, reason });
+  readonly fail = {
+    execute: async (paymentId: string, reason: string, at?: Date): Promise<null> => {
+      this.calls.push({ method: "fail", paymentId, at, reason });
 
-    if (this.error !== null) throw this.error;
+      if (this.error !== null) throw this.error;
 
-    return null;
-  }
+      return null;
+    },
+  };
 
-  async expire(paymentId: string, at?: Date): Promise<unknown> {
-    this.calls.push({ method: "expire", paymentId, at });
+  readonly expire = {
+    execute: async (paymentId: string, at?: Date): Promise<null> => {
+      this.calls.push({ method: "expire", paymentId, at });
 
-    if (this.error !== null) throw this.error;
+      if (this.error !== null) throw this.error;
 
-    return null;
-  }
+      return null;
+    },
+  };
 }
 
 async function setup() {

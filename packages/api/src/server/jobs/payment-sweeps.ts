@@ -1,4 +1,8 @@
-import { PaymentService } from "@aqui-suena/api/domain/billing/payments/payment-service";
+import { CompletePayment } from "@aqui-suena/api/domain/billing/payments/complete-payment";
+import { CreatePayment } from "@aqui-suena/api/domain/billing/payments/create-payment";
+import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/expire-payment";
+import { FailPayment } from "@aqui-suena/api/domain/billing/payments/fail-payment";
+import { PaymentNotifications } from "@aqui-suena/api/domain/billing/payments/payment-notifications";
 import { RefreshPendingPayments } from "@aqui-suena/api/domain/billing/payments/refresh-pending-payments";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/renew-subscriptions";
 import { DowngradeExpiredGrace } from "@aqui-suena/api/domain/billing/subscriptions/downgrade-grace";
@@ -67,11 +71,9 @@ export async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
 
   const payments = new D1PaymentRepository(env.aqui_suena_db);
 
-  const paymentService = new PaymentService({
+  const notifications = new PaymentNotifications({
     payments,
     plans,
-    provider,
-    subscriptions: subscriptionWriter,
     accounts: repositories.account,
     notifier: paymentNotifier,
     onDeliveryError: (error, stage, paymentId) =>
@@ -80,10 +82,27 @@ export async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
       ),
   });
 
+  const completePayment = new CompletePayment({
+    payments,
+    subscriptions: subscriptionWriter,
+    notifications,
+  });
+
+  const failPayment = new FailPayment({ payments });
+  const expirePayment = new ExpirePayment({ payments });
+
+  const createPayment = new CreatePayment({
+    payments,
+    plans,
+    provider,
+    complete: completePayment,
+    notifications,
+  });
+
   const refresh = new RefreshPendingPayments({
     payments,
     provider,
-    service: paymentService,
+    service: { complete: completePayment, fail: failPayment, expire: expirePayment },
     limit: 5,
     onError: (message, paymentId) =>
       console.error(`worker: refresh of payment ${paymentId} failed: ${message}`),
@@ -92,7 +111,7 @@ export async function runPaymentSweeps(env: WorkerEnv): Promise<void> {
   const renew = new RenewSubscriptions({
     subscriptions: repositories.subscription,
     payments,
-    paymentService,
+    paymentService: createPayment,
     accounts: repositories.account,
     plans,
     businesses: repositories.business,
