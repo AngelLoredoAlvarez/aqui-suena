@@ -74,3 +74,9 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   render tests, removing the two 0% entrypoints. Mobile coverage rose from
   64.53/57.14/60.97/63.97 to 93.61/80.95/92.68/93.38 (`app/` ~85%,
   `components/` ~98%). Thresholds raised to 91/78/90/91. (2026-11-26)
+- L8 — T5 (cont.): covered the remaining edge branches — the fonts-not-loaded
+  `null` return, the storage-error `catch`, the persisted-locale/position
+  restore, the manual change/position save, the wide (>600px) layout, the
+  reduced-motion static frame and the motion-detection rejection. Mobile
+  coverage reaches 100/100/100/100 (29 tests); thresholds raised to 98. RNTL
+  and `test-renderer` are uninstalled. (2026-11-26)

@@ -14,21 +14,21 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      // app/_layout.tsx and app/index.tsx are Expo Router entrypoints,
-      // render-tested with @testing-library/react over mocks for react-native,
-      // expo-router, expo-* and @aqui-suena/ui (see test/setup.ts and the
-      // app/*.test.tsx files). The uncovered branches are the fonts-not-loaded
-      // and persisted-value-present paths, which need per-test mock overrides.
-      // PlayerLanding and its behavior live in @aqui-suena/ui (covered there).
+      // The Expo Router entrypoints (app/_layout.tsx, app/index.tsx) and the
+      // boot-splash components are render-tested with @testing-library/react
+      // over mocks for react-native, expo-router, expo-* and @aqui-suena/ui
+      // (see test/setup.ts and the app/*.test.tsx + components/*.test.tsx
+      // files). PlayerLanding and its behavior live in @aqui-suena/ui (covered
+      // there), so it is mocked here to keep the surface small.
       include: ["components/**/*.{ts,tsx}", "app/**/*.{ts,tsx}"],
       exclude: ["**/*.test.{ts,tsx}"],
-      // Baseline on 2026-11-26: statements 93.61, branches 80.95,
-      // functions 92.68, lines 93.38. Thresholds sit ~2 points below.
+      // Baseline on 2026-11-26: 100% across the board. Thresholds sit ~2 points
+      // below to leave a little headroom for future refactors.
       thresholds: {
-        statements: 91,
-        branches: 78,
-        functions: 90,
-        lines: 91,
+        statements: 98,
+        branches: 98,
+        functions: 98,
+        lines: 98,
       },
     },
   },

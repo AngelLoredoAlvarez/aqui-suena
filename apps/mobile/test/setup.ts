@@ -95,9 +95,9 @@ vi.mock("react-native", () => {
       inOut: (easing: unknown) => easing,
     },
     AccessibilityInfo: {
-      isReduceMotionEnabled: () => Promise.resolve(false),
+      isReduceMotionEnabled: vi.fn(() => Promise.resolve(false)),
     },
-    useWindowDimensions: () => ({ width: 375, height: 812, scale: 1, fontScale: 1 }),
+    useWindowDimensions: vi.fn(() => ({ width: 375, height: 812, scale: 1, fontScale: 1 })),
   };
 });
 
@@ -151,5 +151,5 @@ vi.mock("@expo-google-fonts/plus-jakarta-sans", () => ({
   PlusJakartaSans_400Regular: "font-400",
   PlusJakartaSans_600SemiBold: "font-600",
   PlusJakartaSans_700Bold: "font-700",
-  useFonts: () => [true],
+  useFonts: vi.fn(() => [true, null]),
 }));
