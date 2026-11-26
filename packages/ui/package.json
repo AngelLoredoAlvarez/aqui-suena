@@ -19,7 +19,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@aqui-suena/api": "workspace:*",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@testing-library/react": "16.3.3",
     "@types/react": "catalog:",
+    "@vitest/coverage-v8": "5.1.1",
     "jsdom": "31.0.1",
     "react": "catalog:",
     "typescript": "7.0.2",

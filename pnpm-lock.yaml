@@ -456,6 +456,9 @@ importers:
         specifier: 'catalog:'
         version: 3.3.3(3ba781b7d1e9bebe8c627fed83efa47b)
     devDependencies:
+      '@vitest/coverage-v8':
+        specifier: 5.1.1
+        version: 5.1.1(vitest@5.1.1)
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -469,6 +472,9 @@ importers:
         specifier: 0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261121.1)
     devDependencies:
+      '@vitest/coverage-v8':
+        specifier: 5.1.1
+        version: 5.1.1(vitest@5.1.1)
       drizzle-kit:
         specifier: 0.31.11
         version: 0.31.11
@@ -560,6 +566,9 @@ importers:
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
+      '@vitest/coverage-v8':
+        specifier: 5.1.1
+        version: 5.1.1(vitest@5.1.1)
       jsdom:
         specifier: 31.0.1
         version: 31.0.1

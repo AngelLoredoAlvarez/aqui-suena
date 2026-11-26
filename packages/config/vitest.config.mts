@@ -12,5 +12,17 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      exclude: ["**/*.test.ts"],
+      // Baseline on 2026-11-26: 100% across the board (data-only config).
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
+    },
   },
 });
