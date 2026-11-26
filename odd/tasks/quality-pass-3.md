@@ -22,9 +22,9 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
 
 ## Tasks
 
-- T1 — S1: extract `splash-progress.ts` + `splash-progress.test.ts`. Route: inline. ✅ done
-- T2 — S2: split the boot-splash into `bit.tsx`, `footer-mark.tsx`, `native-boot-splash.tsx`. Route: inline. ✅ done
-- T3 — S3: split `invoices.ts` into lifecycle modules + barrel. Route: inline. ✅ done
+- T1 — S1: extract `splash-progress.ts` + `splash-progress.test.ts`. Route: inline. ✅ done — `2c99cec`
+- T2 — S2: split the boot-splash into `bit.tsx`, `footer-mark.tsx`, `native-boot-splash.tsx`. Route: inline. ✅ done — `2c99cec`
+- T3 — S3: split `invoices.ts` into lifecycle modules + barrel. Route: inline. ✅ done — `547b318`
 - T4 — Close: typecheck, package tests, biome, `pnpm arch`; adjust the mobile
   coverage thresholds to the honest post-extraction baseline. ✅ done
 
@@ -48,3 +48,7 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   `invoices.test.ts` unchanged. (2026-11-26)
 - L4 — T4: full typecheck 7/7, api 1424 / mobile 14 / ui / db / player / config
   / web tests green, biome clean, `pnpm arch` no violations. (2026-11-26)
+- L5 — Review assessment (`--base-ref main --committed-only`): risk `medium`
+  (`executable_change` in `bit.tsx`), `review_due: false`
+  (`under_budget`). No native review triggered; the boundary stays at main.
+  (2026-11-26)
