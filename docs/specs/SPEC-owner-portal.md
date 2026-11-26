@@ -10,7 +10,7 @@ Aquí Suena for Business (by 17Labs): web-first portal where business owners cre
 
 - Web: React + Next.js (App Router) (portal is web-first; native read-only)
 - Native: n/a for editing (owners use web)
-- Navigation: TBD — `/owner`, `/owner/listings`, `/owner/billing`. `packages/navigation` reserved; no Solito installed.
+- Navigation: TBD — `/owner`, `/owner/listings`, `/owner/billing`. No shared navigation package (no Solito); routes live in the apps.
 - UI: Tamagui (forms, uploads, schedules)
 - Data: tRPC + TanStack Query + React Hook Form + valibot resolvers
 - Auth: Supabase Auth (Google, Facebook, email/password, OTP; 50k MAU free tier)

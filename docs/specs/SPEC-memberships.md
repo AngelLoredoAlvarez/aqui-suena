@@ -75,7 +75,7 @@ Carousel behavior: 3 appearances per cycle, focused on visual impact and categor
 
 - Web: React + Next.js (App Router) + React Native Web
 - Native: React Native + Expo (managed, owners mostly on web)
-- Navigation: TBD — `/owner/billing`. `packages/navigation` reserved; no Solito installed.
+- Navigation: TBD — `/owner/billing`. No shared navigation package (no Solito); routes live in the apps.
 - UI: Tamagui (three plan cards, current-plan badge)
 - Data: tRPC + TanStack Query, Conekta for subscriptions (cards/cash/SPEI, MXN)
 - DB: Drizzle + D1/SQLite (`plans`, `subscriptions` with `grace_end`, `payments`, `businesses` with `hidden_at`/`retained_until`); entitlements are domain data, not a table. Public business and child lists filter `hidden_at IS NULL`; owner-scoped reads keep hidden businesses visible. Deleting a business cascades to its directory children.

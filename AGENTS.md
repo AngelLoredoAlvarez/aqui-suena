@@ -25,7 +25,7 @@ Map the user's intent to the matching skill automatically:
 ## Product invariants
 
 - Landing `/` is the player + ads carousel on web and mobile, rendered from shared `@aqui-suena/ui` code.
-- No station screens exist by product decision: the player switches stations in place via its selector, never by navigating. `packages/navigation` stays reserved for future modules.
+- No station screens exist by product decision: the player switches stations in place via its selector, never by navigating. No shared navigation package exists; routes live in the apps (Expo Router on mobile, Next App Router on web).
 
 ## Artifact Language (MANDATORY)
 

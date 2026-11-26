@@ -135,20 +135,20 @@ writes, no feature flag. A heartbeat was evaluated and discarded for cost; see
 
 ## Layout, and the one rule that keeps it safe
 
-| Path                           | Side   | Reachable from a browser or React Native  |
-| ------------------------------ | ------ | ----------------------------------------- |
-| `src/client.ts`                | shared | yes — the only safe entry for clients     |
-| `src/domain/radio/listener.ts` | shared | yes — schemas only (subpath `./listener`) |
-| `src/shared/stream-proxy.ts`   | shared | yes — zero-import stream proxy core       |
-| `src/server/http/app.ts`       | server | no — the portable fetch handler           |
-| `src/server/worker.ts`         | server | no — Cloudflare Workers entry             |
-| `src/server/trpc/router.ts`    | server | no — evaluates `initTRPC.create()`        |
-| `src/server/server.ts`         | server | no — node:http bridge to `app.ts`         |
-| `src/server/http/cors.ts`      | server | no                                        |
-| `src/server/env.ts`            | server | no                                        |
-| `src/infrastructure/email/`    | server | no — renderer, adapter and copy           |
-| `design/email-templates/`      | design | no — SPEC, template contract and samples  |
-| `src/server/main.ts`           | server | no — starts the Node process              |
+| Path                                 | Side   | Reachable from a browser or React Native  |
+| ------------------------------------ | ------ | ----------------------------------------- |
+| `src/client.ts`                      | shared | yes — the only safe entry for clients     |
+| `src/domain/radio/listener.ts`       | shared | yes — schemas only (subpath `./listener`) |
+| `src/shared/stream-proxy.ts`         | shared | yes — zero-import stream proxy core       |
+| `src/server/http/app.ts`             | server | no — the portable fetch handler           |
+| `src/server/worker.ts`               | server | no — Cloudflare Workers entry             |
+| `src/server/trpc/router.ts`          | server | no — evaluates `initTRPC.create()`        |
+| `src/server/server.ts`               | server | no — node:http bridge to `app.ts`         |
+| `src/server/http/middleware/cors.ts` | server | no                                        |
+| `src/server/env.ts`                  | server | no                                        |
+| `src/infrastructure/email/`          | server | no — renderer, adapter and copy           |
+| `design/email-templates/`            | design | no — SPEC, template contract and samples  |
+| `src/server/main.ts`                 | server | no — starts the Node process              |
 
 **Never re-export `server.ts`, `cors.ts`, `env.ts` or `main.ts` from
 `index.ts`.** Clients import subpaths (`@aqui-suena/api/client`), so Metro and
@@ -166,13 +166,13 @@ anything other than the client-safe entries.
 - `src/domain/plans/` is the shared kernel: the plan catalog and its
   entitlements. It imports no other domain module, so billing, directory, ads
   and support can all depend on it without coupling to each other.
-- `src/domain/billing/` subdivides into `subscriptions/` (lifecycle, grace,
-  reminders, notifiers), `payments/` (payments and the receipt notifier) and
-  `invoices/` (CFDI issuing, document archiving and delivery). Billing may
-  depend on directory (a downgrade hides businesses) and on accounts (an invoice
-  reads the fiscal profile), never the reverse; `directory/retention.ts` owns
-  the hiding and retention helpers and a cruiser rule enforces the
-  accounts → billing direction.
+- `src/domain/billing/` subdivides into `subscriptions/`, `payments/` and
+  `invoices/`, each further split into `use-cases/` (orchestration), `model/`
+  (value objects and repository interfaces) and `ports/` (adapter interfaces and
+  notifiers). Billing may depend on directory (a downgrade hides businesses) and
+  on accounts (an invoice reads the fiscal profile), never the reverse;
+  `directory/rules/retention.ts` owns the hiding and retention helpers and a
+  cruiser rule enforces the accounts → billing direction.
 - `src/infrastructure/<context>/` mirrors the domain module it implements. One
   adapter per port; no business rules.
 - `src/testing/` holds test-only doubles (`FakeEmailSender`, the `Fake*Notifier`
@@ -183,7 +183,7 @@ anything other than the client-safe entries.
   here.
 - `src/server/composition/` is the only place that picks drivers. Both entry
   points share it: adding a repository means editing `repositories.ts` once.
-- Directory mutations are owner-scoped: `domain/directory/authorization.ts`
+- Directory mutations are owner-scoped: `domain/directory/rules/authorization.ts`
   owns `assertOwnsBusiness`, and the server adapter maps a denial to
   `NOT_FOUND` so a foreign resource never leaks its existence. Public
   `list`/`getById` reads filter `hidden_at IS NULL`; owner reads use
