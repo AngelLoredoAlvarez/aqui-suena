@@ -17,19 +17,18 @@ export default defineConfig({
       // boot-splash.tsx are Next.js entrypoints and presentational components
       // whose logic delegates to @aqui-suena/ui and @aqui-suena/player (covered
       // there at 86-100%). Coverage is scoped to the app-owned logic files (.ts):
-      // tray-runtime.ts is covered, tray-bridge.ts is the Tauri event wiring and
-      // is still untested (follow-up). The node-only environment does not render
-      // React components, and rolldown cannot parse uncovered .tsx files, so the
-      // .tsx entrypoints are deliberately out of scope.
+      // tray-runtime.ts and tray-bridge.ts, both fully covered. The node-only
+      // environment does not render React components, and rolldown cannot parse
+      // uncovered .tsx files, so the .tsx entrypoints are deliberately out of scope.
       include: ["app/**/*.ts"],
       exclude: ["**/*.test.ts"],
-      // Baseline on 2026-11-26: statements 25, branches 66.66,
-      // functions 14.28, lines 31.57. Thresholds sit ~2 points below.
+      // Baseline on 2026-11-26: statements 100, branches 100,
+      // functions 100, lines 100. Thresholds sit ~2 points below.
       thresholds: {
-        statements: 23,
-        branches: 64,
-        functions: 12,
-        lines: 29,
+        statements: 98,
+        branches: 96,
+        functions: 98,
+        lines: 98,
       },
     },
   },
