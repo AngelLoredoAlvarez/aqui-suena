@@ -1,4 +1,4 @@
-import { formatMinute, formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
+import { formatMinute, formatSchedule } from "@aqui-suena/ui/ads-carousel/utils/format-schedule";
 import { es } from "@aqui-suena/ui/i18n/locales";
 import { describe, expect, it } from "vitest";
 

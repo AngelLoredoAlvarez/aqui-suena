@@ -1,5 +1,5 @@
 import { fetchAdsCarousel, resolveApiBaseUrl } from "@aqui-suena/api/client";
-import type { AdsCarouselItem } from "@aqui-suena/ui/ads-carousel/ads-carousel";
+import type { AdsCarouselItem } from "@aqui-suena/ui/ads-carousel/components/ads-carousel";
 import { useQuery } from "@tanstack/react-query";
 
 export type { AdsCarouselItem };

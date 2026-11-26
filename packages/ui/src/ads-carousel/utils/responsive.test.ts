@@ -1,7 +1,7 @@
 import {
   getResponsiveCarouselMaxW,
   getResponsiveFlyerWidth,
-} from "@aqui-suena/ui/ads-carousel/responsive";
+} from "@aqui-suena/ui/ads-carousel/utils/responsive";
 import { describe, expect, it } from "vitest";
 
 describe("getResponsiveCarouselMaxW", () => {

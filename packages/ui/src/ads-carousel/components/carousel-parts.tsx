@@ -1,4 +1,4 @@
-import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/flyer-animation";
+import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/utils/flyer-animation";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { Icon } from "@aqui-suena/ui/shared";
 import type { ReactNode } from "react";

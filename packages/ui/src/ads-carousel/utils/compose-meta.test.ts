@@ -1,4 +1,4 @@
-import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
+import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
 import { describe, expect, it } from "vitest";
 
 const source = {

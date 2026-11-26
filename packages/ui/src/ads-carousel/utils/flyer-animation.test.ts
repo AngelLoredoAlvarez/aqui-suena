@@ -1,4 +1,4 @@
-import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/flyer-animation";
+import { flyerLayerStyle } from "@aqui-suena/ui/ads-carousel/utils/flyer-animation";
 import { describe, expect, it } from "vitest";
 
 describe("flyerLayerStyle", () => {

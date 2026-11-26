@@ -1,4 +1,4 @@
-import { swipeDirection } from "@aqui-suena/ui/ads-carousel/swipe-navigation";
+import { swipeDirection } from "@aqui-suena/ui/ads-carousel/utils/swipe-navigation";
 import { describe, expect, it } from "vitest";
 
 describe("swipeDirection", () => {

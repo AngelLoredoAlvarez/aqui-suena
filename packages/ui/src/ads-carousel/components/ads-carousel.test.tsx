@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
-import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/ads-carousel";
+import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/components/ads-carousel";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

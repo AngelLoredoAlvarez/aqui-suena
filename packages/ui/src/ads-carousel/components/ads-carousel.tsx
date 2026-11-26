@@ -4,14 +4,14 @@ import {
   ContactRow,
   FlyerNavButton,
   FlyerTransition,
-} from "@aqui-suena/ui/ads-carousel/carousel-parts";
-import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
-import { formatSchedule } from "@aqui-suena/ui/ads-carousel/format-schedule";
+} from "@aqui-suena/ui/ads-carousel/components/carousel-parts";
+import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/hooks/use-carousel-drag";
+import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
+import { formatSchedule } from "@aqui-suena/ui/ads-carousel/utils/format-schedule";
 import {
   getResponsiveCarouselMaxW,
   getResponsiveFlyerWidth,
-} from "@aqui-suena/ui/ads-carousel/responsive";
-import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/use-carousel-drag";
+} from "@aqui-suena/ui/ads-carousel/utils/responsive";
 import { FlyerLightbox } from "@aqui-suena/ui/flyer-lightbox/flyer-lightbox";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";

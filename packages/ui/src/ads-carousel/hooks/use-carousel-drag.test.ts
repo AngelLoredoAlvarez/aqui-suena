@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/use-carousel-drag";
+import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/hooks/use-carousel-drag";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
