@@ -66,3 +66,8 @@ runner: Vitest (per package), `turbo run typecheck`, `pnpm build`.
   `pnpm arch` clean, no migration drift. Updated SPEC-{memberships,
   support-chatbot,business-directory,media-storage,notifications}.md and
   `packages/db/MIGRATIONS.md` to the new `src/schema/` layout. (2026-11-26)
+- L7 — Follow-up: reduced duplication in `server/composition/invoices.ts`.
+  Extracted `r2StorageOptions` (the R2 config guard + options were repeated in
+  four factories) and `describeError` (error formatting repeated in six
+  callbacks). Public API unchanged; 1424 api tests and the 12 composition
+  tests stay green. (2026-11-26)
