@@ -69,7 +69,7 @@ Repeat with the production bucket when it exists.
 
 The email stack is implemented and wired through the composition root. What exists:
 
-- The 11 template definitions, runtime renderer (`renderEmail`) and copy files
+- The 12 template definitions, runtime renderer (`renderEmail`) and copy files
   in `src/infrastructure/email/`.
 - `ResendEmailSender` (`src/infrastructure/email/resend-email-sender.ts`), an
   adapter for the `EmailSender` port.
@@ -85,8 +85,9 @@ The email stack is implemented and wired through the composition root. What exis
 `IssueInvoice` downloads the provider PDF, archives it beside the XML in R2 and
 sends both files through `TemplateCfdiNotifier`.
 
-Live flows: `subscriptions.cancel` (template 10) and `billing.requestInvoice`
-(template 8).
+Live flows: the subscription lifecycle (cancel, downgrade, failed-renewal and
+grace-expired), renewal reminders, payment receipt/pending and CFDI delivery
+(`billing.requestInvoice`, template 8).
 
 ## Invoice cancellation
 
@@ -118,11 +119,9 @@ the positive ficta recorded. Both are bounded to five rows per run.
 presigned R2 URL. The signature carries `response-content-disposition`, so R2
 serves `CFDI-<uuid>.pdf|xml` as a named download and no object byte crosses the
 Worker. A failed archive answers `CONFLICT`; a foreign or missing invoice answers
-`NOT_FOUND`. What is missing is the remaining trigger call sites:
-signup/verification, payment receipts, renewal reminders and downgrades are
-blocked on signup, a payment provider and a Worker cron. Without
-`RESEND_API_KEY` no notifier is constructed, so nothing is sent. Wiring the rest
-is tracked in `odd/tasks/backlog.md`.
+`NOT_FOUND`. What remains is the account welcome and verification emails, which
+wait on the signup flow. Without `RESEND_API_KEY` no notifier is constructed, so
+nothing is sent. That remaining wiring is tracked in `odd/tasks/backlog.md`.
 
 ## Listener status
 
