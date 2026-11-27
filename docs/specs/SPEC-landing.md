@@ -50,8 +50,8 @@ the directory/carousel is used, and no station screen is introduced.
   unique sponsored businesses (initials avatar, name, localized category +
   delivery, open/closed badge), legal links.
 - Right panel: flyer panel (330 px) with badge + navigation arrows, business name, meta,
-  contact rows (phone, WhatsApp, address, schedule), "Ver negocio", and
-  call/WhatsApp/directions actions.
+  contact rows (phone, WhatsApp, address, schedule), "Ver negocio" (`trades` and
+  `commerce` plans only), and call/WhatsApp/directions actions.
 - Player dock at the bottom.
 
 ### Web (1440×900) — `WebLanding`
@@ -66,9 +66,10 @@ the directory/carousel is used, and no station screen is introduced.
 
 ## Data
 
-- `AdsCarouselItem` carries `name`, `category`, `delivery`, `opensAt`, `isOpen`,
-  `phone`, `address`, `hours`, and the flyer image. Category and opening-time
-  strings are localized in the UI; see `SPEC-ads-display.md`.
+- `AdsCarouselItem` carries `name`, `category`, `delivery`, `plan`, `opensAt`,
+  `isOpen`, `phone`, `address`, `hours`, and the flyer image. Category and
+  opening-time strings are localized in the UI; the wide "Ver negocio" CTA is
+  rendered only for `trades` and `commerce` plans. See `SPEC-ads-display.md`.
 - The directory list deduplicates the ranked carousel entries by business id.
 - The wide contact panel formats weekly hours into a compact range
   (`Lun–Sáb 9:00 – 17:00`) with `formatSchedule`.

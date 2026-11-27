@@ -16,6 +16,7 @@ const VALID_ITEM = {
   name: "Casa Rosa",
   category: "Comida",
   delivery: true,
+  plan: "commerce",
   isOpen: true,
 };
 

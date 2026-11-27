@@ -14,6 +14,7 @@ const ITEMS: readonly [AdsCarouselItem, AdsCarouselItem] = [
     name: "Casa Rosa",
     category: "food",
     delivery: true,
+    plan: "community",
     isOpen: true,
   },
   {
@@ -23,6 +24,7 @@ const ITEMS: readonly [AdsCarouselItem, AdsCarouselItem] = [
     name: "Dental Sonrisa",
     category: "health",
     delivery: false,
+    plan: "trades",
     isOpen: false,
   },
 ];

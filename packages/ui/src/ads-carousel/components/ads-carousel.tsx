@@ -71,6 +71,7 @@ function AdsCarouselDetails({
   schedule: string;
 }) {
   const { dictionary } = useLocale();
+  const showsBusinessCta = item.plan === "trades" || item.plan === "commerce";
 
   return (
     <YStack
@@ -102,23 +103,25 @@ function AdsCarouselDetails({
               {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
             </YStack>
           </ScrollView>
-          <Button
-            type="button"
-            mt={8}
-            rounded={999}
-            bg="surface2"
-            minH={48}
-            px={18}
-            gap={8}
-            items="center"
-            self="flex-start"
-            shrink={0}
-          >
-            <Text color="text" fontWeight="700" fontSize={14}>
-              {dictionary.viewBusiness}
-            </Text>
-            <Icon name="arrow-right" size={18} tone="text" />
-          </Button>
+          {showsBusinessCta ? (
+            <Button
+              type="button"
+              mt={8}
+              rounded={999}
+              bg="surface2"
+              minH={48}
+              px={18}
+              gap={8}
+              items="center"
+              self="flex-start"
+              shrink={0}
+            >
+              <Text color="text" fontWeight="700" fontSize={14}>
+                {dictionary.viewBusiness}
+              </Text>
+              <Icon name="arrow-right" size={18} tone="text" />
+            </Button>
+          ) : null}
           <ContactActions />
         </>
       ) : (
