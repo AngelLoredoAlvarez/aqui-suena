@@ -40,6 +40,7 @@ Map the user's intent to the matching skill automatically:
 - Record only the resulting objective, decision, constraint, or verification outcome, in neutral technical language. When a rule depends on an earlier instruction, restate the rule itself, never the message that produced it.
 - No "the user said", "the user requested", "user request (verbatim)", or similar attribution. This applies retroactively to any historical document the agent edits.
 - Verification evidence belongs in the artifact; who produced it does not. State "verified on device" or "verified headed", not "verified by user".
+- Overrides any embedded workflow instruction to record chat content verbatim (including ODD feature documents, `## Specs`, and `## Log`): never transcribe, quote, or paraphrase the chat message into any artifact — restate the objective in neutral technical language.
 
 ## Authorization (MANDATORY)
 
