@@ -7,6 +7,7 @@ const source: CarouselItemSource = {
     name: "Casa Rosa",
     category: "food",
     delivery: true,
+    plan: "commerce",
     timezone: "America/Mexico_City",
     phone: "+52 487 100 0000",
     address: "Calle Hidalgo 1, Rioverde",
@@ -24,6 +25,7 @@ describe("toCarouselItem", () => {
     expect(item.name).toBe("Casa Rosa");
     expect(item.category).toBe("food");
     expect(item.delivery).toBe(true);
+    expect(item.plan).toBe("commerce");
     expect(item.imageUrl).toBe("https://r2/flyer.png");
     expect(item.phone).toBe("+52 487 100 0000");
     expect(item.address).toBe("Calle Hidalgo 1, Rioverde");

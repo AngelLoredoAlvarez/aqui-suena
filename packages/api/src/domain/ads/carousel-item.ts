@@ -1,5 +1,6 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/domain/ads/contract";
 import { isOpenNow, nextOpeningTime } from "@aqui-suena/api/domain/directory/contracts/listing";
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 
 export type CarouselItemSource = {
   readonly business: {
@@ -7,6 +8,7 @@ export type CarouselItemSource = {
     readonly name: string;
     readonly category: string;
     readonly delivery: boolean;
+    readonly plan: PlanId;
     readonly timezone: string;
     readonly phone: string | null;
     readonly address: string | null;
@@ -36,6 +38,7 @@ export function toCarouselItem(
     name: source.business.name,
     category: source.business.category,
     delivery: source.business.delivery,
+    plan: source.business.plan,
     isOpen,
     opensAt,
     phone: source.business.phone,

@@ -182,8 +182,10 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
     bottom border) and actions **Call / WhatsApp / Get directions**.
 - The info column is a flex column: name and meta stay fixed, the contact rows
   scroll when the panel is shorter than its content, and the "Ver negocio" CTA
-  plus the Call/WhatsApp/Get directions actions stay pinned below the scroll
-  area, so they are never clipped.
+  (paid plans only) plus the Call/WhatsApp/Get directions actions stay pinned
+  below the scroll area, so they are never clipped.
+- The "Ver negocio" CTA is rendered only for the `trades` and `commerce` plans;
+  community items show the contact rows and the action chips without it.
 - On web, the contact-list scrollbar stays invisible until the pointer enters
   the list; the gutter is reserved so the panel does not shift on hover.
 
@@ -191,8 +193,9 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 
 - Same two-column directory as tablet, scaled up: header 64px, sidebar 380px,
   **flyer image panel 480px wide**, name `fs:26`, and the same scrollable
-  contact list with pinned CTA + actions. Player dock is a full-width bar at the
-  bottom with the extra control "Mover reproductor arriba o abajo".
+  contact list with the paid-plan CTA and pinned actions. Player dock is a
+  full-width bar at the bottom with the extra control "Mover reproductor arriba
+  o abajo".
 
 ### Empty state — `LandingVacio`
 
@@ -203,13 +206,15 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 ### Data model
 
 `AdsCarouselItem` grows from `{ id, imageUrl, alt, href? }` to carry the card
-fields: `{ id, imageUrl, alt, name, category, delivery, opensAt, isOpen, phone,
-address, hours, href? }` — `name` renders the title; `category` is the business
+fields: `{ id, imageUrl, alt, name, category, delivery, plan, opensAt, isOpen,
+phone, address, hours, href? }` — `name` renders the title; `category` is the business
 category enum rendered through the i18n `category` labels ("Comida"/"Food",
 "Servicios"/"Services", …), `delivery` is a boolean that drives the conditional
 flyer chip via the i18n `deliveryBadge` label ("A domicilio" / "Delivery") and
 is included in the wide meta line via the i18n `delivery` label ("Servicio a
-domicilio" / "Home delivery"). `opensAt` is the next opening time in `H:MM`
+domicilio" / "Home delivery"). `plan` is the resolved plan id (`community`,
+`trades`, `commerce`); the wide "Ver negocio" CTA is rendered only for `trades`
+and `commerce`. `opensAt` is the next opening time in `H:MM`
 format for a closed business, rendered via the i18n `opensAt` formatter
 ("Abre 8:00" / "Opens 8:00"). The mobile meta line composes category +
 `opensAt`; the wide meta line composes category + delivery, in one shared
@@ -272,3 +277,7 @@ there, not here.
   open-status badge: no sponsorship/disclosure badge. Add a
   "Patrocinado"/"Sponsored" disclosure only if compliance or the business later
   requires it.
+- The wide "Ver negocio" CTA is limited to the `trades` and `commerce` plans
+  because those sheets expose more business information. Community items keep
+  the contact rows and the call/WhatsApp/directions actions; the mobile CTA is
+  unchanged.

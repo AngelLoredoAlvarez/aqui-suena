@@ -1,3 +1,4 @@
+import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import * as v from "valibot";
 
 export type AdsCarouselHour = {
@@ -13,6 +14,7 @@ export type AdsCarouselItem = {
   name: string;
   category: string;
   delivery: boolean;
+  plan: PlanId;
   opensAt?: string;
   isOpen: boolean;
   phone?: string | null;
@@ -34,6 +36,7 @@ const adsCarouselItemSchema = v.object({
   name: v.string(),
   category: v.string(),
   delivery: v.boolean(),
+  plan: v.picklist(["community", "trades", "commerce"]),
   opensAt: v.optional(v.string()),
   isOpen: v.boolean(),
   phone: v.optional(v.nullable(v.string())),

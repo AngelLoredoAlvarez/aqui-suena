@@ -15,19 +15,18 @@ vi.mock("tamagui", async (importOriginal) => {
   };
 });
 
-const ITEMS: readonly AdsCarouselItem[] = [
-  {
-    id: "a",
-    imageUrl: "https://example.com/a.png",
-    alt: "Ad A",
-    name: "Desayunos Casa Rosa",
-    category: "food",
-    delivery: true,
-    isOpen: true,
-    phone: "487 107 8749",
-    address: "Calle Hidalgo 214, Centro, Rioverde",
-  },
-];
+const ITEM: AdsCarouselItem = {
+  id: "a",
+  imageUrl: "https://example.com/a.png",
+  alt: "Ad A",
+  name: "Desayunos Casa Rosa",
+  category: "food",
+  delivery: true,
+  plan: "commerce",
+  isOpen: true,
+  phone: "487 107 8749",
+  address: "Calle Hidalgo 214, Centro, Rioverde",
+};
 
 describe("AdsCarousel wide details", () => {
   afterEach(() => {
@@ -35,7 +34,7 @@ describe("AdsCarousel wide details", () => {
   });
 
   it("keeps the contact list scrollable and the actions outside the scroll area", () => {
-    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+    renderWithProviders(<AdsCarousel items={[ITEM]} />, { locale: "es" });
 
     const scroll = screen.getByTestId("ads-carousel-details-scroll");
 
@@ -43,5 +42,21 @@ describe("AdsCarousel wide details", () => {
     expect(scroll.contains(screen.getByText("Ver negocio"))).toBe(false);
     expect(scroll.contains(screen.getByText("Llamar"))).toBe(false);
     expect(scroll.contains(screen.getByText("Cómo llegar"))).toBe(false);
+  });
+
+  it.each(["trades", "commerce"] as const)("shows the Ver negocio CTA for the %s plan", (plan) => {
+    renderWithProviders(<AdsCarousel items={[{ ...ITEM, plan }]} />, { locale: "es" });
+
+    expect(screen.getByText("Ver negocio")).toBeTruthy();
+  });
+
+  it("hides the Ver negocio CTA for the community plan", () => {
+    renderWithProviders(<AdsCarousel items={[{ ...ITEM, plan: "community" }]} />, {
+      locale: "es",
+    });
+
+    expect(screen.queryByText("Ver negocio")).toBeNull();
+    expect(screen.getByText("Llamar")).toBeTruthy();
+    expect(screen.getByText("Teléfono")).toBeTruthy();
   });
 });

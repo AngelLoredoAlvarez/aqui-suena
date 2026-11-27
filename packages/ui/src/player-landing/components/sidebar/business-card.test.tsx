@@ -13,6 +13,7 @@ const ITEM: AdsCarouselItem = {
   name: "Casa Rosa",
   category: "food",
   delivery: true,
+  plan: "community",
   isOpen: true,
 };
 

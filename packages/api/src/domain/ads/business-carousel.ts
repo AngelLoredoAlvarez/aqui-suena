@@ -57,6 +57,7 @@ export async function getBusinessCarousel(
             name: business.name,
             category: business.category,
             delivery: business.delivery,
+            plan,
             timezone: business.timezone,
             phone: business.phone,
             address: business.address,

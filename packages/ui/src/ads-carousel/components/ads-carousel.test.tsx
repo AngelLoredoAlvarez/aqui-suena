@@ -20,6 +20,7 @@ const ITEMS: readonly AdsCarouselItem[] = [
     name: "Desayunos Casa Rosa",
     category: "food",
     delivery: true,
+    plan: "commerce",
     opensAt: "8:00",
     isOpen: true,
   },
@@ -30,6 +31,7 @@ const ITEMS: readonly AdsCarouselItem[] = [
     name: "Dental Sonrisa",
     category: "health",
     delivery: false,
+    plan: "trades",
     isOpen: false,
   },
 ];

@@ -142,6 +142,8 @@ describe("getBusinessCarousel", () => {
 
     expect(names.filter((n) => n === "Comercio Biz")).toHaveLength(3);
     expect(names.filter((n) => n === "Comunidad Biz")).toHaveLength(1);
+    expect(result.find((item) => item.id === "m-1")?.plan).toBe("commerce");
+    expect(result.find((item) => item.id === "c-1")?.plan).toBe("community");
 
     let consecutivePairs = 0;
 
