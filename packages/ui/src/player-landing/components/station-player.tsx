@@ -15,8 +15,6 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Paragraph, useMedia, YStack } from "tamagui";
 
-// The backdrop must stop above the player dock on mobile so the dim overlay
-// leaves the player card clear; wide screens use a compact popover instead.
 const SHEET_BACKDROP_BOTTOM_OFFSET = 106;
 
 export function StationPlayer({
