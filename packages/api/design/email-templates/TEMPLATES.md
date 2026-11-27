@@ -30,8 +30,8 @@ Notifier owners and their call sites:
 
 | Template                                                                                   | Notifier                                       | Live call site                       |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------ |
-| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation, 11 cancellation-immediate | `TemplateSubscriptionNotifier`                 | `subscriptions.cancel` (template 10) |
-| 4 renewal-7d, 5 renewal-1d                                                                 | `TemplateSubscriptionNotifier.renewalUpcoming` | none (needs a Worker cron)           |
+| 1 downgrade, 2 failed-renewal, 3 grace-expired, 10 cancellation, 11 cancellation-immediate | `TemplateSubscriptionNotifier`                 | subscription lifecycle (cancel, downgrade, failed-renewal, grace-expired, immediate cancel) |
+| 4 renewal-7d, 5 renewal-1d                                                                 | `TemplateSubscriptionNotifier.renewalUpcoming` | fifteen-minute cron (renewal reminders) |
 | 6 verify-email, 9 welcome                                                                  | `TemplateAccountNotifier`                      | none (needs the signup flow)         |
 | 7 receipt, 12 payment-pending                                                              | `TemplatePaymentNotifier`                      | `CreatePayment` / `CompletePayment`  |
 | 8 invoice-cfdi                                                                             | `TemplateCfdiNotifier.invoiceIssued`           | `billing.requestInvoice`             |
