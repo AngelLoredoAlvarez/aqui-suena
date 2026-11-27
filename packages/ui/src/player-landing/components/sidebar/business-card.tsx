@@ -1,7 +1,6 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
-import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
 import { useLocale } from "@aqui-suena/ui/i18n";
-import { Button, Text, YStack } from "tamagui";
+import { Button, Text, XStack, YStack } from "tamagui";
 
 function initials(name: string): string {
   return name
@@ -22,10 +21,7 @@ export function BusinessCard({
   onPress?: () => void;
 }) {
   const { dictionary } = useLocale();
-  const meta = composeMeta(
-    { category: dictionary.category(item.category), delivery: item.delivery },
-    { isWide: true, deliveryLabel: dictionary.delivery },
-  );
+  const meta = dictionary.category(item.category);
 
   return (
     <Button
@@ -48,26 +44,29 @@ export function BusinessCard({
         </Text>
       </YStack>
       <YStack flex={1} minW={0} gap={2} items="flex-start">
-        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={2}>
+        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={1}>
           {item.name}
         </Text>
-        <Text color="muted" fontSize={12} numberOfLines={2}>
-          {meta}
-        </Text>
+        <XStack width="100%" items="center" gap={8}>
+          <Text color="muted" fontSize={12} numberOfLines={1} flex={1}>
+            {meta}
+          </Text>
+          <Text
+            color={item.isOpen ? "ok" : "error"}
+            fontSize={11}
+            fontWeight="700"
+            bg="surface"
+            borderWidth={1}
+            borderColor="borderColor"
+            rounded={999}
+            px={8}
+            py={4}
+            shrink={0}
+          >
+            {item.isOpen ? dictionary.open : dictionary.closed}
+          </Text>
+        </XStack>
       </YStack>
-      <Text
-        color={item.isOpen ? "ok" : "error"}
-        fontSize={11}
-        fontWeight="700"
-        bg="surface"
-        borderWidth={1}
-        borderColor="borderColor"
-        rounded={999}
-        px={8}
-        py={4}
-      >
-        {item.isOpen ? dictionary.open : dictionary.closed}
-      </Text>
     </Button>
   );
 }
