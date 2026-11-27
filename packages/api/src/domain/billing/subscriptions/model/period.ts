@@ -6,7 +6,7 @@
  * and writes use UTC, so the result is independent of the process time zone
  * (Node locally and the Cloudflare Worker). The input Date is not mutated.
  */
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 
 export function addMonths(date: Date, months: number): Date {
   const targetMonthIndex = date.getUTCMonth() + months;

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { getBusinessCarousel } from "@aqui-suena/api/domain/ads/business-carousel";
-import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/media/in-memory-object-storage";
 import {
   applyLocalMigrations,
   openLocalDatabase,

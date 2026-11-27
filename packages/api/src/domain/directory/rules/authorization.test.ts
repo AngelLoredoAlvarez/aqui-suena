@@ -3,7 +3,7 @@ import {
   assertOwnsBusiness,
   BusinessAccessDeniedError,
 } from "@aqui-suena/api/domain/directory/rules/authorization";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
 import { describe, expect, it } from "vitest";
 
 function makeBusiness(overrides: Partial<Business> = {}): Business {

@@ -1,7 +1,7 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { Service } from "@aqui-suena/api/domain/directory/model/service";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryServiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-service-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryServiceRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-service-repository";
 import { createServicesRouter } from "@aqui-suena/api/server/routers/directory/services";
 import { describe, expect, it } from "vitest";
 

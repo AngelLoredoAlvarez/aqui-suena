@@ -1,6 +1,6 @@
 import type { NewPayment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import { ExpirePayment } from "@aqui-suena/api/domain/billing/payments/use-cases/expire-payment";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");

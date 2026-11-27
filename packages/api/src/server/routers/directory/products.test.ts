@@ -1,9 +1,9 @@
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { Product } from "@aqui-suena/api/domain/directory/model/product";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryProductRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-product-repository";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryProductRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-product-repository";
 import { createProductsRouter } from "@aqui-suena/api/server/routers/directory/products";
 import { describe, expect, it } from "vitest";
 

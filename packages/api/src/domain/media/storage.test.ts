@@ -1,5 +1,5 @@
 import { MediaValidationError } from "@aqui-suena/api/domain/media/storage";
-import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/in-memory-object-storage";
+import { InMemoryObjectStorage } from "@aqui-suena/api/infrastructure/memory/media/in-memory-object-storage";
 import { describe, expect, it } from "vitest";
 
 describe("InMemoryObjectStorage", () => {

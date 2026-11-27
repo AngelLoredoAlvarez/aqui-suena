@@ -1,4 +1,4 @@
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
 import { DataIntegrityError } from "@aqui-suena/api/shared/domain-error";
 
@@ -6,7 +6,7 @@ export {
   BILLING_INTERVALS,
   type BillingInterval,
   parseBillingInterval,
-} from "@aqui-suena/api/domain/billing/billing-interval";
+} from "@aqui-suena/api/domain/billing/model/billing-interval";
 
 export const PAYMENT_STATUSES = ["pending", "completed", "failed", "expired", "refunded"] as const;
 

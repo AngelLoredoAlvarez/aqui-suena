@@ -1,7 +1,7 @@
 import { SubscriptionPaymentWriter } from "@aqui-suena/api/domain/billing/subscriptions/ports/subscription-payment-writer";
 import { RenewSubscription } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/renew";
 import { SubscribeToPlan } from "@aqui-suena/api/domain/billing/subscriptions/use-cases/subscribe";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");

@@ -1,5 +1,5 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
-import { composeMeta } from "@aqui-suena/ui/ads-carousel/compose-meta";
+import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { Button, Text, YStack } from "tamagui";
 

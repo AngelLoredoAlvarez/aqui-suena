@@ -1,5 +1,5 @@
 import { HARNESS_STATIONS } from "@aqui-suena/api/domain/radio/harness";
-import { InMemoryStationRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-station-repository";
+import { InMemoryStationRepository } from "@aqui-suena/api/infrastructure/memory/radio/in-memory-station-repository";
 import { defaultPlanRepository } from "@aqui-suena/api/server/composition/plans";
 import { createInMemoryRepositories } from "@aqui-suena/api/server/composition/repositories";
 import { createAppRouter } from "@aqui-suena/api/server/trpc/router";

@@ -1,4 +1,4 @@
-import type { BillingInterval } from "@aqui-suena/api/domain/billing/billing-interval";
+import type { BillingInterval } from "@aqui-suena/api/domain/billing/model/billing-interval";
 import type { EmailLocale } from "@aqui-suena/api/domain/email/email-template";
 
 export interface SubscriptionNotificationOptions {

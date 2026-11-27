@@ -13,9 +13,9 @@ import type {
   CheckoutInput,
   CheckoutService,
 } from "@aqui-suena/api/domain/billing/payments/use-cases/checkout-service";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
-import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-cfdi-invoice-repository";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
+import { InMemoryCfdiInvoiceRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-cfdi-invoice-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
 import { createBillingRouter } from "@aqui-suena/api/server/routers/billing/billing";
 import { UpgradeRequired } from "@aqui-suena/api/shared/domain-error";
 import { describe, expect, it } from "vitest";

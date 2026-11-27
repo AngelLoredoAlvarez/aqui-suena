@@ -1,7 +1,7 @@
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { Flyer } from "@aqui-suena/api/domain/directory/model/flyer";
-import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-business-repository";
-import { InMemoryFlyerRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-flyer-repository";
+import { InMemoryBusinessRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-business-repository";
+import { InMemoryFlyerRepository } from "@aqui-suena/api/infrastructure/memory/directory/in-memory-flyer-repository";
 import { describe, expect, it } from "vitest";
 
 function makeBusiness(id: string, hidden: boolean): Business {

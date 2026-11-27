@@ -2,7 +2,6 @@ import type { Account } from "@aqui-suena/api/domain/accounts/account";
 import type { Payment } from "@aqui-suena/api/domain/billing/payments/model/payment";
 import type { CreatePaymentInput } from "@aqui-suena/api/domain/billing/payments/use-cases/create-payment";
 import { RenewSubscriptions } from "@aqui-suena/api/domain/billing/payments/use-cases/renew-subscriptions";
-import { plans } from "@aqui-suena/api/domain/billing/subscriptions/fixtures";
 import { addInterval } from "@aqui-suena/api/domain/billing/subscriptions/model/period";
 import type { Subscription } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription";
 import type {
@@ -11,10 +10,11 @@ import type {
 } from "@aqui-suena/api/domain/billing/subscriptions/model/subscription-options";
 import type { Business } from "@aqui-suena/api/domain/directory/model/business";
 import type { PlanId } from "@aqui-suena/api/domain/plans/entitlements";
-import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-account-repository";
-import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-payment-repository";
-import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-plan-repository";
-import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/in-memory-subscription-repository";
+import { InMemoryAccountRepository } from "@aqui-suena/api/infrastructure/memory/accounts/in-memory-account-repository";
+import { InMemoryPaymentRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-payment-repository";
+import { InMemorySubscriptionRepository } from "@aqui-suena/api/infrastructure/memory/billing/in-memory-subscription-repository";
+import { InMemoryPlanRepository } from "@aqui-suena/api/infrastructure/memory/plans/in-memory-plan-repository";
+import { plans } from "@aqui-suena/api/testing/plan-fixtures";
 import { describe, expect, it } from "vitest";
 
 const NOW = new Date("2026-11-19T12:00:00Z");
