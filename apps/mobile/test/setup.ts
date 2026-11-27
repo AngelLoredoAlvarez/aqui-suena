@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import React from "react";
 import { vi } from "vitest";
 
-type Props = Record<string, unknown>;
+type Props = { children?: ReactNode; [key: string]: unknown };
 
 /**
  * Maps React Native host components to DOM elements so components can be
