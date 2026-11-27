@@ -11,16 +11,16 @@ Open-stream radio with autoplay plus local business discovery, by 17Labs. A Turb
 
 ## Layout
 
-| Path              | What lives there                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/web`        | Next.js 16 App Router + React Native Web                                                                                                                                                                                                                                                                                                                                                               |
-| `apps/mobile`     | Expo SDK 58 + Expo Router                                                                                                                                                                                                                                                                                                                                                                              |
-| `apps/desktop`    | Tauri shell that wraps the web static export                                                                                                                                                                                                                                                                                                                                                           |
-| `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media)                                                                                                                                                                                                                                                                                                                                              |
-| `packages/ui`     | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS                                                                                                                                                                                                                                      |
-| `packages/player` | Playback core (`usePlayer`, mirror fallback, error mapper) + desktop tray integration (menu model, sync, close-to-tray)                                                                                                                                                                                                                                                                                |
-| `packages/api`    | tRPC contract (radio, directory, ads, plans, subscriptions, payments, media and support) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + transactional email (sender wired; subscription lifecycle, renewal reminders, payment pending/receipt and CFDI delivery are live; account welcome/verification wait on signup) + AI support chatbot (Vectorize RAG + AI Gateway, both optional) |
-| `packages/db`     | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`, `accounts`, `account_preferences`, `plans`, `subscriptions` (with `grace_end`), `subscription_reminders`, `payments`, `payment_events`, `cfdi_invoices`, `businesses` (with `hidden_at`/`retained_until`, cascading directory children), `services`, `work_entries`, `products`, `photos`, `flyers`, `hours`, `media` (nullable business scope, unique object key))                                             |
+| Path              | What lives there                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web`        | Next.js 16 App Router + React Native Web                                                                                                                                                                                                                                                                                                                                                                                      |
+| `apps/mobile`     | Expo SDK 58 + Expo Router                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `apps/desktop`    | Tauri shell that wraps the web static export                                                                                                                                                                                                                                                                                                                                                                                  |
+| `packages/config` | Canonical `tamagui.config` (tokens, themes, fonts, media)                                                                                                                                                                                                                                                                                                                                                                     |
+| `packages/ui`     | Shared Tamagui provider + components (player card, station selector, ads carousel, i18n, ts-pattern state helpers, jotai atoms) — no `next/link`, no web-only CSS                                                                                                                                                                                                                                                             |
+| `packages/player` | Playback core (`usePlayer`, mirror fallback, error mapper) + desktop tray integration (menu model, sync, close-to-tray)                                                                                                                                                                                                                                                                                                       |
+| `packages/api`    | tRPC contract (radio, directory, ads, plans, subscriptions, payments, media and support) + Hono backend (Node + Cloudflare Worker) + `/stream` proxy + transactional email (sender wired; subscription lifecycle, renewal reminders, payment pending/receipt and CFDI delivery are live; account welcome/verification wait on signup) + AI support chatbot (Vectorize RAG + AI Gateway, both optional)                        |
+| `packages/db`     | Drizzle schema (SQLite/D1: `stations`, `listen_sessions`, `accounts`, `account_preferences`, `plans`, `subscriptions` (with `grace_end`), `subscription_reminders`, `payments`, `payment_events`, `cfdi_invoices`, `businesses` (with `hidden_at`/`retained_until`, cascading directory children), `services`, `work_entries`, `products`, `photos`, `flyers`, `hours`, `media` (nullable business scope, unique object key)) |
 
 ## Scripts
 
@@ -92,24 +92,24 @@ landing links are inert until they land.
 
 ## Docs and planning
 
-| Doc                                                        | Purpose                                                         |
-| ---------------------------------------------------------- | --------------------------------------------------------------- |
-| `docs/specs/SPEC-ads-display.md`                           | Sponsor carousel during listening                               |
-| `docs/specs/SPEC-business-directory.md`                    | Listings: products, services, photos, hours, flyers             |
-| `docs/specs/SPEC-landing.md`                               | Responsive landing shell: directory, carousel, dock, theme      |
-| `docs/specs/SPEC-live-listener-count.md`                   | Superseded decision record for the heartbeat                    |
-| `docs/specs/SPEC-media-storage.md`                         | Media storage: R2 upload + image optimization (free tier)       |
-| `docs/specs/SPEC-memberships.md`                           | Three business plans, entitlements, and carousel priority       |
-| `docs/specs/SPEC-notifications.md`                         | Push notifications: campaigns and owner triggers Comercios-only |
-| `docs/specs/SPEC-offline.md`                               | Offline/no-connection handling                                  |
-| `docs/specs/SPEC-owner-portal.md`                          | Owner portal: listings, billing, media/PDF viewer, spot preview |
-| `docs/specs/SPEC-radio-playback.md`                        | MVP spec: autoplay, fallback, status, test-stations harness     |
-| `docs/specs/SPEC-radio-spots.md`                           | Audio spots: Comercios & Catálogo only, flag off until launch   |
-| `docs/specs/SPEC-splash-screens.md`                        | Splash animations, platform behavior and timing policy          |
-| `docs/specs/SPEC-support-chatbot.md`                       | Support chatbot scope and constraints                           |
-| `CAPABILITY-MAP.md`                                        | Module map                                                      |
-| `odd/tasks/`                                               | Per-task execution trackers                                     |
-| `odd/tasks/backlog.md`                                     | Cross-feature TODO list                                         |
+| Doc                                      | Purpose                                                         |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| `docs/specs/SPEC-ads-display.md`         | Sponsor carousel during listening                               |
+| `docs/specs/SPEC-business-directory.md`  | Listings: products, services, photos, hours, flyers             |
+| `docs/specs/SPEC-landing.md`             | Responsive landing shell: directory, carousel, dock, theme      |
+| `docs/specs/SPEC-live-listener-count.md` | Superseded decision record for the heartbeat                    |
+| `docs/specs/SPEC-media-storage.md`       | Media storage: R2 upload + image optimization (free tier)       |
+| `docs/specs/SPEC-memberships.md`         | Three business plans, entitlements, and carousel priority       |
+| `docs/specs/SPEC-notifications.md`       | Push notifications: campaigns and owner triggers Comercios-only |
+| `docs/specs/SPEC-offline.md`             | Offline/no-connection handling                                  |
+| `docs/specs/SPEC-owner-portal.md`        | Owner portal: listings, billing, media/PDF viewer, spot preview |
+| `docs/specs/SPEC-radio-playback.md`      | MVP spec: autoplay, fallback, status, test-stations harness     |
+| `docs/specs/SPEC-radio-spots.md`         | Audio spots: Comercios & Catálogo only, flag off until launch   |
+| `docs/specs/SPEC-splash-screens.md`      | Splash animations, platform behavior and timing policy          |
+| `docs/specs/SPEC-support-chatbot.md`     | Support chatbot scope and constraints                           |
+| `CAPABILITY-MAP.md`                      | Module map                                                      |
+| `odd/tasks/`                             | Per-task execution trackers                                     |
+| `odd/tasks/backlog.md`                   | Cross-feature TODO list                                         |
 
 ## Status
 
