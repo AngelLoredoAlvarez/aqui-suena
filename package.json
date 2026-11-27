@@ -33,8 +33,8 @@
     "varlock:codegen": "varlock codegen"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
-    "@infisical/cli": "^0.45.14",
+    "@biomejs/biome": "2.6.9",
+    "@infisical/cli": "^0.45.15",
     "@swc/core": "1.16.22",
     "@varlock/infisical-plugin": "^2.1.3",
     "dependency-cruiser": "18.9.0",
@@ -43,7 +43,7 @@
     "turbo": "2.11.13",
     "typescript": "7.0.2",
     "varlock": "^1.25.0",
-    "wrangler": "4.166.0"
+    "wrangler": "4.168.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc}": [

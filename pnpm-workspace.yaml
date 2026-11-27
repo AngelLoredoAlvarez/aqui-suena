@@ -9,11 +9,11 @@ packages:
 # context. Keep this catalog aligned with scripts/check-singletons.mjs.
 catalog:
   "@tamagui/image": 3.3.3
-  "@tanstack/react-query": 5.108.2
-  "@types/react": 19.3.0
+  "@tanstack/react-query": 5.108.4
+  "@types/react": 19.3.3
   "@types/react-dom": 19.3.0
   expo-audio: 58.0.12
-  expo-image: 58.0.18
+  expo-image: 58.0.19
   jotai: 3.0.2
   react: 19.3.1
   react-dom: 19.3.1
