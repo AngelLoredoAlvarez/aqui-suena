@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es" className={jakarta.className} suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="/boot-splash.css" />
+        <link rel="stylesheet" href="/ads-carousel.css" />
         <script
           dangerouslySetInnerHTML={{
             __html:
