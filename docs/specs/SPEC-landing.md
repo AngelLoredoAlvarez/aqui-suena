@@ -45,7 +45,7 @@ the directory/carousel is used, and no station screen is introduced.
 
 ### Tablet (1024×768) — `TabletLanding`
 
-- Header: brand, assistant pill, language pill, menu icon.
+- Header: brand lockup (logo mark + "Aquí Suena"), assistant pill, language pill, menu icon.
 - Left column (300 px): search, category/open/delivery chips, "Negocios" list of
   unique sponsored businesses (initials avatar, name, localized category +
   delivery, open/closed badge), legal links.
@@ -56,7 +56,7 @@ the directory/carousel is used, and no station screen is introduced.
 
 ### Web (1440×900) — `WebLanding`
 
-- Header: brand, assistant pill, language pill, theme toggle, "Mis negocios".
+- Header: brand lockup (logo mark + "Aquí Suena"), assistant pill, language pill, theme toggle, "Mis negocios".
 - Left column (380 px) and right panel scaled up (480 px flyer), same content as
   tablet. The theme toggle switches Noche/Brasa and persists in localStorage.
   The player dock keeps a 12 px bottom margin. When moved above the
