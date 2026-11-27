@@ -17,7 +17,7 @@ Objective: close the TDD, SOLID and Clean Code gaps found in the full-repo audit
 - S11 — Move `domain/billing/billing-interval.ts` into `model/`. DONE.
 - S12 — Split `ui/ads-carousel/` into `components/`, `hooks/`, `utils/`. DONE.
 - S13 — Rename `conekta-webhook-route.test.ts` to `app-conekta-webhook-route.test.ts` (maps to `app.ts`). DONE.
-- S14 — Desktop app has no frontend: product decision required (no code change without direction). BLOCKED.
+- S14 — Desktop app frontend — REVISED: false positive. The desktop already wraps the web app (tauri.conf.json `frontendDist: ../../web/out`, `devUrl`/`beforeDevCommand`/`beforeBuildCommand` all wired; `fix/desktop-build` feature shipped it). Verified the static export still builds. No change.
 
 ## Tasks
 
@@ -41,4 +41,4 @@ Objective: close the TDD, SOLID and Clean Code gaps found in the full-repo audit
 - L1 — Full-repo audit for strict TDD, SOLID and Clean Code, plus directory organization; every finding must be fixed regardless of size.
 - L2 — Reorg executed (composition/invoice, http/webhooks, memory by domain, billing/model, ads-carousel split, conekta route test rename); full typecheck + tests green after each stage.
 - L3 — S5 and S7 investigated: both are type-only modules (no runtime behavior) — validation correctly lives at the valibot router boundary; no test is meaningful, recorded as no-change rather than fabricating a test.
-- L4 — S14 (desktop frontend) is a product decision, not a defect; left pending a decision on whether desktop wraps the web app or stays a shell.
+- L4 — S14 investigated further: the desktop already wraps the web app (external Tauri frontend via `frontendDist`); the earlier "no frontend" reading only checked file extensions inside `apps/desktop/`. Verified `STATIC_EXPORT=1 pnpm --filter web build` still passes after the reorg. No code change needed.
