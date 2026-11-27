@@ -1,5 +1,6 @@
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { AssistantButton } from "@aqui-suena/ui/player-landing/components/header/assistant-button";
+import { BrandMark } from "@aqui-suena/ui/player-landing/components/header/brand-mark";
 import { IconButton } from "@aqui-suena/ui/player-landing/components/header/icon-button";
 import { LanguageButton } from "@aqui-suena/ui/player-landing/components/header/language-button";
 import { SearchPill } from "@aqui-suena/ui/player-landing/components/search-pill";
@@ -53,9 +54,12 @@ export function LandingHeader({
       borderBottomWidth={variant === "web" ? 1 : 0}
       borderColor="borderColor"
     >
-      <H1 color="text" fontWeight="700" fontSize={variant === "web" ? 22 : 20} m={0}>
-        {dictionary.appTitle}
-      </H1>
+      <XStack items="center" gap={variant === "web" ? 10 : 8}>
+        <BrandMark size={variant === "web" ? 32 : 26} testID="landing-brand-mark" />
+        <H1 color="text" fontWeight="700" fontSize={variant === "web" ? 22 : 20} m={0}>
+          {dictionary.appTitle}
+        </H1>
+      </XStack>
       <XStack gap={8} items="center">
         <AssistantButton compact={false} onPress={onOpenAssistant} />
         <LanguageButton />

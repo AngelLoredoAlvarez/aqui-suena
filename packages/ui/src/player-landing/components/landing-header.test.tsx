@@ -19,6 +19,7 @@ describe("LandingHeader", () => {
     expect(screen.getByTestId("landing-language")).toBeTruthy();
     expect(screen.getByTestId("landing-menu")).toBeTruthy();
     expect(screen.queryByText("Aquí Suena")).toBeNull();
+    expect(screen.queryByTestId("landing-brand-mark")).toBeNull();
     expect(screen.queryByTestId("landing-theme")).toBeNull();
   });
 
@@ -26,6 +27,7 @@ describe("LandingHeader", () => {
     renderWithProviders(<LandingHeader variant="web" />, { locale: "en" });
 
     expect(screen.getByText("Aquí Suena")).toBeTruthy();
+    expect(screen.getByTestId("landing-brand-mark")).toBeTruthy();
     expect(screen.getByTestId("landing-theme")).toBeTruthy();
     expect(screen.getByTestId("landing-my-businesses")).toBeTruthy();
     expect(screen.queryByTestId("landing-menu")).toBeNull();
@@ -35,6 +37,7 @@ describe("LandingHeader", () => {
     renderWithProviders(<LandingHeader variant="tablet" />, { locale: "en" });
 
     expect(screen.getByText("Aquí Suena")).toBeTruthy();
+    expect(screen.getByTestId("landing-brand-mark")).toBeTruthy();
     expect(screen.getByTestId("landing-menu")).toBeTruthy();
     expect(screen.queryByTestId("landing-theme")).toBeNull();
     expect(screen.queryByTestId("landing-my-businesses")).toBeNull();
