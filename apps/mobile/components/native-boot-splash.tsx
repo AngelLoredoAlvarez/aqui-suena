@@ -14,6 +14,7 @@ import {
 } from "@aqui-suena/mobile/components/splash-progress";
 import { useBootSplashAnimation } from "@aqui-suena/mobile/components/use-boot-splash-animation";
 import { Animated, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { G, Path, Rect } from "react-native-svg";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -24,6 +25,7 @@ export function NativeBootSplash() {
   const { wide, logoSize, titleSize, trackWidth, trackMargin, footerBottom, footerSize, markSize } =
     splashLayout(width);
   const { reduceMotion, cursorVisible, arc, arcAlt, fill, bars } = useBootSplashAnimation();
+  const insets = useSafeAreaInsets();
 
   const equalizerBars = zipEqualizerBars(bars);
 
@@ -131,7 +133,7 @@ export function NativeBootSplash() {
         </View>
       </View>
       <FooterMark
-        footerBottom={footerBottom}
+        footerBottom={footerBottom + insets.bottom}
         footerSize={footerSize}
         markSize={markSize}
         arcOpacity={arcOpacity}

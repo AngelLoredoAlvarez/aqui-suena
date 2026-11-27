@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import React from "react";
 import { vi } from "vitest";
 
-type Props = Record<string, unknown>;
+type Props = { children?: ReactNode; [key: string]: unknown };
 
 /**
  * Maps React Native host components to DOM elements so components can be
@@ -145,6 +146,7 @@ vi.mock("expo-localization", () => ({
 
 vi.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: ({ children }: Props) => children,
+  useSafeAreaInsets: vi.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
 }));
 
 vi.mock("@expo-google-fonts/plus-jakarta-sans", () => ({
