@@ -1,11 +1,11 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { useLocale } from "@aqui-suena/ui/i18n";
+import { SearchPill } from "@aqui-suena/ui/player-landing/components/search-pill";
 import { BusinessCard } from "@aqui-suena/ui/player-landing/components/sidebar/business-card";
 import {
   type Filter,
   FilterChip,
 } from "@aqui-suena/ui/player-landing/components/sidebar/filter-chip";
-import { SearchPill } from "@aqui-suena/ui/player-landing/components/sidebar/search-pill";
 import { useMemo, useState } from "react";
 import { Button, ScrollView, Text, XStack, YStack } from "tamagui";
 
