@@ -6,7 +6,9 @@ packages:
 # contexts, native modules). pnpm materializes one directory per resolved peer
 # set, and @types/react is a peer too: two type versions fork the runtime module
 # into two module registries, so a provider and its consumer stop sharing a
-# context. Keep this catalog aligned with scripts/check-singletons.mjs.
+# context. Keep this catalog aligned with scripts/check-singletons.mjs, and keep
+# the Expo-managed entries aligned with `npx expo install --check` (react,
+# react-dom, gesture-handler and reanimated follow the installed SDK table).
 catalog:
   "@tamagui/image": 3.3.3
   "@tanstack/react-query": 5.108.4
@@ -15,11 +17,11 @@ catalog:
   expo-audio: 58.0.12
   expo-image: 58.0.19
   jotai: 3.0.2
-  react: 19.3.1
-  react-dom: 19.3.1
+  react: 19.3.0
+  react-dom: 19.3.0
   react-native: 0.88.1
-  react-native-gesture-handler: 3.5.0
-  react-native-reanimated: 4.8.0
+  react-native-gesture-handler: 3.3.0
+  react-native-reanimated: 4.7.1
   react-native-safe-area-context: 5.11.1
   react-native-screens: 4.30.1
   tamagui: 3.3.3

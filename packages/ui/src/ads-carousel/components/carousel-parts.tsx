@@ -141,7 +141,7 @@ export function FlyerTransition({ children }: { children: ReactNode }) {
     return (
       <YStack
         testID="ads-carousel-flyer-layer"
-        animation="quickLessBouncy"
+        transition="quickLessBouncy"
         opacity={layer.opacity}
         x={layer.x}
         flex={1}
@@ -156,7 +156,7 @@ export function FlyerTransition({ children }: { children: ReactNode }) {
   return (
     <YStack
       testID="ads-carousel-flyer-layer"
-      animation="quickLessBouncy"
+      transition="quickLessBouncy"
       opacity={layer.opacity}
       x={layer.x}
       position="absolute"
