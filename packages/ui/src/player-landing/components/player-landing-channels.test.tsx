@@ -264,4 +264,14 @@ describe("PlayerLanding station sheet", () => {
     expect(playSpy).toHaveBeenCalledWith("/test-streams/aqui-suena-night.m4a");
     expect(screen.queryByTestId("station-sheet")).toBeNull();
   });
+
+  it("anchors the sheet backdrop above the player dock on mobile", async () => {
+    renderLanding("es");
+
+    await screen.findByText(/escuchando/);
+
+    fireEvent.click(screen.getByTestId("station-name"));
+
+    expect(getComputedStyle(screen.getByTestId("station-sheet-backdrop")).bottom).toBe("106px");
+  });
 });

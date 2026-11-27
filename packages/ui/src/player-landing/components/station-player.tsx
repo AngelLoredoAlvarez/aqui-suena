@@ -15,6 +15,8 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Paragraph, useMedia, YStack } from "tamagui";
 
+const SHEET_BACKDROP_BOTTOM_OFFSET = 106;
+
 export function StationPlayer({
   channel,
   stationName,
@@ -91,7 +93,7 @@ export function StationPlayer({
       onClose={closeSheet}
       dim={!isWide}
       zIndex={isWide ? 3 : 1}
-      bottom={isWide ? 0 : 106}
+      bottom={isWide ? 0 : SHEET_BACKDROP_BOTTOM_OFFSET}
     />
   );
 
