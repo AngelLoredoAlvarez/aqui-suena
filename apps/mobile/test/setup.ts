@@ -145,6 +145,7 @@ vi.mock("expo-localization", () => ({
 
 vi.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: ({ children }: Props) => children,
+  useSafeAreaInsets: vi.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
 }));
 
 vi.mock("@expo-google-fonts/plus-jakarta-sans", () => ({

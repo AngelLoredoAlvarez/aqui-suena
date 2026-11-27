@@ -3,6 +3,7 @@
 import { NativeBootSplash } from "@aqui-suena/mobile/components/native-boot-splash";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { AccessibilityInfo, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 afterEach(cleanup);
@@ -15,6 +16,7 @@ beforeEach(() => {
     scale: 1,
     fontScale: 1,
   });
+  vi.mocked(useSafeAreaInsets).mockReturnValue({ top: 0, bottom: 0, left: 0, right: 0 });
 });
 
 describe("NativeBootSplash", () => {
@@ -25,6 +27,15 @@ describe("NativeBootSplash", () => {
     expect(screen.getByText("by")).toBeTruthy();
     expect(screen.getByText("17")).toBeTruthy();
     expect(screen.getByText("Labs")).toBeTruthy();
+  });
+
+  it("lifts the footer mark above the bottom safe-area inset", () => {
+    vi.mocked(useSafeAreaInsets).mockReturnValue({ top: 0, bottom: 48, left: 0, right: 0 });
+
+    render(<NativeBootSplash />);
+
+    const footer = screen.getByText("by").parentElement;
+    expect(footer?.style.bottom).toBe("88px");
   });
 
   it("exposes the loading state through two progressbar regions", () => {
