@@ -7,6 +7,7 @@ import {
 } from "@aqui-suena/ui/ads-carousel/components/carousel-parts";
 import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/hooks/use-carousel-drag";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
+import { fitNameFontSize } from "@aqui-suena/ui/ads-carousel/utils/fit-name-font-size";
 import { formatSchedule } from "@aqui-suena/ui/ads-carousel/utils/format-schedule";
 import {
   getResponsiveCarouselMaxW,
@@ -18,7 +19,8 @@ import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Paragraph, ScrollView, Text, useMedia, XStack, YStack } from "tamagui";
+import type { LayoutChangeEvent } from "react-native";
+import { Button, isWeb, Paragraph, ScrollView, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -71,7 +73,13 @@ function AdsCarouselDetails({
   schedule: string;
 }) {
   const { dictionary } = useLocale();
+  const [detailsWidth, setDetailsWidth] = useState<number>();
+  const nameWidth = detailsWidth === undefined || detailsWidth <= 0 ? undefined : detailsWidth - 48;
   const showsBusinessCta = item.plan === "trades" || item.plan === "commerce";
+  const displayedNameFontSize = isWide
+    ? fitNameFontSize(item.name, nameWidth, nameFontSize)
+    : nameFontSize;
+  const nameLineHeight = Math.round(displayedNameFontSize * 1.2);
 
   return (
     <YStack
@@ -79,8 +87,19 @@ function AdsCarouselDetails({
       minH={isWide ? 0 : undefined}
       p={isWide ? 24 : 16}
       gap={6}
+      onLayout={
+        isWide
+          ? (event: LayoutChangeEvent) => setDetailsWidth(event.nativeEvent.layout.width)
+          : undefined
+      }
     >
-      <Paragraph fontWeight="700" fontSize={nameFontSize}>
+      <Paragraph
+        testID="ads-carousel-business-name"
+        fontWeight="700"
+        fontSize={displayedNameFontSize}
+        lineHeight={isWeb ? `${nameLineHeight}px` : nameLineHeight}
+        numberOfLines={isWide ? 1 : undefined}
+      >
         {item.name}
       </Paragraph>
       <Paragraph color="muted" fontSize={14}>
@@ -227,13 +246,9 @@ export function AdsCarousel({
   const meta = composeMeta(
     {
       category: dictionary.category(current.category),
-      delivery: current.delivery,
       opensLabel: current.opensAt ? dictionary.opensAt(current.opensAt) : undefined,
     },
-    {
-      isWide,
-      deliveryLabel: dictionary.delivery,
-    },
+    { isWide },
   );
 
   const statusLabel = current.isOpen ? dictionary.open : dictionary.closed;

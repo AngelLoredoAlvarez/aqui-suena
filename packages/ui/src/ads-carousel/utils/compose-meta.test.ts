@@ -3,44 +3,26 @@ import { describe, expect, it } from "vitest";
 
 const source = {
   category: "Comida",
-  delivery: true,
   opensLabel: "Abre 8:00",
 };
 
 describe("composeMeta", () => {
-  it("omits the delivery label on mobile", () => {
-    expect(composeMeta(source, { isWide: false, deliveryLabel: "Servicio a domicilio" })).toBe(
-      "Comida · Abre 8:00",
-    );
+  it("composes category and opening time on mobile", () => {
+    expect(composeMeta(source, { isWide: false })).toBe("Comida · Abre 8:00");
   });
 
-  it("includes the delivery label on wide", () => {
-    expect(composeMeta(source, { isWide: true, deliveryLabel: "Servicio a domicilio" })).toBe(
-      "Comida · Servicio a domicilio",
-    );
-  });
-
-  it("omits delivery when false (no negative badge)", () => {
-    expect(
-      composeMeta(
-        { category: "Salud", delivery: false },
-        {
-          isWide: false,
-          deliveryLabel: "Servicio a domicilio",
-        },
-      ),
-    ).toBe("Salud");
+  it("omits the opening time on wide", () => {
+    expect(composeMeta(source, { isWide: true })).toBe("Comida");
   });
 
   it("omits a missing opensLabel on mobile", () => {
-    expect(
-      composeMeta(
-        { category: "Comida", delivery: false },
-        {
-          isWide: false,
-          deliveryLabel: "Servicio a domicilio",
-        },
-      ),
-    ).toBe("Comida");
+    expect(composeMeta({ category: "Comida" }, { isWide: false })).toBe("Comida");
+  });
+
+  it("never includes the delivery label", () => {
+    const withDelivery = { ...source, delivery: true };
+
+    expect(composeMeta(withDelivery, { isWide: true })).toBe("Comida");
+    expect(composeMeta(withDelivery, { isWide: false })).toBe("Comida · Abre 8:00");
   });
 });

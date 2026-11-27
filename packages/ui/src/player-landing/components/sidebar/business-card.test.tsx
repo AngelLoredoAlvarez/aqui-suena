@@ -28,7 +28,8 @@ describe("BusinessCard", () => {
     expect(screen.getByTestId("business-card-a")).toBeTruthy();
     expect(screen.getByText("CR")).toBeTruthy();
     expect(screen.getByText("Casa Rosa")).toBeTruthy();
-    expect(screen.getByText("Food · Home delivery")).toBeTruthy();
+    expect(screen.getByText("Food")).toBeTruthy();
+    expect(screen.queryByText("Food · Home delivery")).toBeNull();
   });
 
   it("shows the open badge for an open business", () => {
