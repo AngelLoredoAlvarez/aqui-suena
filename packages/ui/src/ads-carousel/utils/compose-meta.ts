@@ -11,7 +11,7 @@ export type ComposeMetaOptions = {
 
 export function composeMeta(source: MetaSource, options: ComposeMetaOptions): string {
   const segments: string[] = [source.category];
-  if (source.delivery) {
+  if (options.isWide && source.delivery) {
     segments.push(options.deliveryLabel);
   }
   if (!options.isWide && source.opensLabel) {

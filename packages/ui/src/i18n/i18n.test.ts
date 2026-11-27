@@ -60,6 +60,8 @@ describe("i18n contract", () => {
     expect(en.closed).toBe("Closed");
     expect(es.delivery).toBe("Servicio a domicilio");
     expect(en.delivery).toBe("Home delivery");
+    expect(es.deliveryBadge).toBe("A domicilio");
+    expect(en.deliveryBadge).toBe("Delivery");
     expect(es.viewBusiness).toBe("Ver negocio");
     expect(en.viewBusiness).toBe("View business");
     expect(es.noSponsoredBusinesses).toBe("Aún no hay negocios patrocinados");

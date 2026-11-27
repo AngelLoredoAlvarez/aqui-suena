@@ -84,6 +84,8 @@ Conventions: sheet overlays content but never unmounts the player; carousel auto
 - Delivery flag in the sheet is informational only; tap resolves to a phone/WhatsApp + address contact handoff, never to dispatch or tracking in V1.
 - Sheet delivery flag display is conditional (rendered only when delivery is true, absent when false with no negative badge) via i18n dictionary: ES "Servicio a domicilio" / EN "Home delivery", no hardcoded UI copy.
 - Open-status badge is always visible on carousel card + sheet as exactly one of Abierto/Cerrado via i18n dictionary (ES "Abierto" / "Cerrado" + EN "Open" / "Closed"), server-derived from hours + now in the business timezone, same visibility tier as the delivery flag, no hardcoded UI copy.
+- Delivery chip is rendered in the flyer next to the open-status badge only when `delivery` is true, via i18n dictionary (ES "A domicilio" / EN "Delivery"), with no negative badge when false. It uses theme tokens (`surface`, `borderColor`, `text`, `accent`) so it follows the active theme.
+- The mobile card meta line omits the delivery label because the flyer chip carries it; wide layouts keep the full "Servicio a domicilio" label in the meta line.
 - Sponsors rank deterministically by plan: Comercios & Catálogo first, then Oficios & Servicios, then Comunidad, with recency as tie-breaker; no cap on Comunidad entries and no per-session cap (full ranked rotation). Exact weights are defined in SPEC-memberships once approved.
 - Player dock (top/bottom) never overlaps carousel controls (verified headed).
 - On tablets the detail sheet uses two columns (info fixed left, products scrolling right) instead of stretching the phone layout.
@@ -104,9 +106,10 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   memory-disk policy on native). The carousel already receives every ranked
   flyer in one `ads.carousel` response, so only the images need warming.
 - **Slide anatomy is identical across platforms**: the whole flyer image
-  (`object-fit: contain`, centered) + an open-status badge top-right +
-  previous/next navigation buttons overlaid on the image. The gap left by the
-  flyer's aspect ratio shows the `surface2` letterbox.
+  (`object-fit: contain`, centered) + a top-right chip row with the conditional
+  delivery chip (`A domicilio` / `Delivery`, house icon) and the open-status
+  badge + previous/next navigation buttons overlaid on the image. The gap left
+  by the flyer's aspect ratio shows the `surface2` letterbox.
 - **Flyer fit**: `cover` is rejected because uploaded flyers have arbitrary
   aspect ratios (seeded set ranges from 0.48 to 1.0) while the panel ratio
   varies by breakpoint (tablet 0.569, web 0.698, mobile 0.749), so covering
@@ -146,9 +149,12 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   keeps `role="group"` and `aria-label="Anuncio N de M"` for the current slide.
 - **Card wrapper**: `border-radius: 28`, `border 1px --bd`, `overflow: hidden`,
   `background: surface`.
-- **Badge**: `.bd` pill top-right (`right:12; top:12`), exactly one of
-  `Abierto` (success `--ok`) / `Cerrado` (danger `--er`) via i18n, never
-  hardcoded (see Success Criteria).
+- **Badge row**: top-right (`right:12; top:12`), `gap:8`, aligned as one
+  `XStack`. The delivery chip is a `.bd` pill with a house icon in `accent`,
+  rendered only when the business delivers. The open-status chip is always
+  present as exactly one of `Abierto` (success `--ok`) / `Cerrado` (danger
+  `--er`) via i18n, never hardcoded (see Success Criteria). Both chips read
+  `surface`, `borderColor` and `text` from the active theme.
 - Palette tokens map 1:1 to the theme: `accent`=`--pr`, `ok`=`--ok`,
   `error`=`--er`, `muted`=`--mu`, `surface`=`--sf`, `surface2`=`--sf2`,
   `borderColor`=`--bd`, `text`=`--tx`, `bg`=`--bg`.
@@ -158,7 +164,8 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - Vertical card fills the space between header and player dock; image area is
   `flex:1` with badge + navigation arrows overlaid, then an info block (`padding:16`,
   `gap:6`): business **name** (`fs:22`, weight 700), **meta** line (`fs:14`,
-  muted — e.g. `"Comida · Entrega a domicilio · Abre 8:00"`), and CTA
+  muted — e.g. `"Comida · Abre 8:00"`; delivery is conveyed by the flyer chip,
+  not the meta line), and CTA
   **"Ver negocio"** (primary pill, `margin-top:8`); the label follows the business's primary public content, not only its account plan: use "Ver catálogo"/"View catalog" when the business has catalog products, "Ver servicios"/"View services" when it has offered services, and "Ver contacto"/"View contact" when it has neither. Comunidad businesses always use "Ver contacto".
 - Header row (48px): search field (`role=search`, placeholder `"Buscar"`) +
   assistant icon + language `ES` + menu icon. Player dock sits below (dark
@@ -194,11 +201,14 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 fields: `{ id, imageUrl, alt, name, category, delivery, opensAt, isOpen, phone,
 address, hours, href? }` — `name` renders the title; `category` is the business
 category enum rendered through the i18n `category` labels ("Comida"/"Food",
-"Servicios"/"Services", …), `delivery` is a boolean rendered via the i18n
-`delivery` label ("Servicio a domicilio" / "Home delivery"), and `opensAt` is
-the next opening time in `H:MM` format for a closed business, rendered via the
-i18n `opensAt` formatter ("Abre 8:00" / "Opens 8:00"). The three compose the
-meta line in one shared function (see below); `isOpen` drives the badge;
+"Servicios"/"Services", …), `delivery` is a boolean that drives the conditional
+flyer chip via the i18n `deliveryBadge` label ("A domicilio" / "Delivery") and
+is included in the wide meta line via the i18n `delivery` label ("Servicio a
+domicilio" / "Home delivery"). `opensAt` is the next opening time in `H:MM`
+format for a closed business, rendered via the i18n `opensAt` formatter
+("Abre 8:00" / "Opens 8:00"). The mobile meta line composes category +
+`opensAt`; the wide meta line composes category + delivery, in one shared
+function (see below); `isOpen` drives the badge;
 `phone`, `address` and `hours` feed the wide landing contact panel (phone,
 WhatsApp, address and a compact weekly schedule); `href` links to the business
 sheet (navigation still TBD). None of these user-facing strings are hardcoded.
@@ -212,7 +222,8 @@ the empty state ("No sponsored businesses yet").
 ### i18n additions (es / en)
 
 `open` ("Abierto"/"Open"), `closed` ("Cerrado"/"Closed"), `delivery`
-("Servicio a domicilio"/"Home delivery"), `category(value)` (Comida/Food,
+("Servicio a domicilio"/"Home delivery"), `deliveryBadge` ("A domicilio"/
+"Delivery"), `category(value)` (Comida/Food,
 Salud/Health, Comercio/Retail, Servicios/Services, Cómputo/Computing,
 Otros/Other, unknown values fall back to the raw value), `opensAt(time)`
 ("Abre 8:00"/"Opens 8:00"), `phone` ("Teléfono"/"Phone"), `whatsapp`
@@ -228,6 +239,8 @@ you here."), `adGroupLabel(index, count)` ("Ad N of M"/"Ad N of M").
 
 `delivery` is canonical across all platforms: the mobile design's "Entrega a
 domicilio" is a design inconsistency, superseded by "Servicio a domicilio".
+The compact flyer chip uses the shorter `deliveryBadge` copy ("A domicilio" /
+"Delivery").
 
 ### Scope boundary
 
@@ -241,13 +254,16 @@ there, not here.
 
 ## Decisions (resolved)
 
-- Meta line is structured (`category` + `delivery` + `opensAt`), composed in
-  one shared function — not a flat `meta` string (see Data model). Category
-  labels and the opening-time prefix are i18n; `opensAt` is omitted while the
-  business is open or when it has no weekly hours.
-- Delivery label is canonical `"Servicio a domicilio"` / `"Home delivery"` on
-  all platforms; the mobile design's "Entrega a domicilio" is a design
-  inconsistency.
-- No sponsorship/disclosure badge: the card stays clean as designed (only the
-  open-status badge). Add a "Patrocinado"/"Sponsored" disclosure only if
-  compliance or the business later requires it.
+- Meta line is structured, composed in one shared function — not a flat `meta`
+  string (see Data model). Mobile composes `category` + `opensAt`; wide layouts
+  compose `category` + `delivery`. Category labels and the opening-time prefix
+  are i18n; `opensAt` is omitted while the business is open or when it has no
+  weekly hours.
+- Delivery label is canonical `"Servicio a domicilio"` / `"Home delivery"` for
+  the sheet and wide meta line; the mobile design's "Entrega a domicilio" is a
+  design inconsistency. The flyer chip uses the compact `"A domicilio"` /
+  `"Delivery"` copy.
+- The flyer badge row carries only the conditional delivery chip and the
+  open-status badge: no sponsorship/disclosure badge. Add a
+  "Patrocinado"/"Sponsored" disclosure only if compliance or the business later
+  requires it.

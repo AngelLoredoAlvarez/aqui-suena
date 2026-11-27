@@ -8,13 +8,13 @@ const source = {
 };
 
 describe("composeMeta", () => {
-  it("composes all segments on mobile", () => {
+  it("omits the delivery label on mobile", () => {
     expect(composeMeta(source, { isWide: false, deliveryLabel: "Servicio a domicilio" })).toBe(
-      "Comida · Servicio a domicilio · Abre 8:00",
+      "Comida · Abre 8:00",
     );
   });
 
-  it("omits opensLabel on wide", () => {
+  it("includes the delivery label on wide", () => {
     expect(composeMeta(source, { isWide: true, deliveryLabel: "Servicio a domicilio" })).toBe(
       "Comida · Servicio a domicilio",
     );

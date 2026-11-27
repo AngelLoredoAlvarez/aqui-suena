@@ -9,6 +9,7 @@ export type IconName =
   | "chevron-right"
   | "arrow-right"
   | "store"
+  | "home"
   | "x"
   | "plus"
   | "minus"
