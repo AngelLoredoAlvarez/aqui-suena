@@ -18,7 +18,7 @@ Objective: apply audit points 1–5, re-verifying each before acting so already-
 
 ## Log
 
-- L1: "en una nueva rama de git aplica los puntos del 1 al , el 6 ignoralo, cuando estes aplicando cada uno de los puntos individuales, haz otra revision antes de aplicar el punto, ya que hay veces que te apendejas y quieres hacer algo que ya esta"
+- L1: Objective — apply audit follow-up points 1–5 on a new branch (point 6 excluded), re-verifying each point against the current code before acting so already-addressed work is not redone.
 - L2: Pre-review confirmed P1 (magic `106` in `station-player.tsx:94`) and P2 (no test pins it) are still open; P3/P4/P5 are already addressed.
 - L3: P3 skipped — `conekta-payment-provider.ts` (320 lines) is a single-port adapter already factored into private `mapOrder`/`mapStatus`/`mapCard` helpers and was recorded as acceptable in a prior audit (memory #711). The `d1-*` repositories are cohesive aggregate repositories with private `mapRow` mappers; further extraction would fragment them without a behavioral win.
 - L4: P4 skipped — `InMemoryAccountRepository` already has direct invariant tests (`domain/accounts/account-repository.test.ts`); the other in-memory repositories are test doubles exercised indirectly through domain use-case tests. Adding dedicated test files for every double is over-engineering.
