@@ -1,0 +1,29 @@
+/* The carousel detail panel keeps a scrollable contact list when the viewport
+   is short. Reserve the scrollbar width so the panel does not shift on hover,
+   but keep the track and thumb transparent until the pointer enters the area. */
+.ads-details-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.ads-details-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ads-details-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ads-details-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.ads-details-scroll:hover {
+  scrollbar-color: rgba(128, 138, 150, 0.55) transparent;
+}
+
+.ads-details-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(128, 138, 150, 0.55);
+}

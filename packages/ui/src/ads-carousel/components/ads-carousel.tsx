@@ -18,7 +18,7 @@ import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
+import { Button, Paragraph, ScrollView, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -73,7 +73,12 @@ function AdsCarouselDetails({
   const { dictionary } = useLocale();
 
   return (
-    <YStack flex={isWide ? 1 : undefined} p={isWide ? 24 : 16} gap={6}>
+    <YStack
+      flex={isWide ? 1 : undefined}
+      minH={isWide ? 0 : undefined}
+      p={isWide ? 24 : 16}
+      gap={6}
+    >
       <Paragraph fontWeight="700" fontSize={nameFontSize}>
         {item.name}
       </Paragraph>
@@ -82,12 +87,21 @@ function AdsCarouselDetails({
       </Paragraph>
       {isWide ? (
         <>
-          <YStack width="100%" mt={8}>
-            {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
-            {item.phone ? <ContactRow label={dictionary.whatsapp} value={item.phone} /> : null}
-            {item.address ? <ContactRow label={dictionary.address} value={item.address} /> : null}
-            {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
-          </YStack>
+          <ScrollView
+            testID="ads-carousel-details-scroll"
+            className="ads-details-scroll"
+            style={{ flexGrow: 0, flexShrink: 1 }}
+            minH={0}
+            width="100%"
+            mt={8}
+          >
+            <YStack width="100%">
+              {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
+              {item.phone ? <ContactRow label={dictionary.whatsapp} value={item.phone} /> : null}
+              {item.address ? <ContactRow label={dictionary.address} value={item.address} /> : null}
+              {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
+            </YStack>
+          </ScrollView>
           <Button
             type="button"
             mt={8}
@@ -98,6 +112,7 @@ function AdsCarouselDetails({
             gap={8}
             items="center"
             self="flex-start"
+            shrink={0}
           >
             <Text color="text" fontWeight="700" fontSize={14}>
               {dictionary.viewBusiness}

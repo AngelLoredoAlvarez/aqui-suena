@@ -179,15 +179,20 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
   (330px wide)** with badge + navigation arrows overlaid, and an info column: name (`fs:24`),
     meta (`fs:14`, e.g. `"Comida · Servicio a domicilio"`), contact rows
     (phone / WhatsApp / address / hours, each `min-height:52` with a
-    bottom border) and actions **Call / WhatsApp / Get directions**
-    (`margin-top:auto`).
+    bottom border) and actions **Call / WhatsApp / Get directions**.
+- The info column is a flex column: name and meta stay fixed, the contact rows
+  scroll when the panel is shorter than its content, and the "Ver negocio" CTA
+  plus the Call/WhatsApp/Get directions actions stay pinned below the scroll
+  area, so they are never clipped.
+- On web, the contact-list scrollbar stays invisible until the pointer enters
+  the list; the gutter is reserved so the panel does not shift on hover.
 
 ### Web (1440×900) — `WebLanding`
 
 - Same two-column directory as tablet, scaled up: header 64px, sidebar 380px,
-  **flyer image panel 480px wide**, name `fs:26`, and the same contact rows +
-  actions. Player dock is a full-width bar at the bottom with the extra
-  control "Mover reproductor arriba o abajo".
+  **flyer image panel 480px wide**, name `fs:26`, and the same scrollable
+  contact list with pinned CTA + actions. Player dock is a full-width bar at the
+  bottom with the extra control "Mover reproductor arriba o abajo".
 
 ### Empty state — `LandingVacio`
 
