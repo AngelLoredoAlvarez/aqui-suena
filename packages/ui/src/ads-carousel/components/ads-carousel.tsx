@@ -18,7 +18,7 @@ import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Paragraph, Text, useMedia, YStack } from "tamagui";
+import { Button, Paragraph, Text, useMedia, XStack, YStack } from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -301,22 +301,38 @@ export function AdsCarousel({
           rounded={0}
           z={1}
         />
-        <YStack
-          position="absolute"
-          r={12}
-          t={12}
-          z={2}
-          rounded={999}
-          py={4}
-          px={10}
-          bg="surface"
-          borderWidth={1}
-          borderColor="borderColor"
-        >
-          <Paragraph fontSize={12} fontWeight="700" color={statusColor}>
-            {statusLabel}
-          </Paragraph>
-        </YStack>
+        <XStack position="absolute" r={12} t={12} z={2} gap={8} items="center">
+          {current.delivery ? (
+            <XStack
+              testID="ads-carousel-delivery-badge"
+              gap={6}
+              items="center"
+              rounded={999}
+              py={4}
+              px={10}
+              bg="surface"
+              borderWidth={1}
+              borderColor="borderColor"
+            >
+              <Icon name="home" size={14} tone="accent" />
+              <Paragraph fontSize={12} fontWeight="700" color="text">
+                {dictionary.deliveryBadge}
+              </Paragraph>
+            </XStack>
+          ) : null}
+          <YStack
+            rounded={999}
+            py={4}
+            px={10}
+            bg="surface"
+            borderWidth={1}
+            borderColor="borderColor"
+          >
+            <Paragraph fontSize={12} fontWeight="700" color={statusColor}>
+              {statusLabel}
+            </Paragraph>
+          </YStack>
+        </XStack>
         {items.length > 1 ? (
           <>
             <FlyerNavButton

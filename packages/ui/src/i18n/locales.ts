@@ -32,6 +32,7 @@ export type Dictionary = {
   readonly open: string;
   readonly closed: string;
   readonly delivery: string;
+  readonly deliveryBadge: string;
   readonly category: (value: string) => string;
   readonly opensAt: (time: string) => string;
   readonly viewBusiness: string;
@@ -117,6 +118,7 @@ export const es: Dictionary = {
   open: "Abierto",
   closed: "Cerrado",
   delivery: "Servicio a domicilio",
+  deliveryBadge: "A domicilio",
   category: (value: string) => categoryLabelsEs[value] ?? value,
   opensAt: (time: string) => `Abre ${time}`,
   viewBusiness: "Ver negocio",
@@ -184,6 +186,7 @@ export const en: Dictionary = {
   open: "Open",
   closed: "Closed",
   delivery: "Home delivery",
+  deliveryBadge: "Delivery",
   category: (value: string) => categoryLabelsEn[value] ?? value,
   opensAt: (time: string) => `Opens ${time}`,
   viewBusiness: "View business",

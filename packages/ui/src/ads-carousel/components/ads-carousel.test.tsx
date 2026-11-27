@@ -3,6 +3,7 @@ import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/components/ads-carousel";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { Theme } from "tamagui";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const prefetchImages = vi.hoisted(() => vi.fn());
@@ -54,14 +55,38 @@ describe("AdsCarousel", () => {
     expect(screen.getByText("Desayunos Casa Rosa")).toBeTruthy();
   });
 
-  it("composes the meta line (category · delivery · opensAt)", () => {
+  it("composes the mobile meta line (category · opensAt)", () => {
     renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
-    expect(screen.getByText("Comida · Servicio a domicilio · Abre 8:00")).toBeTruthy();
+    expect(screen.getByText("Comida · Abre 8:00")).toBeTruthy();
   });
 
   it("localizes the category and opening time", () => {
     renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "en" });
-    expect(screen.getByText("Food · Home delivery · Opens 8:00")).toBeTruthy();
+    expect(screen.getByText("Food · Opens 8:00")).toBeTruthy();
+  });
+
+  it("renders the delivery chip in the flyer only when the business delivers", () => {
+    renderWithProviders(<AdsCarousel items={ITEMS} />, { locale: "es" });
+
+    const flyer = screen.getByRole("group", { name: "Anuncio 1 de 2" });
+    expect(within(flyer).getByTestId("ads-carousel-delivery-badge")).toBeTruthy();
+    expect(within(flyer).getByText("A domicilio")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Anuncio siguiente" }));
+    expect(screen.queryByTestId("ads-carousel-delivery-badge")).toBeNull();
+    expect(screen.getByText("Cerrado")).toBeTruthy();
+  });
+
+  it("keeps the delivery chip under the light theme", () => {
+    renderWithProviders(
+      <Theme name="brasa">
+        <AdsCarousel items={ITEMS} />
+      </Theme>,
+      { locale: "es" },
+    );
+
+    expect(screen.getByTestId("ads-carousel-delivery-badge")).toBeTruthy();
+    expect(screen.getByText("A domicilio")).toBeTruthy();
   });
 
   it("renders the open-status badge from isOpen", () => {
