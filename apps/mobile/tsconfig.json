@@ -9,6 +9,7 @@
     "components/**/*.ts",
     "components/**/*.tsx",
     "test/**/*.ts",
+    "test/**/*.tsx",
     "babel.config.js"
   ],
   "exclude": ["node_modules"]

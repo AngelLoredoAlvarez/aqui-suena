@@ -10,14 +10,17 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./test/setup.ts"],
-    include: ["components/**/*.test.{ts,tsx}", "app/**/*.test.{ts,tsx}"],
+    // Tests must live outside app/: Expo Router bundles every file under app/
+    // as a route, so importing vitest there pulls vite into the Metro bundle
+    // and breaks the native build.
+    include: ["components/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
       // The Expo Router entrypoints (app/_layout.tsx, app/index.tsx) and the
       // boot-splash components are render-tested with @testing-library/react
       // over mocks for react-native, expo-router, expo-* and @aqui-suena/ui
-      // (see test/setup.ts and the app/*.test.tsx + components/*.test.tsx
+      // (see test/setup.ts and the test/app/*.test.tsx + components/*.test.tsx
       // files). PlayerLanding and its behavior live in @aqui-suena/ui (covered
       // there), so it is mocked here to keep the surface small.
       include: ["components/**/*.{ts,tsx}", "app/**/*.{ts,tsx}"],
