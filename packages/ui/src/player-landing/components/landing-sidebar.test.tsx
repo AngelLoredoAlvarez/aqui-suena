@@ -6,7 +6,7 @@ import { renderWithProviders } from "@aqui-suena/ui/test-utils";
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-const ITEMS: readonly AdsCarouselItem[] = [
+const ITEMS: readonly [AdsCarouselItem, AdsCarouselItem] = [
   {
     id: "a",
     imageUrl: "https://example.com/a.png",
@@ -75,7 +75,7 @@ describe("LandingSidebar", () => {
   });
 
   it("dedupes items with the same id", () => {
-    const item = ITEMS[0]!;
+    const item = ITEMS[0];
     renderSidebar([item, item]);
 
     expect(screen.getAllByTestId(/business-card-/)).toHaveLength(1);
