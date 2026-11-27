@@ -2,8 +2,17 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { Icon } from "@aqui-suena/ui/shared";
 import { Button, Text } from "tamagui";
 
-export function SearchPill({ onPress }: { onPress?: () => void }) {
+export type SearchPillSize = "sm" | "md";
+
+export function SearchPill({
+  onPress,
+  size = "md",
+}: {
+  onPress?: () => void;
+  size?: SearchPillSize;
+}) {
   const { dictionary } = useLocale();
+  const compact = size === "sm";
 
   return (
     <Button
@@ -11,11 +20,12 @@ export function SearchPill({ onPress }: { onPress?: () => void }) {
       type="button"
       aria-label={dictionary.searchBusinessesAria}
       onPress={onPress}
-      flex={1}
-      minW={0}
-      height={44}
-      px={12}
-      gap={8}
+      flex={compact ? 1 : undefined}
+      minW={compact ? 0 : undefined}
+      width={compact ? undefined : "100%"}
+      height={compact ? 44 : 48}
+      px={compact ? 12 : 16}
+      gap={compact ? 8 : 10}
       items="center"
       justify="flex-start"
       bg="surface2"
@@ -23,14 +33,14 @@ export function SearchPill({ onPress }: { onPress?: () => void }) {
       borderColor="borderColor"
       rounded={999}
     >
-      <Icon name="search" size={18} tone="muted" />
+      <Icon name="search" size={compact ? 18 : 20} tone="muted" />
       <Text
         color="muted"
         fontWeight="600"
         fontSize={14}
-        numberOfLines={1}
-        overflow="hidden"
-        textOverflow="ellipsis"
+        numberOfLines={compact ? 1 : undefined}
+        overflow={compact ? "hidden" : undefined}
+        textOverflow={compact ? "ellipsis" : undefined}
       >
         {dictionary.searchBusinesses}
       </Text>

@@ -2,7 +2,7 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { AssistantButton } from "@aqui-suena/ui/player-landing/components/header/assistant-button";
 import { IconButton } from "@aqui-suena/ui/player-landing/components/header/icon-button";
 import { LanguageButton } from "@aqui-suena/ui/player-landing/components/header/language-button";
-import { SearchPill } from "@aqui-suena/ui/player-landing/components/header/search-pill";
+import { SearchPill } from "@aqui-suena/ui/player-landing/components/search-pill";
 import { Button, H1, Text, XStack } from "tamagui";
 
 export type LandingHeaderVariant = "mobile" | "tablet" | "web";
@@ -29,7 +29,7 @@ export function LandingHeader({
   if (variant === "mobile") {
     return (
       <XStack testID="landing-header" width="100%" height={48} px={12} gap={8} items="center">
-        <SearchPill onPress={onOpenSearch} />
+        <SearchPill size="sm" onPress={onOpenSearch} />
         <AssistantButton compact onPress={onOpenAssistant} />
         <LanguageButton />
         <IconButton
