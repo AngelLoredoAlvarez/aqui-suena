@@ -1,6 +1,6 @@
 # Spec: landing — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-23).** The shared responsive shell ships: mobile
+> **Status: partial (2026-11-27).** The shared responsive shell ships: mobile
 > header/search/assistant/language/menu + carousel + player dock; tablet/web
 > header + sponsored directory (300/380 px) + carousel detail panel with contact
 > rows/actions + dock; the web theme toggle works and persists. Navigation,

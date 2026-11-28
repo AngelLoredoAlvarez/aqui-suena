@@ -1,6 +1,6 @@
 # Spec: ads-display — Aquí Suena (by 17Labs)
 
-> **Status: partial (2026-11-16).** `ads.carousel` and the shared carousel component ship and serve ranked inventory with the designed empty state. The tappable card → listing sheet (`packages/ui/src/business-sheet.tsx`) is still TBD.
+> **Status: partial (2026-11-27).** `ads.carousel` ships ranked inventory with the designed empty state, and the shared card renders the flyer (`object-fit: contain`), the conditional delivery chip and the open-status badge, plus a fullscreen `FlyerLightbox` viewer with zoom and download. The tappable card → listing sheet (`packages/ui/src/business-sheet.tsx`) is still TBD.
 
 ## Objective
 
