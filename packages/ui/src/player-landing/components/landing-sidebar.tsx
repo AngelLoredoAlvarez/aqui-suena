@@ -62,17 +62,26 @@ export function LandingSidebar({
   return (
     <YStack testID="landing-sidebar" width={width} shrink={0} minH={0} gap={10}>
       <SearchPill onPress={onOpenSearch} />
-      <XStack flexWrap="wrap" gap={8}>
-        {filters.map((entry) => (
-          <FilterChip
-            key={entry.key}
-            filter={entry.key}
-            label={entry.label}
-            selected={filter === entry.key}
-            onSelect={setFilter}
-          />
-        ))}
-      </XStack>
+      <ScrollView
+        testID="landing-sidebar-filters-scroll"
+        className="hover-reveal-scroll"
+        horizontal
+        showsHorizontalScrollIndicator={isWeb}
+        style={{ flexGrow: 0, flexShrink: 0 }}
+        width="100%"
+      >
+        <XStack gap={8} pr={2} shrink={0}>
+          {filters.map((entry) => (
+            <FilterChip
+              key={entry.key}
+              filter={entry.key}
+              label={entry.label}
+              selected={filter === entry.key}
+              onSelect={setFilter}
+            />
+          ))}
+        </XStack>
+      </ScrollView>
       <Text color="text" fontWeight="700" fontSize={18}>
         {dictionary.businesses}
       </Text>

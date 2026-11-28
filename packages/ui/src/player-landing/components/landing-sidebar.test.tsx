@@ -67,6 +67,23 @@ describe("LandingSidebar", () => {
     expect(scroll.getAttribute("style")).not.toContain("scrollbar-width: none");
   });
 
+  it("keeps the filter chips on one horizontally scrollable row", () => {
+    renderSidebar();
+
+    const scroll = screen.getByTestId("landing-sidebar-filters-scroll");
+
+    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
+    expect(scroll.getAttribute("style")).not.toContain("scrollbar-width: none");
+
+    const style = getComputedStyle(scroll);
+    expect(style.flexDirection).toBe("row");
+    expect(style.overflowX).toBe("auto");
+
+    for (const filter of ["all", "category:food", "category:health", "open", "delivery"]) {
+      expect(scroll.contains(screen.getByTestId(`landing-filter-${filter}`))).toBe(true);
+    }
+  });
+
   it("filters the visible cards by delivery", () => {
     renderSidebar();
 
