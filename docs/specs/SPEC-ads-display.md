@@ -187,9 +187,10 @@ Every string below is quoted verbatim from the designs; do not reword UI copy.
 - The "Ver negocio" CTA is rendered only for the `trades` and `commerce` plans;
   community items show the contact rows and the action chips without it.
 - On web, the contact-list scrollbar stays invisible until the pointer enters
-  the list; the gutter is reserved so the panel does not shift on hover. The
-  business directory on the left uses the same hover-reveal scrollbar and
-  gutter reservation.
+  the list, and hides as soon as the pointer leaves; the gutter is reserved so
+  the panel does not shift on hover. The business directory on the left uses
+  the same scrollbar. The web build draws these scrollbars itself, avoiding the
+  native overlay fade in the desktop webview.
 
 ### Web (1440×900) — `WebLanding`
 

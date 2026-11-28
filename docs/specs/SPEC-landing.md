@@ -50,9 +50,10 @@ the directory/carousel is used, and no station screen is introduced.
   horizontally scrollable row, "Negocios" list of unique sponsored businesses
   (initials avatar, full name and open/closed badge on one vertically centered
   row; the name shrinks its font size to fit the available width), legal links.
-  The business list scrolls when it overflows; on web its scrollbar stays
-  invisible until the pointer enters the list, reusing the contact-list
-  scrollbar style.
+  The chips row and the business list scroll when they overflow; on web their
+  scrollbars stay invisible until the pointer enters and hide as soon as it
+  leaves. The web UI draws these scrollbars so the desktop webview hides them
+  immediately.
 - Right panel: flyer panel (330 px) with badge + navigation arrows, business name, meta,
   contact rows (phone, WhatsApp, address, schedule), "Ver negocio" (`trades` and
   `commerce` plans only), and call/WhatsApp/directions actions.

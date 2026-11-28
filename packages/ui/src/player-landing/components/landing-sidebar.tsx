@@ -6,10 +6,23 @@ import {
   type Filter,
   FilterChip,
 } from "@aqui-suena/ui/player-landing/components/sidebar/filter-chip";
-import { useMemo, useState } from "react";
-import { Button, isWeb, ScrollView, Text, XStack, YStack } from "tamagui";
+import { ScrollbarThumb } from "@aqui-suena/ui/shared/scrollbar/scrollbar-thumb";
+import { useHoverScrollbar } from "@aqui-suena/ui/shared/scrollbar/use-hover-scrollbar";
+import { useMemo, useRef, useState } from "react";
+import {
+  Button,
+  type GetRef,
+  isWeb,
+  ScrollView,
+  type TamaguiElement,
+  Text,
+  XStack,
+  YStack,
+} from "tamagui";
 
 const CATEGORY_ORDER = ["food", "health", "retail", "services", "computing", "other"] as const;
+
+type ScrollViewElement = GetRef<typeof ScrollView>;
 
 export function LandingSidebar({
   items,
@@ -22,6 +35,21 @@ export function LandingSidebar({
 }) {
   const { dictionary } = useLocale();
   const [filter, setFilter] = useState<Filter>("all");
+  const filtersScrollRef = useRef<ScrollViewElement>(null);
+  const filtersHoverRef = useRef<TamaguiElement>(null);
+  const listScrollRef = useRef<ScrollViewElement>(null);
+  const listHoverRef = useRef<TamaguiElement>(null);
+  const filtersScrollbar = useHoverScrollbar({
+    scrollRef: filtersScrollRef,
+    hoverRef: filtersHoverRef,
+    orientation: "horizontal",
+  });
+  const listScrollbar = useHoverScrollbar({
+    scrollRef: listScrollRef,
+    hoverRef: listHoverRef,
+    orientation: "vertical",
+  });
+
   const businesses = useMemo(() => {
     const seen = new Set<string>();
 
@@ -62,42 +90,77 @@ export function LandingSidebar({
   return (
     <YStack testID="landing-sidebar" width={width} shrink={0} minH={0} gap={10}>
       <SearchPill onPress={onOpenSearch} />
-      <ScrollView
-        testID="landing-sidebar-filters-scroll"
-        className="hover-reveal-scroll"
-        horizontal
-        showsHorizontalScrollIndicator={isWeb}
-        style={{ flexGrow: 0, flexShrink: 0 }}
+      <YStack
+        ref={filtersHoverRef}
+        testID="landing-sidebar-filters-scroll-area"
+        position="relative"
         width="100%"
+        style={isWeb ? { paddingBottom: 8 } : undefined}
       >
-        <XStack gap={8} pr={2} shrink={0}>
-          {filters.map((entry) => (
-            <FilterChip
-              key={entry.key}
-              filter={entry.key}
-              label={entry.label}
-              selected={filter === entry.key}
-              onSelect={setFilter}
-            />
-          ))}
-        </XStack>
-      </ScrollView>
+        <ScrollView
+          ref={filtersScrollRef}
+          testID="landing-sidebar-filters-scroll"
+          className="hide-native-scrollbar"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0, flexShrink: 0 }}
+          width="100%"
+        >
+          <XStack gap={8} pr={2} shrink={0}>
+            {filters.map((entry) => (
+              <FilterChip
+                key={entry.key}
+                filter={entry.key}
+                label={entry.label}
+                selected={filter === entry.key}
+                onSelect={setFilter}
+              />
+            ))}
+          </XStack>
+        </ScrollView>
+        <ScrollbarThumb
+          testID="landing-sidebar-filters-scroll-thumb"
+          orientation="horizontal"
+          geometry={filtersScrollbar.geometry}
+          visible={filtersScrollbar.visible}
+          dragging={filtersScrollbar.dragging}
+          thumbRef={filtersScrollbar.thumbRef}
+        />
+      </YStack>
       <Text color="text" fontWeight="700" fontSize={18}>
         {dictionary.businesses}
       </Text>
-      <ScrollView
-        testID="landing-sidebar-scroll"
-        className="hover-reveal-scroll"
+      <YStack
+        ref={listHoverRef}
+        testID="landing-sidebar-scroll-area"
+        position="relative"
         flex={1}
         minH={0}
-        showsVerticalScrollIndicator={isWeb}
+        style={isWeb ? { paddingRight: 8 } : undefined}
       >
-        <YStack gap={10} pr={2}>
-          {visible.map((item, index) => (
-            <BusinessCard key={item.id} item={item} selected={index === 0} />
-          ))}
-        </YStack>
-      </ScrollView>
+        <ScrollView
+          ref={listScrollRef}
+          testID="landing-sidebar-scroll"
+          className="hide-native-scrollbar"
+          flex={1}
+          minH={0}
+          showsVerticalScrollIndicator={false}
+        >
+          <YStack gap={10} pr={2}>
+            {visible.map((item, index) => (
+              <BusinessCard key={item.id} item={item} selected={index === 0} />
+            ))}
+          </YStack>
+        </ScrollView>
+        <ScrollbarThumb
+          testID="landing-sidebar-scroll-thumb"
+          orientation="vertical"
+          geometry={listScrollbar.geometry}
+          visible={listScrollbar.visible}
+          dragging={listScrollbar.dragging}
+          thumbRef={listScrollbar.thumbRef}
+        />
+      </YStack>
       <XStack flexWrap="wrap" gap={10} mt="auto" pt={6}>
         {[dictionary.privacyNotice, dictionary.termsAndConditions, dictionary.reportContent].map(
           (label) => (

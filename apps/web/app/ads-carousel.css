@@ -1,0 +1,10 @@
+/* The scroll areas draw their own thumb; the native scrollbar is hidden so the
+   webview cannot fade it out on its own schedule. */
+.hide-native-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-native-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -1,3 +1,4 @@
+import "@aqui-suena/web/app/ads-carousel.css";
 import { BootSplash } from "@aqui-suena/web/app/boot-splash";
 import { Providers } from "@aqui-suena/web/app/providers";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -26,7 +27,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es" className={jakarta.className} suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="/boot-splash.css" />
-        <link rel="stylesheet" href="/ads-carousel.css" />
         <script
           dangerouslySetInnerHTML={{
             __html:

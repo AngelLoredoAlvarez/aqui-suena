@@ -17,10 +17,23 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
+import { ScrollbarThumb } from "@aqui-suena/ui/shared/scrollbar/scrollbar-thumb";
+import { useHoverScrollbar } from "@aqui-suena/ui/shared/scrollbar/use-hover-scrollbar";
 import { fitNameFontSize } from "@aqui-suena/ui/shared/utils/fit-name-font-size";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
-import { Button, isWeb, Paragraph, ScrollView, Text, useMedia, XStack, YStack } from "tamagui";
+import {
+  Button,
+  type GetRef,
+  isWeb,
+  Paragraph,
+  ScrollView,
+  type TamaguiElement,
+  Text,
+  useMedia,
+  XStack,
+  YStack,
+} from "tamagui";
 
 export type { AdsCarouselItem } from "@aqui-suena/api/client";
 
@@ -73,6 +86,14 @@ function AdsCarouselDetails({
   schedule: string;
 }) {
   const { dictionary } = useLocale();
+  const scrollRef = useRef<GetRef<typeof ScrollView>>(null);
+  const hoverRef = useRef<TamaguiElement>(null);
+  const scrollbar = useHoverScrollbar({
+    scrollRef,
+    hoverRef,
+    orientation: "vertical",
+    enabled: isWide,
+  });
   const [detailsWidth, setDetailsWidth] = useState<number>();
   const nameWidth = detailsWidth === undefined || detailsWidth <= 0 ? undefined : detailsWidth - 48;
   const showsBusinessCta = item.plan === "trades" || item.plan === "commerce";
@@ -107,21 +128,46 @@ function AdsCarouselDetails({
       </Paragraph>
       {isWide ? (
         <>
-          <ScrollView
-            testID="ads-carousel-details-scroll"
-            className="hover-reveal-scroll"
-            style={{ flexGrow: 0, flexShrink: 1 }}
+          <YStack
+            ref={hoverRef}
+            testID="ads-carousel-details-scroll-area"
+            position="relative"
+            style={{
+              flexGrow: 1,
+              flexShrink: 1,
+              paddingRight: isWeb ? 8 : undefined,
+            }}
             minH={0}
             width="100%"
             mt={8}
           >
-            <YStack width="100%">
-              {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
-              {item.phone ? <ContactRow label={dictionary.whatsapp} value={item.phone} /> : null}
-              {item.address ? <ContactRow label={dictionary.address} value={item.address} /> : null}
-              {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
-            </YStack>
-          </ScrollView>
+            <ScrollView
+              ref={scrollRef}
+              testID="ads-carousel-details-scroll"
+              className="hide-native-scrollbar"
+              flex={1}
+              minH={0}
+              width="100%"
+              showsVerticalScrollIndicator={false}
+            >
+              <YStack width="100%">
+                {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
+                {item.phone ? <ContactRow label={dictionary.whatsapp} value={item.phone} /> : null}
+                {item.address ? (
+                  <ContactRow label={dictionary.address} value={item.address} />
+                ) : null}
+                {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
+              </YStack>
+            </ScrollView>
+            <ScrollbarThumb
+              testID="ads-carousel-details-scroll-thumb"
+              orientation="vertical"
+              geometry={scrollbar.geometry}
+              visible={scrollbar.visible}
+              dragging={scrollbar.dragging}
+              thumbRef={scrollbar.thumbRef}
+            />
+          </YStack>
           {showsBusinessCta ? (
             <Button
               type="button"

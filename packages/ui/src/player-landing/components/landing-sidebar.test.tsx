@@ -58,30 +58,50 @@ describe("LandingSidebar", () => {
     expect(screen.getByTestId("landing-filter-delivery")).toBeTruthy();
   });
 
-  it("reveals the shared hover scrollbar on the business list", () => {
+  it("shows the custom scrollbar only while hovering the list", () => {
     renderSidebar();
 
-    const scroll = screen.getByTestId("landing-sidebar-scroll");
+    const scroll = screen.getByTestId("landing-sidebar-scroll") as HTMLElement;
+    Object.defineProperty(scroll, "clientHeight", { configurable: true, value: 200 });
+    Object.defineProperty(scroll, "scrollHeight", { configurable: true, value: 600 });
+    fireEvent.scroll(scroll);
 
-    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
-    expect(scroll.getAttribute("style")).not.toContain("scrollbar-width: none");
+    const area = screen.getByTestId("landing-sidebar-scroll-area");
+    const thumb = screen.getByTestId("landing-sidebar-scroll-thumb");
+
+    expect(scroll.classList.contains("hide-native-scrollbar")).toBe(true);
+    expect(thumb.getAttribute("data-visible")).toBe("false");
+
+    fireEvent(area, new Event("pointerenter"));
+    expect(thumb.getAttribute("data-visible")).toBe("true");
+
+    fireEvent(area, new Event("pointerleave"));
+    expect(thumb.getAttribute("data-visible")).toBe("false");
   });
 
   it("keeps the filter chips on one horizontally scrollable row", () => {
     renderSidebar();
 
-    const scroll = screen.getByTestId("landing-sidebar-filters-scroll");
+    const scroll = screen.getByTestId("landing-sidebar-filters-scroll") as HTMLElement;
+    Object.defineProperty(scroll, "clientWidth", { configurable: true, value: 300 });
+    Object.defineProperty(scroll, "scrollWidth", { configurable: true, value: 700 });
+    fireEvent.scroll(scroll);
 
-    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
-    expect(scroll.getAttribute("style")).not.toContain("scrollbar-width: none");
-
-    const style = getComputedStyle(scroll);
-    expect(style.flexDirection).toBe("row");
-    expect(style.overflowX).toBe("auto");
+    expect(scroll.classList.contains("hide-native-scrollbar")).toBe(true);
+    expect(getComputedStyle(scroll).flexDirection).toBe("row");
 
     for (const filter of ["all", "category:food", "category:health", "open", "delivery"]) {
       expect(scroll.contains(screen.getByTestId(`landing-filter-${filter}`))).toBe(true);
     }
+
+    const area = screen.getByTestId("landing-sidebar-filters-scroll-area");
+    const thumb = screen.getByTestId("landing-sidebar-filters-scroll-thumb");
+
+    fireEvent(area, new Event("pointerenter"));
+    expect(thumb.getAttribute("data-visible")).toBe("true");
+
+    fireEvent(area, new Event("pointerleave"));
+    expect(thumb.getAttribute("data-visible")).toBe("false");
   });
 
   it("filters the visible cards by delivery", () => {
