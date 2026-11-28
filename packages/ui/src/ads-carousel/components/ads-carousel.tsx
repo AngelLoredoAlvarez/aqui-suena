@@ -109,7 +109,7 @@ function AdsCarouselDetails({
         <>
           <ScrollView
             testID="ads-carousel-details-scroll"
-            className="ads-details-scroll"
+            className="hover-reveal-scroll"
             style={{ flexGrow: 0, flexShrink: 1 }}
             minH={0}
             width="100%"

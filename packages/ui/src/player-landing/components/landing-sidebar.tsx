@@ -7,7 +7,7 @@ import {
   FilterChip,
 } from "@aqui-suena/ui/player-landing/components/sidebar/filter-chip";
 import { useMemo, useState } from "react";
-import { Button, ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button, isWeb, ScrollView, Text, XStack, YStack } from "tamagui";
 
 const CATEGORY_ORDER = ["food", "health", "retail", "services", "computing", "other"] as const;
 
@@ -76,7 +76,13 @@ export function LandingSidebar({
       <Text color="text" fontWeight="700" fontSize={18}>
         {dictionary.businesses}
       </Text>
-      <ScrollView flex={1} minH={0} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        testID="landing-sidebar-scroll"
+        className="hover-reveal-scroll"
+        flex={1}
+        minH={0}
+        showsVerticalScrollIndicator={isWeb}
+      >
         <YStack gap={10} pr={2}>
           {visible.map((item, index) => (
             <BusinessCard key={item.id} item={item} selected={index === 0} />
