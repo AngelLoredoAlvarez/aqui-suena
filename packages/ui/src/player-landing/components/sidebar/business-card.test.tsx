@@ -22,14 +22,13 @@ describe("BusinessCard", () => {
     cleanup();
   });
 
-  it("renders the initials, name and composed meta", () => {
+  it("renders the initials and name without the business category label", () => {
     renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "en" });
 
     expect(screen.getByTestId("business-card-a")).toBeTruthy();
     expect(screen.getByText("CR")).toBeTruthy();
     expect(screen.getByText("Casa Rosa")).toBeTruthy();
-    expect(screen.getByText("Food")).toBeTruthy();
-    expect(screen.queryByText("Food · Home delivery")).toBeNull();
+    expect(screen.queryByText("Food")).toBeNull();
   });
 
   it("shows the open badge for an open business", () => {

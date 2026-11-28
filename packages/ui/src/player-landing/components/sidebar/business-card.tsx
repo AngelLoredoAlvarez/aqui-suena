@@ -21,7 +21,6 @@ export function BusinessCard({
   onPress?: () => void;
 }) {
   const { dictionary } = useLocale();
-  const meta = dictionary.category(item.category);
 
   return (
     <Button
@@ -43,30 +42,25 @@ export function BusinessCard({
           {initials(item.name)}
         </Text>
       </YStack>
-      <YStack flex={1} minW={0} gap={2} items="flex-start">
-        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={1}>
+      <XStack flex={1} minW={0} items="center" gap={8}>
+        <Text color="text" fontWeight="700" fontSize={14} numberOfLines={1} flex={1}>
           {item.name}
         </Text>
-        <XStack width="100%" items="center" gap={8}>
-          <Text color="muted" fontSize={12} numberOfLines={1} flex={1}>
-            {meta}
-          </Text>
-          <Text
-            color={item.isOpen ? "ok" : "error"}
-            fontSize={11}
-            fontWeight="700"
-            bg="surface"
-            borderWidth={1}
-            borderColor="borderColor"
-            rounded={999}
-            px={8}
-            py={4}
-            shrink={0}
-          >
-            {item.isOpen ? dictionary.open : dictionary.closed}
-          </Text>
-        </XStack>
-      </YStack>
+        <Text
+          color={item.isOpen ? "ok" : "error"}
+          fontSize={11}
+          fontWeight="700"
+          bg="surface"
+          borderWidth={1}
+          borderColor="borderColor"
+          rounded={999}
+          px={8}
+          py={4}
+          shrink={0}
+        >
+          {item.isOpen ? dictionary.open : dictionary.closed}
+        </Text>
+      </XStack>
     </Button>
   );
 }
