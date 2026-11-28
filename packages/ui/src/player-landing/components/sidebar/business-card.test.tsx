@@ -22,13 +22,28 @@ describe("BusinessCard", () => {
     cleanup();
   });
 
-  it("renders the initials and name without the business category label", () => {
+  it("renders the initials, name and localized category chip", () => {
     renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "en" });
 
     expect(screen.getByTestId("business-card-a")).toBeTruthy();
     expect(screen.getByText("CR")).toBeTruthy();
     expect(screen.getByText("Casa Rosa")).toBeTruthy();
-    expect(screen.queryByText("Food")).toBeNull();
+    expect(screen.getByTestId("business-card-a-category").textContent).toBe("Food");
+  });
+
+  it("renders the category chip beside the open/closed chip", () => {
+    renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "en" });
+
+    const category = screen.getByTestId("business-card-a-category");
+    const status = screen.getByTestId("business-card-a-status");
+
+    expect(category.parentElement).toBe(status.parentElement);
+  });
+
+  it("localizes the category chip", () => {
+    renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "es" });
+
+    expect(screen.getByTestId("business-card-a-category").textContent).toBe("Comida");
   });
 
   it("shrinks a long name to fit the measured width", () => {

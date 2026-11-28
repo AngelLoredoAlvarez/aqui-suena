@@ -48,8 +48,9 @@ the directory/carousel is used, and no station screen is introduced.
 - Header: brand lockup (logo mark + "Aquí Suena"), assistant pill, language pill, menu icon.
 - Left column (300 px): search, category/open/delivery chips in a single
   horizontally scrollable row, "Negocios" list of unique sponsored businesses
-  (initials avatar, full name and open/closed badge on one vertically centered
-  row; the name shrinks its font size to fit the available width), legal links.
+  (initials avatar, full name, localized category chip and open/closed badge on
+  one vertically centered row; the name shrinks its font size to fit the
+  available width), legal links.
   The chips row and the business list scroll when they overflow; on web their
   scrollbars stay invisible until the pointer enters and hide as soon as it
   leaves. The web UI draws these scrollbars so the desktop webview hides them
