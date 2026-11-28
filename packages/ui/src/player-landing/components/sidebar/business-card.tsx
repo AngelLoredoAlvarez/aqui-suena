@@ -1,12 +1,42 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { useLocale } from "@aqui-suena/ui/i18n";
 import { fitNameFontSize } from "@aqui-suena/ui/shared/utils/fit-name-font-size";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { Button, isWeb, type TamaguiTextElement, Text, XStack, YStack } from "tamagui";
 
 const BASE_NAME_FONT_SIZE = 14;
 const MIN_NAME_FONT_SIZE = 8;
+
+type CardBadgeTone = "ok" | "error" | "muted";
+
+function CardBadge({
+  testID,
+  tone,
+  children,
+}: {
+  testID: string;
+  tone: CardBadgeTone;
+  children: ReactNode;
+}) {
+  return (
+    <Text
+      testID={testID}
+      color={tone}
+      fontSize={11}
+      fontWeight="700"
+      bg="surface"
+      borderWidth={1}
+      borderColor="borderColor"
+      rounded={999}
+      px={8}
+      py={4}
+      shrink={0}
+    >
+      {children}
+    </Text>
+  );
+}
 
 function initials(name: string): string {
   return name
@@ -94,20 +124,12 @@ export function BusinessCard({
         >
           {item.name}
         </Text>
-        <Text
-          color={item.isOpen ? "ok" : "error"}
-          fontSize={11}
-          fontWeight="700"
-          bg="surface"
-          borderWidth={1}
-          borderColor="borderColor"
-          rounded={999}
-          px={8}
-          py={4}
-          shrink={0}
-        >
+        <CardBadge testID={`business-card-${item.id}-category`} tone="muted">
+          {dictionary.category(item.category)}
+        </CardBadge>
+        <CardBadge testID={`business-card-${item.id}-status`} tone={item.isOpen ? "ok" : "error"}>
           {item.isOpen ? dictionary.open : dictionary.closed}
-        </Text>
+        </CardBadge>
       </XStack>
     </Button>
   );

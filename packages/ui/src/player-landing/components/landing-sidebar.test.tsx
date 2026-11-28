@@ -126,7 +126,7 @@ describe("LandingSidebar", () => {
     const item = ITEMS[0];
     renderSidebar([item, item]);
 
-    expect(screen.getAllByTestId(/business-card-/)).toHaveLength(1);
+    expect(screen.getAllByTestId(`business-card-${item.id}`)).toHaveLength(1);
   });
 
   it("renders the footer legal links", () => {
