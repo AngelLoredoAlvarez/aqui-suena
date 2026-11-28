@@ -47,8 +47,11 @@ the directory/carousel is used, and no station screen is introduced.
 
 - Header: brand lockup (logo mark + "Aquí Suena"), assistant pill, language pill, menu icon.
 - Left column (300 px): search, category/open/delivery chips, "Negocios" list of
-  unique sponsored businesses (initials avatar, full name on a single row,
-  localized category, open/closed badge), legal links.
+  unique sponsored businesses (initials avatar, full name and open/closed badge
+  on one vertically centered row; the name shrinks its font size to fit the
+  available width), legal links. The business list
+  scrolls when it overflows; on web its scrollbar stays invisible until the
+  pointer enters the list, reusing the contact-list scrollbar style.
 - Right panel: flyer panel (330 px) with badge + navigation arrows, business name, meta,
   contact rows (phone, WhatsApp, address, schedule), "Ver negocio" (`trades` and
   `commerce` plans only), and call/WhatsApp/directions actions.

@@ -31,6 +31,21 @@ describe("BusinessCard", () => {
     expect(screen.queryByText("Food")).toBeNull();
   });
 
+  it("shrinks a long name to fit the measured width", () => {
+    const longName = "Comida Casera con Sabor a Perú";
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({ width: 120 } as DOMRect);
+
+    renderWithProviders(<BusinessCard item={{ ...ITEM, name: longName }} selected={false} />, {
+      locale: "en",
+    });
+
+    rectSpy.mockRestore();
+
+    expect(getComputedStyle(screen.getByText(longName)).fontSize).toBe("8px");
+  });
+
   it("shows the open badge for an open business", () => {
     renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "en" });
 

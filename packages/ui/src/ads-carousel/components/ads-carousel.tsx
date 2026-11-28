@@ -7,7 +7,6 @@ import {
 } from "@aqui-suena/ui/ads-carousel/components/carousel-parts";
 import { useCarouselDrag } from "@aqui-suena/ui/ads-carousel/hooks/use-carousel-drag";
 import { composeMeta } from "@aqui-suena/ui/ads-carousel/utils/compose-meta";
-import { fitNameFontSize } from "@aqui-suena/ui/ads-carousel/utils/fit-name-font-size";
 import { formatSchedule } from "@aqui-suena/ui/ads-carousel/utils/format-schedule";
 import {
   getResponsiveCarouselMaxW,
@@ -18,6 +17,7 @@ import { useLocale } from "@aqui-suena/ui/i18n";
 import { OptimizedImage } from "@aqui-suena/ui/optimized-image";
 import { useImagePrefetch } from "@aqui-suena/ui/optimized-image/use-image-prefetch";
 import { Icon } from "@aqui-suena/ui/shared";
+import { fitNameFontSize } from "@aqui-suena/ui/shared/utils/fit-name-font-size";
 import { useCallback, useEffect, useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { Button, isWeb, Paragraph, ScrollView, Text, useMedia, XStack, YStack } from "tamagui";
