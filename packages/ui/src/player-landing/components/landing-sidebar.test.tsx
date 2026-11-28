@@ -58,6 +58,15 @@ describe("LandingSidebar", () => {
     expect(screen.getByTestId("landing-filter-delivery")).toBeTruthy();
   });
 
+  it("reveals the shared hover scrollbar on the business list", () => {
+    renderSidebar();
+
+    const scroll = screen.getByTestId("landing-sidebar-scroll");
+
+    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
+    expect(scroll.getAttribute("style")).not.toContain("scrollbar-width: none");
+  });
+
   it("filters the visible cards by delivery", () => {
     renderSidebar();
 

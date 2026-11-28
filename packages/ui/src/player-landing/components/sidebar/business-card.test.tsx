@@ -22,14 +22,28 @@ describe("BusinessCard", () => {
     cleanup();
   });
 
-  it("renders the initials, name and composed meta", () => {
+  it("renders the initials and name without the business category label", () => {
     renderWithProviders(<BusinessCard item={ITEM} selected={false} />, { locale: "en" });
 
     expect(screen.getByTestId("business-card-a")).toBeTruthy();
     expect(screen.getByText("CR")).toBeTruthy();
     expect(screen.getByText("Casa Rosa")).toBeTruthy();
-    expect(screen.getByText("Food")).toBeTruthy();
-    expect(screen.queryByText("Food · Home delivery")).toBeNull();
+    expect(screen.queryByText("Food")).toBeNull();
+  });
+
+  it("shrinks a long name to fit the measured width", () => {
+    const longName = "Comida Casera con Sabor a Perú";
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({ width: 120 } as DOMRect);
+
+    renderWithProviders(<BusinessCard item={{ ...ITEM, name: longName }} selected={false} />, {
+      locale: "en",
+    });
+
+    rectSpy.mockRestore();
+
+    expect(getComputedStyle(screen.getByText(longName)).fontSize).toBe("8px");
   });
 
   it("shows the open badge for an open business", () => {

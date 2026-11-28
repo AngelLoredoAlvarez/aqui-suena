@@ -38,6 +38,7 @@ describe("AdsCarousel wide details", () => {
 
     const scroll = screen.getByTestId("ads-carousel-details-scroll");
 
+    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
     expect(scroll.contains(screen.getByText("Teléfono"))).toBe(true);
     expect(scroll.contains(screen.getByText("Ver negocio"))).toBe(false);
     expect(scroll.contains(screen.getByText("Llamar"))).toBe(false);
