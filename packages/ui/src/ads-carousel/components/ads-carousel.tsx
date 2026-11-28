@@ -92,7 +92,7 @@ function AdsCarouselDetails({
     scrollRef,
     hoverRef,
     orientation: "vertical",
-    enabled: isWide,
+    enabled: isWeb && isWide,
   });
   const [detailsWidth, setDetailsWidth] = useState<number>();
   const nameWidth = detailsWidth === undefined || detailsWidth <= 0 ? undefined : detailsWidth - 48;
@@ -114,40 +114,67 @@ function AdsCarouselDetails({
           : undefined
       }
     >
-      <Paragraph
+      <Text
         testID="ads-carousel-business-name"
+        color="text"
         fontWeight="700"
         fontSize={displayedNameFontSize}
-        lineHeight={isWeb ? `${nameLineHeight}px` : nameLineHeight}
-        numberOfLines={isWide ? 1 : undefined}
+        numberOfLines={1}
+        style={{ height: nameLineHeight + 16 }}
       >
         {item.name}
-      </Paragraph>
-      <Paragraph color="muted" fontSize={14}>
+      </Text>
+      <Paragraph color="muted" fontSize={14} style={{ flexGrow: 0, flexShrink: 0 }}>
         {meta}
       </Paragraph>
       {isWide ? (
         <>
-          <YStack
-            ref={hoverRef}
-            testID="ads-carousel-details-scroll-area"
-            position="relative"
-            style={{
-              flexGrow: 1,
-              flexShrink: 1,
-              paddingRight: isWeb ? 8 : undefined,
-            }}
-            minH={0}
-            width="100%"
-            mt={8}
-          >
+          {isWeb ? (
+            <YStack
+              ref={hoverRef}
+              testID="ads-carousel-details-scroll-area"
+              position="relative"
+              style={{ flexGrow: 1, flexShrink: 1, paddingRight: 8 }}
+              minH={0}
+              width="100%"
+              mt={8}
+            >
+              <ScrollView
+                ref={scrollRef}
+                testID="ads-carousel-details-scroll"
+                className="hide-native-scrollbar"
+                flex={1}
+                minH={0}
+                width="100%"
+                showsVerticalScrollIndicator={false}
+              >
+                <YStack width="100%">
+                  {item.phone ? <ContactRow label={dictionary.phone} value={item.phone} /> : null}
+                  {item.phone ? (
+                    <ContactRow label={dictionary.whatsapp} value={item.phone} />
+                  ) : null}
+                  {item.address ? (
+                    <ContactRow label={dictionary.address} value={item.address} />
+                  ) : null}
+                  {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
+                </YStack>
+              </ScrollView>
+              <ScrollbarThumb
+                testID="ads-carousel-details-scroll-thumb"
+                orientation="vertical"
+                geometry={scrollbar.geometry}
+                visible={scrollbar.visible}
+                dragging={scrollbar.dragging}
+                thumbRef={scrollbar.thumbRef}
+              />
+            </YStack>
+          ) : (
             <ScrollView
-              ref={scrollRef}
               testID="ads-carousel-details-scroll"
-              className="hide-native-scrollbar"
               flex={1}
               minH={0}
               width="100%"
+              mt={8}
               showsVerticalScrollIndicator={false}
             >
               <YStack width="100%">
@@ -159,15 +186,7 @@ function AdsCarouselDetails({
                 {schedule ? <ContactRow label={dictionary.schedule} value={schedule} /> : null}
               </YStack>
             </ScrollView>
-            <ScrollbarThumb
-              testID="ads-carousel-details-scroll-thumb"
-              orientation="vertical"
-              geometry={scrollbar.geometry}
-              visible={scrollbar.visible}
-              dragging={scrollbar.dragging}
-              thumbRef={scrollbar.thumbRef}
-            />
-          </YStack>
+          )}
           {showsBusinessCta ? (
             <Button
               type="button"
