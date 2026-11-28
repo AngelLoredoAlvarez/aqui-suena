@@ -3,7 +3,7 @@
 import type { AdsCarouselItem } from "@aqui-suena/api/client";
 import { AdsCarousel } from "@aqui-suena/ui/ads-carousel/components/ads-carousel";
 import { renderWithProviders } from "@aqui-suena/ui/test-utils";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("tamagui", async (importOriginal) => {
@@ -36,13 +36,26 @@ describe("AdsCarousel wide details", () => {
   it("keeps the contact list scrollable and the actions outside the scroll area", () => {
     renderWithProviders(<AdsCarousel items={[ITEM]} />, { locale: "es" });
 
-    const scroll = screen.getByTestId("ads-carousel-details-scroll");
+    const scroll = screen.getByTestId("ads-carousel-details-scroll") as HTMLElement;
 
-    expect(scroll.classList.contains("hover-reveal-scroll")).toBe(true);
+    expect(scroll.classList.contains("hide-native-scrollbar")).toBe(true);
     expect(scroll.contains(screen.getByText("Teléfono"))).toBe(true);
     expect(scroll.contains(screen.getByText("Ver negocio"))).toBe(false);
     expect(scroll.contains(screen.getByText("Llamar"))).toBe(false);
     expect(scroll.contains(screen.getByText("Cómo llegar"))).toBe(false);
+
+    Object.defineProperty(scroll, "clientHeight", { configurable: true, value: 150 });
+    Object.defineProperty(scroll, "scrollHeight", { configurable: true, value: 500 });
+    fireEvent.scroll(scroll);
+
+    const area = screen.getByTestId("ads-carousel-details-scroll-area");
+    const thumb = screen.getByTestId("ads-carousel-details-scroll-thumb");
+
+    expect(thumb.getAttribute("data-visible")).toBe("false");
+    fireEvent(area, new Event("pointerenter"));
+    expect(thumb.getAttribute("data-visible")).toBe("true");
+    fireEvent(area, new Event("pointerleave"));
+    expect(thumb.getAttribute("data-visible")).toBe("false");
   });
 
   it.each(["trades", "commerce"] as const)("shows the Ver negocio CTA for the %s plan", (plan) => {
